@@ -18,7 +18,7 @@ export default function CitizenshipEligibilityPage() {
         description="Estimate when you may be eligible to apply for naturalization based on how long you have held a green card."
       />
 
-      <section className="section-padding">
+      <section className="section-padding !pt-10 sm:!pt-16">
         <div className="container-main">
           <CitizenshipEligibilityCalculator />
         </div>
