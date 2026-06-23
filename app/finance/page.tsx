@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/PageHeader";
 import { GuideCard } from "@/components/GuideCard";
+import { TopicCard } from "@/components/TopicCard";
 import { financeGuides } from "@/lib/data/guides";
 import { createMetadata } from "@/lib/metadata";
 
@@ -44,26 +45,20 @@ export default function FinancePage() {
 
       <section className="section-padding">
         <div className="container-main">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {topics.map((topic) => (
-              <div key={topic.title} className="card text-center">
-                <span className="text-3xl" role="img" aria-hidden="true">
-                  {topic.icon}
-                </span>
-                <h2 className="heading-3 mt-4">{topic.title}</h2>
-                <p className="mt-2 text-sm text-slate-600">{topic.description}</p>
-              </div>
+              <TopicCard key={topic.title} {...topic} />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section-padding bg-white" aria-labelledby="all-guides">
+      <section className="section-padding section-alt" aria-labelledby="all-guides">
         <div className="container-main">
-          <h2 id="all-guides" className="heading-2 mb-10">
+          <h2 id="all-guides" className="heading-2 mb-8 sm:mb-10">
             All Finance Guides
           </h2>
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
             {financeGuides.map((guide) => (
               <article key={guide.slug} id={guide.slug} className="scroll-mt-24">
                 <GuideCard guide={guide} basePath="/finance" />

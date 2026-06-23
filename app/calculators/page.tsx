@@ -11,9 +11,21 @@ export const metadata = createMetadata({
 });
 
 const categories = [
-  { key: "immigration" as const, label: "Immigration", description: "Visa timelines, green card dates, and lottery odds." },
-  { key: "finance" as const, label: "Finance", description: "Mortgages, retirement savings, and credit planning." },
-  { key: "tax" as const, label: "Tax", description: "Residency tests and FICA exemption checks." },
+  {
+    key: "immigration" as const,
+    label: "Immigration",
+    description: "Visa timelines, green card dates, and lottery odds.",
+  },
+  {
+    key: "finance" as const,
+    label: "Finance",
+    description: "Mortgages, retirement savings, and credit planning.",
+  },
+  {
+    key: "tax" as const,
+    label: "Tax",
+    description: "Residency tests and FICA exemption checks.",
+  },
 ];
 
 export default function CalculatorsPage() {
@@ -30,7 +42,7 @@ export default function CalculatorsPage() {
         return (
           <section
             key={category.key}
-            className={`section-padding ${index % 2 === 1 ? "bg-white" : ""}`}
+            className={`section-padding ${index % 2 === 1 ? "section-alt" : ""}`}
             aria-labelledby={`category-${category.key}`}
           >
             <div className="container-main">
@@ -38,7 +50,7 @@ export default function CalculatorsPage() {
                 {category.label}
               </h2>
               <p className="mt-3 max-w-2xl text-lead">{category.description}</p>
-              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {items.map((calculator) => (
                   <article key={calculator.slug} id={calculator.slug} className="scroll-mt-24">
                     <CalculatorCard calculator={calculator} />

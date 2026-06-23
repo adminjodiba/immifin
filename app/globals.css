@@ -8,7 +8,10 @@
   }
 
   body {
-    @apply bg-brand-50 text-slate-800 antialiased;
+    @apply bg-slate-50 text-slate-800 antialiased;
+    background-image:
+      radial-gradient(at 0% 0%, rgb(239 246 255 / 0.6) 0, transparent 50%),
+      radial-gradient(at 100% 0%, rgb(219 234 254 / 0.4) 0, transparent 40%);
   }
 }
 
@@ -18,34 +21,62 @@
   }
 
   .section-padding {
-    @apply py-16 sm:py-20 lg:py-24;
+    @apply py-14 sm:py-20 lg:py-24;
+  }
+
+  .section-alt {
+    @apply bg-white/70 backdrop-blur-sm;
   }
 
   .heading-1 {
-    @apply text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl;
+    @apply text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl;
   }
 
   .heading-2 {
-    @apply text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl;
+    @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl;
   }
 
   .heading-3 {
-    @apply text-xl font-semibold text-slate-900;
+    @apply text-lg font-semibold text-slate-900 sm:text-xl;
   }
 
   .text-lead {
-    @apply text-lg text-slate-600 sm:text-xl;
+    @apply text-base leading-relaxed text-slate-600 sm:text-lg;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-700/20 transition-all hover:bg-brand-800 hover:shadow-brand-700/30 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-brand-200 bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-all hover:border-brand-200 hover:bg-brand-50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+  }
+
+  .btn-ghost-light {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition-all hover:bg-white/20 active:scale-[0.98];
+  }
+
+  .btn-white {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-800 shadow-lg shadow-brand-900/10 transition-all hover:bg-blue-50 active:scale-[0.98];
   }
 
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md;
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-200/40 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-brand-200/50 sm:p-6;
+  }
+
+  .card-static {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-200/40 sm:p-6;
+  }
+
+  .input-field {
+    @apply mt-2 block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-base text-slate-900 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10 sm:text-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .link-arrow {
+    @apply inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800;
   }
 }

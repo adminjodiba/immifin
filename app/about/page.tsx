@@ -1,8 +1,8 @@
 import { PageHeader } from "@/components/PageHeader";
 import { ArticleCard } from "@/components/ArticleCard";
+import { CtaBanner } from "@/components/CtaBanner";
 import { articles } from "@/lib/data/articles";
 import { createMetadata } from "@/lib/metadata";
-import Link from "next/link";
 
 export const metadata = createMetadata({
   title: "About",
@@ -15,14 +15,17 @@ const values = [
   {
     title: "Clarity",
     description: "We translate complex immigration and finance topics into clear, actionable guidance.",
+    icon: "✦",
   },
   {
     title: "Accuracy",
     description: "Our content is researched and updated to reflect current policies and best practices.",
+    icon: "◎",
   },
   {
     title: "Accessibility",
     description: "Everyone deserves access to quality information, regardless of their background.",
+    icon: "❋",
   },
 ];
 
@@ -37,14 +40,14 @@ export default function AboutPage() {
 
       <section className="section-padding">
         <div className="container-main">
-          <div className="mx-auto max-w-3xl">
+          <div className="card-static mx-auto max-w-3xl">
             <h2 className="heading-2">Our Mission</h2>
-            <p className="mt-6 text-lg leading-relaxed text-slate-600">
+            <p className="mt-5 text-lead">
               Moving to a new country is one of life&apos;s biggest transitions. Immifin was
               created to make that journey easier by providing trustworthy immigration guides,
               financial tools, and practical calculators — all in one place.
             </p>
-            <p className="mt-4 text-lg leading-relaxed text-slate-600">
+            <p className="mt-4 text-lead">
               Whether you&apos;re on an H-1B visa, pursuing a green card, or building your first
               credit history, we&apos;re here to help you make informed decisions every step of the way.
             </p>
@@ -52,13 +55,19 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-white">
+      <section className="section-padding section-alt">
         <div className="container-main">
           <h2 className="heading-2 text-center">Our Values</h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+          <p className="mx-auto mt-3 max-w-xl text-center text-lead">
+            The principles that guide everything we publish.
+          </p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-6">
             {values.map((value) => (
-              <div key={value.title} className="card text-center">
-                <h3 className="heading-3">{value.title}</h3>
+              <div key={value.title} className="card-static text-center">
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-lg font-bold text-brand-700 ring-1 ring-brand-100">
+                  {value.icon}
+                </span>
+                <h3 className="heading-3 mt-5">{value.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{value.description}</p>
               </div>
             ))}
@@ -72,7 +81,7 @@ export default function AboutPage() {
           <p className="mt-3 max-w-2xl text-lead">
             Stay up to date with immigration policy changes and financial tips for newcomers.
           </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {articles.map((article) => (
               <ArticleCard key={article.slug} article={article} />
             ))}
@@ -80,17 +89,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-brand-50">
-        <div className="container-main text-center">
-          <h2 className="heading-2 text-brand-900">Get in Touch</h2>
-          <p className="mx-auto mt-4 max-w-xl text-lead">
-            Have a question or suggestion? We&apos;d love to hear from you.
-          </p>
-          <Link href="/contact" className="btn-primary mt-8">
-            Contact Us
-          </Link>
-        </div>
-      </section>
+      <CtaBanner
+        title="Get in Touch"
+        description="Have a question or suggestion? We'd love to hear from you."
+        primaryCta={{ href: "/contact", label: "Contact Us" }}
+      />
     </>
   );
 }

@@ -18,8 +18,8 @@ export default function ContactPage() {
 
       <section className="section-padding">
         <div className="container-main">
-          <div className="mx-auto grid max-w-4xl gap-12 lg:grid-cols-2">
-            <div>
+          <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="card-static">
               <h2 className="heading-2">Get in Touch</h2>
               <p className="mt-4 text-lead">
                 Whether you have feedback on our guides, a question about immigration or finance,
@@ -27,27 +27,31 @@ export default function ContactPage() {
               </p>
 
               <dl className="mt-8 space-y-6">
-                <div>
-                  <dt className="text-sm font-semibold text-slate-900">Email</dt>
+                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/60">
+                  <dt className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</dt>
                   <dd className="mt-1">
                     <a
                       href="mailto:hello@immifin.com"
-                      className="text-brand-700 hover:text-brand-800"
+                      className="text-base font-medium text-brand-700 hover:text-brand-800"
                     >
                       hello@immifin.com
                     </a>
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-semibold text-slate-900">Response Time</dt>
-                  <dd className="mt-1 text-slate-600">We typically respond within 1–2 business days.</dd>
+                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/60">
+                  <dt className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Response Time
+                  </dt>
+                  <dd className="mt-1 text-sm text-slate-600">
+                    We typically respond within 1–2 business days.
+                  </dd>
                 </div>
               </dl>
             </div>
 
-            <form className="card space-y-6" action="#" method="post">
+            <form className="card-static space-y-5" action="#" method="post">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-slate-900">
+                <label htmlFor="name" className="block text-sm font-semibold text-slate-900">
                   Name
                 </label>
                 <input
@@ -55,12 +59,12 @@ export default function ContactPage() {
                   id="name"
                   name="name"
                   required
-                  className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  className="input-field"
                   placeholder="Your name"
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-900">
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-900">
                   Email
                 </label>
                 <input
@@ -68,19 +72,15 @@ export default function ContactPage() {
                   id="email"
                   name="email"
                   required
-                  className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  className="input-field"
                   placeholder="you@example.com"
                 />
               </div>
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-slate-900">
+                <label htmlFor="subject" className="block text-sm font-semibold text-slate-900">
                   Subject
                 </label>
-                <select
-                  id="subject"
-                  name="subject"
-                  className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                >
+                <select id="subject" name="subject" className="input-field">
                   <option>General Inquiry</option>
                   <option>Content Feedback</option>
                   <option>Partnership</option>
@@ -88,7 +88,7 @@ export default function ContactPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-slate-900">
+                <label htmlFor="message" className="block text-sm font-semibold text-slate-900">
                   Message
                 </label>
                 <textarea
@@ -96,7 +96,7 @@ export default function ContactPage() {
                   name="message"
                   rows={5}
                   required
-                  className="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  className="input-field resize-none"
                   placeholder="How can we help?"
                 />
               </div>
