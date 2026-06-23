@@ -9,7 +9,7 @@ const categoryColors: Record<Calculator["category"], string> = {
 
 export function CalculatorCard({ calculator }: { calculator: Calculator }) {
   return (
-    <Link href={`/calculators#${calculator.slug}`} className="card group block h-full">
+    <Link href={calculator.href ?? `/calculators#${calculator.slug}`} className="card group block h-full">
       <span
         className={`inline-block rounded-full px-3 py-1 text-xs font-medium capitalize ${categoryColors[calculator.category]}`}
       >

@@ -4,9 +4,19 @@ export type Calculator = {
   description: string;
   category: "immigration" | "finance" | "tax";
   featured?: boolean;
+  href?: string;
 };
 
 export const calculators: Calculator[] = [
+  {
+    slug: "citizenship-eligibility",
+    title: "Citizenship Eligibility Calculator",
+    description:
+      "Estimate when you may apply for U.S. citizenship based on your green card date and marital status.",
+    category: "immigration",
+    featured: true,
+    href: "/calculators/citizenship-eligibility",
+  },
   {
     slug: "visa-wait-time",
     title: "Visa Wait Time Estimator",

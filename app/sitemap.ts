@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/immigration",
     "/finance",
     "/calculators",
+    "/calculators/citizenship-eligibility",
     "/about",
     "/privacy",
     "/terms",
