@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import {
   getVisaBulletinHistory,
-  VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS,
   type VisaBulletinHistoryRecord,
 } from "@/lib/visaBulletinHistory";
 
 export const runtime = "nodejs";
-export const revalidate = VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS;
+export const revalidate = 86400;
 
 type DebugHistoryResponse = {
   totalRows: number;

@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 import {
   getVisaBulletinHistory,
   parseHistoryType,
-  VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS,
   type VisaBulletinHistoryQuery,
 } from "@/lib/visaBulletinHistory";
 
 export const runtime = "nodejs";
-export const revalidate = VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS;
+export const revalidate = 86400;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
