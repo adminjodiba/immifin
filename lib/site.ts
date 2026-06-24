@@ -12,7 +12,7 @@ export const siteConfig = {
 
 export const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/immigration", label: "Immigration" },
+  { href: "/immigration", label: "Immigration", hasDropdown: true },
   { href: "/finance", label: "Finance" },
   { href: "/calculators", label: "Calculators", hasDropdown: true },
   { href: "/insurance", label: "Insurance" },

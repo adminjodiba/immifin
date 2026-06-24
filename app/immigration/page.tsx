@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { GuideCard } from "@/components/GuideCard";
 import { TopicCard } from "@/components/TopicCard";
 import { immigrationGuides } from "@/lib/data/guides";
+import { immigrationMenuLinks } from "@/lib/immigration-menu";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -44,10 +46,31 @@ export default function ImmigrationPage() {
       />
 
       <section className="section-padding">
-        <div className="container-main">
+        <div className="container-main space-y-8">
           <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {topics.map((topic) => (
               <TopicCard key={topic.title} {...topic} />
+            ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {immigrationMenuLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="card group flex flex-col"
+              >
+                <span className="badge bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                  Immigration tool
+                </span>
+                <h2 className="heading-3 mt-4 transition-colors group-hover:text-brand-700">
+                  {item.label}
+                </h2>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+                  {item.description}
+                </p>
+                <span className="link-arrow mt-5">Open dashboard</span>
+              </Link>
             ))}
           </div>
         </div>

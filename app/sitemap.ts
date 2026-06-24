@@ -5,6 +5,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     "",
     "/immigration",
+    "/immigration/visa-bulletin",
     "/finance",
     "/insurance",
     "/calculators",

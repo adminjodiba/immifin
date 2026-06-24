@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
+import { immigrationMenuLinks } from "@/lib/immigration-menu";
 import { Logo } from "./Logo";
 
 type HeaderProps = {
@@ -11,11 +12,19 @@ type HeaderProps = {
 const navLinkClassName =
   "rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700";
 
-function CalculatorsDropdown() {
+function NavDropdown({
+  href,
+  label,
+  items,
+}: {
+  href: string;
+  label: string;
+  items: readonly { href: string; label: string; description: string }[];
+}) {
   return (
     <div className="group relative">
-      <Link href="/calculators" className={`${navLinkClassName} inline-flex items-center gap-1`}>
-        Calculators
+      <Link href={href} className={`${navLinkClassName} inline-flex items-center gap-1`}>
+        {label}
         <svg
           className="h-4 w-4 transition-transform group-hover:rotate-180"
           fill="none"
@@ -30,7 +39,7 @@ function CalculatorsDropdown() {
 
       <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
-          {calculatorMenuLinks.map((item) => (
+          {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -46,6 +55,14 @@ function CalculatorsDropdown() {
   );
 }
 
+function CalculatorsDropdown() {
+  return <NavDropdown href="/calculators" label="Calculators" items={calculatorMenuLinks} />;
+}
+
+function ImmigrationDropdown() {
+  return <NavDropdown href="/immigration" label="Immigration" items={immigrationMenuLinks} />;
+}
+
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
@@ -59,15 +76,20 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             className="hidden items-center justify-center gap-0.5 md:flex"
             aria-label="Main navigation"
           >
-            {navLinks.map((link) =>
-              "hasDropdown" in link && link.hasDropdown ? (
-                <CalculatorsDropdown key={link.href} />
-              ) : (
+            {navLinks.map((link) => {
+              if ("hasDropdown" in link && link.hasDropdown) {
+                if (link.href === "/immigration") {
+                  return <ImmigrationDropdown key={link.href} />;
+                }
+                return <CalculatorsDropdown key={link.href} />;
+              }
+
+              return (
                 <Link key={link.href} href={link.href} className={navLinkClassName}>
                   {link.label}
                 </Link>
-              ),
-            )}
+              );
+            })}
           </nav>
 
           <div className="justify-self-end">
@@ -96,6 +118,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             <div className="flex flex-col items-center gap-1 rounded-2xl bg-slate-50/80 p-2">
               {navLinks.map((link) => {
                 if ("hasDropdown" in link && link.hasDropdown) {
+                  const submenu =
+                    link.href === "/immigration" ? immigrationMenuLinks : calculatorMenuLinks;
+
                   return (
                     <div key={link.href} className="w-full">
                       <Link
@@ -106,7 +131,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                         {link.label}
                       </Link>
                       <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
-                        {calculatorMenuLinks.map((item) => (
+                        {submenu.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
