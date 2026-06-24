@@ -16,6 +16,7 @@ import type {
 } from "@/lib/visaBulletinHistory";
 import { VisaBulletinHistoryChart } from "@/components/VisaBulletinHistoryChart";
 import { VisaBulletinHistoryMovementChart } from "@/components/VisaBulletinHistoryMovementChart";
+import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 const categoryOptions = [
   { value: "EB1", label: "EB-1" },
   { value: "EB2", label: "EB-2" },
@@ -278,6 +279,20 @@ export function VisaBulletinHistoricalTrends() {
               <li aria-hidden="true" className="text-slate-300">
                 /
               </li>
+              <li aria-hidden="true" className="text-slate-300">
+                /
+              </li>
+              <li>
+                <Link
+                  href="/immigration/visa-bulletin"
+                  className="transition-colors hover:text-brand-700"
+                >
+                  Visa Bulletin Dashboard
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-slate-300">
+                /
+              </li>
               <li className="font-medium text-brand-700">Visa Bulletin Historical Trends</li>
             </ol>
           </nav>
@@ -387,6 +402,39 @@ export function VisaBulletinHistoricalTrends() {
               <HistoryTable rows={rows} />
             )}
           </section>
+
+          <RelatedImmigrationResources
+            resources={[
+              {
+                title: "Visa Bulletin Dashboard",
+                description:
+                  "View the latest employment-based visa bulletin dates and priority date cutoffs.",
+                buttonLabel: "Open Dashboard",
+                href: "/immigration/visa-bulletin",
+              },
+              {
+                title: "Visa Bulletin Movement Tracker",
+                description:
+                  "Compare current and previous visa bulletin cutoff dates month over month.",
+                buttonLabel: "Open Tracker",
+                href: "/immigration/visa-bulletin-movement",
+              },
+              {
+                title: "Green Card Wait Time Calculator",
+                description:
+                  "Estimate how long you may wait based on your priority date and category.",
+                buttonLabel: "Open Calculator",
+                href: "/calculators/green-card-wait-time",
+              },
+              {
+                title: "Citizenship Eligibility Calculator",
+                description:
+                  "Check whether you may be eligible to apply for U.S. citizenship based on your timeline.",
+                buttonLabel: "Open Calculator",
+                href: "/calculators/citizenship-eligibility",
+              },
+            ]}
+          />
 
           <p className="text-sm leading-relaxed text-slate-500">
             Historical data is sourced from archived visa bulletin records. This page is for

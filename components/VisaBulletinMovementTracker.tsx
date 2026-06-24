@@ -420,6 +420,13 @@ export function VisaBulletinMovementTracker() {
                 href: "/immigration/visa-bulletin",
               },
               {
+                title: "Visa Bulletin Historical Trends",
+                description:
+                  "Explore archived cutoff dates, trend charts, and month-over-month movement analysis.",
+                buttonLabel: "View Trends",
+                href: "/immigration/visa-bulletin-history",
+              },
+              {
                 title: "Green Card Wait Time Calculator",
                 description:
                   "Estimate how long you may wait based on your priority date and category.",

@@ -300,6 +300,9 @@ export function VisaBulletinDashboard({ rows, error = null }: VisaBulletinDashbo
               <Link href="/immigration/visa-bulletin-movement" className="btn-primary">
                 Visa Bulletin Movement Tracker
               </Link>
+              <Link href="/immigration/visa-bulletin-history" className="btn-secondary">
+                Visa Bulletin History
+              </Link>
               <Link href="/calculators/green-card-wait-time" className="btn-secondary">
                 Green Card Wait Time Calculator
               </Link>
