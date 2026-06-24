@@ -162,9 +162,13 @@ export function getCategoryCutoff(
   bulletin: VisaBulletin = latestVisaBulletin,
 ): CategoryCutoff {
   const table = category.startsWith("EB") ? bulletin.employment : bulletin.family;
-  const entry = table[category as EmploymentCategory & FamilyCategory][chargeability];
+  const entry: any = (table as any)[category][chargeability];
+
   return useFilingDate
-    ? { finalAction: entry.datesForFiling, datesForFiling: entry.datesForFiling }
+    ? {
+        finalAction: entry.datesForFiling,
+        datesForFiling: entry.datesForFiling,
+      }
     : entry;
 }
 
