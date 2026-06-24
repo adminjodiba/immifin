@@ -9,8 +9,6 @@ export const metadata = createMetadata({
   path: "/immigration/visa-bulletin",
 });
 
-export const dynamic = "force-dynamic";
-
 export default async function ImmigrationVisaBulletinPage() {
   let rows: VisaBulletinRow[] = [];
   let error: string | null = null;

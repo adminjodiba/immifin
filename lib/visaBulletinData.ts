@@ -246,7 +246,7 @@ export async function getVisaBulletinData(): Promise<VisaBulletinRow[]> {
   const response = await fetch(
     process.env.VISA_BULLETIN_CSV_URL ?? VISA_BULLETIN_CSV_URL,
     {
-      cache: "no-store",
+      next: { revalidate: 86400 },
     },
   );
 

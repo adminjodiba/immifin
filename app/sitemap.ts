@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/immigration",
     "/immigration/visa-bulletin",
+    "/immigration/visa-bulletin-movement",
     "/finance",
     "/insurance",
     "/calculators",

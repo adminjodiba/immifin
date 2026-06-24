@@ -297,7 +297,10 @@ export function VisaBulletinDashboard({ rows, error = null }: VisaBulletinDashbo
               Related Tools
             </h2>
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link href="/calculators/green-card-wait-time" className="btn-primary">
+              <Link href="/immigration/visa-bulletin-movement" className="btn-primary">
+                Visa Bulletin Movement Tracker
+              </Link>
+              <Link href="/calculators/green-card-wait-time" className="btn-secondary">
                 Green Card Wait Time Calculator
               </Link>
               <Link href="/calculators/citizenship-eligibility" className="btn-secondary">
