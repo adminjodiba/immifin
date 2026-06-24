@@ -7,6 +7,7 @@ import {
   employmentCategoryOptions,
   type LivePriorityDateCheck,
 } from "@/lib/visaBulletinData";
+import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 
 const categoryOptions = employmentCategoryOptions.filter(
   (option) => option.value !== "EB4" && option.value !== "EB5",
@@ -300,6 +301,18 @@ export function GreenCardWaitTimeCalculator() {
               </div>
             </div>
           )}
+
+          <RelatedImmigrationResources
+            resources={[
+              {
+                title: "Visa Bulletin Dashboard",
+                description:
+                  "View the latest employment-based visa bulletin dates and priority date cutoffs.",
+                buttonLabel: "Open Dashboard",
+                href: "/immigration/visa-bulletin",
+              },
+            ]}
+          />
 
           <div className="mt-8 flex gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:p-5">
             <span className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true">

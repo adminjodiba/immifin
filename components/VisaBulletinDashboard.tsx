@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   formatBulletinDate,
-  getVisaBulletinData,
   parseBulletinCutoffDate,
   type VisaBulletinRow,
 } from "@/lib/visaBulletinData";
@@ -10,6 +9,79 @@ type BulletinStatus = {
   label: string;
   badgeClass: string;
 };
+
+type CategoryKey = "EB1" | "EB2" | "EB3" | "OTHER";
+
+const categoryStyles: Record<
+  CategoryKey,
+  {
+    groupRow: string;
+    dataRow: string;
+    dataRowHover: string;
+    divider: string;
+    badge: string;
+    label: string;
+  }
+> = {
+  EB1: {
+    groupRow: "bg-blue-50",
+    dataRow: "bg-blue-50/40",
+    dataRowHover: "hover:bg-blue-100/50",
+    divider: "border-blue-100",
+    badge: "bg-blue-100 text-blue-900 ring-blue-200",
+    label: "EB-1",
+  },
+  EB2: {
+    groupRow: "bg-emerald-50",
+    dataRow: "bg-emerald-50/40",
+    dataRowHover: "hover:bg-emerald-100/50",
+    divider: "border-emerald-100",
+    badge: "bg-emerald-100 text-emerald-900 ring-emerald-200",
+    label: "EB-2",
+  },
+  EB3: {
+    groupRow: "bg-amber-50",
+    dataRow: "bg-amber-50/40",
+    dataRowHover: "hover:bg-amber-100/50",
+    divider: "border-amber-100",
+    badge: "bg-amber-100 text-amber-900 ring-amber-200",
+    label: "EB-3",
+  },
+  OTHER: {
+    groupRow: "bg-slate-50",
+    dataRow: "bg-slate-50/40",
+    dataRowHover: "hover:bg-slate-100/50",
+    divider: "border-slate-200",
+    badge: "bg-slate-100 text-slate-800 ring-slate-200",
+    label: "Other",
+  },
+};
+
+function normalizeCategoryKey(category: string): CategoryKey {
+  const match = category.match(/eb\s*(\d)/i);
+  if (!match) {
+    return "OTHER";
+  }
+
+  const key = `EB${match[1]}` as CategoryKey;
+  return key in categoryStyles ? key : "OTHER";
+}
+
+function groupRowsByCategory(rows: VisaBulletinRow[]): [CategoryKey, VisaBulletinRow[]][] {
+  const grouped = new Map<CategoryKey, VisaBulletinRow[]>();
+
+  for (const row of rows) {
+    const key = normalizeCategoryKey(row.category);
+    const existing = grouped.get(key) ?? [];
+    existing.push(row);
+    grouped.set(key, existing);
+  }
+
+  const order: CategoryKey[] = ["EB1", "EB2", "EB3", "OTHER"];
+  return order
+    .filter((key) => grouped.has(key))
+    .map((key) => [key, grouped.get(key)!]);
+}
 
 function getStatus(finalActionDate: string): BulletinStatus {
   const normalized = finalActionDate.trim().toUpperCase();
@@ -59,21 +131,104 @@ function getCurrentMonthLabel(): string {
   });
 }
 
-/** Loads the same data served by GET /api/visa-bulletin (direct lib call avoids dev-server self-fetch deadlocks). */
-async function loadVisaBulletinRows(): Promise<VisaBulletinRow[]> {
-  return getVisaBulletinData();
+function CategoryBadge({ categoryKey }: { categoryKey: CategoryKey }) {
+  const styles = categoryStyles[categoryKey];
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${styles.badge}`}
+    >
+      {styles.label}
+    </span>
+  );
 }
 
-export async function VisaBulletinDashboard() {
-  let rows: VisaBulletinRow[] = [];
-  let error: string | null = null;
+function BulletinTable({ rows }: { rows: VisaBulletinRow[] }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-200/80">
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-slate-50">
+            <tr>
+              <th
+                scope="col"
+                className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
+              >
+                Category
+              </th>
+              <th
+                scope="col"
+                className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
+              >
+                Country
+              </th>
+              <th
+                scope="col"
+                className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
+              >
+                Final Action Date
+              </th>
+              <th
+                scope="col"
+                className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
+              >
+                Status
+              </th>
+            </tr>
+          </thead>
+          {groupRowsByCategory(rows).map(([categoryKey, groupRows]) => {
+            const styles = categoryStyles[categoryKey];
 
-  try {
-    rows = await loadVisaBulletinRows();
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to load visa bulletin data.";
-  }
+            return (
+              <tbody key={categoryKey} className={`border-t-2 ${styles.divider}`}>
+                <tr className={styles.groupRow}>
+                  <th colSpan={4} scope="colgroup" className="px-4 py-3 text-left sm:px-6">
+                    <CategoryBadge categoryKey={categoryKey} />
+                  </th>
+                </tr>
+                {groupRows.map((row) => {
+                  const status = getStatus(row.finalActionDate);
 
+                  return (
+                    <tr
+                      key={`${row.category}-${row.country}`}
+                      className={`border-t ${styles.divider} ${styles.dataRow} ${styles.dataRowHover}`}
+                    >
+                      <td className="whitespace-nowrap px-4 py-4 text-slate-500 sm:px-6">
+                        <span className="sr-only">{row.category}</span>
+                        <span aria-hidden="true">—</span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 font-medium text-slate-900 sm:px-6">
+                        {row.country}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-slate-800 sm:px-6">
+                        {formatFinalActionDate(row.finalActionDate)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 sm:px-6">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${status.badgeClass}`}
+                        >
+                          {status.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            );
+          })}
+        </table>
+      </div>
+    </div>
+  );
+}
+
+type VisaBulletinDashboardProps = {
+  rows: VisaBulletinRow[];
+  error?: string | null;
+};
+
+export function VisaBulletinDashboard({ rows, error = null }: VisaBulletinDashboardProps) {
   return (
     <>
       <section className="relative overflow-hidden border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
@@ -134,69 +289,7 @@ export async function VisaBulletinDashboard() {
               {error}
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-200/80">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
-                      >
-                        Category
-                      </th>
-                      <th
-                        scope="col"
-                        className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
-                      >
-                        Country
-                      </th>
-                      <th
-                        scope="col"
-                        className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
-                      >
-                        Final Action Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
-                      >
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
-                    {rows.map((row) => {
-                      const status = getStatus(row.finalActionDate);
-
-                      return (
-                        <tr
-                          key={`${row.category}-${row.country}`}
-                          className="hover:bg-slate-50/80"
-                        >
-                          <td className="whitespace-nowrap px-4 py-4 font-medium text-slate-900 sm:px-6">
-                            {row.category}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-4 text-slate-700 sm:px-6">
-                            {row.country}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-4 text-slate-700 sm:px-6">
-                            {formatFinalActionDate(row.finalActionDate)}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-4 sm:px-6">
-                            <span
-                              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${status.badgeClass}`}
-                            >
-                              {status.label}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <BulletinTable rows={rows} />
           )}
 
           <section aria-labelledby="related-tools">

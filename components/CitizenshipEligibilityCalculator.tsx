@@ -8,6 +8,7 @@ import {
   getEligibilityStatus,
   type CitizenshipEligibilityResult,
 } from "@/lib/citizenship-eligibility";
+import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 
 const inputClassName =
   "mt-2 block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-base text-slate-900 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10 sm:text-sm";
@@ -261,6 +262,24 @@ export function CitizenshipEligibilityCalculator() {
               </div>
             </div>
           )}
+
+          <RelatedImmigrationResources
+            resources={[
+              {
+                title: "Visa Bulletin Dashboard",
+                description: "Track current employment-based visa bulletin dates.",
+                buttonLabel: "Open Dashboard",
+                href: "/immigration/visa-bulletin",
+              },
+              {
+                title: "Green Card Wait Time Calculator",
+                description:
+                  "Check whether your priority date is current based on the latest visa bulletin.",
+                buttonLabel: "Check Priority Date",
+                href: "/calculators/green-card-wait-time",
+              },
+            ]}
+          />
 
           <div className="mt-8 flex gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:p-5">
             <span className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true">
