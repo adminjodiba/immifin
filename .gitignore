@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,7 +12,7 @@
 /coverage
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -31,6 +31,13 @@ yarn-error.log*
 # env files
 .env*
 !.env.example
+
+# credentials — never commit secrets (entire folder)
+credentials/
+credentials/**
+
+# legacy key folder (move files into credentials/)
+Gsheet Key Jason/
 
 # typescript
 *.tsbuildinfo

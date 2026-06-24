@@ -14,7 +14,8 @@ export const navLinks = [
   { href: "/", label: "Home" },
   { href: "/immigration", label: "Immigration" },
   { href: "/finance", label: "Finance" },
-  { href: "/calculators", label: "Calculators" },
+  { href: "/calculators", label: "Calculators", hasDropdown: true },
+  { href: "/insurance", label: "Insurance" },
   { href: "/about", label: "About" },
 ] as const;
 

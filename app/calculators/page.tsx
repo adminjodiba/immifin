@@ -26,6 +26,11 @@ const categories = [
     label: "Tax",
     description: "Residency tests and FICA exemption checks.",
   },
+  {
+    key: "insurance" as const,
+    label: "Insurance",
+    description: "Health, auto, and renters insurance estimates.",
+  },
 ];
 
 export default function CalculatorsPage() {

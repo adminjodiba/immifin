@@ -5,6 +5,7 @@ const categoryColors: Record<Calculator["category"], string> = {
   immigration: "bg-blue-50 text-blue-700 ring-blue-100",
   finance: "bg-emerald-50 text-emerald-700 ring-emerald-100",
   tax: "bg-amber-50 text-amber-700 ring-amber-100",
+  insurance: "bg-violet-50 text-violet-700 ring-violet-100",
 };
 
 export function CalculatorCard({ calculator }: { calculator: Calculator }) {

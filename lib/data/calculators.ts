@@ -2,7 +2,7 @@ export type Calculator = {
   slug: string;
   title: string;
   description: string;
-  category: "immigration" | "finance" | "tax";
+  category: "immigration" | "finance" | "tax" | "insurance";
   featured?: boolean;
   href?: string;
 };
@@ -32,6 +32,7 @@ export const calculators: Calculator[] = [
       "Check how your priority date compares to the latest visa bulletin cutoffs.",
     category: "immigration",
     featured: true,
+    href: "/calculators/green-card-wait-time",
   },
   {
     slug: "tax-residency",
@@ -76,6 +77,21 @@ export const calculators: Calculator[] = [
     description:
       "Check if you qualify for a Social Security and Medicare tax exemption.",
     category: "tax",
+  },
+  {
+    slug: "health-insurance-premium",
+    title: "Health Insurance Premium Estimator",
+    description:
+      "Estimate monthly health insurance costs based on coverage type and household size.",
+    category: "insurance",
+    featured: true,
+  },
+  {
+    slug: "renters-insurance",
+    title: "Renters Insurance Calculator",
+    description:
+      "Estimate renters insurance premiums to protect your belongings as a tenant.",
+    category: "insurance",
   },
 ];
 
