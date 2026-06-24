@@ -15,6 +15,7 @@ import type {
   VisaBulletinHistoryRecord,
 } from "@/lib/visaBulletinHistory";
 import { VisaBulletinHistoryChart } from "@/components/VisaBulletinHistoryChart";
+import { VisaBulletinHistoryMovementChart } from "@/components/VisaBulletinHistoryMovementChart";
 const categoryOptions = [
   { value: "EB1", label: "EB-1" },
   { value: "EB2", label: "EB-2" },
@@ -357,6 +358,13 @@ export function VisaBulletinHistoricalTrends() {
               Trend Chart
             </h2>
             <VisaBulletinHistoryChart rows={rows} loading={loading} />
+          </section>
+
+          <section aria-labelledby="history-movement-chart">
+            <h2 id="history-movement-chart" className="heading-3 mb-4">
+              Monthly Advancement / Retrogression
+            </h2>
+            <VisaBulletinHistoryMovementChart rows={rows} loading={loading} />
           </section>
 
           <section aria-labelledby="history-table">

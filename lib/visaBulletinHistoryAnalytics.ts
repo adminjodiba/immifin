@@ -121,8 +121,8 @@ export function formatMovementDays(days: number | null): string {
 export type HistoryChartPoint = {
   month: string;
   monthLabel: string;
-  cutoffTimestamp: number;
   cutoffLabel: string;
+  daysFromStart: number;
 };
 
 function formatChartMonthLabel(month: string): string {
@@ -137,21 +137,88 @@ function formatChartMonthLabel(month: string): string {
 }
 
 export function buildHistoryChartData(records: VisaBulletinHistoryRecord[]): HistoryChartPoint[] {
-  return [...records]
+  const datedRows = [...records]
     .sort((a, b) => a.month.localeCompare(b.month))
-    .map((row) => {
-      const date = parseHistoryCutoffDate(row.cutoffDate);
+    .map((row) => ({
+      month: row.month,
+      monthLabel: formatChartMonthLabel(row.month),
+      date: parseHistoryCutoffDate(row.cutoffDate),
+      cutoffLabel: formatHistoryCutoffLabel(row.cutoffDate),
+    }))
+    .filter((row): row is { month: string; monthLabel: string; date: Date; cutoffLabel: string } =>
+      row.date !== null,
+    );
 
-      if (!date) {
-        return null;
-      }
+  if (datedRows.length === 0) {
+    return [];
+  }
 
-      return {
-        month: row.month,
-        monthLabel: formatChartMonthLabel(row.month),
-        cutoffTimestamp: date.getTime(),
-        cutoffLabel: formatHistoryCutoffLabel(row.cutoffDate),
-      };
-    })
-    .filter((point): point is HistoryChartPoint => point !== null);
+  const baselineDate = datedRows[0].date;
+
+  return datedRows.map((row) => ({
+    month: row.month,
+    monthLabel: row.monthLabel,
+    cutoffLabel: row.cutoffLabel,
+    daysFromStart: dayDiff(baselineDate, row.date),
+  }));
+}
+
+export type HistoryMovementChartPoint = {
+  month: string;
+  monthLabel: string;
+  currentCutoffLabel: string;
+  previousCutoffLabel: string;
+  movementDays: number;
+};
+
+export function formatMovementChartLabel(days: number): string {
+  if (days === 0) {
+    return "No Change";
+  }
+
+  const absolute = Math.abs(days);
+  const unit = absolute === 1 ? "Day" : "Days";
+
+  if (days > 0) {
+    return `Advanced ${absolute} ${unit}`;
+  }
+
+  return `Retrogressed ${absolute} ${unit}`;
+}
+
+export function buildHistoryMovementChartData(
+  records: VisaBulletinHistoryRecord[],
+): HistoryMovementChartPoint[] {
+  const datedRows = [...records]
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .map((row) => ({
+      month: row.month,
+      monthLabel: formatChartMonthLabel(row.month),
+      date: parseHistoryCutoffDate(row.cutoffDate),
+      cutoffLabel: formatHistoryCutoffLabel(row.cutoffDate),
+    }))
+    .filter((row): row is { month: string; monthLabel: string; date: Date; cutoffLabel: string } =>
+      row.date !== null,
+    );
+
+  if (datedRows.length < 2) {
+    return [];
+  }
+
+  const movementPoints: HistoryMovementChartPoint[] = [];
+
+  for (let index = 1; index < datedRows.length; index += 1) {
+    const previous = datedRows[index - 1];
+    const current = datedRows[index];
+
+    movementPoints.push({
+      month: current.month,
+      monthLabel: current.monthLabel,
+      currentCutoffLabel: current.cutoffLabel,
+      previousCutoffLabel: previous.cutoffLabel,
+      movementDays: dayDiff(previous.date, current.date),
+    });
+  }
+
+  return movementPoints;
 }

@@ -9,4 +9,10 @@ export const immigrationMenuLinks = [
     label: "Visa Bulletin Movement Tracker",
     description: "Month-over-month visa bulletin date movement",
   },
+  {
+    href: "/immigration/visa-bulletin-history",
+    label: "Visa Bulletin History",
+    description:
+      "Historical trends, charts, and movement analysis for Visa Bulletin cutoff dates.",
+  },
 ] as const;
