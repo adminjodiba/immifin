@@ -3,77 +3,18 @@
  * Existing calculators/pages continue using getVisaBulletinData() in visaBulletinData.ts.
  */
 
-export type VisaBulletinSheetName =
-  | "FinalActionDates"
-  | "DatesForFiling"
-  | "PreviousFinalActionDates"
-  | "PreviousDatesForFiling";
+import {
+  resolveVisaBulletinCsvUrl,
+  type VisaBulletinSheetKey,
+} from "@/lib/visaBulletinConfig";
+
+export type VisaBulletinSheetName = Exclude<VisaBulletinSheetKey, "VisaBulletinHistory">;
 
 export type BulletinSheetRow = {
   category: string;
   country: string;
   cutoffDate: string;
 };
-
-const DEFAULT_PUBLISH_BASE =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrvwKJOe-I0igAx68wdLWrr5dC6bSgTSMJ6K1_RwTjXuWa2YHM7dzMfdBhKgFmt4uSoHu0KqQN90YP/pub";
-
-const DEFAULT_FINAL_ACTION_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrvwKJOe-I0igAx68wdLWrr5dC6bSgTSMJ6K1_RwTjXuWa2YHM7dzMfdBhKgFmt4uSoHu0KqQN90YP/pub?output=csv";
-
-const DEFAULT_HISTORY_GID = "1745588952";
-
-const HISTORY_URL_ENV = "VISA_BULLETIN_URL_HISTORY";
-const HISTORY_GID_ENV = "VISA_BULLETIN_GID_HISTORY";
-
-const sheetUrlEnvKeys: Record<VisaBulletinSheetName, string> = {
-  FinalActionDates: "VISA_BULLETIN_URL_FINAL_ACTION_DATES",
-  DatesForFiling: "VISA_BULLETIN_URL_DATES_FOR_FILING",
-  PreviousFinalActionDates: "VISA_BULLETIN_URL_PREVIOUS_FINAL_ACTION_DATES",
-  PreviousDatesForFiling: "VISA_BULLETIN_URL_PREVIOUS_DATES_FOR_FILING",
-};
-
-const sheetGidEnvKeys: Record<VisaBulletinSheetName, string> = {
-  FinalActionDates: "VISA_BULLETIN_GID_FINAL_ACTION_DATES",
-  DatesForFiling: "VISA_BULLETIN_GID_DATES_FOR_FILING",
-  PreviousFinalActionDates: "VISA_BULLETIN_GID_PREVIOUS_FINAL_ACTION_DATES",
-  PreviousDatesForFiling: "VISA_BULLETIN_GID_PREVIOUS_DATES_FOR_FILING",
-};
-
-function buildPublishCsvUrl(gid: string): string {
-  const base = process.env.VISA_BULLETIN_PUBLISH_BASE ?? DEFAULT_PUBLISH_BASE;
-  return `${base}?gid=${gid}&single=true&output=csv`;
-}
-
-function resolveSheetUrl(sheetName: VisaBulletinSheetName): string {
-  const directUrl = process.env[sheetUrlEnvKeys[sheetName]]?.trim();
-  if (directUrl) {
-    return directUrl;
-  }
-
-  const gid = process.env[sheetGidEnvKeys[sheetName]]?.trim();
-  if (gid) {
-    return buildPublishCsvUrl(gid);
-  }
-
-  if (sheetName === "FinalActionDates") {
-    return process.env.VISA_BULLETIN_CSV_URL ?? DEFAULT_FINAL_ACTION_CSV_URL;
-  }
-
-  throw new Error(
-    `Missing sheet URL for ${sheetName}. Set ${sheetUrlEnvKeys[sheetName]} or ${sheetGidEnvKeys[sheetName]} in .env.local.`,
-  );
-}
-
-function resolveHistorySheetUrl(): string {
-  const directUrl = process.env[HISTORY_URL_ENV]?.trim();
-  if (directUrl) {
-    return directUrl;
-  }
-
-  const gid = process.env[HISTORY_GID_ENV]?.trim() ?? DEFAULT_HISTORY_GID;
-  return buildPublishCsvUrl(gid);
-}
 
 function parseCsvMatrix(csvText: string): string[][] {
   return csvText
@@ -107,7 +48,7 @@ async function fetchCsvText(url: string, label: string): Promise<string> {
 }
 
 async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<BulletinSheetRow[]> {
-  const url = resolveSheetUrl(sheetName);
+  const url = resolveVisaBulletinCsvUrl(sheetName);
   const csvText = await fetchCsvText(url, sheetName);
   const rows = parseCsvRows(csvText);
 
@@ -118,7 +59,7 @@ async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<Bulleti
 }
 
 export async function fetchVisaBulletinHistoryCsvRows(): Promise<string[][]> {
-  const url = resolveHistorySheetUrl();
+  const url = resolveVisaBulletinCsvUrl("VisaBulletinHistory");
   const csvText = await fetchCsvText(url, "VisaBulletinHistory");
   const rows = parseCsvMatrix(csvText);
   const dataRows = rows.length <= 1 ? [] : rows.slice(1);

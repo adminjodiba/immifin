@@ -1,3 +1,5 @@
+import { resolveVisaBulletinCsvUrl } from "@/lib/visaBulletinConfig";
+
 export type ChargeabilityArea =
   | "all"
   | "china"
@@ -239,16 +241,10 @@ export type VisaBulletinRow = {
   finalActionDate: string;
 };
 
-const VISA_BULLETIN_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrvwKJOe-I0igAx68wdLWrr5dC6bSgTSMJ6K1_RwTjXuWa2YHM7dzMfdBhKgFmt4uSoHu0KqQN90YP/pub?output=csv";
-
 export async function getVisaBulletinData(): Promise<VisaBulletinRow[]> {
-  const response = await fetch(
-    process.env.VISA_BULLETIN_CSV_URL ?? VISA_BULLETIN_CSV_URL,
-    {
-      next: { revalidate: 86400 },
-    },
-  );
+  const response = await fetch(resolveVisaBulletinCsvUrl("FinalActionDates"), {
+    next: { revalidate: 86400 },
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch visa bulletin CSV (${response.status})`);
