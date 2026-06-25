@@ -32,9 +32,5 @@ export function resolveVisaBulletinCsvUrl(sheet: VisaBulletinSheetKey): string {
   const base = getVisaBulletinPublishBase();
   const gid = resolveVisaBulletinGid(sheet);
 
-  if (gid === "0") {
-    return `${base}?output=csv`;
-  }
-
   return `${base}?gid=${gid}&single=true&output=csv`;
 }
