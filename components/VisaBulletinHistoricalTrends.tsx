@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import useSWR from "swr";
+import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
 import {
   formatBulletinDate,
   parseBulletinCutoffDate,
@@ -220,41 +222,23 @@ export function VisaBulletinHistoricalTrends() {
   const [category, setCategory] = useState("EB2");
   const [country, setCountry] = useState("India");
   const [type, setType] = useState<BulletinHistoryType>("FinalAction");
-  const [rows, setRows] = useState<VisaBulletinHistoryRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadHistory = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const params = new URLSearchParams({ category, country, type });
+  const key = `/api/visa-bulletin-history?${params.toString()}`;
+  const { data, error: swrError, isLoading } = useSWR<VisaBulletinHistoryRecord[]>(
+    key,
+    (url) => jsonFetcher(url, "Failed to load visa bulletin history."),
+    visaBulletinSwrOptions,
+  );
 
-    const params = new URLSearchParams({
-      category,
-      country,
-      type,
-    });
-
-    try {
-      const response = await fetch(`/api/visa-bulletin-history?${params.toString()}`);
-
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "Failed to load visa bulletin history.");
-      }
-
-      const data = (await response.json()) as VisaBulletinHistoryRecord[];
-      setRows(data);
-    } catch (err) {
-      setRows([]);
-      setError(err instanceof Error ? err.message : "Failed to load visa bulletin history.");
-    } finally {
-      setLoading(false);
-    }
-  }, [category, country, type]);
-
-  useEffect(() => {
-    void loadHistory();
-  }, [loadHistory]);
+  const rows = data ?? [];
+  const loading = isLoading;
+  const error =
+    swrError instanceof Error
+      ? swrError.message
+      : swrError
+        ? "Failed to load visa bulletin history."
+        : null;
 
   return (
     <>

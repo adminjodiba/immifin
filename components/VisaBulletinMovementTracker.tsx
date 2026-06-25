@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import useSWR from "swr";
+import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 import {
   formatBulletinDate,
@@ -295,35 +297,22 @@ function MovementTable({ rows }: { rows: VisaBulletinMovementRow[] }) {
 
 export function VisaBulletinMovementTracker() {
   const [activeTab, setActiveTab] = useState<TabKey>("final-action");
-  const [rows, setRows] = useState<VisaBulletinMovementRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadMovement = useCallback(async (type: TabKey) => {
-    setLoading(true);
-    setError(null);
+  const key = `/api/visa-bulletin-movement?type=${activeTab}`;
+  const { data, error: swrError, isLoading } = useSWR<VisaBulletinMovementRow[]>(
+    key,
+    (url) => jsonFetcher(url, "Failed to load visa bulletin movement data."),
+    visaBulletinSwrOptions,
+  );
 
-    try {
-      const response = await fetch(`/api/visa-bulletin-movement?type=${type}`);
-
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "Failed to load visa bulletin movement data.");
-      }
-
-      const data = (await response.json()) as VisaBulletinMovementRow[];
-      setRows(data);
-    } catch (err) {
-      setRows([]);
-      setError(err instanceof Error ? err.message : "Failed to load visa bulletin movement data.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadMovement(activeTab);
-  }, [activeTab, loadMovement]);
+  const rows = data ?? [];
+  const loading = isLoading;
+  const error =
+    swrError instanceof Error
+      ? swrError.message
+      : swrError
+        ? "Failed to load visa bulletin movement data."
+        : null;
 
   return (
     <>
