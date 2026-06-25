@@ -21,6 +21,11 @@ const DEFAULT_PUBLISH_BASE =
 const DEFAULT_FINAL_ACTION_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrvwKJOe-I0igAx68wdLWrr5dC6bSgTSMJ6K1_RwTjXuWa2YHM7dzMfdBhKgFmt4uSoHu0KqQN90YP/pub?output=csv";
 
+const DEFAULT_HISTORY_GID = "1745588952";
+
+const HISTORY_URL_ENV = "VISA_BULLETIN_URL_HISTORY";
+const HISTORY_GID_ENV = "VISA_BULLETIN_GID_HISTORY";
+
 const sheetUrlEnvKeys: Record<VisaBulletinSheetName, string> = {
   FinalActionDates: "VISA_BULLETIN_URL_FINAL_ACTION_DATES",
   DatesForFiling: "VISA_BULLETIN_URL_DATES_FOR_FILING",
@@ -60,11 +65,25 @@ function resolveSheetUrl(sheetName: VisaBulletinSheetName): string {
   );
 }
 
-function parseCsvRows(csvText: string): BulletinSheetRow[] {
-  const rows = csvText
+function resolveHistorySheetUrl(): string {
+  const directUrl = process.env[HISTORY_URL_ENV]?.trim();
+  if (directUrl) {
+    return directUrl;
+  }
+
+  const gid = process.env[HISTORY_GID_ENV]?.trim() ?? DEFAULT_HISTORY_GID;
+  return buildPublishCsvUrl(gid);
+}
+
+function parseCsvMatrix(csvText: string): string[][] {
+  return csvText
     .split("\n")
     .map((row) => row.split(",").map((cell) => cell.trim()))
     .filter((row) => row.some((cell) => cell !== ""));
+}
+
+function parseCsvRows(csvText: string): BulletinSheetRow[] {
+  const rows = parseCsvMatrix(csvText);
 
   if (rows.length <= 1) {
     return [];
@@ -77,22 +96,37 @@ function parseCsvRows(csvText: string): BulletinSheetRow[] {
   }));
 }
 
-async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<BulletinSheetRow[]> {
-  const url = resolveSheetUrl(sheetName);
-
+async function fetchCsvText(url: string, label: string): Promise<string> {
   const response = await fetch(url, { next: { revalidate: 86400 } });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${sheetName} (${response.status})`);
+    throw new Error(`Failed to fetch ${label} (${response.status})`);
   }
 
-  const csvText = await response.text();
+  return response.text();
+}
+
+async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<BulletinSheetRow[]> {
+  const url = resolveSheetUrl(sheetName);
+  const csvText = await fetchCsvText(url, sheetName);
   const rows = parseCsvRows(csvText);
 
   console.log(`[visa-bulletin] ${sheetName}: loaded ${rows.length} rows from ${url}`);
   console.log(`[visa-bulletin] ${sheetName} sample:`, rows.slice(0, 3));
 
   return rows;
+}
+
+export async function fetchVisaBulletinHistoryCsvRows(): Promise<string[][]> {
+  const url = resolveHistorySheetUrl();
+  const csvText = await fetchCsvText(url, "VisaBulletinHistory");
+  const rows = parseCsvMatrix(csvText);
+  const dataRows = rows.length <= 1 ? [] : rows.slice(1);
+
+  console.log(`[visa-bulletin] VisaBulletinHistory: loaded ${dataRows.length} rows from ${url}`);
+  console.log(`[visa-bulletin] VisaBulletinHistory sample:`, dataRows.slice(0, 3));
+
+  return dataRows;
 }
 
 export async function getCurrentFinalActionDates(): Promise<BulletinSheetRow[]> {

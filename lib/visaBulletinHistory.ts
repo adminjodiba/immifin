@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { readSheetValues } from "@/lib/googleSheetsClient";
+import { fetchVisaBulletinHistoryCsvRows } from "@/lib/visaBulletinSheets";
 import {
   normalizeSheetCategory,
   normalizeSheetCountry,
@@ -23,7 +23,6 @@ export type VisaBulletinHistoryQuery = {
   type?: BulletinHistoryType;
 };
 
-const HISTORY_SHEET_NAME = process.env.VISA_BULLETIN_HISTORY_SHEET?.trim() || "VisaBulletinHistory";
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 export const VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS = 86400;
 
@@ -147,7 +146,7 @@ function matchesQuery(record: VisaBulletinHistoryRecord, query: VisaBulletinHist
 }
 
 async function loadAllVisaBulletinHistoryRecords(): Promise<VisaBulletinHistoryRecord[]> {
-  const values = await readSheetValues(`${HISTORY_SHEET_NAME}!A2:E`);
+  const values = await fetchVisaBulletinHistoryCsvRows();
 
   return values
     .map(parseHistoryRow)
