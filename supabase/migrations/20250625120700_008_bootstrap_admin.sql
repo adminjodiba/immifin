@@ -1,0 +1,14 @@
+-- Run manually in Supabase SQL editor after first Clerk signup creates a profile.
+--
+-- select public.set_profile_role(
+--   p_clerk_user_id := (
+--     select clerk_user_id
+--     from public.profiles
+--     where email = 'founder@immifin.com'
+--     limit 1
+--   ),
+--   p_new_role := 'admin',
+--   p_changed_by_email := 'bootstrap@immifin.com',
+--   p_change_source := 'bootstrap',
+--   p_metadata := jsonb_build_object('note', 'Initial solo founder admin')
+-- );
