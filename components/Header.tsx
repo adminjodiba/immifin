@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, UserButton } from "@clerk/nextjs";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
@@ -69,6 +69,7 @@ function ImmigrationDropdown() {
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const showSignedOutAuth = isLoaded && !isSignedIn;
+  const showSignedInAuth = isLoaded && isSignedIn;
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
@@ -109,6 +110,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 </Link>
               </div>
             )}
+            {showSignedInAuth && <UserButton />}
             <button
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-50 md:hidden"
