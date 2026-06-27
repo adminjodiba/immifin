@@ -14,6 +14,8 @@ node_modules/
 # next.js
 .next/
 /out/
+.open-next/
+.wrangler/
 
 # production
 /build
@@ -31,6 +33,7 @@ yarn-error.log*
 # env files
 .env*
 !.env.example
+.dev.vars
 
 # credentials — never commit secrets (entire folder)
 credentials/

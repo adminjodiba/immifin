@@ -1,0 +1,36 @@
+// Runtime secrets — set in Cloudflare Dashboard (Production/Preview) or local
+// .dev.vars (gitignored). Do NOT commit secret values to this file:
+//   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+//   CLERK_SECRET_KEY
+//   CLERK_WEBHOOK_SECRET
+//   NEXT_PUBLIC_SUPABASE_URL
+//   SUPABASE_SERVICE_ROLE_KEY
+//   GOOGLE_SERVICE_ACCOUNT_KEY
+//   VISA_BULLETIN_GOOGLE_SHEET_ID
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "immifin",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-23",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "immifin"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/login",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/signup"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
