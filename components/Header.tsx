@@ -6,6 +6,22 @@ import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
 import { Logo } from "./Logo";
+import { clerkAppearance } from "@/lib/clerk/appearance";
+
+const headerUserButtonAppearance = {
+  ...clerkAppearance,
+  elements: {
+    ...clerkAppearance.elements,
+    rootBox: "flex justify-center",
+    userButtonBox: "flex justify-center",
+    userButtonTrigger: "p-0 shadow-none hover:shadow-none focus:shadow-none",
+    userButtonTriggerIcon: "hidden",
+    avatarBox: "h-11 w-11 rounded-xl border border-slate-200 overflow-hidden",
+    avatarImage: "h-11 w-11 rounded-xl",
+    userButtonAvatarBox: "h-11 w-11 rounded-xl border border-slate-200 overflow-hidden",
+    userButtonAvatarImage: "h-11 w-11 rounded-xl",
+  },
+};
 
 type HeaderProps = {
   mobileMenuOpen: boolean;
@@ -132,8 +148,8 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
               </div>
             )}
             {showSignedInAuth && (
-              <div className="flex flex-col items-center">
-                <UserButton />
+              <div className="flex flex-col items-center justify-center">
+                <UserButton appearance={headerUserButtonAppearance} />
                 <p className="mt-1 whitespace-nowrap text-center text-xs font-medium text-slate-600">
                   {greetingLine}
                 </p>
