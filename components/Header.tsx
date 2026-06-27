@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth, UserButton } from "@clerk/nextjs";
+import { useAuth, useUser, UserButton } from "@clerk/nextjs";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
@@ -14,6 +14,23 @@ type HeaderProps = {
 
 const navLinkClassName =
   "rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700";
+
+function getTimeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
+}
+
+function getGreetingLine(
+  firstName: string | null | undefined,
+  fullName: string | null | undefined,
+  username: string | null | undefined,
+): string {
+  const name = firstName || fullName || username;
+  const timeGreeting = getTimeGreeting();
+  return name ? `${timeGreeting} ${name}` : timeGreeting;
+}
 
 function NavDropdown({
   href,
@@ -68,8 +85,12 @@ function ImmigrationDropdown() {
 
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const showSignedOutAuth = isLoaded && !isSignedIn;
   const showSignedInAuth = isLoaded && isSignedIn;
+  const greetingLine = user
+    ? getGreetingLine(user.firstName, user.fullName, user.username)
+    : getTimeGreeting();
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
@@ -110,7 +131,14 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 </Link>
               </div>
             )}
-            {showSignedInAuth && <UserButton />}
+            {showSignedInAuth && (
+              <div className="flex flex-col items-center">
+                <UserButton />
+                <p className="mt-1 whitespace-nowrap text-center text-xs font-medium text-slate-600">
+                  {greetingLine}
+                </p>
+              </div>
+            )}
             <button
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-50 md:hidden"
