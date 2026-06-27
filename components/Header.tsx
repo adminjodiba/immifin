@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
@@ -64,6 +67,9 @@ function ImmigrationDropdown() {
 }
 
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const showSignedOutAuth = isLoaded && !isSignedIn;
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
       <div className="container-main">
@@ -92,7 +98,17 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             })}
           </nav>
 
-          <div className="justify-self-end">
+          <div className="flex items-center justify-end gap-2 justify-self-end">
+            {showSignedOutAuth && (
+              <div className="hidden items-center gap-1 md:flex">
+                <Link href="/login" className={navLinkClassName}>
+                  Login
+                </Link>
+                <Link href="/signup" className="btn-primary px-4 py-2">
+                  Sign Up
+                </Link>
+              </div>
+            )}
             <button
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-50 md:hidden"
@@ -157,6 +173,20 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                   </Link>
                 );
               })}
+              {showSignedOutAuth && (
+                <div className="mt-2 w-full space-y-1 border-t border-slate-200/80 pt-2">
+                  <Link
+                    href="/login"
+                    className="block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                    onClick={onToggleMenu}
+                  >
+                    Login
+                  </Link>
+                  <Link href="/signup" className="btn-primary w-full" onClick={onToggleMenu}>
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </nav>
         )}
