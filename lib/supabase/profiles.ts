@@ -9,6 +9,8 @@ import type {
 type UpsertProfileInput = {
   clerkUserId: string;
   email: string;
+  firstName?: string | null;
+  lastName?: string | null;
   displayName?: string | null;
   avatarUrl?: string | null;
 };
@@ -76,16 +78,25 @@ export async function getProfileWithRelationsByClerkId(
 export async function upsertProfileFromClerk(input: UpsertProfileInput): Promise<Profile> {
   const supabase = getSupabaseAdminClient();
 
-  const { data, error } = await supabase.rpc("upsert_profile_from_clerk", {
+  const rpcInput = {
     p_clerk_user_id: input.clerkUserId,
     p_email: input.email,
+    p_first_name: input.firstName ?? null,
+    p_last_name: input.lastName ?? null,
     p_display_name: input.displayName ?? null,
     p_avatar_url: input.avatarUrl ?? null,
-  });
+  };
+
+  console.log("[clerk-webhook] rpc input:", rpcInput);
+
+  const { data, error } = await supabase.rpc("upsert_profile_from_clerk", rpcInput);
 
   if (error) {
+    console.error("[clerk-webhook] rpc error:", error);
     throw new Error(`Failed to upsert profile from Clerk: ${error.message}`);
   }
+
+  console.log("[clerk-webhook] rpc output:", data);
 
   return mapProfile(data as Record<string, unknown>);
 }

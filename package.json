@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clerk:config:signup": "npx clerk@latest config patch --file config/clerk/sign-up.patch.json --yes",
+    "clerk:config:signup:dry-run": "npx clerk@latest config patch --file config/clerk/sign-up.patch.json --dry-run"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.9",

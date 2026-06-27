@@ -1,0 +1,24 @@
+{
+  "progressive_sign_up": false,
+  "attributes": {
+    "first_name": {
+      "enabled": true,
+      "required": true
+    },
+    "last_name": {
+      "enabled": true,
+      "required": true
+    },
+    "email_address": {
+      "enabled": true,
+      "required": true,
+      "used_for_first_factor": true,
+      "verify_at_sign_up": true
+    },
+    "password": {
+      "enabled": true,
+      "required": true,
+      "used_for_first_factor": true
+    }
+  }
+}
