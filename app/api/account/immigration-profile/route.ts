@@ -6,18 +6,7 @@ import { updateImmigrationProfile } from "@/lib/supabase/profiles";
 
 export const runtime = "nodejs";
 
-const ALLOWED_CATEGORIES = new Set([
-  "EB1",
-  "EB2",
-  "EB3",
-  "EB4",
-  "EB5",
-  "F1",
-  "F2A",
-  "F2B",
-  "F3",
-  "F4",
-]);
+const ALLOWED_CATEGORIES = new Set(["EB1", "EB2", "EB3"]);
 
 const ALLOWED_COUNTRIES = new Set(["India", "China", "Mexico", "Philippines", "ROW"]);
 
@@ -27,6 +16,7 @@ type PatchBody = {
   defaultCategory?: unknown;
   defaultCountry?: unknown;
   defaultBulletinType?: unknown;
+  greenCardIssueDate?: unknown;
 };
 
 function normalizeOptionalString(value: unknown): string | null {
@@ -48,10 +38,7 @@ function validateCategory(value: string | null): string | null {
   }
 
   if (!ALLOWED_CATEGORIES.has(value)) {
-    throw new AuthError(
-      "Invalid defaultCategory. Use EB1, EB2, EB3, EB4, EB5, F1, F2A, F2B, F3, F4, or empty.",
-      400,
-    );
+    throw new AuthError("Invalid defaultCategory. Use EB1, EB2, EB3, or empty.", 400);
   }
 
   return value;
@@ -87,6 +74,29 @@ function validateBulletinType(value: string | null): string | null {
   return value;
 }
 
+function validateGreenCardIssueDate(value: string | null): string | null {
+  if (value === null) {
+    return null;
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new AuthError("Invalid greenCardIssueDate. Use YYYY-MM-DD or empty.", 400);
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    throw new AuthError("Invalid greenCardIssueDate. Use a valid YYYY-MM-DD date.", 400);
+  }
+
+  return value;
+}
+
 export async function PATCH(request: Request) {
   try {
     const profileWithRelations = await requireUser();
@@ -96,6 +106,9 @@ export async function PATCH(request: Request) {
       default_category: validateCategory(normalizeOptionalString(body.defaultCategory)),
       default_country: validateCountry(normalizeOptionalString(body.defaultCountry)),
       default_bulletin_type: validateBulletinType(normalizeOptionalString(body.defaultBulletinType)),
+      green_card_issue_date: validateGreenCardIssueDate(
+        normalizeOptionalString(body.greenCardIssueDate),
+      ),
     });
 
     return NextResponse.json({ immigrationProfile });

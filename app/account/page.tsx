@@ -14,13 +14,6 @@ const categoryOptions = [
   { value: "EB1", label: "EB1" },
   { value: "EB2", label: "EB2" },
   { value: "EB3", label: "EB3" },
-  { value: "EB4", label: "EB4" },
-  { value: "EB5", label: "EB5" },
-  { value: "F1", label: "F1" },
-  { value: "F2A", label: "F2A" },
-  { value: "F2B", label: "F2B" },
-  { value: "F3", label: "F3" },
-  { value: "F4", label: "F4" },
 ];
 
 const countryOptions = [
@@ -42,6 +35,7 @@ export default function AccountPage() {
   const [defaultCategory, setDefaultCategory] = useState("");
   const [defaultCountry, setDefaultCountry] = useState("");
   const [defaultBulletinType, setDefaultBulletinType] = useState("");
+  const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +67,7 @@ export default function AccountPage() {
         setDefaultCategory(data.immigrationProfile?.default_category ?? "");
         setDefaultCountry(data.immigrationProfile?.default_country ?? "");
         setDefaultBulletinType(data.immigrationProfile?.default_bulletin_type ?? "");
+        setGreenCardIssueDate(data.immigrationProfile?.green_card_issue_date ?? "");
       } catch (loadError: unknown) {
         if (!cancelled) {
           const message =
@@ -107,6 +102,7 @@ export default function AccountPage() {
           defaultCategory,
           defaultCountry,
           defaultBulletinType,
+          greenCardIssueDate,
         }),
       });
 
@@ -125,6 +121,7 @@ export default function AccountPage() {
         setDefaultCategory(immigrationProfile.default_category ?? "");
         setDefaultCountry(immigrationProfile.default_country ?? "");
         setDefaultBulletinType(immigrationProfile.default_bulletin_type ?? "");
+        setGreenCardIssueDate(immigrationProfile.green_card_issue_date ?? "");
       }
 
       setSuccess("Immigration profile saved.");
@@ -158,8 +155,8 @@ export default function AccountPage() {
               <div>
                 <h2 className="heading-2">Immigration Profile</h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  Set default values for employment-based and family-based categories, country of
-                  chargeability, and bulletin date type.
+                  Set employment-based defaults, country of chargeability, bulletin date type, and
+                  optional green card issue date for citizenship planning.
                 </p>
               </div>
 
@@ -231,6 +228,27 @@ export default function AccountPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="greenCardIssueDate"
+                      className="block text-sm font-semibold text-slate-900"
+                    >
+                      Green card issue date{" "}
+                      <span className="font-normal text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                      id="greenCardIssueDate"
+                      name="greenCardIssueDate"
+                      type="date"
+                      className="input-field"
+                      value={greenCardIssueDate}
+                      onChange={(event) => setGreenCardIssueDate(event.target.value)}
+                    />
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      Leave blank if you do not have a green card yet.
+                    </p>
                   </div>
                 </>
               )}
