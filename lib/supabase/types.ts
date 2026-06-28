@@ -36,6 +36,7 @@ export type ImmigrationProfile = {
   default_country: string | null;
   default_bulletin_type: string | null;
   green_card_issue_date: string | null;
+  married_to_us_citizen: boolean | null;
   preferences: Record<string, unknown>;
   created_at: string;
   updated_at: string;
