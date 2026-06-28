@@ -147,3 +147,53 @@ export async function touchProfileActivity(input: {
     throw new Error(`Failed to update profile activity timestamps: ${error.message}`);
   }
 }
+
+type UpdateImmigrationProfileInput = {
+  default_category?: string | null;
+  default_country?: string | null;
+  default_bulletin_type?: string | null;
+};
+
+export async function updateImmigrationProfile(
+  profileId: string,
+  updates: UpdateImmigrationProfileInput,
+): Promise<ImmigrationProfile> {
+  const supabase = getSupabaseAdminClient();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("immigration_profiles")
+    .select("id")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to load immigration profile: ${fetchError.message}`);
+  }
+
+  if (!existing) {
+    const { data, error } = await supabase
+      .from("immigration_profiles")
+      .insert({ profile_id: profileId, ...updates })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create immigration profile: ${error.message}`);
+    }
+
+    return mapImmigrationProfile(data);
+  }
+
+  const { data, error } = await supabase
+    .from("immigration_profiles")
+    .update(updates)
+    .eq("profile_id", profileId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update immigration profile: ${error.message}`);
+  }
+
+  return mapImmigrationProfile(data);
+}
