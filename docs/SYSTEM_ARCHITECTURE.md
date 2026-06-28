@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | This document describes the complete infrastructure architecture of the Immifin platform. |
-| **Last Updated** | 2026-06-23 |
+| **Last Updated** | 2026-06-27 |
 | **Owner** | Technical Architecture (CTO) |
 
 This document is the **single source of truth** for Immifin's infrastructure, environments, deployment flow, networking, external services, and operational architecture.
@@ -31,7 +31,7 @@ This document is the **authoritative infrastructure reference** for the Immifin 
 When any of the following change, this file must be updated **before or as part of** the change:
 
 - Domains or DNS (`immifin.com`, `dev.immifin.com`)
-- Cloudflare Pages, Workers, or Tunnel configuration
+- Cloudflare Workers / OpenNext, Pages, or Tunnel configuration
 - Deployment flow or branch strategy
 - External service accounts (Clerk, Supabase, GitHub)
 - Environment variable names or where they are stored
@@ -52,6 +52,11 @@ If infrastructure debugging exceeds 15 minutes, pause and update this document w
 | **Infrastructure changes require documentation** | Update this file when hosting, domains, tunnels, or env strategy changes. |
 | **Prefer automation** | Favor CI/CD, preview deploys, and repeatable builds over manual dashboard steps. |
 | **Separate Development, Preview, and Production** | Use distinct URLs, credentials, and Supabase/Clerk instances per environment as the platform matures. |
+| **Prefer existing proven architecture** | Reuse working implementations (e.g. Movement Tracker) over introducing new patterns. |
+| **Server Components for data** | Keep Server Components responsible for server-side rendering and data loading. |
+| **Client Components for interaction** | Keep Client Components responsible only for user interaction (toggles, local state). |
+| **Deployment independent from features** | Keep deployment configuration independent from application features. |
+| **Separate infra and feature work** | Never mix infrastructure work with feature work in the same sprint unless necessary. |
 
 ---
 
@@ -66,7 +71,7 @@ Cursor["Cursor IDE"]
 
 GitHub["GitHub Repository"]
 
-CFPages["Cloudflare Pages"]
+CFWorkers["Cloudflare Workers (OpenNext)"]
 
 Tunnel["Cloudflare Tunnel"]
 
@@ -90,9 +95,9 @@ Tunnel --> Dev
 
 Cursor --> GitHub
 
-GitHub --> CFPages
+GitHub --> CFWorkers
 
-CFPages --> Prod
+CFWorkers --> Prod
 
 Dev --> Clerk
 Dev --> Supabase
@@ -108,11 +113,11 @@ Prod --> Supabase
 | **Developer Workstation (Windows)** | Local machine where Immifin is built, tested, and run via `npm run dev` |
 | **Cursor IDE** | Primary development environment for implementing approved work |
 | **GitHub Repository** | Source control; `main` branch triggers production deployment |
-| **Cloudflare Pages** | Hosted production platform for the Next.js application |
+| **Cloudflare Workers (OpenNext)** | Production hosting via `@opennextjs/cloudflare`; builds from `main` |
 | **Cloudflare Tunnel** | Secure outbound tunnel exposing local dev server over HTTPS |
 | **localhost:3000** | Local Next.js development server (`npm run dev`) |
 | **dev.immifin.com** | Public HTTPS URL routed through the tunnel to localhost |
-| **immifin.com** | Production domain served by Cloudflare Pages |
+| **immifin.com** | Production domain served by Cloudflare Workers (OpenNext) |
 | **Clerk Authentication** | Identity provider — signup, login, sessions, webhooks |
 | **Supabase Database** | Application Postgres — profiles, subscriptions, audit data |
 
@@ -124,7 +129,7 @@ Prod --> Supabase
 |-------------|---------|-----|-------------------|--------|
 | **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active |
 | **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active |
-| **Production** | Public live site | `https://immifin.com` | Cloudflare Pages | Active |
+| **Production** | Public live site | `https://immifin.com` | GitHub `main` → OpenNext (`npm run deploy`) | Active |
 | **Preview** | Branch-based pre-production testing | *Planned* | Cloudflare Preview | Planned |
 
 ---
@@ -166,7 +171,7 @@ cloudflared tunnel run immifin-dev
 
 ### Important constraint
 
-The Cloudflare Tunnel is intended **only for development access**. It routes `dev.immifin.com` to `http://localhost:3000` on the developer workstation. It must **not** be used as the production deployment mechanism. Production is served exclusively through **Cloudflare Pages**.
+The Cloudflare Tunnel is intended **only for development access**. It routes `dev.immifin.com` to `http://localhost:3000` on the developer workstation. It must **not** be used as the production deployment mechanism. Production is served exclusively through **Cloudflare Workers (OpenNext)**.
 
 Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for `dev.immifin.com` to respond.
 
@@ -178,13 +183,29 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 |---------|-------|
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
-| **Hosting platform** | Cloudflare Pages |
+| **Hosting platform** | Cloudflare Workers via OpenNext |
+| **Latest production commit** | `123bbdb` — *Add Cloudflare OpenNext deployment configuration* |
+| **Production build command** | `npm run deploy` |
+| **Production deploy command** | `echo done` |
 
-### Current observation
+### OpenNext vs plain Next.js build
 
-Production currently auto-deploys from the `main` branch. Every push to `main` can trigger a live deployment. This will be improved in a future sprint with preview deployments and release gates before production promotion.
+| Command | Purpose |
+|---------|---------|
+| `npm run build` | Next.js only (`next build`) — **not** sufficient for Cloudflare Workers |
+| `opennextjs-cloudflare build` | Next.js + Worker bundle (output in `.open-next/`) |
+| `npm run deploy` | OpenNext build + deploy to Cloudflare |
 
-Production environment variables are configured in the **Cloudflare Dashboard**, not in the repository.
+Cloudflare’s dashboard runs **`npm run deploy`** as the build command. Deploy is already included in that script, so the separate deploy command is **`echo done`** to avoid double deployment.
+
+### Repository config files
+
+| File | Purpose |
+|------|---------|
+| `open-next.config.ts` | OpenNext Cloudflare adapter config |
+| `wrangler.jsonc` | Worker bindings, compatibility flags, public vars |
+
+Production secrets are configured in the **Cloudflare Dashboard** or via **Wrangler Version Secrets** — never in Git. See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ---
 
@@ -193,7 +214,7 @@ Production environment variables are configured in the **Cloudflare Dashboard**,
 | Service | Purpose | Current Role | Status |
 |---------|---------|--------------|--------|
 | **GitHub** | Source control and deploy trigger | Hosts `adminjodiba/immifin`; push to `main` deploys production | Active |
-| **Cloudflare Pages** | Production hosting | Builds and serves `immifin.com` | Active |
+| **Cloudflare Workers (OpenNext)** | Production hosting | Builds and serves `immifin.com` via Worker | Active |
 | **Cloudflare Tunnel** | Dev HTTPS access | Routes `dev.immifin.com` → localhost | Active |
 | **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase | Active |
 | **Supabase** | Application database | Profiles, immigration data, subscriptions, audit log | Active |
@@ -204,48 +225,65 @@ Production environment variables are configured in the **Cloudflare Dashboard**,
 
 **Production secrets must never be committed to Git.**
 
+Manage production secrets with **Wrangler Version Secrets**:
+
+```bash
+npx wrangler versions secret put VARIABLE_NAME
+```
+
+Do not hardcode secrets in `wrangler.jsonc` or source code.
+
+### Required (Production)
+
+| Variable | Purpose | Secret |
+|----------|---------|--------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client key | No |
+| `CLERK_SECRET_KEY` | Clerk server key | Yes |
+| `CLERK_WEBHOOK_SECRET` | Webhook verification | Yes |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role | Yes |
+| `GOOGLE_SHEET_ID` | Google Spreadsheet ID (admin archive) | No |
+| `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
+| `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
+
+### Optional
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Clerk sign-in path | `/login` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Clerk sign-up path | `/signup` |
+| `VISA_BULLETIN_PUBLISH_BASE` | CSV publish URL override | In `lib/visaBulletinConfig.ts` |
+| `VISA_BULLETIN_GID_*` | Sheet tab GID overrides | In `lib/visaBulletinConfig.ts` |
+| `VISA_BULLETIN_HISTORY_SHEET` | Archive tab name | `VisaBulletinHistory` |
+
+Public Clerk URL defaults are also set in `wrangler.jsonc` under `vars`.
+
 ### Local Development (`.env.local`)
 
-List variable names only. Do not store values in this document.
+Copy from `.env.example`. Gitignored. Used by `npm run dev`.
 
-| Variable |
-|----------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` |
-| `CLERK_SECRET_KEY` |
-| `CLERK_WEBHOOK_SECRET` |
-| `NEXT_PUBLIC_SUPABASE_URL` |
-| `SUPABASE_SERVICE_ROLE_KEY` |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` |
-| `GOOGLE_SERVICE_ACCOUNT_KEY` |
-| `VISA_BULLETIN_GOOGLE_SHEET_ID` |
+### Local Workers preview (`.dev.vars`)
 
-Additional optional overrides may be defined in `.env.example` (visa bulletin GIDs, Google Sheets archive fields).
-
-### Cloudflare Preview
-
-Placeholder for future environment variables.
-
-When preview deployments are enabled, configure variables under **Cloudflare Dashboard → Workers & Pages → immifin → Settings → Environment variables → Preview**.
-
-### Cloudflare Production
-
-Placeholder for production environment variables.
-
-Configure under **Cloudflare Dashboard → Workers & Pages → immifin → Settings → Environment variables → Production**.
+Gitignored. Used by `npm run preview` with Wrangler.
 
 ---
 
 ## 11. Deployment Strategy
 
-### Current
+### Current (2026-06-27)
 
 ```
 Developer
         ↓
-GitHub main
+localhost:3000 (npm run dev)
+        ↓ optional
+dev.immifin.com (Cloudflare Tunnel)
         ↓
-Cloudflare Production
+git add → commit → push main
+        ↓
+Cloudflare Workers (npm run deploy / OpenNext)
+        ↓
+immifin.com
 ```
 
 ### Future (target)
@@ -337,10 +375,9 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 
 ## 13. Known Issues
 
-- **Production currently deploys directly from the `main` branch.** There is no mandatory preview gate before live deployment.
+- **Visa Bulletin Dashboard** shows Final Action Dates only. Movement Tracker supports both Final Action Dates and Dates for Filing; dashboard enhancement is Priority 1 for the next sprint.
 - **Preview deployments are planned** but not yet the primary workflow. Development testing currently relies on the Cloudflare Tunnel.
-- **Infrastructure documentation was introduced after Sprint 1.** Prior deployment knowledge existed outside the repository.
-- **Deployment strategy will evolve** as the platform grows — separate environments, CI/CD, and release tags are on the roadmap.
+- **Do not convert large Server Components to Client Components** for small UI changes — use small client children (see Movement Tracker pattern). Mixing server fetch code and client UI in one module caused dev instability.
 
 ---
 
@@ -367,7 +404,7 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 | Version | Date | Description |
 |---------|------|-------------|
 | v0.1 | 2026-06-23 | Initial architecture documentation created after Sprint 1. |
-| v1.0 | 2026-06-23 | Revision 1 — Source of Truth, Architecture Principles, target deployment Mermaid diagram. |
+| v1.2 | 2026-06-27 | Expanded Architecture Principles; known stable configuration reference in DEPLOYMENT.md. |
 
 ---
 
@@ -375,6 +412,7 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 
 | Document | Contents |
 |----------|----------|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands, secrets, deployment workflow |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Engineering workflow and release gates |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint status |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture and coding conventions |

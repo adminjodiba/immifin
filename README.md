@@ -7,113 +7,79 @@ A production-ready Next.js 15 website helping immigrants navigate visas, taxes, 
 - **Next.js 15** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Responsive design** (mobile-first)
+- **Clerk** — authentication
+- **Supabase** — application database
+- **Cloudflare Workers** — production hosting via **OpenNext** (`@opennextjs/cloudflare`)
 - **SEO optimized** (metadata, sitemap, robots.txt, Open Graph)
 
-## Pages
+## Production Status (2026-06-27)
 
-| Route | Description |
-|-------|-------------|
-| `/` | Homepage with hero, featured calculators, guides, and articles |
-| `/immigration` | Immigration guides and topic overview |
-| `/finance` | Finance guides and topic overview |
-| `/calculators` | Immigration, finance, and tax calculators |
-| `/about` | Mission, values, and latest articles |
-| `/privacy` | Privacy Policy |
-| `/terms` | Terms of Service |
-| `/contact` | Contact form |
+| Area | Status |
+|------|--------|
+| immifin.com | ✅ Live |
+| Clerk auth (login, signup, header) | ✅ Verified |
+| OpenNext deployment | ✅ Restored |
+| Visa Bulletin Dashboard (Dates for Filing) | 🔄 In progress |
+
+Latest production commit: `123bbdb` — *Add Cloudflare OpenNext deployment configuration*
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18.18 or later (Node 20+ recommended)
-- npm, yarn, or pnpm
+- [Node.js](https://nodejs.org/) 20+ recommended
+- npm
+- Cloudflare account (production deploys)
 
 ## Installation
 
-1. **Clone or navigate to the project:**
-
-   ```bash
-   cd C:\Projects\immifin
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in your browser:**
-
-   [http://localhost:3000](http://localhost:3000)
-
-## Production Build
-
 ```bash
-# Build for production
-npm run build
-
-# Start the production server
-npm start
+cd C:\Projects\immifin
+npm install
+npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Build Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local development server |
+| `npm run build` | Next.js build only (local verification) |
+| `npm run preview` | OpenNext build + local Workers preview |
+| `npm run deploy` | OpenNext build + deploy to Cloudflare |
+
+**Note:** `npm run build` alone is **not** sufficient for Cloudflare Workers. Production uses OpenNext (`opennextjs-cloudflare build`).
+
+## Deployment
+
+Production deploys automatically when `main` is pushed to GitHub.
+
+**Known stable configuration (verified 2026-06-27):** Cloudflare Workers + OpenNext, Node 22.x, build `npm run deploy`, deploy `echo done`.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full baseline, secrets, and workflow.
+
+## Documentation
+
+| Document | Contents |
+|----------|----------|
+| [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | Current sprint and status |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Cloudflare / OpenNext deployment |
+| [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Infrastructure architecture |
+| [docs/ENGINEERING_PLAYBOOK.md](docs/ENGINEERING_PLAYBOOK.md) | Engineering workflow |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Release history |
 
 ## Project Structure
 
 ```
 immifin/
-├── app/
-│   ├── layout.tsx          # Root layout with fonts & metadata
-│   ├── page.tsx            # Homepage
-│   ├── globals.css         # Tailwind & global styles
-│   ├── sitemap.ts          # Dynamic sitemap
-│   ├── robots.ts           # Robots.txt
-│   ├── immigration/
-│   ├── finance/
-│   ├── calculators/
-│   ├── about/
-│   ├── privacy/
-│   ├── terms/
-│   └── contact/
-├── components/
-│   ├── SiteShell.tsx       # Client wrapper (header + footer)
-│   ├── Header.tsx          # Navigation with mobile menu
-│   ├── Footer.tsx
-│   ├── Hero.tsx
-│   ├── PageHeader.tsx
-│   ├── SectionHeader.tsx
-│   ├── CalculatorCard.tsx
-│   ├── GuideCard.tsx
-│   └── ArticleCard.tsx
-├── lib/
-│   ├── site.ts             # Site config & nav links
-│   ├── metadata.ts         # SEO metadata helper
-│   └── data/               # Content data
-├── tailwind.config.ts
-├── next.config.ts
-└── package.json
+├── app/                    # Next.js App Router pages and API routes
+├── components/             # React components
+├── lib/                    # Shared logic, auth, Supabase, visa bulletin
+├── supabase/migrations/    # Database migrations
+├── open-next.config.ts     # OpenNext Cloudflare config
+├── wrangler.jsonc          # Cloudflare Worker config
+└── docs/                   # Project documentation
 ```
-
-## Customization
-
-- **Site URL & branding:** Edit `lib/site.ts`
-- **Content:** Update guides, calculators, and articles in `lib/data/`
-- **Colors:** Adjust the `brand` palette in `tailwind.config.ts`
-- **SEO:** Per-page metadata is set via `createMetadata()` in each page file
-
-## Deployment
-
-Deploy to [Vercel](https://vercel.com) (recommended for Next.js):
-
-```bash
-npx vercel
-```
-
-Or build and deploy the `.next` output to any Node.js hosting platform.
 
 ## License
 

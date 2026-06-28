@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-06-23 |
+| **Last Updated** | 2026-06-27 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -79,7 +79,7 @@ Git --> Production
 | **Documentation** | Status, decisions, and infrastructure docs are updated as applicable. |
 | **Release Approval** | Founder and CTO confirm the change is ready for production. |
 | **Git** | Changes are committed and pushed with a descriptive message. |
-| **Production** | Deployment to `immifin.com` via Cloudflare Pages (from `main`). |
+| **Production** | Deployment to `immifin.com` via Cloudflare Workers (OpenNext) from `main`. |
 
 ---
 
@@ -115,7 +115,7 @@ Production Deployment
 | **Release Review** | Run release gates; obtain production approval. |
 | **Git Commit** | Commit with a message describing the feature delivered. |
 | **Git Push** | Push to GitHub; `main` triggers production deploy today. |
-| **Production Deployment** | Cloudflare Pages builds and serves the release at `immifin.com`. |
+| **Production Deployment** | Cloudflare runs `npm run deploy` (OpenNext build + deploy); verify at `immifin.com`. |
 
 ---
 
@@ -129,7 +129,7 @@ Every sprint must update the following documents **when applicable**:
 | [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md) | Every sprint — priorities and backlog state |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | When architecture or conventions change |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | When infrastructure, domains, or deployment changes |
-| `CHANGELOG.md` | *Future* — per-release change log |
+| [CHANGELOG.md](./CHANGELOG.md) | Per-release change log |
 | `RELEASE_NOTES.md` | *Future* — user-facing release summaries |
 
 **Documentation is part of the Definition of Done.** A task is not complete until the relevant docs reflect the change.
@@ -166,7 +166,20 @@ Commit
 Push main
 ```
 
-Pushing to `main` currently triggers production deployment on Cloudflare Pages.
+Pushing to `main` triggers production deployment on Cloudflare Workers (OpenNext via `npm run deploy`).
+
+### Official deployment workflow
+
+1. Develop locally
+2. Test localhost
+3. Test dev.immifin.com
+4. git add
+5. git commit
+6. git push
+7. Cloudflare automatically deploys
+8. Verify production
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets management.
 
 ### Future workflow
 
@@ -224,7 +237,39 @@ A release must satisfy **all five gates** before deployment:
 
 ---
 
-## 12. Long-Term Engineering Goals
+## 12. Never Do Again
+
+Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
+
+- **Do not convert large Server Components into Client Components.**
+- **Do not mix server-side data fetching and client UI state in the same module.**
+- **Do not hardcode production secrets into source code.**
+- **Do not modify deployment configuration while simultaneously changing application features.**
+- **Always verify localhost before pushing.**
+- **Always verify dev.immifin.com before production.**
+- **Always verify production immediately after Cloudflare deployment.**
+- **Use the Movement Tracker architecture as the reference implementation** for future interactive Visa Bulletin features.
+
+---
+
+## 13. Lessons Learned (2026-06-27)
+
+### Server vs Client Components
+
+- **Do not convert large Server Components into Client Components** for small interactive UI (e.g. a toggle). This caused webpack / RSC manifest errors on Windows dev and destabilized localhost.
+- **Do not mix server data-fetching and client UI in the same module.** Example: `lib/visaBulletinData.ts` contains both `getVisaBulletinData()` (server fetch with `next.revalidate`) and display formatters. Client imports of that module pull server-only code into the client bundle.
+
+### Preferred patterns
+
+| Pattern | When to use |
+|---------|-------------|
+| **Small Client Component** | Toggle, button state, local UI interactivity — parent stays a Server Component |
+| **Movement Tracker architecture** | Client shell + SWR + API route — reference for Visa Bulletin Dashboard enhancement |
+| **Clear `.next` + restart dev** | After any Server ↔ Client boundary change on Windows |
+
+---
+
+## 14. Long-Term Engineering Goals
 
 - [ ] Preview deployments
 - [ ] CI/CD
@@ -239,11 +284,13 @@ A release must satisfy **all five gates** before deployment:
 
 ---
 
-## 13. Revision History
+## 15. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
 | v1.0 | 2026-06-23 | Initial Engineering Playbook created. |
+| v1.1 | 2026-06-27 | OpenNext deployment workflow, lessons learned, CHANGELOG reference. |
+| v1.2 | 2026-06-27 | Never Do Again section; official deployment workflow finalized. |
 
 ---
 
@@ -251,6 +298,7 @@ A release must satisfy **all five gates** before deployment:
 
 | Document | Contents |
 |----------|----------|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure and deployment |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint |
 | [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md) | Backlog and priorities |
