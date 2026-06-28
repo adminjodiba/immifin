@@ -8,6 +8,7 @@ export type ImmigrationProfileDefaults = {
   category: string | null;
   countryChargeability: string | null;
   bulletinType: string | null;
+  priorityDate: string | null;
   greenCardIssueDate: string | null;
   marriedToUSCitizen: boolean | null;
 };
@@ -33,6 +34,7 @@ function mapImmigrationProfileToDefaults(
       ? (PROFILE_COUNTRY_TO_CHARGEABILITY[profile.default_country] ?? null)
       : null,
     bulletinType: profile.default_bulletin_type,
+    priorityDate: profile.priority_date,
     greenCardIssueDate: profile.green_card_issue_date,
     marriedToUSCitizen: profile.married_to_us_citizen,
   };

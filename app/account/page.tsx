@@ -53,6 +53,7 @@ export default function AccountPage() {
   const [defaultCategory, setDefaultCategory] = useState("");
   const [defaultCountry, setDefaultCountry] = useState("");
   const [defaultBulletinType, setDefaultBulletinType] = useState("");
+  const [priorityDate, setPriorityDate] = useState("");
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [marriedToUsCitizen, setMarriedToUsCitizen] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -86,6 +87,7 @@ export default function AccountPage() {
         setDefaultCategory(data.immigrationProfile?.default_category ?? "");
         setDefaultCountry(data.immigrationProfile?.default_country ?? "");
         setDefaultBulletinType(data.immigrationProfile?.default_bulletin_type ?? "");
+        setPriorityDate(data.immigrationProfile?.priority_date ?? "");
         setGreenCardIssueDate(data.immigrationProfile?.green_card_issue_date ?? "");
         setMarriedToUsCitizen(marriedToFormValue(data.immigrationProfile?.married_to_us_citizen));
       } catch (loadError: unknown) {
@@ -122,6 +124,7 @@ export default function AccountPage() {
           defaultCategory,
           defaultCountry,
           defaultBulletinType,
+          priorityDate,
           greenCardIssueDate,
           marriedToUsCitizen:
             marriedToUsCitizen === "" ? null : marriedToUsCitizen === "true",
@@ -143,6 +146,7 @@ export default function AccountPage() {
         setDefaultCategory(immigrationProfile.default_category ?? "");
         setDefaultCountry(immigrationProfile.default_country ?? "");
         setDefaultBulletinType(immigrationProfile.default_bulletin_type ?? "");
+        setPriorityDate(immigrationProfile.priority_date ?? "");
         setGreenCardIssueDate(immigrationProfile.green_card_issue_date ?? "");
         setMarriedToUsCitizen(marriedToFormValue(immigrationProfile.married_to_us_citizen));
       }
@@ -178,8 +182,8 @@ export default function AccountPage() {
               <div>
                 <h2 className="heading-2">Immigration Profile</h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  Set employment-based defaults, country of chargeability, bulletin date type, and
-                  optional citizenship planning fields.
+                  Set employment-based defaults, priority date, country of chargeability, bulletin
+                  date type, and optional citizenship planning fields.
                 </p>
               </div>
 
@@ -251,6 +255,27 @@ export default function AccountPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="priorityDate"
+                      className="block text-sm font-semibold text-slate-900"
+                    >
+                      Priority date{" "}
+                      <span className="font-normal text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                      id="priorityDate"
+                      name="priorityDate"
+                      type="date"
+                      className="input-field"
+                      value={priorityDate}
+                      onChange={(event) => setPriorityDate(event.target.value)}
+                    />
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      Used to prefill the Green Card Wait Time Calculator.
+                    </p>
                   </div>
 
                   <div>

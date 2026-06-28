@@ -18,6 +18,7 @@ type PatchBody = {
   defaultBulletinType?: unknown;
   greenCardIssueDate?: unknown;
   marriedToUsCitizen?: unknown;
+  priorityDate?: unknown;
 };
 
 function normalizeOptionalString(value: unknown): string | null {
@@ -98,6 +99,29 @@ function validateGreenCardIssueDate(value: string | null): string | null {
   return value;
 }
 
+function validatePriorityDate(value: string | null): string | null {
+  if (value === null) {
+    return null;
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new AuthError("Invalid priorityDate. Use YYYY-MM-DD or empty.", 400);
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    throw new AuthError("Invalid priorityDate. Use a valid YYYY-MM-DD date.", 400);
+  }
+
+  return value;
+}
+
 function validateMarriedToUsCitizen(value: unknown): boolean | null {
   if (value === null || value === undefined || value === "") {
     return null;
@@ -119,6 +143,7 @@ export async function PATCH(request: Request) {
       default_category: validateCategory(normalizeOptionalString(body.defaultCategory)),
       default_country: validateCountry(normalizeOptionalString(body.defaultCountry)),
       default_bulletin_type: validateBulletinType(normalizeOptionalString(body.defaultBulletinType)),
+      priority_date: validatePriorityDate(normalizeOptionalString(body.priorityDate)),
       green_card_issue_date: validateGreenCardIssueDate(
         normalizeOptionalString(body.greenCardIssueDate),
       ),

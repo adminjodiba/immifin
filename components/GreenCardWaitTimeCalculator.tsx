@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   chargeabilityOptions,
@@ -97,40 +97,19 @@ function ResultCard({
 }
 
 export function GreenCardWaitTimeCalculator() {
-  const { defaults } = useImmigrationProfileDefaults();
+  const { defaults, loaded } = useImmigrationProfileDefaults();
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [priorityDate, setPriorityDate] = useState("");
   const [result, setResult] = useState<LivePriorityDateCheck | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const profileDefaultsApplied = useRef(false);
 
-  useEffect(() => {
-    if (!defaults) {
-      return;
-    }
+  const savedGreenCardIssueDate =
+    loaded && defaults?.greenCardIssueDate ? defaults.greenCardIssueDate : null;
 
-    if (defaults.category && categoryOptions.some((option) => option.value === defaults.category)) {
-      setCategory((current) => current || defaults.category!);
-    }
-
-    if (
-      defaults.countryChargeability &&
-      chargeabilityOptions.some((option) => option.value === defaults.countryChargeability)
-    ) {
-      setCountry((current) => current || defaults.countryChargeability!);
-    }
-  }, [defaults]);
-
-  const maxDate = new Date().toISOString().split("T")[0];
-  const canCalculate = category !== "" && country !== "" && priorityDate !== "";
-
-  async function handleCalculate(event: FormEvent) {
-    event.preventDefault();
-    if (!canCalculate) {
-      return;
-    }
-
+  async function runCheck(cat: string, ctry: string, date: string) {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -139,7 +118,7 @@ export function GreenCardWaitTimeCalculator() {
       const response = await fetch("/api/check-priority-date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, country, priorityDate }),
+        body: JSON.stringify({ category: cat, country: ctry, priorityDate: date }),
       });
 
       const data = await response.json();
@@ -155,6 +134,49 @@ export function GreenCardWaitTimeCalculator() {
     } finally {
       setLoading(false);
     }
+  }
+
+  useEffect(() => {
+    if (!loaded || !defaults || profileDefaultsApplied.current) {
+      return;
+    }
+
+    profileDefaultsApplied.current = true;
+
+    const profileCategory =
+      defaults.category && categoryOptions.some((option) => option.value === defaults.category)
+        ? defaults.category
+        : "";
+    const profileCountry =
+      defaults.countryChargeability &&
+      chargeabilityOptions.some((option) => option.value === defaults.countryChargeability)
+        ? defaults.countryChargeability
+        : "";
+    const profilePriority = defaults.priorityDate ?? "";
+
+    setCategory((current) => current || profileCategory);
+    setCountry((current) => current || profileCountry);
+    setPriorityDate((current) => current || profilePriority);
+
+    if (defaults.greenCardIssueDate) {
+      return;
+    }
+
+    if (profileCategory && profileCountry && profilePriority) {
+      void runCheck(profileCategory, profileCountry, profilePriority);
+    }
+  }, [loaded, defaults]);
+
+  const maxDate = new Date().toISOString().split("T")[0];
+  const canCalculate = category !== "" && country !== "" && priorityDate !== "";
+
+  async function handleCalculate(event: FormEvent) {
+    event.preventDefault();
+    if (!canCalculate) {
+      return;
+    }
+
+    await runCheck(category, country, priorityDate);
   }
 
   return (
@@ -189,6 +211,30 @@ export function GreenCardWaitTimeCalculator() {
         </div>
 
         <div className="p-5 sm:p-8">
+          {savedGreenCardIssueDate && (
+            <div
+              className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6"
+              role="status"
+            >
+              <p className="text-sm font-semibold text-emerald-950">
+                You already have a Green Card based on your saved profile.
+              </p>
+              <p className="mt-2 text-sm text-emerald-900">
+                Green card issue date:{" "}
+                <span className="font-medium">
+                  {new Date(`${savedGreenCardIssueDate}T00:00:00`).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-emerald-800">
+                Change the fields below if you want to check a different priority date scenario.
+              </p>
+            </div>
+          )}
+
           <form className="space-y-8" onSubmit={handleCalculate} aria-label="Green card wait time calculator">
             <div className="space-y-6">
               <div>
@@ -280,7 +326,7 @@ export function GreenCardWaitTimeCalculator() {
             </div>
           )}
 
-          {!result && !error && (
+          {!result && !error && !savedGreenCardIssueDate && (
             <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-5 py-8 text-center sm:px-8">
               <p className="text-sm font-medium text-slate-700">Your results will appear here</p>
               <p className="mt-1 text-xs text-slate-500">
