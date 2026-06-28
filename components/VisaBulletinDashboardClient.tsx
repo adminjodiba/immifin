@@ -156,7 +156,7 @@ function CategoryBadge({ categoryKey }: { categoryKey: CategoryKey }) {
   );
 }
 
-function BulletinTable({ rows }: { rows: VisaBulletinRow[] }) {
+function BulletinTable({ rows, activeTab }: { rows: VisaBulletinRow[]; activeTab: TabKey }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
@@ -179,7 +179,7 @@ function BulletinTable({ rows }: { rows: VisaBulletinRow[] }) {
                 scope="col"
                 className="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-900 sm:px-6"
               >
-                Final Action Date
+                {activeTab === "final-action" ? "Final Action Date" : "Date for Filing"}
               </th>
               <th
                 scope="col"
@@ -295,7 +295,9 @@ export function VisaBulletinDashboardClient() {
                 Data source
               </p>
               <p className="mt-2 text-sm font-medium text-slate-900">
-                U.S. Department of State Visa Bulletin
+                {activeTab === "final-action"
+                  ? "U.S. Department of State Visa Bulletin (Final Action Dates)"
+                  : "U.S. Department of State Visa Bulletin (Dates for Filing)"}
               </p>
             </div>
             <div>
@@ -335,7 +337,9 @@ export function VisaBulletinDashboardClient() {
 
           {isLoading ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-              Loading visa bulletin data…
+              {activeTab === "final-action"
+                ? "Loading Final Action Dates..."
+                : "Loading Dates for Filing..."}
             </div>
           ) : error ? (
             <div
@@ -345,7 +349,7 @@ export function VisaBulletinDashboardClient() {
               {error}
             </div>
           ) : (
-            <BulletinTable rows={rows} />
+            <BulletinTable rows={rows} activeTab={activeTab} />
           )}
 
           <section aria-labelledby="related-tools">
