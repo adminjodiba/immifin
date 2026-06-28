@@ -1,4 +1,7 @@
-import { resolveVisaBulletinCsvUrl } from "@/lib/visaBulletinConfig";
+import {
+  getCurrentDatesForFiling,
+  getCurrentFinalActionDates,
+} from "@/lib/visaBulletinSheets";
 
 export type ChargeabilityArea =
   | "all"
@@ -235,32 +238,26 @@ export function formatBulletinDate(date: BulletinDate): string {
   });
 }
 
+export type VisaBulletinDataType = "final-action" | "filing";
+
 export type VisaBulletinRow = {
   category: string;
   country: string;
   finalActionDate: string;
 };
 
-export async function getVisaBulletinData(): Promise<VisaBulletinRow[]> {
-  const response = await fetch(resolveVisaBulletinCsvUrl("FinalActionDates"), {
-    next: { revalidate: 86400 },
-  });
+export async function getVisaBulletinData(
+  type: VisaBulletinDataType = "final-action",
+): Promise<VisaBulletinRow[]> {
+  const sheetRows =
+    type === "filing"
+      ? await getCurrentDatesForFiling()
+      : await getCurrentFinalActionDates();
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch visa bulletin CSV (${response.status})`);
-  }
-
-  const csvText = await response.text();
-
-  const rows = csvText
-    .split("\n")
-    .map((row) => row.split(",").map((cell) => cell.trim()))
-    .filter((row) => row.some((cell) => cell !== ""));
-
-  return rows.slice(1).map((row) => ({
-    category: row[0],
-    country: row[1],
-    finalActionDate: row[2],
+  return sheetRows.map((row) => ({
+    category: row.category,
+    country: row.country,
+    finalActionDate: row.cutoffDate,
   }));
 }
 
