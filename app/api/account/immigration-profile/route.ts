@@ -17,6 +17,7 @@ type PatchBody = {
   defaultCountry?: unknown;
   defaultBulletinType?: unknown;
   greenCardIssueDate?: unknown;
+  marriedToUsCitizen?: unknown;
 };
 
 function normalizeOptionalString(value: unknown): string | null {
@@ -97,6 +98,18 @@ function validateGreenCardIssueDate(value: string | null): string | null {
   return value;
 }
 
+function validateMarriedToUsCitizen(value: unknown): boolean | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (value === true || value === false) {
+    return value;
+  }
+
+  throw new AuthError("Invalid marriedToUsCitizen. Use true, false, or empty.", 400);
+}
+
 export async function PATCH(request: Request) {
   try {
     const profileWithRelations = await requireUser();
@@ -109,6 +122,7 @@ export async function PATCH(request: Request) {
       green_card_issue_date: validateGreenCardIssueDate(
         normalizeOptionalString(body.greenCardIssueDate),
       ),
+      married_to_us_citizen: validateMarriedToUsCitizen(body.marriedToUsCitizen),
     });
 
     return NextResponse.json({ immigrationProfile });

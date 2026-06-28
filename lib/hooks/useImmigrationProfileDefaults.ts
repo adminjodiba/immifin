@@ -9,6 +9,7 @@ export type ImmigrationProfileDefaults = {
   countryChargeability: string | null;
   bulletinType: string | null;
   greenCardIssueDate: string | null;
+  marriedToUSCitizen: boolean | null;
 };
 
 const PROFILE_COUNTRY_TO_CHARGEABILITY: Record<string, string> = {
@@ -33,6 +34,7 @@ function mapImmigrationProfileToDefaults(
       : null,
     bulletinType: profile.default_bulletin_type,
     greenCardIssueDate: profile.green_card_issue_date,
+    marriedToUSCitizen: profile.married_to_us_citizen,
   };
 }
 

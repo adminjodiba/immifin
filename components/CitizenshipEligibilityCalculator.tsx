@@ -86,18 +86,36 @@ function ResultCard({
 }
 
 export function CitizenshipEligibilityCalculator() {
-  const { defaults } = useImmigrationProfileDefaults();
+  const { defaults, loaded } = useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [marriedToUSCitizen, setMarriedToUSCitizen] = useState<boolean | null>(null);
   const [result, setResult] = useState<CitizenshipEligibilityResult | null>(null);
 
   useEffect(() => {
-    if (!defaults?.greenCardIssueDate) {
+    if (!loaded || !defaults) {
       return;
     }
 
-    setGreenCardIssueDate((current) => current || defaults.greenCardIssueDate!);
-  }, [defaults?.greenCardIssueDate]);
+    const profileDate = defaults.greenCardIssueDate ?? "";
+    const profileMarried = defaults.marriedToUSCitizen;
+
+    setGreenCardIssueDate((current) => current || profileDate);
+    setMarriedToUSCitizen((current) => {
+      if (current !== null) {
+        return current;
+      }
+
+      if (profileMarried === null || profileMarried === undefined) {
+        return null;
+      }
+
+      return profileMarried;
+    });
+
+    if (profileDate && profileMarried !== null && profileMarried !== undefined) {
+      setResult(calculateCitizenshipEligibility(profileDate, profileMarried));
+    }
+  }, [loaded, defaults]);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const canCalculate = greenCardIssueDate !== "" && marriedToUSCitizen !== null;

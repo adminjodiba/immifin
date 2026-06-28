@@ -31,11 +31,30 @@ const bulletinTypeOptions = [
   { value: "dates_for_filing", label: "Dates for Filing" },
 ];
 
+const marriedToUsCitizenOptions = [
+  { value: "", label: "No default" },
+  { value: "true", label: "Yes" },
+  { value: "false", label: "No" },
+];
+
+function marriedToFormValue(value: boolean | null | undefined): string {
+  if (value === true) {
+    return "true";
+  }
+
+  if (value === false) {
+    return "false";
+  }
+
+  return "";
+}
+
 export default function AccountPage() {
   const [defaultCategory, setDefaultCategory] = useState("");
   const [defaultCountry, setDefaultCountry] = useState("");
   const [defaultBulletinType, setDefaultBulletinType] = useState("");
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
+  const [marriedToUsCitizen, setMarriedToUsCitizen] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +87,7 @@ export default function AccountPage() {
         setDefaultCountry(data.immigrationProfile?.default_country ?? "");
         setDefaultBulletinType(data.immigrationProfile?.default_bulletin_type ?? "");
         setGreenCardIssueDate(data.immigrationProfile?.green_card_issue_date ?? "");
+        setMarriedToUsCitizen(marriedToFormValue(data.immigrationProfile?.married_to_us_citizen));
       } catch (loadError: unknown) {
         if (!cancelled) {
           const message =
@@ -103,6 +123,8 @@ export default function AccountPage() {
           defaultCountry,
           defaultBulletinType,
           greenCardIssueDate,
+          marriedToUsCitizen:
+            marriedToUsCitizen === "" ? null : marriedToUsCitizen === "true",
         }),
       });
 
@@ -122,6 +144,7 @@ export default function AccountPage() {
         setDefaultCountry(immigrationProfile.default_country ?? "");
         setDefaultBulletinType(immigrationProfile.default_bulletin_type ?? "");
         setGreenCardIssueDate(immigrationProfile.green_card_issue_date ?? "");
+        setMarriedToUsCitizen(marriedToFormValue(immigrationProfile.married_to_us_citizen));
       }
 
       setSuccess("Immigration profile saved.");
@@ -156,7 +179,7 @@ export default function AccountPage() {
                 <h2 className="heading-2">Immigration Profile</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Set employment-based defaults, country of chargeability, bulletin date type, and
-                  optional green card issue date for citizenship planning.
+                  optional citizenship planning fields.
                 </p>
               </div>
 
@@ -249,6 +272,29 @@ export default function AccountPage() {
                     <p className="mt-1.5 text-xs text-slate-500">
                       Leave blank if you do not have a green card yet.
                     </p>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="marriedToUsCitizen"
+                      className="block text-sm font-semibold text-slate-900"
+                    >
+                      Married to U.S. citizen{" "}
+                      <span className="font-normal text-slate-500">(optional)</span>
+                    </label>
+                    <select
+                      id="marriedToUsCitizen"
+                      name="marriedToUsCitizen"
+                      className="input-field"
+                      value={marriedToUsCitizen}
+                      onChange={(event) => setMarriedToUsCitizen(event.target.value)}
+                    >
+                      {marriedToUsCitizenOptions.map((option) => (
+                        <option key={option.value || "empty"} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </>
               )}
