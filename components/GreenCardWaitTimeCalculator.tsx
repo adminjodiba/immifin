@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   chargeabilityOptions,
@@ -8,6 +8,7 @@ import {
   type LivePriorityDateCheck,
 } from "@/lib/visaBulletinData";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
+import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
 const categoryOptions = employmentCategoryOptions.filter(
   (option) => option.value !== "EB4" && option.value !== "EB5",
@@ -96,12 +97,30 @@ function ResultCard({
 }
 
 export function GreenCardWaitTimeCalculator() {
+  const { defaults } = useImmigrationProfileDefaults();
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [priorityDate, setPriorityDate] = useState("");
   const [result, setResult] = useState<LivePriorityDateCheck | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!defaults) {
+      return;
+    }
+
+    if (defaults.category && categoryOptions.some((option) => option.value === defaults.category)) {
+      setCategory((current) => current || defaults.category!);
+    }
+
+    if (
+      defaults.countryChargeability &&
+      chargeabilityOptions.some((option) => option.value === defaults.countryChargeability)
+    ) {
+      setCountry((current) => current || defaults.countryChargeability!);
+    }
+  }, [defaults]);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const canCalculate = category !== "" && country !== "" && priorityDate !== "";

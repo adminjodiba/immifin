@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   calculateCitizenshipEligibility,
@@ -9,6 +9,7 @@ import {
   type CitizenshipEligibilityResult,
 } from "@/lib/citizenship-eligibility";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
+import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
 const inputClassName =
   "mt-2 block w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-base text-slate-900 shadow-sm transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10 sm:text-sm";
@@ -85,9 +86,18 @@ function ResultCard({
 }
 
 export function CitizenshipEligibilityCalculator() {
+  const { defaults } = useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [marriedToUSCitizen, setMarriedToUSCitizen] = useState<boolean | null>(null);
   const [result, setResult] = useState<CitizenshipEligibilityResult | null>(null);
+
+  useEffect(() => {
+    if (!defaults?.greenCardIssueDate) {
+      return;
+    }
+
+    setGreenCardIssueDate((current) => current || defaults.greenCardIssueDate!);
+  }, [defaults?.greenCardIssueDate]);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const canCalculate = greenCardIssueDate !== "" && marriedToUSCitizen !== null;
