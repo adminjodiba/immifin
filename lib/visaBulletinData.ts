@@ -284,6 +284,37 @@ export function normalizeSheetCategory(category: string): string {
   return trimmed;
 }
 
+const BULLETIN_DISPLAY_DATE_PATTERN = /^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/;
+
+const BULLETIN_MONTH_ABBREVIATIONS: Record<string, string> = {
+  jan: "01",
+  feb: "02",
+  mar: "03",
+  apr: "04",
+  may: "05",
+  jun: "06",
+  jul: "07",
+  aug: "08",
+  sep: "09",
+  oct: "10",
+  nov: "11",
+  dec: "12",
+};
+
+function parseBulletinDisplayDateToIso(value: string): string | null {
+  const match = value.match(BULLETIN_DISPLAY_DATE_PATTERN);
+  if (!match) {
+    return null;
+  }
+
+  const month = BULLETIN_MONTH_ABBREVIATIONS[match[2].toLowerCase()];
+  if (!month) {
+    return null;
+  }
+
+  return `${match[3]}-${month}-${match[1].padStart(2, "0")}`;
+}
+
 export function parseBulletinCutoffDate(value: string): BulletinDate | "U" {
   const trimmed = value.trim();
   const upper = trimmed.toUpperCase();
@@ -298,6 +329,11 @@ export function parseBulletinCutoffDate(value: string): BulletinDate | "U" {
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     return trimmed;
+  }
+
+  const displayIso = parseBulletinDisplayDateToIso(trimmed);
+  if (displayIso) {
+    return displayIso;
   }
 
   const parsed = new Date(trimmed);

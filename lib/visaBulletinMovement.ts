@@ -1,4 +1,6 @@
 import { parseBulletinCutoffDate } from "@/lib/visaBulletinData";
+import type { BulletinHistoryType } from "@/lib/visaBulletinArchive";
+import { getVisaBulletinHistory } from "@/lib/visaBulletinHistory";
 import type { BulletinSheetRow } from "@/lib/visaBulletinSheets";
 import {
   getCurrentDatesForFiling,
@@ -45,8 +47,10 @@ function rowKey(category: string, country: string): string {
   return `${category.trim().toLowerCase()}|${country.trim().toLowerCase()}`;
 }
 
-function isIsoDate(value: string): value is string {
-  return ISO_DATE_PATTERN.test(value);
+type ParsedCutoff = ReturnType<typeof parseBulletinCutoffDate>;
+
+function isComparableIsoDate(value: ParsedCutoff): value is string {
+  return value !== "C" && value !== "U" && ISO_DATE_PATTERN.test(value);
 }
 
 function dayDiff(previousIso: string, currentIso: string): number {
@@ -98,7 +102,7 @@ export function formatMovementLabel(
     case "forward":
     case "retrogression": {
       if (movementDays === null || movementMonths === null) {
-        return "Invalid date";
+        return movementType === "forward" ? "Advanced to Current" : "Retrogressed from Current";
       }
 
       if (movementDays === 0) {
@@ -141,24 +145,34 @@ export function compareBulletinMovement(
   previousDate: string,
   currentDate: string,
 ): MovementResult {
-  const previousRaw = previousDate.trim();
-  const currentRaw = currentDate.trim();
-  const parsedPrevious = parseBulletinCutoffDate(previousRaw);
-  const parsedCurrent = parseBulletinCutoffDate(currentRaw);
+  const parsedPrevious = parseBulletinCutoffDate(previousDate.trim());
+  const parsedCurrent = parseBulletinCutoffDate(currentDate.trim());
 
-  if (parsedCurrent === "C") {
-    return buildMovementResult("current", null, null);
+  if (parsedCurrent === "U" || parsedPrevious === "U") {
+    if (parsedCurrent === "U" && parsedPrevious === "U") {
+      return buildMovementResult("no-change", 0, 0);
+    }
+
+    return buildMovementResult("unavailable", null, null);
   }
 
-  if (parsedCurrent === "U") {
-    return buildMovementResult("unavailable", null, null);
+  if (parsedCurrent === "C" && parsedPrevious === "C") {
+    return buildMovementResult("no-change", 0, 0);
+  }
+
+  if (parsedCurrent === "C" && isComparableIsoDate(parsedPrevious)) {
+    return buildMovementResult("forward", null, null);
+  }
+
+  if (parsedPrevious === "C" && isComparableIsoDate(parsedCurrent)) {
+    return buildMovementResult("retrogression", null, null);
   }
 
   if (parsedCurrent === parsedPrevious) {
     return buildMovementResult("no-change", 0, 0);
   }
 
-  if (isIsoDate(parsedPrevious) && isIsoDate(parsedCurrent)) {
+  if (isComparableIsoDate(parsedPrevious) && isComparableIsoDate(parsedCurrent)) {
     const movementDays = dayDiff(parsedPrevious, parsedCurrent);
 
     if (Number.isNaN(movementDays)) {
@@ -223,6 +237,78 @@ function buildMovementRows(
     });
 }
 
+function historyTypeForComparison(type: MovementComparisonType): BulletinHistoryType {
+  return type === "final-action" ? "FinalAction" : "Filing";
+}
+
+function sheetsAreIdentical(
+  currentRows: BulletinSheetRow[],
+  previousRows: BulletinSheetRow[],
+): boolean {
+  if (currentRows.length === 0 || currentRows.length !== previousRows.length) {
+    return false;
+  }
+
+  const currentByKey = indexRows(currentRows);
+  const previousByKey = indexRows(previousRows);
+
+  for (const [key, currentRow] of currentByKey) {
+    const previousRow = previousByKey.get(key);
+
+    if (!previousRow || previousRow.cutoffDate !== currentRow.cutoffDate) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function getPreviousRowsFromHistory(
+  type: MovementComparisonType,
+): Promise<BulletinSheetRow[] | null> {
+  const records = await getVisaBulletinHistory({ type: historyTypeForComparison(type) });
+  const months = [...new Set(records.map((record) => record.month))].sort();
+
+  if (months.length < 2) {
+    return null;
+  }
+
+  const previousMonth = months[months.length - 2];
+
+  return records
+    .filter((record) => record.month === previousMonth)
+    .map((record) => ({
+      category: record.category,
+      country: record.country,
+      cutoffDate: record.cutoffDate,
+    }));
+}
+
+async function resolvePreviousRows(
+  type: MovementComparisonType,
+  currentRows: BulletinSheetRow[],
+  previousRows: BulletinSheetRow[],
+): Promise<BulletinSheetRow[]> {
+  if (!sheetsAreIdentical(currentRows, previousRows)) {
+    return previousRows;
+  }
+
+  const historyPreviousRows = await getPreviousRowsFromHistory(type);
+
+  if (!historyPreviousRows || sheetsAreIdentical(currentRows, historyPreviousRows)) {
+    console.warn(
+      `[visa-bulletin-movement] ${type}: previous sheet matches current; no distinct previous-month data available`,
+    );
+    return previousRows;
+  }
+
+  console.warn(
+    `[visa-bulletin-movement] ${type}: previous sheet matches current; using VisaBulletinHistory fallback`,
+  );
+
+  return historyPreviousRows;
+}
+
 export async function getVisaBulletinMovement(
   type: MovementComparisonType,
 ): Promise<VisaBulletinMovementRow[]> {
@@ -232,7 +318,10 @@ export async function getVisaBulletinMovement(
       getPreviousFinalActionDates(),
     ]);
 
-    return buildMovementRows(currentRows, previousRows);
+    return buildMovementRows(
+      currentRows,
+      await resolvePreviousRows(type, currentRows, previousRows),
+    );
   }
 
   const [currentRows, previousRows] = await Promise.all([
@@ -240,5 +329,8 @@ export async function getVisaBulletinMovement(
     getPreviousDatesForFiling(),
   ]);
 
-  return buildMovementRows(currentRows, previousRows);
+  return buildMovementRows(
+    currentRows,
+    await resolvePreviousRows(type, currentRows, previousRows),
+  );
 }
