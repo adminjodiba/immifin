@@ -1,7 +1,6 @@
 import { parseBulletinCutoffDate } from "@/lib/visaBulletinData";
 import type { BulletinHistoryType } from "@/lib/visaBulletinArchive";
 import { getVisaBulletinHistory } from "@/lib/visaBulletinHistory";
-import { resolveVisaBulletinCsvUrl } from "@/lib/visaBulletinConfig";
 import type { BulletinSheetRow } from "@/lib/visaBulletinSheets";
 import {
   getCurrentDatesForFiling,
@@ -242,28 +241,21 @@ function historyTypeForComparison(type: MovementComparisonType): BulletinHistory
   return type === "final-action" ? "FinalAction" : "Filing";
 }
 
-function normalizedCutoff(value: string): ParsedCutoff {
-  return parseBulletinCutoffDate(value.trim());
-}
-
-function sheetRowsMatch(
-  leftRows: BulletinSheetRow[],
-  rightRows: BulletinSheetRow[],
+function sheetsAreIdentical(
+  currentRows: BulletinSheetRow[],
+  previousRows: BulletinSheetRow[],
 ): boolean {
-  if (leftRows.length === 0 || leftRows.length !== rightRows.length) {
+  if (currentRows.length === 0 || currentRows.length !== previousRows.length) {
     return false;
   }
 
-  const leftByKey = indexRows(leftRows);
-  const rightByKey = indexRows(rightRows);
+  const currentByKey = indexRows(currentRows);
+  const previousByKey = indexRows(previousRows);
 
-  for (const [key, leftRow] of leftByKey) {
-    const rightRow = rightByKey.get(key);
+  for (const [key, currentRow] of currentByKey) {
+    const previousRow = previousByKey.get(key);
 
-    if (
-      !rightRow ||
-      normalizedCutoff(leftRow.cutoffDate) !== normalizedCutoff(rightRow.cutoffDate)
-    ) {
+    if (!previousRow || previousRow.cutoffDate !== currentRow.cutoffDate) {
       return false;
     }
   }
@@ -271,12 +263,20 @@ function sheetRowsMatch(
   return true;
 }
 
-function historyRecordsToRows(
-  records: Awaited<ReturnType<typeof getVisaBulletinHistory>>,
-  month: string,
-): BulletinSheetRow[] {
+async function getPreviousRowsFromHistory(
+  type: MovementComparisonType,
+): Promise<BulletinSheetRow[] | null> {
+  const records = await getVisaBulletinHistory({ type: historyTypeForComparison(type) });
+  const months = [...new Set(records.map((record) => record.month))].sort();
+
+  if (months.length < 2) {
+    return null;
+  }
+
+  const previousMonth = months[months.length - 2];
+
   return records
-    .filter((record) => record.month === month)
+    .filter((record) => record.month === previousMonth)
     .map((record) => ({
       category: record.category,
       country: record.country,
@@ -284,155 +284,29 @@ function historyRecordsToRows(
     }));
 }
 
-async function findHistoryMonthMatchingRows(
-  type: BulletinHistoryType,
-  rows: BulletinSheetRow[],
-): Promise<string | null> {
-  const records = await getVisaBulletinHistory({ type });
-  const months = [...new Set(records.map((record) => record.month))].sort();
-
-  for (let index = months.length - 1; index >= 0; index -= 1) {
-    const month = months[index];
-    const monthRows = historyRecordsToRows(records, month);
-
-    if (sheetRowsMatch(monthRows, rows)) {
-      return month;
-    }
-  }
-
-  return null;
-}
-
-async function getPreviousRowsFromHistory(
-  type: MovementComparisonType,
-  currentRows: BulletinSheetRow[],
-  previousFinalActionRows?: BulletinSheetRow[],
-): Promise<{ previousMonth: string; rows: BulletinSheetRow[] } | null> {
-  const historyType = historyTypeForComparison(type);
-  const records = await getVisaBulletinHistory({ type: historyType });
-  const months = [...new Set(records.map((record) => record.month))].sort();
-
-  if (months.length < 2) {
-    return null;
-  }
-
-  if (type === "filing" && previousFinalActionRows?.length) {
-    const finalActionPreviousMonth = await findHistoryMonthMatchingRows(
-      "FinalAction",
-      previousFinalActionRows,
-    );
-
-    if (finalActionPreviousMonth) {
-      return {
-        previousMonth: finalActionPreviousMonth,
-        rows: historyRecordsToRows(records, finalActionPreviousMonth),
-      };
-    }
-  }
-
-  let referenceMonth = months[months.length - 1];
-
-  for (let index = months.length - 1; index >= 0; index -= 1) {
-    const month = months[index];
-    const monthRows = historyRecordsToRows(records, month);
-
-    if (sheetRowsMatch(monthRows, currentRows)) {
-      referenceMonth = month;
-      break;
-    }
-  }
-
-  const referenceIndex = months.indexOf(referenceMonth);
-
-  if (referenceIndex <= 0) {
-    return null;
-  }
-
-  const previousMonth = months[referenceIndex - 1];
-
-  return {
-    previousMonth,
-    rows: historyRecordsToRows(records, previousMonth),
-  };
-}
-
-function logFilingSourceDebug(
-  currentRows: BulletinSheetRow[],
-  previousRows: BulletinSheetRow[],
-  resolvedPreviousRows: BulletinSheetRow[],
-  previousMonth: string | null,
-): void {
-  const sample = (rows: BulletinSheetRow[]) =>
-    rows.find((row) => /eb2/i.test(row.category) && /india/i.test(row.country));
-
-  const currentSample = sample(currentRows);
-  const dedicatedPreviousSample = sample(previousRows);
-  const resolvedPreviousSample = sample(resolvedPreviousRows);
-
-  console.warn("[visa-bulletin-movement] filing source debug:", {
-    currentDatesForFilingUrl: resolveVisaBulletinCsvUrl("DatesForFiling"),
-    previousDatesForFilingUrl: resolveVisaBulletinCsvUrl("PreviousDatesForFiling"),
-    historyPreviousMonth: previousMonth,
-    sampleCurrentEb2India: currentSample?.cutoffDate ?? null,
-    sampleDedicatedPreviousEb2India: dedicatedPreviousSample?.cutoffDate ?? null,
-    sampleResolvedPreviousEb2India: resolvedPreviousSample?.cutoffDate ?? null,
-    comparisonResult:
-      currentSample && resolvedPreviousSample
-        ? compareBulletinMovement(
-            resolvedPreviousSample.cutoffDate,
-            currentSample.cutoffDate,
-          ).movementType
-        : null,
-  });
-}
-
 async function resolvePreviousRows(
   type: MovementComparisonType,
   currentRows: BulletinSheetRow[],
   previousRows: BulletinSheetRow[],
-  options: { forceHistory?: boolean; previousFinalActionRows?: BulletinSheetRow[] } = {},
 ): Promise<BulletinSheetRow[]> {
-  const dedicatedPreviousMatchesCurrent = sheetRowsMatch(currentRows, previousRows);
-
-  if (!dedicatedPreviousMatchesCurrent && !options.forceHistory) {
+  if (!sheetsAreIdentical(currentRows, previousRows)) {
     return previousRows;
   }
 
-  const historyPrevious = await getPreviousRowsFromHistory(
-    type,
-    currentRows,
-    options.previousFinalActionRows,
+  const historyPreviousRows = await getPreviousRowsFromHistory(type);
+
+  if (!historyPreviousRows || sheetsAreIdentical(currentRows, historyPreviousRows)) {
+    console.warn(
+      `[visa-bulletin-movement] ${type}: previous sheet matches current; no distinct previous-month data available`,
+    );
+    return previousRows;
+  }
+
+  console.warn(
+    `[visa-bulletin-movement] ${type}: previous sheet matches current; using VisaBulletinHistory fallback`,
   );
 
-  if (!historyPrevious) {
-    console.warn(
-      `[visa-bulletin-movement] ${type}: dedicated previous sheet matches current and no history month is available`,
-    );
-    return previousRows;
-  }
-
-  const resolvedPreviousRows = historyPrevious.rows;
-
-  if (type === "filing") {
-    logFilingSourceDebug(
-      currentRows,
-      previousRows,
-      resolvedPreviousRows,
-      historyPrevious.previousMonth,
-    );
-  }
-
-  if (sheetRowsMatch(currentRows, resolvedPreviousRows)) {
-    console.warn(
-      `[visa-bulletin-movement] ${type}: dedicated previous sheet is stale; history month ${historyPrevious.previousMonth} matches current bulletin dates`,
-    );
-  } else {
-    console.warn(
-      `[visa-bulletin-movement] ${type}: dedicated previous sheet is stale; using VisaBulletinHistory month ${historyPrevious.previousMonth}`,
-    );
-  }
-
-  return resolvedPreviousRows;
+  return historyPreviousRows;
 }
 
 export async function getVisaBulletinMovement(
@@ -450,23 +324,13 @@ export async function getVisaBulletinMovement(
     );
   }
 
-  const [currentRows, previousRows, currentFinalActionRows, previousFinalActionRows] =
-    await Promise.all([
-      getCurrentDatesForFiling(),
-      getPreviousDatesForFiling(),
-      getCurrentFinalActionDates(),
-      getPreviousFinalActionDates(),
-    ]);
-
-  const filingPreviousSheetIsStale =
-    sheetRowsMatch(currentRows, previousRows) &&
-    !sheetRowsMatch(currentFinalActionRows, previousFinalActionRows);
+  const [currentRows, previousRows] = await Promise.all([
+    getCurrentDatesForFiling(),
+    getPreviousDatesForFiling(),
+  ]);
 
   return buildMovementRows(
     currentRows,
-    await resolvePreviousRows(type, currentRows, previousRows, {
-      forceHistory: filingPreviousSheetIsStale,
-      previousFinalActionRows: previousFinalActionRows,
-    }),
+    await resolvePreviousRows(type, currentRows, previousRows),
   );
 }

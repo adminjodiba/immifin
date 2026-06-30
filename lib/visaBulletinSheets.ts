@@ -38,9 +38,7 @@ function parseCsvRows(csvText: string): BulletinSheetRow[] {
 }
 
 async function fetchCsvText(url: string, label: string): Promise<string> {
-  const response = await fetch(url, {
-    next: { revalidate: 86400, tags: [`visa-bulletin-sheet-${label}`] },
-  });
+  const response = await fetch(url, { next: { revalidate: 86400 } });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${label} (${response.status})`);
