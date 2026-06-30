@@ -2,6 +2,7 @@ import Link from "next/link";
 import { UserProfile } from "@clerk/nextjs";
 import { PageHeader } from "@/components/PageHeader";
 import { clerkAppearance } from "@/lib/clerk/appearance";
+import { emailOnlyUserProfileElements } from "@/lib/clerk/emailOnly";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -18,6 +19,7 @@ const userProfileAppearance = {
     card: "rounded-2xl border border-slate-200 bg-white shadow-sm",
     navbar: "rounded-t-2xl border-b border-slate-200",
     pageScrollBox: "rounded-b-2xl",
+    ...emailOnlyUserProfileElements,
   },
 };
 
@@ -34,7 +36,10 @@ export default function ManageProfilePage() {
         <div className="container-main">
           <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
             <div className="min-w-0">
-              <UserProfile routing="hash" appearance={userProfileAppearance} />
+              <UserProfile routing="hash" appearance={userProfileAppearance}>
+                <UserProfile.Page label="account" />
+                <UserProfile.Page label="security" />
+              </UserProfile>
             </div>
 
             <aside className="card-static space-y-4 lg:sticky lg:top-24">

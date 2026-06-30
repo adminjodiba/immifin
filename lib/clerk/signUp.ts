@@ -1,4 +1,5 @@
 import { clerkAppearance } from "@/lib/clerk/appearance";
+import { emailOnlyAuthElements } from "@/lib/clerk/emailOnly";
 
 /**
  * Sign-up appearance extends the shared Clerk theme with field-level styling
@@ -15,6 +16,7 @@ export const clerkSignUpAppearance = {
     formFieldAction: "text-brand-700 hover:text-brand-800",
     avatarBox: "rounded-xl ring-1 ring-slate-200/80",
     avatarImageActionsUpload: "text-brand-700 hover:text-brand-800",
+    ...emailOnlyAuthElements,
   },
 };
 
