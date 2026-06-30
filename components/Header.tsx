@@ -99,6 +99,25 @@ function ImmigrationDropdown() {
   return <NavDropdown href="/immigration" label="Immigration" items={immigrationMenuLinks} />;
 }
 
+function ManageProfileIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth={1.75}
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a8.25 8.25 0 0115 0"
+      />
+    </svg>
+  );
+}
+
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -149,7 +168,16 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             )}
             {showSignedInAuth && (
               <div className="flex flex-col items-center justify-center">
-                <UserButton appearance={headerUserButtonAppearance} />
+                <UserButton appearance={headerUserButtonAppearance}>
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="Manage Profile"
+                      labelIcon={<ManageProfileIcon />}
+                      href="/user-profile"
+                    />
+                    <UserButton.Action label="signOut" />
+                  </UserButton.MenuItems>
+                </UserButton>
                 <p className="mt-1 whitespace-nowrap text-center text-xs font-medium text-slate-600">
                   {greetingLine}
                 </p>
