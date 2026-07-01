@@ -19,6 +19,7 @@ export type Profile = {
   plan: AppPlan;
   display_name: string | null;
   avatar_url: string | null;
+  phone_number: string | null;
   status: ProfileStatus;
   role_updated_at: string | null;
   role_updated_by_clerk_user_id: string | null;

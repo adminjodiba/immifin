@@ -11,4 +11,5 @@ export type ClerkUserPayload = {
   image_url: string;
   primary_email_address_id: string | null;
   email_addresses: ClerkEmailAddress[];
+  unsafe_metadata?: Record<string, unknown> | null;
 };

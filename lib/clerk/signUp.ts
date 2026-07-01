@@ -1,5 +1,6 @@
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyAuthElements } from "@/lib/clerk/emailOnly";
+import { ONBOARDING_CONTACT_PATH } from "@/lib/onboarding/routes";
 
 /**
  * Sign-up appearance extends the shared Clerk theme with field-level styling
@@ -31,5 +32,6 @@ export const clerkSignUpAppearance = {
 export const clerkSignUpProps = {
   appearance: clerkSignUpAppearance,
   signInUrl: "/login",
-  fallbackRedirectUrl: "/",
+  fallbackRedirectUrl: ONBOARDING_CONTACT_PATH,
+  forceRedirectUrl: ONBOARDING_CONTACT_PATH,
 } as const;

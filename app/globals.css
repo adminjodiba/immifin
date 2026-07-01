@@ -79,4 +79,16 @@
   .link-arrow {
     @apply inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800;
   }
+
+  /* Clerk UserProfile: keep all custom IMMIFIN tabs visible when navbar overflows */
+  .cl-navbar,
+  .cl-navbarButtons {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .cl-navbarButton {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }

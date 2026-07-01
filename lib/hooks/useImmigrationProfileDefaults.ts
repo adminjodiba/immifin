@@ -36,7 +36,7 @@ function mapImmigrationProfileToDefaults(
     bulletinType: profile.default_bulletin_type,
     priorityDate: profile.priority_date,
     greenCardIssueDate: profile.green_card_issue_date,
-    marriedToUSCitizen: profile.married_to_us_citizen,
+    marriedToUSCitizen: profile.married_to_us_citizen ?? false,
   };
 }
 

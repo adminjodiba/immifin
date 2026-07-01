@@ -200,3 +200,81 @@ export async function updateImmigrationProfile(
 
   return mapImmigrationProfile(data);
 }
+
+export async function updateImmigrationProfilePreferences(
+  profileId: string,
+  preferencesPatch: Record<string, unknown>,
+): Promise<ImmigrationProfile> {
+  const supabase = getSupabaseAdminClient();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("immigration_profiles")
+    .select("id, preferences")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to load immigration profile: ${fetchError.message}`);
+  }
+
+  const existingPreferences =
+    existing?.preferences && typeof existing.preferences === "object"
+      ? (existing.preferences as Record<string, unknown>)
+      : {};
+
+  const mergedPreferences = {
+    ...existingPreferences,
+    ...preferencesPatch,
+  };
+
+  if (!existing) {
+    const { data, error } = await supabase
+      .from("immigration_profiles")
+      .insert({ profile_id: profileId, preferences: mergedPreferences })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create immigration profile: ${error.message}`);
+    }
+
+    return mapImmigrationProfile(data);
+  }
+
+  const { data, error } = await supabase
+    .from("immigration_profiles")
+    .update({ preferences: mergedPreferences })
+    .eq("profile_id", profileId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update immigration profile preferences: ${error.message}`);
+  }
+
+  return mapImmigrationProfile(data);
+}
+
+type UpdateProfileContactInput = {
+  phone_number: string;
+};
+
+export async function updateProfileContact(
+  profileId: string,
+  updates: UpdateProfileContactInput,
+): Promise<Profile> {
+  const supabase = getSupabaseAdminClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", profileId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update profile contact: ${error.message}`);
+  }
+
+  return mapProfile(data);
+}

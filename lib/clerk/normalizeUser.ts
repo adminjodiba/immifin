@@ -1,4 +1,5 @@
 import type { ClerkUserPayload } from "@/lib/clerk/types";
+import { parseSignupContactMetadata } from "@/lib/clerk/signupMetadata";
 
 export type NormalizedClerkUser = {
   clerkUserId: string;
@@ -7,6 +8,8 @@ export type NormalizedClerkUser = {
   lastName: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  phoneNumber: string | null;
+  automatedAlertsOptIn: boolean | null;
 };
 
 function trimToNull(value: string | null | undefined): string | null {
@@ -65,6 +68,7 @@ export function normalizeClerkUser(user: ClerkUserPayload): NormalizedClerkUser 
   const firstName = trimToNull(user.first_name);
   const lastName = trimToNull(user.last_name);
   const username = trimToNull(user.username);
+  const signupMetadata = parseSignupContactMetadata(user.unsafe_metadata);
 
   return {
     clerkUserId,
@@ -73,5 +77,7 @@ export function normalizeClerkUser(user: ClerkUserPayload): NormalizedClerkUser 
     lastName,
     displayName: buildDisplayName(firstName, lastName, username),
     avatarUrl: trimToNull(user.image_url),
+    phoneNumber: signupMetadata.phoneNumber,
+    automatedAlertsOptIn: signupMetadata.automatedAlertsOptIn,
   };
 }

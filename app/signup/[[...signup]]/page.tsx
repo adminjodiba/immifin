@@ -1,6 +1,5 @@
-import { SignUp } from "@clerk/nextjs";
+import { SignUpPageContent } from "@/components/auth/SignUpPageContent";
 import { ClerkAuthShell } from "@/components/auth/ClerkAuthShell";
-import { clerkSignUpProps } from "@/lib/clerk/signUp";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -16,7 +15,7 @@ export default function SignUpPage() {
       title="Create your account"
       description="Join Immifin to track immigration tools and resources."
     >
-      <SignUp {...clerkSignUpProps} />
+      <SignUpPageContent />
     </ClerkAuthShell>
   );
 }
