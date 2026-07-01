@@ -1,6 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { ONBOARDING_CONTACT_PATH } from "@/lib/onboarding/routes";
+import { getProfilePhoneStatus } from "@/lib/account/hasProfilePhone";
+import {
+  ONBOARDING_CONTACT_PATH,
+  PROFILE_HUB_EXIT_PATH,
+} from "@/lib/onboarding/routes";
 
 const isProtectedRoute = createRouteMatcher([
   "/admin(.*)",
@@ -10,6 +14,8 @@ const isProtectedRoute = createRouteMatcher([
   "/user-profile(.*)",
   "/onboarding(.*)",
 ]);
+
+const isContactOnboardingRoute = createRouteMatcher([ONBOARDING_CONTACT_PATH]);
 
 const requiresContactRoute = createRouteMatcher([
   "/account(.*)",
@@ -34,21 +40,30 @@ export default clerkMiddleware(async (auth, request) => {
 
   const { userId } = await auth();
 
-  if (userId && requiresContactRoute(request) && !isContactOnboardingExemptRoute(request)) {
-    const statusUrl = new URL("/api/account/contact-status", request.url);
-    const statusResponse = await fetch(statusUrl, {
-      headers: {
-        cookie: request.headers.get("cookie") ?? "",
-      },
-    });
+  if (!userId) {
+    return;
+  }
 
-    if (statusResponse.ok) {
-      const payload = (await statusResponse.json()) as { hasPhone?: boolean };
+  const needsPhoneCheck =
+    isContactOnboardingRoute(request) ||
+    (requiresContactRoute(request) && !isContactOnboardingExemptRoute(request));
 
-      if (!payload.hasPhone) {
-        return NextResponse.redirect(new URL(ONBOARDING_CONTACT_PATH, request.url));
-      }
+  if (!needsPhoneCheck) {
+    return;
+  }
+
+  const hasPhone = await getProfilePhoneStatus(userId);
+
+  if (isContactOnboardingRoute(request)) {
+    if (hasPhone === true) {
+      return NextResponse.redirect(new URL(PROFILE_HUB_EXIT_PATH, request.url));
     }
+
+    return;
+  }
+
+  if (hasPhone === false) {
+    return NextResponse.redirect(new URL(ONBOARDING_CONTACT_PATH, request.url));
   }
 });
 

@@ -7,6 +7,7 @@ import {
   readNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/account/notificationPreferences";
+import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
 
 const PHONE_DISCLAIMER =
@@ -35,13 +36,13 @@ export function NotificationPreferencesSection() {
 
       try {
         const response = await fetch("/api/account/me");
+        const result = await readJsonResponseBody<AccountMeResponse>(response);
 
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "Failed to load notification preferences.");
+        if (!result.ok) {
+          throw new Error(result.error);
         }
 
-        const data = (await response.json()) as AccountMeResponse;
+        const data = result.data;
 
         if (!cancelled) {
           setPreferences(readNotificationPreferences(data.immigrationProfile?.preferences));
@@ -85,14 +86,16 @@ export function NotificationPreferencesSection() {
         body: JSON.stringify({ notificationPreferences: preferences }),
       });
 
-      const payload = (await response.json()) as {
+      const result = await readJsonResponseBody<{
         error?: string;
         immigrationProfile?: ImmigrationProfile;
-      };
+      }>(response);
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Failed to save notification preferences.");
+      if (!result.ok) {
+        throw new Error(result.error);
       }
+
+      const payload = result.data;
 
       if (payload.immigrationProfile) {
         setPreferences(readNotificationPreferences(payload.immigrationProfile.preferences));

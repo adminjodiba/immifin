@@ -9,6 +9,7 @@ import {
   stripPhoneInput,
 } from "@/lib/account/countryCodes";
 import { buildSignupContactMetadata } from "@/lib/clerk/signupMetadata";
+import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
 
 const PHONE_DISCLAIMER =
@@ -57,13 +58,13 @@ export function ContactProfileSection({
 
       try {
         const response = await fetch("/api/account/me");
+        const result = await readJsonResponseBody<AccountMeResponse>(response);
 
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "Failed to load contact details.");
+        if (!result.ok) {
+          throw new Error(result.error);
         }
 
-        const data = (await response.json()) as AccountMeResponse;
+        const data = result.data;
         const parsed = parseE164Phone(data.profile.phone_number);
 
         if (!cancelled) {
@@ -120,14 +121,16 @@ export function ContactProfileSection({
         }),
       });
 
-      const payload = (await response.json()) as {
+      const result = await readJsonResponseBody<{
         error?: string;
         profile?: Profile;
-      };
+      }>(response);
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Failed to save contact details.");
+      if (!result.ok) {
+        throw new Error(result.error);
       }
+
+      const payload = result.data;
 
       if (payload.profile?.phone_number) {
         const parsed = parseE164Phone(payload.profile.phone_number);
@@ -290,13 +293,15 @@ export function ContactProfileSection({
         </div>
       )}
 
-      <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
-        {isSaving
-          ? "Saving..."
-          : variant === "profile"
-            ? "Save contact details"
-            : "Continue to Immifin"}
-      </button>
+      {variant === "profile" ? (
+        <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
+          {isSaving ? "Saving..." : "Save contact details"}
+        </button>
+      ) : (
+        <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
+          {isSaving ? "Saving..." : "Save & Continue"}
+        </button>
+      )}
     </form>
   );
 }

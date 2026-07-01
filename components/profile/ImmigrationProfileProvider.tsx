@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { marriedToFormValue } from "@/lib/account/immigrationProfileOptions";
+import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
 
 type AccountMeResponse = {
@@ -82,13 +83,13 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
 
       try {
         const response = await fetch("/api/account/me");
+        const result = await readJsonResponseBody<AccountMeResponse>(response);
 
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "Failed to load account settings.");
+        if (!result.ok) {
+          throw new Error(result.error);
         }
 
-        const data = (await response.json()) as AccountMeResponse;
+        const data = result.data;
 
         if (cancelled) {
           return;
@@ -147,14 +148,16 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
           }),
         });
 
-        const payload = (await response.json()) as {
+        const result = await readJsonResponseBody<{
           error?: string;
           immigrationProfile?: ImmigrationProfile;
-        };
+        }>(response);
 
-        if (!response.ok) {
-          throw new Error(payload.error ?? "Failed to save immigration profile.");
+        if (!result.ok) {
+          throw new Error(result.error);
         }
+
+        const payload = result.data;
 
         if (payload.immigrationProfile) {
           applyImmigrationProfile(payload.immigrationProfile, {

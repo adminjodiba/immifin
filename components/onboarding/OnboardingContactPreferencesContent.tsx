@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ContactProfileSection } from "@/components/profile/ContactProfileSection";
+import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import { POST_ONBOARDING_REDIRECT_PATH } from "@/lib/onboarding/routes";
 
 export function OnboardingContactPreferencesContent() {
@@ -14,14 +15,13 @@ export function OnboardingContactPreferencesContent() {
     async function skipIfComplete() {
       try {
         const response = await fetch("/api/account/contact-status");
+        const result = await readJsonResponseBody<{ hasPhone?: boolean }>(response);
 
-        if (!response.ok) {
+        if (!result.ok) {
           return;
         }
 
-        const payload = (await response.json()) as { hasPhone?: boolean };
-
-        if (!cancelled && payload.hasPhone) {
+        if (!cancelled && result.data.hasPhone) {
           router.replace(POST_ONBOARDING_REDIRECT_PATH);
         }
       } catch {
