@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-06-30 |
+| **Last Updated** | 2026-07-01 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -80,7 +80,7 @@ MergeMain --> Production
 | **Inspect** | Read relevant code, docs, and prior decisions **before** writing code. |
 | **Architecture** | Technical approach, data model, security, and integration points are explained and agreed **before** implementation. |
 | **Cursor Implementation** | Approved work is implemented on a **feature branch** within task boundaries. |
-| **Localhost Test** | Verify behavior on `http://localhost:3000` before commit. |
+| **Localhost Test** | Verify behavior on `http://localhost:3000`; use `dev.immifin.com` when webhooks or auth callbacks are involved. |
 | **User Approval** | Founder confirms localhost behavior meets acceptance criteria. |
 | **Build gate** | `npm run build` must pass before merge or push to `main`. |
 | **Documentation** | Status, decisions, and playbook updates when architecture or workflow changes. |
@@ -119,7 +119,7 @@ Production Deployment
 | **Inspect & Architecture Review** | Read existing code and docs; confirm design, migrations, APIs, and security **before** coding. |
 | **Feature Branch** | Create a branch from `main` for all feature work; do not develop features directly on `main`. |
 | **Implementation** | Build the approved features in Cursor; stay within scope. |
-| **Localhost Testing** | Verify acceptance criteria on `http://localhost:3000`. |
+| **Localhost Testing** | Verify acceptance criteria on `http://localhost:3000`; verify tunnel + webhooks when auth/profile sync is in scope. |
 | **User Approval** | Founder confirms localhost behavior before commit/merge. |
 | **Build gate** | Run `npm run build`; fix failures before merge or push. |
 | **Documentation Update** | Update project status, decisions, and architecture docs when applicable. |
@@ -139,6 +139,7 @@ Every sprint must update the following documents **when applicable**:
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | When architecture or conventions change |
 | [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) | When engineering or workflow decisions change |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | When infrastructure, domains, or deployment changes |
+| [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | When local dev, tunnel, or webhook workflow changes |
 | [CHANGELOG.md](./CHANGELOG.md) | Per-release change log |
 | `RELEASE_NOTES.md` | *Future* — user-facing release summaries |
 
@@ -215,7 +216,7 @@ Pushing to `main` still triggers production deployment on Cloudflare Workers (Op
 2. Inspect existing code and docs
 3. Explain architecture and get approval
 4. Implement on the feature branch
-5. Test on localhost (`npm run dev`)
+5. Test on localhost (`npm run dev` or `npm run dev:local` when Clerk webhooks are needed)
 6. Obtain user approval after localhost verification
 7. Run `npm run build` and fix any failures
 8. Commit on the feature branch with a descriptive message
@@ -224,7 +225,9 @@ Pushing to `main` still triggers production deployment on Cloudflare Workers (Op
 11. Cloudflare automatically deploys
 12. Verify production at `immifin.com`
 
-Optional: test `dev.immifin.com` before merging when tunnel access is available.
+Optional: test `dev.immifin.com` before merging when tunnel access is available (`npm run dev:local`).
+
+See [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) for local dev and tunnel setup.
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets management.
 
@@ -243,10 +246,13 @@ A release must satisfy **all gates** before merge to `main` and production deplo
 | **1. Inspected & architecture explained** | Relevant code reviewed; approach agreed before implementation |
 | **2. Architecture approved** | Design reviewed for stack fit, security, and scope |
 | **3. Localhost tested** | Behavior verified on `http://localhost:3000` |
+| **3b. Tunnel & webhooks verified** | When auth/webhook/profile code changed: `dev.immifin.com` healthy; Clerk webhook deliveries return **200** |
 | **4. User approved** | Founder confirms localhost meets acceptance criteria |
 | **5. Build passed** | `npm run build` succeeds with no errors |
 | **6. Documentation updated** | Applicable docs reflect the change |
 | **7. Production approved** | Founder grants production release approval when required |
+
+See [DEVELOPER_SETUP.md § Release checklist](./DEVELOPER_SETUP.md#release-checklist) for the full pre-push smoke test list.
 
 ---
 
@@ -263,9 +269,21 @@ A release must satisfy **all gates** before merge to `main` and production deplo
 - **Keep the repository clean** before ending a session.
 - **Infrastructure changes require `SYSTEM_ARCHITECTURE.md` updates.**
 - **Architectural decisions require `TECHNICAL_DECISIONS.md` and/or `PROJECT_DECISIONS.md` updates.**
-- **Workflow changes require `ENGINEERING_PLAYBOOK.md` updates.**
+- **Workflow changes require `ENGINEERING_PLAYBOOK.md` and/or `DEVELOPER_SETUP.md` updates.**
 - **Sprint completion requires `PROJECT_STATUS.md` updates.**
 - **Debugging infrastructure longer than 15 minutes** requires updating `SYSTEM_ARCHITECTURE.md` with findings before continuing.
+
+### Mandatory Cloudflare tunnel workflow (auth & webhooks)
+
+When work involves **Clerk, authentication, webhooks, user lifecycle, profile synchronization, email OTP, or contact onboarding**, the developer **must**:
+
+1. Start the Cloudflare development tunnel (`npm run dev:local` or `cloudflared tunnel run immifin-dev`).
+2. Verify the tunnel is healthy before testing (`cloudflared tunnel info immifin-dev`; `https://dev.immifin.com` loads).
+3. Verify Clerk webhook delivery (**200** in Dashboard → Webhooks → Message Attempts) before concluding there is an application code bug.
+
+If Clerk webhooks return **530 / 1033**, the tunnel is offline — not an application defect.
+
+Implementation instructions from the Technical Architect (ChatGPT) for the above areas **must** include this reminder. This is mandatory for IMMIFIN.
 
 ---
 
@@ -290,7 +308,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 - **Do not hardcode production secrets into source code.**
 - **Do not modify deployment configuration while simultaneously changing application features.**
 - **Always verify localhost before pushing.**
-- **Always verify dev.immifin.com before production.**
+- **Always verify dev.immifin.com (tunnel healthy) before webhook or auth testing — and before production when those areas changed.**
 - **Always verify production immediately after Cloudflare deployment.**
 - **Use the Movement Tracker architecture as the reference implementation** for future interactive Visa Bulletin features.
 
@@ -313,7 +331,25 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 ---
 
-## 14. Long-Term Engineering Goals
+## 14. Lessons Learned (2026-07-01) — Tunnel offline vs application bug
+
+### Clerk `user.deleted` appeared to fail
+
+**Reported:** Deleting a user in Clerk did not set `profiles.status = 'deleted'` in Supabase.
+
+**Assumed cause:** Webhook handler or `soft_delete_profile_by_clerk_id` RPC defect.
+
+**Actual cause:** Cloudflare development tunnel was **offline**. Clerk could not POST to `https://dev.immifin.com/api/webhooks/clerk`.
+
+**Symptom:** Cloudflare HTTP **530**, Error **1033**.
+
+**Resolution:** Start tunnel (`npm run dev:local`); confirm Clerk Message Attempts return **200**; then re-test or replay webhook.
+
+**Rule:** Verify infrastructure before debugging application logic. Documented in [DEVELOPER_SETUP.md § Lessons learned](./DEVELOPER_SETUP.md#lessons-learned).
+
+---
+
+## 15. Long-Term Engineering Goals
 
 - [ ] Preview deployments (per feature branch)
 - [ ] CI/CD (automated `npm run build` on PR)
@@ -328,7 +364,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 ---
 
-## 15. Revision History
+## 16. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -336,6 +372,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 | v1.1 | 2026-06-27 | OpenNext deployment workflow, lessons learned, CHANGELOG reference. |
 | v1.2 | 2026-06-27 | Never Do Again section; official deployment workflow finalized. |
 | v2.0 | 2026-06-30 | **Development Workflow v2.0** — feature branches, inspect-first, localhost + user approval, build gate, no infra/feature mixing, clean repo policy. |
+| v2.1 | 2026-07-01 | Mandatory Cloudflare tunnel + Clerk webhook workflow; release gate 3b; tunnel-offline incident documented; [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) expanded. |
 
 ---
 
@@ -343,6 +380,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 | Document | Contents |
 |----------|----------|
+| [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks, release checklist |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure and deployment |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint |
