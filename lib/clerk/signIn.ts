@@ -1,6 +1,6 @@
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyAuthElements } from "@/lib/clerk/emailOnly";
-import { ONBOARDING_CONTACT_PATH } from "@/lib/onboarding/routes";
+import { PROFILE_HUB_EXIT_PATH } from "@/lib/onboarding/routes";
 
 export const clerkSignInAppearance = {
   ...clerkAppearance,
@@ -20,6 +20,5 @@ export const clerkSignInAppearance = {
 export const clerkSignInProps = {
   appearance: clerkSignInAppearance,
   signUpUrl: "/signup",
-  fallbackRedirectUrl: ONBOARDING_CONTACT_PATH,
-  forceRedirectUrl: ONBOARDING_CONTACT_PATH,
+  fallbackRedirectUrl: PROFILE_HUB_EXIT_PATH,
 } as const;

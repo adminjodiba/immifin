@@ -5,13 +5,17 @@ export const visaBulletinSwrOptions = {
   revalidateOnReconnect: false,
 } as const;
 
+import { readJsonResponse, readJsonResponseBody } from "@/lib/http/readJsonResponse";
+
 export async function jsonFetcher<T>(url: string, fallback = "Request failed."): Promise<T> {
   const response = await fetch(url);
+  const result = await readJsonResponseBody<T>(response);
 
-  if (!response.ok) {
-    const payload = (await response.json()) as { error?: string };
-    throw new Error(payload.error ?? fallback);
+  if (!result.ok) {
+    throw new Error(result.error ?? fallback);
   }
 
-  return response.json() as Promise<T>;
+  return result.data;
 }
+
+export { readJsonResponse };

@@ -33,5 +33,4 @@ export const clerkSignUpProps = {
   appearance: clerkSignUpAppearance,
   signInUrl: "/login",
   fallbackRedirectUrl: ONBOARDING_CONTACT_PATH,
-  forceRedirectUrl: ONBOARDING_CONTACT_PATH,
 } as const;
