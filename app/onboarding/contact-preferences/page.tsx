@@ -12,8 +12,8 @@ export default function ContactPreferencesOnboardingPage() {
   return (
     <ClerkAuthShell
       breadcrumb="Onboarding"
-      title="Contact preferences"
-      description="We need your phone number and alert preferences before you continue."
+      title="Complete your profile"
+      description="Add your phone number to finish account setup. You only need to do this once."
     >
       <OnboardingContactPreferencesContent />
     </ClerkAuthShell>

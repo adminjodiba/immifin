@@ -11,13 +11,11 @@ import {
 function AccountMigrationBanner() {
   return (
     <div className="mb-6 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
-      <p className="font-medium">Immigration details now live in Manage Profile.</p>
-      <p className="mt-1 text-brand-800">
-        Use the Immigration and Green Card tabs on{" "}
-        <Link href="/user-profile" className="font-semibold underline underline-offset-2">
-          Manage Profile
-        </Link>{" "}
-        for the unified experience. This page remains available during migration.
+      <p className="font-medium">Profile management has moved to Manage Profile.</p>
+      <p className="mt-2">
+        <Link href="/user-profile#/immigration" className="btn-secondary inline-flex">
+          Go to Manage Profile
+        </Link>
       </p>
     </div>
   );

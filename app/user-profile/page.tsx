@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { UserProfileCloseAction } from "@/components/profile/UserProfileCloseAction";
 import { UserProfileHub } from "@/components/profile/UserProfileHub";
 import { createMetadata } from "@/lib/metadata";
 
@@ -20,6 +21,9 @@ export default function ManageProfilePage() {
       <section className="section-padding !pt-10 sm:!pt-16">
         <div className="container-main">
           <div className="mx-auto max-w-5xl min-w-0">
+            <div className="mb-4 flex justify-end">
+              <UserProfileCloseAction />
+            </div>
             <UserProfileHub />
           </div>
         </div>
