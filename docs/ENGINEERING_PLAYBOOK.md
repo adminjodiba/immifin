@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-06-27 |
+| **Last Updated** | 2026-06-30 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -36,35 +36,40 @@ Guiding principles for all Immifin engineering work:
 
 ## 4. Engineering Workflow
 
+**Development Workflow v2.0** is the official process for all feature work (effective 2026-06-30). See [§8 Git & Development Workflow v2.0](#8-git--development-workflow-v20) for the full rule set.
+
 ```mermaid
 flowchart TD
 
 Idea
 
+Inspect
+
 Architecture
 
 CursorImplementation["Cursor Implementation"]
 
-Review
+LocalhostTest["Localhost Test"]
 
-Testing
+UserApproval["User Approval"]
+
+BuildGate["npm run build"]
 
 Documentation
 
-ReleaseApproval["Release Approval"]
-
-Git
+MergeMain["Merge to main"]
 
 Production
 
-Idea --> Architecture
+Idea --> Inspect
+Inspect --> Architecture
 Architecture --> CursorImplementation
-CursorImplementation --> Review
-Review --> Testing
-Testing --> Documentation
-Documentation --> ReleaseApproval
-ReleaseApproval --> Git
-Git --> Production
+CursorImplementation --> LocalhostTest
+LocalhostTest --> UserApproval
+UserApproval --> BuildGate
+BuildGate --> Documentation
+Documentation --> MergeMain
+MergeMain --> Production
 ```
 
 ### Stage descriptions
@@ -72,14 +77,15 @@ Git --> Production
 | Stage | Purpose |
 |-------|---------|
 | **Idea** | Problem or feature is identified; scope and business value are clarified. |
-| **Architecture** | Technical approach, data model, security, and integration points are defined before coding. |
-| **Cursor Implementation** | Approved work is implemented in the repository within task boundaries. |
-| **Review** | Code, architecture adherence, and security are checked by the Technical Architect. |
-| **Testing** | Manual and/or automated verification that the change works as intended. |
-| **Documentation** | Status, decisions, and infrastructure docs are updated as applicable. |
-| **Release Approval** | Founder and CTO confirm the change is ready for production. |
-| **Git** | Changes are committed and pushed with a descriptive message. |
-| **Production** | Deployment to `immifin.com` via Cloudflare Workers (OpenNext) from `main`. |
+| **Inspect** | Read relevant code, docs, and prior decisions **before** writing code. |
+| **Architecture** | Technical approach, data model, security, and integration points are explained and agreed **before** implementation. |
+| **Cursor Implementation** | Approved work is implemented on a **feature branch** within task boundaries. |
+| **Localhost Test** | Verify behavior on `http://localhost:3000` before commit. |
+| **User Approval** | Founder confirms localhost behavior meets acceptance criteria. |
+| **Build gate** | `npm run build` must pass before merge or push to `main`. |
+| **Documentation** | Status, decisions, and playbook updates when architecture or workflow changes. |
+| **Merge to main** | Feature branch merged after gates pass; `main` triggers production deploy. |
+| **Production** | Deployment to `immifin.com` via Cloudflare Workers (OpenNext); verify after deploy. |
 
 ---
 
@@ -88,19 +94,21 @@ Git --> Production
 ```
 Sprint Planning
         ↓
-Architecture Review
+Inspect & Architecture Review
+        ↓
+Feature Branch
         ↓
 Implementation
         ↓
-Testing
+Localhost Testing
+        ↓
+User Approval
+        ↓
+npm run build
         ↓
 Documentation Update
         ↓
-Release Review
-        ↓
-Git Commit
-        ↓
-Git Push
+Merge to main
         ↓
 Production Deployment
 ```
@@ -108,14 +116,15 @@ Production Deployment
 | Phase | Purpose |
 |-------|---------|
 | **Sprint Planning** | Select backlog items, define scope, and secure sprint approval from the Founder. |
-| **Architecture Review** | Confirm design, migrations, APIs, and security before implementation starts. |
+| **Inspect & Architecture Review** | Read existing code and docs; confirm design, migrations, APIs, and security **before** coding. |
+| **Feature Branch** | Create a branch from `main` for all feature work; do not develop features directly on `main`. |
 | **Implementation** | Build the approved features in Cursor; stay within scope. |
-| **Testing** | Verify acceptance criteria; test auth, APIs, and critical user paths. |
-| **Documentation Update** | Update project status, backlog, decisions, and architecture docs as needed. |
-| **Release Review** | Run release gates; obtain production approval. |
-| **Git Commit** | Commit with a message describing the feature delivered. |
-| **Git Push** | Push to GitHub; `main` triggers production deploy today. |
-| **Production Deployment** | Cloudflare runs `npm run deploy` (OpenNext build + deploy); verify at `immifin.com`. |
+| **Localhost Testing** | Verify acceptance criteria on `http://localhost:3000`. |
+| **User Approval** | Founder confirms localhost behavior before commit/merge. |
+| **Build gate** | Run `npm run build`; fix failures before merge or push. |
+| **Documentation Update** | Update project status, decisions, and architecture docs when applicable. |
+| **Merge to main** | Merge the feature branch after all gates pass; obtain production approval when required. |
+| **Production Deployment** | Cloudflare runs `npm run deploy` from `main`; verify at `immifin.com`. |
 
 ---
 
@@ -128,6 +137,7 @@ Every sprint must update the following documents **when applicable**:
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Every sprint — phase, completed work, next steps |
 | [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md) | Every sprint — priorities and backlog state |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | When architecture or conventions change |
+| [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) | When engineering or workflow decisions change |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | When infrastructure, domains, or deployment changes |
 | [CHANGELOG.md](./CHANGELOG.md) | Per-release change log |
 | `RELEASE_NOTES.md` | *Future* — user-facing release summaries |
@@ -140,86 +150,120 @@ Every sprint must update the following documents **when applicable**:
 
 Every significant feature requires the following sequence:
 
-1. **Problem definition** — What are we solving and for whom?
-2. **Architecture review** — How does it fit the stack (Next.js, Clerk, Supabase, Cloudflare)?
-3. **Implementation plan** — Files, migrations, APIs, and test plan.
-4. **Implementation** — Code written only after steps 1–3 are approved.
-5. **Testing** — Verification against acceptance criteria.
-6. **Documentation** — Status, decisions, and architecture updates.
-7. **Approval** — Technical Architect and Founder sign-off as required.
+1. **Inspect** — Read relevant files, docs, and prior decisions before changing code.
+2. **Problem definition** — What are we solving and for whom?
+3. **Architecture review** — Explain how it fits the stack (Next.js, Clerk, Supabase, Cloudflare) **before** implementation.
+4. **Implementation plan** — Files, migrations, APIs, and test plan.
+5. **Implementation** — Code written only after steps 1–4 are approved; work happens on a **feature branch**.
+6. **Localhost testing** — Verification on `http://localhost:3000` against acceptance criteria.
+7. **User approval** — Founder confirms localhost behavior before commit/merge.
+8. **Build gate** — `npm run build` passes before merge or push to `main`.
+9. **Documentation** — Status, decisions, and architecture updates when applicable.
+10. **Approval** — Technical Architect and Founder sign-off as required before merge to `main`.
 
-**No major feature begins with code.**
+**No major feature begins with code. Inspect and explain architecture first.**
 
 ---
 
-## 8. Git Workflow
+## 8. Git & Development Workflow v2.0
 
-### Current workflow
+**Effective:** 2026-06-30  
+**Replaces:** direct-to-`main` feature development (temporary practice during early stabilization).
 
-```
-Feature work
-        ↓
-Review
-        ↓
-Commit
-        ↓
-Push main
-```
-
-Pushing to `main` triggers production deployment on Cloudflare Workers (OpenNext via `npm run deploy`).
-
-### Official deployment workflow
-
-1. Develop locally
-2. Test localhost
-3. Test dev.immifin.com
-4. git add
-5. git commit
-6. git push
-7. Cloudflare automatically deploys
-8. Verify production
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets management.
-
-### Future workflow
+### Official workflow
 
 ```
-Feature Branch
+Feature branch (from main)
         ↓
-Preview Deployment
+Inspect → Architecture explanation
         ↓
-Testing
+Implementation
+        ↓
+Localhost test
+        ↓
+User approval
+        ↓
+npm run build
+        ↓
+Commit on feature branch
         ↓
 Merge to main
         ↓
-Production
+Production (auto-deploy from main)
 ```
 
-Direct production deployments from `main` are **temporary**. They will be replaced by preview deployments and branch-based testing to reduce production risk.
+Pushing to `main` still triggers production deployment on Cloudflare Workers (OpenNext via `npm run deploy`). Feature work must reach `main` only through the gates below.
+
+### Development Workflow v2.0 — rules
+
+| # | Rule |
+|---|------|
+| 1 | **Use feature branches** for all new work (`feature/<short-description>` or equivalent). |
+| 2 | **Do not work directly on `main`** for feature development. `main` is for merged, gated work only. |
+| 3 | **Inspect before coding** — read relevant code, docs, and decisions before making changes. |
+| 4 | **Explain architecture before implementation** — agree on approach before writing code. |
+| 5 | **Test localhost before commit** — verify on `http://localhost:3000`. |
+| 6 | **User approval required** after localhost verification and before merge/push to `main`. |
+| 7 | **`npm run build` must pass** before merge or push to `main`. |
+| 8 | **Never combine infrastructure and feature work** in the same branch or session when avoidable. |
+| 9 | **Keep the repository clean** before ending a session (no stray uncommitted work without intent; resolve or stash deliberately). |
+| 10 | **Update docs** when architecture or workflow changes (`PROJECT_STATUS.md`, `PROJECT_DECISIONS.md`, `ENGINEERING_PLAYBOOK.md`, etc.). |
+
+### Step-by-step (release path)
+
+1. Create a feature branch from `main`
+2. Inspect existing code and docs
+3. Explain architecture and get approval
+4. Implement on the feature branch
+5. Test on localhost (`npm run dev`)
+6. Obtain user approval after localhost verification
+7. Run `npm run build` and fix any failures
+8. Commit on the feature branch with a descriptive message
+9. Update applicable documentation
+10. Merge to `main` (after approval)
+11. Cloudflare automatically deploys
+12. Verify production at `immifin.com`
+
+Optional: test `dev.immifin.com` before merging when tunnel access is available.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets management.
+
+### Emergency / hotfix exception
+
+Critical production fixes may use a short-lived `hotfix/<description>` branch with the same localhost → approval → build gates. Do not skip user approval or `npm run build` unless the Founder explicitly approves an emergency exception and documents it in `PROJECT_DECISIONS.md`.
 
 ---
 
 ## 9. Release Gates
 
-A release must satisfy **all five gates** before deployment:
+A release must satisfy **all gates** before merge to `main` and production deploy:
 
 | Gate | Requirement |
 |------|-------------|
-| **1. Architecture Approved** | Design reviewed and agreed before or during implementation |
-| **2. Code Reviewed** | Implementation checked for scope, quality, and security |
-| **3. Testing Passed** | Manual and/or automated tests confirm expected behavior |
-| **4. Documentation Updated** | Applicable docs reflect the change |
-| **5. Production Approved** | Founder grants production release approval |
+| **1. Inspected & architecture explained** | Relevant code reviewed; approach agreed before implementation |
+| **2. Architecture approved** | Design reviewed for stack fit, security, and scope |
+| **3. Localhost tested** | Behavior verified on `http://localhost:3000` |
+| **4. User approved** | Founder confirms localhost meets acceptance criteria |
+| **5. Build passed** | `npm run build` succeeds with no errors |
+| **6. Documentation updated** | Applicable docs reflect the change |
+| **7. Production approved** | Founder grants production release approval when required |
 
 ---
 
 ## 10. Engineering Rules
 
-- **Never commit immediately after coding.** Complete review, testing, documentation, and release approval first.
+- **Use feature branches** for new work; do not develop features directly on `main`.
+- **Inspect before coding**; explain architecture before implementation.
+- **Never commit without localhost verification** and user approval when merging to `main`.
+- **Never push or merge to `main` without a passing `npm run build`.**
+- **Never combine infrastructure and feature work** in the same branch when avoidable.
+- **Never commit immediately after coding** without review, testing, documentation, and release gates.
 - **Never skip documentation.** Update applicable docs as part of Definition of Done.
 - **Never commit secrets.** No `.env.local`, API keys, or credentials in git.
+- **Keep the repository clean** before ending a session.
 - **Infrastructure changes require `SYSTEM_ARCHITECTURE.md` updates.**
-- **Architectural decisions require `TECHNICAL_DECISIONS.md` updates.**
+- **Architectural decisions require `TECHNICAL_DECISIONS.md` and/or `PROJECT_DECISIONS.md` updates.**
+- **Workflow changes require `ENGINEERING_PLAYBOOK.md` updates.**
 - **Sprint completion requires `PROJECT_STATUS.md` updates.**
 - **Debugging infrastructure longer than 15 minutes** requires updating `SYSTEM_ARCHITECTURE.md` with findings before continuing.
 
@@ -271,8 +315,8 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 ## 14. Long-Term Engineering Goals
 
-- [ ] Preview deployments
-- [ ] CI/CD
+- [ ] Preview deployments (per feature branch)
+- [ ] CI/CD (automated `npm run build` on PR)
 - [ ] Automated testing
 - [ ] Monitoring
 - [ ] Performance dashboards
@@ -291,6 +335,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 | v1.0 | 2026-06-23 | Initial Engineering Playbook created. |
 | v1.1 | 2026-06-27 | OpenNext deployment workflow, lessons learned, CHANGELOG reference. |
 | v1.2 | 2026-06-27 | Never Do Again section; official deployment workflow finalized. |
+| v2.0 | 2026-06-30 | **Development Workflow v2.0** — feature branches, inspect-first, localhost + user approval, build gate, no infra/feature mixing, clean repo policy. |
 
 ---
 

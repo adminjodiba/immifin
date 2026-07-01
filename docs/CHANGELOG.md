@@ -8,6 +8,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates u
 
 ## [Unreleased]
 
+### Added
+
+- **Development Workflow v2.0** documented in `ENGINEERING_PLAYBOOK.md`, `PROJECT_DECISIONS.md`, `PROJECT_STATUS.md`, and `CHANGELOG.md`
+  - Feature branches required for new work; no feature development directly on `main`
+  - Inspect before coding; explain architecture before implementation
+  - Localhost test + user approval before merge
+  - `npm run build` gate before merge/push
+  - Separate infrastructure and feature work; keep repo clean at session end
+
 ### Planned
 
 - Visa Bulletin Dashboard — Dates for Filing (see v0.2.0 known issue)

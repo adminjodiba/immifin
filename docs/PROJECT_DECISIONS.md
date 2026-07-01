@@ -4,7 +4,7 @@
 
 This document is **not** a changelog, backlog, or status report. For those, see [CHANGELOG.md](./CHANGELOG.md), [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md), and [PROJECT_STATUS.md](./PROJECT_STATUS.md).
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-06-30
 
 ---
 
@@ -109,6 +109,40 @@ This document is **not** a changelog, backlog, or status report. For those, see 
 - Easier debugging
 - Smaller deployments
 - Lower production risk
+
+---
+
+## Decision 007 — Development Workflow v2.0
+
+| Field | Value |
+|-------|-------|
+| **Decision** | All feature work follows **Development Workflow v2.0**: feature branches, inspect-before-code, architecture explanation before implementation, localhost testing, user approval, `npm run build` gate, separate infra/feature work, clean repo at session end, and doc updates when workflow or architecture changes. |
+| **Date** | 2026-06-30 |
+| **Status** | Accepted |
+
+**Reason:**
+
+- `main` auto-deploys to production; direct feature work on `main` increases risk.
+- Inspect-first and architecture-before-code reduce rework and scope creep.
+- Localhost verification and explicit user approval catch UX issues before production.
+- `npm run build` catches type and compile errors before merge.
+- Separating infrastructure from features simplifies debugging and rollback.
+- Documented workflow keeps Cursor, ChatGPT, and Founder aligned.
+
+**Rules (summary):**
+
+1. Feature branches for new work
+2. No feature development directly on `main`
+3. Inspect before coding
+4. Explain architecture before implementation
+5. Test localhost before commit
+6. User approval after localhost verification
+7. `npm run build` must pass before merge/push
+8. Never combine infrastructure and feature work
+9. Keep repository clean before ending a session
+10. Update docs when architecture/workflow changes
+
+**Reference:** [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) §8
 
 ---
 

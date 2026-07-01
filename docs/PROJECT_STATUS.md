@@ -1,8 +1,9 @@
 # Immifin — Project Status
 
-**Last updated:** 2026-06-27  
+**Last updated:** 2026-06-30  
 **Version:** v0.2.0 — Infrastructure Stabilization Release (2026-06-27)  
-**Latest production commit:** `123bbdb` — *Add Cloudflare OpenNext deployment configuration*
+**Latest production commit:** `c86f187` — *Remove duplicate account menu item*  
+**Development workflow:** v2.0 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 ---
 
@@ -14,7 +15,7 @@
 | **Authentication** | ✅ COMPLETE |
 | **Deployment** | ✅ COMPLETE |
 | **Visa Bulletin Dashboard** | 🔄 IN PROGRESS |
-| **Future work** | Continue feature development only |
+| **Future work** | Continue feature development on feature branches (Workflow v2.0) |
 
 ---
 
@@ -113,14 +114,40 @@ Implement Final Action Dates / Dates for Filing toggle **exactly matching Moveme
 
 ---
 
+## Development Workflow v2.0 (2026-06-30)
+
+Official process for all new feature work. Full detail: [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) §8. Decision log: [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 007.
+
+| Step | Requirement |
+|------|-------------|
+| Branch | Create `feature/<description>` from `main` — do not develop features on `main` |
+| Before code | Inspect relevant files; explain architecture and get approval |
+| Implement | Code on the feature branch only |
+| Verify | Test on `http://localhost:3000` |
+| Approve | User approval after localhost verification |
+| Build | `npm run build` must pass before merge/push |
+| Scope | Never combine infrastructure and feature work in one branch when avoidable |
+| Session end | Keep repository clean (no unintended uncommitted state) |
+| Docs | Update docs when architecture or workflow changes |
+| Release | Merge to `main` after gates → auto-deploy → verify production |
+
+---
+
 ## Deployment workflow
 
-1. Develop locally (`npm run dev`)
-2. Test localhost
-3. Test `dev.immifin.com` (optional)
-4. `git add` → `git commit` → `git push`
-5. Cloudflare automatically deploys from `main`
-6. Verify production
+1. Create a **feature branch** from `main`
+2. Inspect code/docs and agree on architecture
+3. Develop locally (`npm run dev`)
+4. Test localhost
+5. Obtain **user approval** after localhost verification
+6. Run **`npm run build`** (must pass)
+7. Update applicable documentation
+8. `git add` → `git commit` on feature branch
+9. Merge to `main` → `git push`
+10. Cloudflare automatically deploys from `main`
+11. Verify production
+
+Optional: test `dev.immifin.com` before merge when tunnel is available.
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets.
 

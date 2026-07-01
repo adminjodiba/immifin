@@ -57,6 +57,22 @@ Architecture and implementation conventions for the Immifin codebase. Update thi
 
 ## Development workflow
 
+### Development Workflow v2.0 (effective 2026-06-30)
+
+All feature work uses **feature branches**. Do not develop features directly on `main`.
+
+| Phase | Action |
+|-------|--------|
+| Start | Inspect code/docs; explain architecture before implementation |
+| Build | Implement on `feature/<description>` branch |
+| Verify | Test localhost; obtain user approval |
+| Gate | `npm run build` must pass before merge/push |
+| Release | Merge to `main` after gates; update docs when architecture/workflow changes |
+
+Never combine infrastructure and feature work in the same branch when avoidable. Keep the repository clean before ending a session.
+
+Full rules: [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) §8 · Decision: [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 007
+
 ### Use Cursor for implementation
 
 - Day-to-day coding, migrations, and refactors happen in the repo with Cursor.
