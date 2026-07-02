@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 
 type CtaBannerProps = {
   title: string;
@@ -17,13 +17,13 @@ export function CtaBanner({ title, description, primaryCta, secondaryCta }: CtaB
             {description}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link href={primaryCta.href} className="btn-white w-full sm:w-auto">
+            <ProtectedLink href={primaryCta.href} className="btn-white w-full sm:w-auto">
               {primaryCta.label}
-            </Link>
+            </ProtectedLink>
             {secondaryCta && (
-              <Link href={secondaryCta.href} className="btn-ghost-light w-full sm:w-auto">
+              <ProtectedLink href={secondaryCta.href} className="btn-ghost-light w-full sm:w-auto">
                 {secondaryCta.label}
-              </Link>
+              </ProtectedLink>
             )}
           </div>
         </div>

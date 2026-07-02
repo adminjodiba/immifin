@@ -1,10 +1,16 @@
 # Immifin — Sprint Backlog
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-07-01
 
 ---
 
 ## High Priority
+
+### Dashboard (Sprint 4 primary)
+
+- [ ] Dashboard architecture review (Sprint 4.1)
+- [ ] Dashboard UI shell (Sprint 4.2)
+- [ ] Dashboard widgets (Sprint 4.3)
 
 ### Visa Bulletin Dashboard
 
@@ -19,25 +25,46 @@
 
 ## Medium Priority
 
-- [ ] User Profile Page
-- [ ] Account Settings
 - [ ] Saved Priority Dates
-- [ ] User Dashboard
-
-*(Includes Sprint 2 portal work: `/account`, `/admin`, `requireUser` / `requireAdmin`, bootstrap first admin.)*
+- [ ] Notification engine (delivery)
+- [ ] User Dashboard integration
 
 ---
 
 ## Low Priority
 
-- [ ] Immigration calculators
-- [ ] Finance calculators
+- [ ] Finance calculators expansion
 - [ ] UI improvements
 - [ ] Performance improvements
 
 ---
 
+## Sprint 4 — Completed Tasks
+
+### S4-001 — Authentication Gate for Entire Application
+
+**Status:** ✅ Completed (2026-07-01)
+
+- [x] Middleware public-route allowlist — only `/` landing public (+ Clerk auth, webhooks, sitemap/robots)
+- [x] Clerk `auth.protect()` on all application routes and APIs (except webhooks)
+- [x] `ProtectedLink` — Login Required toast for signed-out landing-page feature clicks
+- [x] Sign-in return URL via `/login?redirect_url=`
+- [x] Preserved contact onboarding (`ContactOnboardingGuard`) and admin API authorization
+- [x] Localhost verified; build passing
+
+---
+
 ## Completed Sprints
+
+### Sprint 3 — Profile, Onboarding & Infrastructure
+
+**Status:** ✅ Completed (2026-07-01)
+
+- [x] Contact and notification profile sections
+- [x] Phone number onboarding flow
+- [x] Application-layer contact onboarding guard
+- [x] Cloudflare Worker 1102 middleware hotfix
+- [x] Developer setup and engineering documentation
 
 ### Sprint 1 — Clerk / Supabase User Sync
 
@@ -65,6 +92,6 @@
 
 ## Related docs
 
-- [PROJECT_STATUS.md](./PROJECT_STATUS.md)
+- [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md)
 - [CHANGELOG.md](./CHANGELOG.md)

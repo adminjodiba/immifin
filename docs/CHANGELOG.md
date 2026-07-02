@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates u
 
 ### Added
 
+- **S4-001 — Application-wide authentication gate** (2026-07-01)
+  - Only landing page `/` is public; all tools, calculators, immigration, finance, and account routes require Clerk sign-in
+  - Middleware uses public-route allowlist with Clerk `auth.protect()` (no Supabase lookups)
+  - `ProtectedLink` and Login Required toast for signed-out visitors clicking features from `/`
+  - Sign-in honors `redirect_url` query parameter for post-login return navigation
 - **Development Workflow v2.0** documented in `ENGINEERING_PLAYBOOK.md`, `PROJECT_DECISIONS.md`, `PROJECT_STATUS.md`, and `CHANGELOG.md`
   - Feature branches required for new work; no feature development directly on `main`
   - Inspect before coding; explain architecture before implementation

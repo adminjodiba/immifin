@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import type { Calculator } from "@/lib/data/calculators";
 
 const categoryColors: Record<Calculator["category"], string> = {
@@ -10,7 +10,7 @@ const categoryColors: Record<Calculator["category"], string> = {
 
 export function CalculatorCard({ calculator }: { calculator: Calculator }) {
   return (
-    <Link
+    <ProtectedLink
       href={calculator.href ?? `/calculators#${calculator.slug}`}
       className="card group flex h-full flex-col"
     >
@@ -38,6 +38,6 @@ export function CalculatorCard({ calculator }: { calculator: Calculator }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>
       </span>
-    </Link>
+    </ProtectedLink>
   );
 }

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import type { Guide } from "@/lib/data/guides";
 
 type GuideCardProps = {
@@ -13,10 +13,10 @@ export function GuideCard({ guide, basePath }: GuideCardProps) {
         {guide.readTime}
       </span>
       <h3 className="heading-3 mt-4 transition-colors group-hover:text-brand-700">
-        <Link href={`${basePath}#${guide.slug}`}>{guide.title}</Link>
+        <ProtectedLink href={`${basePath}#${guide.slug}`}>{guide.title}</ProtectedLink>
       </h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{guide.description}</p>
-      <Link href={`${basePath}#${guide.slug}`} className="link-arrow mt-5">
+      <ProtectedLink href={`${basePath}#${guide.slug}`} className="link-arrow mt-5">
         Read guide
         <svg
           className="h-4 w-4 transition-transform group-hover:translate-x-1"
@@ -28,7 +28,7 @@ export function GuideCard({ guide, basePath }: GuideCardProps) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>
-      </Link>
+      </ProtectedLink>
     </article>
   );
 }

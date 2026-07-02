@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { footerLinks, navLinks, siteConfig } from "@/lib/site";
 import { Logo } from "./Logo";
 
@@ -23,12 +24,12 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <ProtectedLink
                     href={link.href}
                     className="text-sm text-slate-600 transition-colors hover:text-brand-700"
                   >
                     {link.label}
-                  </Link>
+                  </ProtectedLink>
                 </li>
               ))}
             </ul>
@@ -39,12 +40,12 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <ProtectedLink
                     href={link.href}
                     className="text-sm text-slate-600 transition-colors hover:text-brand-700"
                   >
                     {link.label}
-                  </Link>
+                  </ProtectedLink>
                 </li>
               ))}
             </ul>
@@ -57,9 +58,9 @@ export function Footer() {
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
               Get immigration and finance tips delivered to your inbox.
             </p>
-            <Link href="/contact" className="btn-secondary mt-4 w-full sm:w-auto">
+            <ProtectedLink href="/contact" className="btn-secondary mt-4 w-full sm:w-auto">
               Contact Us
-            </Link>
+            </ProtectedLink>
           </div>
         </div>
 

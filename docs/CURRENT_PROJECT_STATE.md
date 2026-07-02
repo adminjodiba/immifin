@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Current Sprint** | Sprint 4 |
-| **Production Version** | v0.3.0 |
+| **Production Version** | v0.4.0 *(committed; pending Cloudflare deploy)* |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
 | **Cloudflare** | 🟢 Healthy |
@@ -17,7 +17,7 @@
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commits:** `65d1215`, `acdd08a`  
+**Latest commit:** S4-001 — app-wide authentication gate (`feat(auth): enforce authentication for all application features`)  
 **Owner:** Technical Architecture (CTO)
 
 ---
@@ -40,6 +40,13 @@
 
 IMMIFIN has successfully completed **Sprint 3** and is actively in **Sprint 4**.
 
+### Sprint 4 completed (S4-001)
+
+- **Application-wide authentication gate** — Only `/` is public; all tools, calculators, immigration, finance, and account routes require Clerk sign-in
+- **Middleware** — Public-route allowlist with Clerk `auth.protect()` (no Supabase lookups)
+- **Login Required UX** — `ProtectedLink` + toast on landing-page feature clicks; redirect to sign-in with `redirect_url` return path (~600ms delay)
+- **Sign-in return URL** — `/login?redirect_url=` honored via Clerk `fallbackRedirectUrl`
+
 ### Sprint 3 focus areas (completed)
 
 - **Authentication** — Clerk sign-up, sign-in, email verification, OTP, sessions, password reset
@@ -56,7 +63,7 @@ IMMIFIN has successfully completed **Sprint 3** and is actively in **Sprint 4**.
 | Area | Status |
 |------|--------|
 | **Production** | ✅ Stable (`https://immifin.com`) |
-| **Authentication** | ✅ Working |
+| **Authentication** | ✅ Working — app-wide gate (S4-001); landing page public |
 | **Profile & onboarding** | ✅ Working (application-layer enforcement) |
 | **Clerk ↔ Supabase sync** | ✅ Working (webhooks) |
 | **Build & deploy** | ✅ Passing (`npm run build`, Cloudflare auto-deploy from `main`) |
@@ -147,6 +154,9 @@ The objective is to provide immigrants with a single trusted platform for planni
 - ✓ Logout
 - ✓ Password Reset
 - ✓ Profile Image
+- ✓ App-wide route protection (S4-001) — landing `/` public; all features require sign-in
+- ✓ Login Required message on protected link clicks (signed-out visitors)
+- ✓ Post-login return URL to intended destination
 
 ### Profile Hub (`/user-profile`)
 
@@ -227,6 +237,18 @@ Legacy `/account` redirects users to Manage Profile via migration banner.
 | Onboarding page | Skips if phone already present |
 
 **Do not reintroduce Supabase/profile lookups into middleware.**
+
+---
+
+### ADR-005 — Landing page public; all application features require authentication (S4-001)
+
+**Decision:** Only `/` is publicly accessible. All IMMIFIN tools, calculators, immigration pages, finance pages, and account surfaces require Clerk authentication enforced in middleware.
+
+**Client UX:** Signed-out visitors on `/` who click protected links see a Login Required toast, then redirect to `/login?redirect_url=<destination>`.
+
+**Public routes (middleware):** `/`, `/login`, `/signup`, `/api/webhooks/*`, `/sitemap.xml`, `/robots.txt`
+
+**Key files:** `middleware.ts`, `lib/auth/publicRoutes.ts`, `components/auth/ProtectedLink.tsx`, `components/auth/LoginRequiredProvider.tsx`
 
 ---
 
@@ -382,7 +404,7 @@ Intentional deferred items — not bugs:
 | **Subscription management** | `profiles.plan` exists; Stripe billing not integrated |
 | **Analytics** | No product analytics pipeline |
 | **Visa Bulletin Dashboard toggle** | Final Action / Dates for Filing toggle — match Movement Tracker pattern |
-| **Onboarding on all routes** | Guard on `/`, `/user-profile`, `/account` only; other signed-in routes (e.g. calculators) not gated |
+| **Onboarding on all routes** | Guard on `/`, `/user-profile`, `/account`; all other routes now require auth via middleware (S4-001) |
 | **Admin UI** | `/admin` API routes exist; admin page surface minimal |
 | **CI/CD** | No automated PR build checks yet |
 | **Preview deployments** | Per-branch previews not configured |
@@ -444,12 +466,18 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 
 | Area | Status | Detail |
 |------|--------|--------|
-| **Repository** | ✅ Stable | Working tree clean at Sprint 3 close |
-| **Production** | ✅ Stable | `immifin.com` serving after 1102 hotfix and onboarding guard deploy |
-| **Build** | ✅ Passing | `npm run build` — middleware 90.1 kB |
+| **Repository** | ✅ Stable | S4-001 committed; pending deploy |
+| **Production** | ✅ Stable | `immifin.com` on v0.3.0 until v0.4.0 deploy |
+| **Build** | ✅ Passing | `npm run build` — middleware 90 kB |
 | **Engineering process** | ✅ Mature | Workflow v2.0, playbook v2.1, release checklist, dev tunnel docs |
-| **Documentation** | ✅ Current | This document is the authoritative project state reference |
-| **Sprint 4** | 🟢 Active | Dashboard architecture phase |
+| **Documentation** | ✅ Current | S4-001 closeout documented |
+| **Sprint 4** | 🟢 Active | S4-001 complete; Dashboard architecture next |
+
+### Sprint 4 key commits (reference)
+
+| Commit | Description |
+|--------|-------------|
+| S4-001 | App-wide authentication gate; Login Required UX; return URL sign-in |
 
 ### Sprint 3 key commits (reference)
 
@@ -469,6 +497,10 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 | Area | Path |
 |------|------|
 | Middleware | `middleware.ts` |
+| Public route config | `lib/auth/publicRoutes.ts` |
+| Protected navigation | `components/auth/ProtectedLink.tsx` |
+| Login Required toast | `components/auth/LoginRequiredProvider.tsx` |
+| Sign-in redirect URL | `lib/auth/signInRedirect.ts` |
 | Onboarding guard | `components/onboarding/ContactOnboardingGuard.tsx` |
 | Onboarding page | `app/onboarding/contact-preferences/page.tsx` |
 | Profile hub | `components/profile/UserProfileHub.tsx` |
@@ -537,3 +569,4 @@ npm run dev:local
 |---------|------|-------------|
 | v1.0 | 2026-07-01 | Created as Sprint 4 handoff (`SPRINT_4_HANDOFF.md`) |
 | v2.0 | 2026-07-01 | Promoted to permanent project state (`CURRENT_PROJECT_STATE.md`) |
+| v2.1 | 2026-07-01 | S4-001 — app-wide authentication gate documented |

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth, useUser, UserButton } from "@clerk/nextjs";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
@@ -64,7 +65,7 @@ function NavDropdown({
 }) {
   return (
     <div className="group relative">
-      <Link href={href} className={`${navLinkClassName} inline-flex items-center gap-1`}>
+      <ProtectedLink href={href} className={`${navLinkClassName} inline-flex items-center gap-1`}>
         {label}
         <svg
           className="h-4 w-4 transition-transform group-hover:rotate-180"
@@ -76,19 +77,19 @@ function NavDropdown({
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
-      </Link>
+      </ProtectedLink>
 
       <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
           {items.map((item) => (
-            <Link
+            <ProtectedLink
               key={item.href}
               href={item.href}
               className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
             >
               <span className="block text-sm font-semibold text-slate-900">{item.label}</span>
               <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
-            </Link>
+            </ProtectedLink>
           ))}
         </div>
       </div>
@@ -134,9 +135,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
               }
 
               return (
-                <Link key={link.href} href={link.href} className={navLinkClassName}>
+                <ProtectedLink key={link.href} href={link.href} className={navLinkClassName}>
                   {link.label}
-                </Link>
+                </ProtectedLink>
               );
             })}
           </nav>
@@ -199,23 +200,23 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
 
                   return (
                     <div key={link.href} className="w-full">
-                      <Link
+                      <ProtectedLink
                         href={link.href}
                         className="block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
                         onClick={onToggleMenu}
                       >
                         {link.label}
-                      </Link>
+                      </ProtectedLink>
                       <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
                         {submenu.map((item) => (
-                          <Link
+                          <ProtectedLink
                             key={item.href}
                             href={item.href}
                             className="block w-full rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
                             onClick={onToggleMenu}
                           >
                             {item.label}
-                          </Link>
+                          </ProtectedLink>
                         ))}
                       </div>
                     </div>
@@ -223,14 +224,14 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 }
 
                 return (
-                  <Link
+                  <ProtectedLink
                     key={link.href}
                     href={link.href}
                     className="w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
                     onClick={onToggleMenu}
                   >
                     {link.label}
-                  </Link>
+                  </ProtectedLink>
                 );
               })}
               {showSignedOutAuth && (
