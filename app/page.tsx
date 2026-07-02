@@ -1,4 +1,5 @@
 import { Hero } from "@/components/Hero";
+import { ContactOnboardingGuard } from "@/components/onboarding/ContactOnboardingGuard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CalculatorCard } from "@/components/CalculatorCard";
 import { GuideCard } from "@/components/GuideCard";
@@ -15,8 +16,9 @@ export default function HomePage() {
   const featuredCalculators = getFeaturedCalculators();
 
   return (
-    <>
-      <Hero
+    <ContactOnboardingGuard publicLanding>
+      <>
+        <Hero
         compact
         title="Immigration, Finance & Life in America"
         subtitle="Helping immigrants navigate visas, taxes, investing, credit, and citizenship."
@@ -89,6 +91,7 @@ export default function HomePage() {
         primaryCta={{ href: "/calculators", label: "Browse Calculators" }}
         secondaryCta={{ href: "/about", label: "Learn About Us" }}
       />
-    </>
+      </>
+    </ContactOnboardingGuard>
   );
 }

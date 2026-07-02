@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { ContactOnboardingGuard } from "@/components/onboarding/ContactOnboardingGuard";
 import { UserProfileCloseAction } from "@/components/profile/UserProfileCloseAction";
 import { UserProfileHub } from "@/components/profile/UserProfileHub";
 import { createMetadata } from "@/lib/metadata";
@@ -11,23 +12,25 @@ export const metadata = createMetadata({
 
 export default function ManageProfilePage() {
   return (
-    <>
-      <PageHeader
-        breadcrumb="Profile"
-        title="Manage Profile"
-        description="Update your Clerk account details, security settings, and IMMIFIN immigration planning fields."
-      />
+    <ContactOnboardingGuard>
+      <>
+        <PageHeader
+          breadcrumb="Profile"
+          title="Manage Profile"
+          description="Update your Clerk account details, security settings, and IMMIFIN immigration planning fields."
+        />
 
-      <section className="section-padding !pt-10 sm:!pt-16">
-        <div className="container-main">
-          <div className="mx-auto max-w-5xl min-w-0">
-            <div className="mb-4 flex justify-end">
-              <UserProfileCloseAction />
+        <section className="section-padding !pt-10 sm:!pt-16">
+          <div className="container-main">
+            <div className="mx-auto max-w-5xl min-w-0">
+              <div className="mb-4 flex justify-end">
+                <UserProfileCloseAction />
+              </div>
+              <UserProfileHub />
             </div>
-            <UserProfileHub />
           </div>
-        </div>
-      </section>
-    </>
+        </section>
+      </>
+    </ContactOnboardingGuard>
   );
 }
