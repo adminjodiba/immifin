@@ -19,6 +19,15 @@ type AccountMeResponse = {
   immigrationProfile: ImmigrationProfile | null;
 };
 
+type ImmigrationProfilePayload = {
+  defaultCategory: string;
+  defaultCountry: string;
+  defaultBulletinType: string;
+  priorityDate: string;
+  greenCardIssueDate: string;
+  marriedToUsCitizen: boolean;
+};
+
 type ImmigrationProfileContextValue = {
   profileEmail: string | null;
   defaultCategory: string;
@@ -38,6 +47,8 @@ type ImmigrationProfileContextValue = {
   error: string | null;
   success: string | null;
   handleSubmit: (event: FormEvent<HTMLFormElement>, successMessage?: string) => Promise<void>;
+  clearImmigrationSection: () => Promise<void>;
+  clearGreenCardSection: () => Promise<void>;
 };
 
 const ImmigrationProfileContext = createContext<ImmigrationProfileContextValue | null>(null);
@@ -127,9 +138,8 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
     };
   }, []);
 
-  const handleSubmit = useCallback(
-    async (event: FormEvent<HTMLFormElement>, successMessage = "Immigration profile saved.") => {
-      event.preventDefault();
+  const saveImmigrationProfile = useCallback(
+    async (payload: ImmigrationProfilePayload, successMessage: string) => {
       setIsSaving(true);
       setError(null);
       setSuccess(null);
@@ -138,14 +148,7 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
         const response = await fetch("/api/account/immigration-profile", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            defaultCategory,
-            defaultCountry,
-            defaultBulletinType,
-            priorityDate,
-            greenCardIssueDate,
-            marriedToUsCitizen: marriedToUsCitizen === "true",
-          }),
+          body: JSON.stringify(payload),
         });
 
         const result = await readJsonResponseBody<{
@@ -157,10 +160,10 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
           throw new Error(result.error);
         }
 
-        const payload = result.data;
+        const responsePayload = result.data;
 
-        if (payload.immigrationProfile) {
-          applyImmigrationProfile(payload.immigrationProfile, {
+        if (responsePayload.immigrationProfile) {
+          applyImmigrationProfile(responsePayload.immigrationProfile, {
             setDefaultCategory,
             setDefaultCountry,
             setDefaultBulletinType,
@@ -175,8 +178,32 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
         const message =
           saveError instanceof Error ? saveError.message : "Failed to save immigration profile.";
         setError(message);
+        throw saveError instanceof Error ? saveError : new Error(message);
       } finally {
         setIsSaving(false);
+      }
+    },
+    [],
+  );
+
+  const handleSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>, successMessage = "Immigration profile saved.") => {
+      event.preventDefault();
+
+      try {
+        await saveImmigrationProfile(
+          {
+            defaultCategory,
+            defaultCountry,
+            defaultBulletinType,
+            priorityDate,
+            greenCardIssueDate,
+            marriedToUsCitizen: marriedToUsCitizen === "true",
+          },
+          successMessage,
+        );
+      } catch {
+        // Error state is already set by saveImmigrationProfile.
       }
     },
     [
@@ -186,8 +213,43 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
       priorityDate,
       greenCardIssueDate,
       marriedToUsCitizen,
+      saveImmigrationProfile,
     ],
   );
+
+  const clearImmigrationSection = useCallback(async () => {
+    await saveImmigrationProfile(
+      {
+        defaultCategory: "",
+        defaultCountry: "",
+        defaultBulletinType: "",
+        priorityDate: "",
+        greenCardIssueDate,
+        marriedToUsCitizen: marriedToUsCitizen === "true",
+      },
+      "Immigration section cleared.",
+    );
+  }, [greenCardIssueDate, marriedToUsCitizen, saveImmigrationProfile]);
+
+  const clearGreenCardSection = useCallback(async () => {
+    await saveImmigrationProfile(
+      {
+        defaultCategory,
+        defaultCountry,
+        defaultBulletinType,
+        priorityDate,
+        greenCardIssueDate: "",
+        marriedToUsCitizen: false,
+      },
+      "Green Card section cleared.",
+    );
+  }, [
+    defaultCategory,
+    defaultCountry,
+    defaultBulletinType,
+    priorityDate,
+    saveImmigrationProfile,
+  ]);
 
   const value = useMemo<ImmigrationProfileContextValue>(
     () => ({
@@ -209,6 +271,8 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
       error,
       success,
       handleSubmit,
+      clearImmigrationSection,
+      clearGreenCardSection,
     }),
     [
       profileEmail,
@@ -223,6 +287,8 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
       error,
       success,
       handleSubmit,
+      clearImmigrationSection,
+      clearGreenCardSection,
     ],
   );
 

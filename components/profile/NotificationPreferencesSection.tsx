@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   NOTIFICATION_PREFERENCE_FIELDS,
@@ -73,8 +74,10 @@ export function NotificationPreferencesSection() {
     setPreferences((current) => ({ ...current, [key]: value }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function savePreferences(
+    nextPreferences: NotificationPreferences,
+    successMessage: string,
+  ) {
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -83,7 +86,7 @@ export function NotificationPreferencesSection() {
       const response = await fetch("/api/account/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationPreferences: preferences }),
+        body: JSON.stringify({ notificationPreferences: nextPreferences }),
       });
 
       const result = await readJsonResponseBody<{
@@ -99,16 +102,36 @@ export function NotificationPreferencesSection() {
 
       if (payload.immigrationProfile) {
         setPreferences(readNotificationPreferences(payload.immigrationProfile.preferences));
+      } else {
+        setPreferences(nextPreferences);
       }
 
-      setSuccess("Notification preferences saved.");
+      setSuccess(successMessage);
     } catch (saveError: unknown) {
       const message =
         saveError instanceof Error ? saveError.message : "Failed to save notification preferences.";
       setError(message);
+      throw saveError instanceof Error ? saveError : new Error(message);
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    try {
+      await savePreferences(preferences, "Notification preferences saved.");
+    } catch {
+      // Error state is already set by savePreferences.
+    }
+  }
+
+  async function resetToDefault() {
+    await savePreferences(
+      DEFAULT_NOTIFICATION_PREFERENCES,
+      "Notification preferences reset to defaults.",
+    );
   }
 
   return (
@@ -160,9 +183,23 @@ export function NotificationPreferencesSection() {
         </div>
       )}
 
-      <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
-        {isSaving ? "Saving..." : "Save notification preferences"}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="submit"
+          className="btn-primary w-full sm:flex-1"
+          disabled={isLoading || isSaving}
+        >
+          {isSaving ? "Saving..." : "Save notification preferences"}
+        </button>
+        <div className="sm:flex-1">
+          <ProfileSectionResetButton
+            label="Reset to Default"
+            confirmMessage="Reset notification preferences to defaults? This will save the default settings for this section only."
+            onReset={resetToDefault}
+            disabled={isLoading || isSaving}
+          />
+        </div>
+      </div>
     </form>
   );
 }

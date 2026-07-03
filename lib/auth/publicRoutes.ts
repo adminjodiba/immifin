@@ -4,6 +4,7 @@
  */
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
+  "/pricing",
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",
@@ -11,10 +12,10 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/robots.txt",
 ] as const;
 
-/** Paths safe to navigate without sign-in (landing home only). */
+/** Paths safe to navigate without sign-in. */
 export function isPublicLandingPath(path: string): boolean {
   const pathname = path.split("?")[0]?.split("#")[0] ?? path;
-  return pathname === "/" || pathname === "";
+  return pathname === "/" || pathname === "" || pathname === "/pricing";
 }
 
 /** Whether a href should prompt login when the visitor is signed out. */

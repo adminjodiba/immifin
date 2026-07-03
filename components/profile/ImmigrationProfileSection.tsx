@@ -3,6 +3,7 @@
 import { useImmigrationProfileForm } from "@/components/profile/ImmigrationProfileProvider";
 import { ProfileFormAlerts } from "@/components/profile/ProfileFormAlerts";
 import { ProfileFormSaveButton } from "@/components/profile/ProfileFormSaveButton";
+import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
 import {
   bulletinTypeOptions,
   categoryOptions,
@@ -20,7 +21,9 @@ export function ImmigrationProfileSection() {
     priorityDate,
     setPriorityDate,
     isLoading,
+    isSaving,
     handleSubmit,
+    clearImmigrationSection,
   } = useImmigrationProfileForm();
 
   return (
@@ -129,7 +132,19 @@ export function ImmigrationProfileSection() {
       )}
 
       <ProfileFormAlerts />
-      <ProfileFormSaveButton label="Save immigration details" />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="sm:flex-1">
+          <ProfileFormSaveButton label="Save immigration details" />
+        </div>
+        <div className="sm:flex-1">
+          <ProfileSectionResetButton
+            label="Clear Section"
+            confirmMessage="Clear immigration fields (category, country, bulletin type, and priority date)? This will save empty values for this section only."
+            onReset={clearImmigrationSection}
+            disabled={isLoading || isSaving}
+          />
+        </div>
+      </div>
     </form>
   );
 }

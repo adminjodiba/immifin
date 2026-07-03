@@ -325,6 +325,15 @@ export async function checkPriorityDate(
   category: string,
   country: string,
 ): Promise<LivePriorityDateCheck> {
+  return comparePriorityToBulletin(priorityDate, category, country, "final-action");
+}
+
+export async function comparePriorityToBulletin(
+  priorityDate: string,
+  category: string,
+  country: string,
+  type: VisaBulletinDataType = "final-action",
+): Promise<LivePriorityDateCheck> {
   const parsedPriority = new Date(`${priorityDate}T00:00:00`);
   if (Number.isNaN(parsedPriority.getTime())) {
     throw new Error("Invalid priority date. Use YYYY-MM-DD.");
@@ -332,7 +341,7 @@ export async function checkPriorityDate(
 
   const sheetCategory = normalizeSheetCategory(category);
   const sheetCountry = normalizeSheetCountry(country);
-  const rows = await getVisaBulletinData();
+  const rows = await getVisaBulletinData(type);
 
   const row = rows.find(
     (entry) =>

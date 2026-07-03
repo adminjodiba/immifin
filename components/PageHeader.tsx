@@ -4,13 +4,16 @@ type PageHeaderProps = {
   title: string;
   description: string;
   breadcrumb?: string;
+  wide?: boolean;
 };
 
-export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumb, wide = false }: PageHeaderProps) {
+  const containerClass = wide ? "container-dashboard" : "container-main";
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
       <div className="absolute inset-0 bg-gradient-to-r from-brand-50/80 via-white to-white" />
-      <div className="container-main relative py-10 sm:py-14 lg:py-16">
+      <div className={`${containerClass} relative py-10 sm:py-14 lg:py-16`}>
         {breadcrumb && (
           <nav aria-label="Breadcrumb" className="mb-4">
             <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">

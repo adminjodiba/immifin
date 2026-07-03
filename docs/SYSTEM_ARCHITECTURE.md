@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | This document describes the complete infrastructure architecture of the Immifin platform. |
-| **Last Updated** | 2026-06-27 |
+| **Last Updated** | 2026-07-03 |
 | **Owner** | Technical Architecture (CTO) |
 
 This document is the **single source of truth** for Immifin's infrastructure, environments, deployment flow, networking, external services, and operational architecture.
@@ -381,7 +381,22 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 
 ---
 
-## 14. Future Improvements
+## 14. Application Access Layer (Subscription Capabilities)
+
+Product feature access is **capability-based**, not plan-name checks in UI.
+
+| Layer | Location | Role |
+|-------|----------|------|
+| **Tiers** | `lib/subscription/tiers.ts` | `free` / `pro` / `power` (+ future Business/Enterprise) |
+| **Capabilities** | `lib/subscription/capabilities.ts` | Tier→capability map; `hasCapability`, `canAccess*` |
+| **Dev override** | `lib/subscription/devTier.ts` | Local development only — not billing |
+
+Billing will later assign a tier. Application code consumes capabilities. See [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
+
+---
+
+## 15. Future Improvements
+
 
 - [ ] Separate Development Environment
 - [ ] Separate Preview Environment
@@ -399,12 +414,13 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 
 ---
 
-## 15. Revision History
+## 16. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
 | v0.1 | 2026-06-23 | Initial architecture documentation created after Sprint 1. |
 | v1.2 | 2026-06-27 | Expanded Architecture Principles; known stable configuration reference in DEPLOYMENT.md. |
+| v1.3 | 2026-07-03 | Application access layer — subscription tiers and capabilities (S4-005.3). |
 
 ---
 

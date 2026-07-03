@@ -5,13 +5,15 @@ import { ContactProfileSection } from "@/components/profile/ContactProfileSectio
 import { GreenCardProfileSection } from "@/components/profile/GreenCardProfileSection";
 import { ImmigrationProfileProvider } from "@/components/profile/ImmigrationProfileProvider";
 import { ImmigrationProfileSection } from "@/components/profile/ImmigrationProfileSection";
-import { NotificationPreferencesSection } from "@/components/profile/NotificationPreferencesSection";
+import { NotificationsProfilePage } from "@/components/profile/NotificationsProfilePage";
 import {
   ContactTabIcon,
   GreenCardTabIcon,
   ImmigrationTabIcon,
   NotificationTabIcon,
 } from "@/components/profile/ProfilePageIcons";
+import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { canAccessNotifications } from "@/lib/subscription/capabilities";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyUserProfileElements } from "@/lib/clerk/emailOnly";
 
@@ -29,7 +31,23 @@ const userProfileAppearance = {
   },
 };
 
+function NotificationsTabIcon({ locked }: { locked: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <NotificationTabIcon />
+      {locked ? (
+        <span className="rounded bg-brand-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-800">
+          Pro
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 export function UserProfileHub() {
+  const { tier } = useEffectiveSubscriptionTier();
+  const notificationsLocked = !canAccessNotifications(tier);
+
   return (
     <ImmigrationProfileProvider>
       <UserProfile routing="hash" appearance={userProfileAppearance}>
@@ -39,11 +57,11 @@ export function UserProfileHub() {
           <ContactProfileSection />
         </UserProfile.Page>
         <UserProfile.Page
-          label="Notifications"
+          label={notificationsLocked ? "Notifications 🔒 PRO" : "Notifications"}
           url="notifications"
-          labelIcon={<NotificationTabIcon />}
+          labelIcon={<NotificationsTabIcon locked={notificationsLocked} />}
         >
-          <NotificationPreferencesSection />
+          <NotificationsProfilePage />
         </UserProfile.Page>
         <UserProfile.Page label="Immigration" url="immigration" labelIcon={<ImmigrationTabIcon />}>
           <ImmigrationProfileSection />

@@ -4,18 +4,21 @@ import Link from "next/link";
 import { useAuth, useUser, UserButton } from "@clerk/nextjs";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { navLinks } from "@/lib/site";
-import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
+import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import {
+  DASHBOARD_PRO_LOCK_MESSAGE,
+  getVisibleMyImmifinMenuItems,
+  isMyImmifinItemLocked,
+  MY_IMMIFIN_NAV_LABEL,
+} from "@/lib/my-immifin-menu";
+import { canAccessPersonalDashboard } from "@/lib/subscription/capabilities";
+import type { SubscriptionTier } from "@/lib/subscription/tiers";
 import { Logo } from "./Logo";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 
 const headerUserButtonAppearance = {
   ...clerkAppearance,
-  localization: {
-    userButton: {
-      action__manageAccount: "Manage Profile",
-    },
-  },
   elements: {
     ...clerkAppearance.elements,
     rootBox: "flex justify-center",
@@ -26,12 +29,21 @@ const headerUserButtonAppearance = {
     avatarImage: "h-11 w-11 rounded-xl",
     userButtonAvatarBox: "h-11 w-11 rounded-xl border border-slate-200 overflow-hidden",
     userButtonAvatarImage: "h-11 w-11 rounded-xl",
+    // Manage Profile lives under My Immifin — hide avatar account-profile entry.
+    userButtonPopoverActionButton__manageAccount: "hidden",
   },
 };
 
 type HeaderProps = {
   mobileMenuOpen: boolean;
   onToggleMenu: () => void;
+};
+
+type MyImmifinNavItem = {
+  href: string;
+  label: string;
+  description: string;
+  locked: boolean;
 };
 
 const navLinkClassName =
@@ -54,6 +66,43 @@ function getGreetingLine(
   return name ? `${timeGreeting} ${name}` : timeGreeting;
 }
 
+function ProBadge() {
+  return (
+    <span className="ml-1.5 inline-flex items-center rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700">
+      Pro
+    </span>
+  );
+}
+
+function LockedMenuItem({
+  label,
+  description,
+  className,
+}: {
+  label: string;
+  description: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={
+        className ??
+        "block w-full rounded-xl px-4 py-3 text-left opacity-60 transition-colors hover:bg-slate-50"
+      }
+      onClick={() => {
+        window.alert(DASHBOARD_PRO_LOCK_MESSAGE);
+      }}
+    >
+      <span className="flex items-center text-sm font-semibold text-slate-500">
+        {label}
+        <ProBadge />
+      </span>
+      <span className="mt-0.5 block text-xs text-slate-400">{description}</span>
+    </button>
+  );
+}
+
 function NavDropdown({
   href,
   label,
@@ -61,7 +110,7 @@ function NavDropdown({
 }: {
   href: string;
   label: string;
-  items: readonly { href: string; label: string; description: string }[];
+  items: readonly { href: string; label: string; description: string; locked?: boolean }[];
 }) {
   return (
     <div className="group relative">
@@ -81,38 +130,68 @@ function NavDropdown({
 
       <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
-          {items.map((item) => (
-            <ProtectedLink
-              key={item.href}
-              href={item.href}
-              className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
-            >
-              <span className="block text-sm font-semibold text-slate-900">{item.label}</span>
-              <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
-            </ProtectedLink>
-          ))}
+          {items.map((item) =>
+            item.locked ? (
+              <LockedMenuItem
+                key={item.label}
+                label={item.label}
+                description={item.description}
+              />
+            ) : (
+              <ProtectedLink
+                key={item.href}
+                href={item.href}
+                className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
+              >
+                <span className="flex items-center text-sm font-semibold text-slate-900">
+                  {item.label}
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
+              </ProtectedLink>
+            ),
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function CalculatorsDropdown() {
-  return <NavDropdown href="/calculators" label="Calculators" items={calculatorMenuLinks} />;
-}
-
 function ImmigrationDropdown() {
   return <NavDropdown href="/immigration" label="Immigration" items={immigrationMenuLinks} />;
+}
+
+function buildMyImmifinItems(tier: SubscriptionTier): MyImmifinNavItem[] {
+  return getVisibleMyImmifinMenuItems(tier).map((item) => ({
+    href: item.href,
+    label: item.label,
+    description: item.description,
+    locked: isMyImmifinItemLocked(item, tier),
+  }));
+}
+
+function MyImmifinDropdown() {
+  const { tier } = useEffectiveSubscriptionTier();
+  const items = buildMyImmifinItems(tier);
+  // Top-level My Immifin never shows a PRO badge. Free locks Dashboard inside the dropdown only.
+  const parentHref = canAccessPersonalDashboard(tier) ? "/dashboard" : "/user-profile";
+
+  return (
+    <NavDropdown href={parentHref} label={MY_IMMIFIN_NAV_LABEL} items={items} />
+  );
 }
 
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const { tier } = useEffectiveSubscriptionTier();
   const showSignedOutAuth = isLoaded && !isSignedIn;
   const showSignedInAuth = isLoaded && isSignedIn;
   const greetingLine = user
     ? getGreetingLine(user.firstName, user.fullName, user.username)
     : getTimeGreeting();
+
+  const myImmifinItems = buildMyImmifinItems(tier);
+  const myImmifinParentHref = canAccessPersonalDashboard(tier) ? "/dashboard" : "/user-profile";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
@@ -128,10 +207,12 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
           >
             {navLinks.map((link) => {
               if ("hasDropdown" in link && link.hasDropdown) {
+                if ("isMyImmifin" in link && link.isMyImmifin) {
+                  return <MyImmifinDropdown key={link.href} />;
+                }
                 if (link.href === "/immigration") {
                   return <ImmigrationDropdown key={link.href} />;
                 }
-                return <CalculatorsDropdown key={link.href} />;
               }
 
               return (
@@ -155,13 +236,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             )}
             {showSignedInAuth && (
               <div className="flex flex-col items-center justify-center">
-                <UserButton
-                  appearance={headerUserButtonAppearance}
-                  userProfileMode="navigation"
-                  userProfileUrl="/user-profile"
-                >
+                <UserButton appearance={headerUserButtonAppearance}>
                   <UserButton.MenuItems>
-                    <UserButton.Action label="manageAccount" />
+                    {/* Account-level actions only. Dashboard and Manage Profile live under My Immifin. */}
                     <UserButton.Action label="signOut" />
                   </UserButton.MenuItems>
                 </UserButton>
@@ -195,24 +272,58 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             <div className="flex flex-col items-center gap-1 rounded-2xl bg-slate-50/80 p-2">
               {navLinks.map((link) => {
                 if ("hasDropdown" in link && link.hasDropdown) {
-                  const submenu =
-                    link.href === "/immigration" ? immigrationMenuLinks : calculatorMenuLinks;
+                  const isMyImmifin = "isMyImmifin" in link && link.isMyImmifin;
+
+                  if (isMyImmifin) {
+                    return (
+                      <div key={link.href} className="w-full">
+                        <ProtectedLink
+                          href={myImmifinParentHref}
+                          className="flex w-full items-center justify-center gap-1 rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                          onClick={onToggleMenu}
+                        >
+                          {MY_IMMIFIN_NAV_LABEL}
+                        </ProtectedLink>
+                        <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
+                          {myImmifinItems.map((item) =>
+                            item.locked ? (
+                              <LockedMenuItem
+                                key={item.label}
+                                label={item.label}
+                                description={item.description}
+                                className="w-full rounded-lg px-4 py-2.5 text-center opacity-60"
+                              />
+                            ) : (
+                              <ProtectedLink
+                                key={item.href}
+                                href={item.href}
+                                className="flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
+                                onClick={onToggleMenu}
+                              >
+                                {item.label}
+                              </ProtectedLink>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return (
                     <div key={link.href} className="w-full">
                       <ProtectedLink
                         href={link.href}
-                        className="block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                        className="flex w-full items-center justify-center gap-1 rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
                         onClick={onToggleMenu}
                       >
                         {link.label}
                       </ProtectedLink>
                       <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
-                        {submenu.map((item) => (
+                        {immigrationMenuLinks.map((item) => (
                           <ProtectedLink
                             key={item.href}
                             href={item.href}
-                            className="block w-full rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
+                            className="flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
                             onClick={onToggleMenu}
                           >
                             {item.label}

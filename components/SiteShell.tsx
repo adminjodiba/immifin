@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LoginRequiredProvider } from "@/components/auth/LoginRequiredProvider";
+import { DevTierSwitcher } from "@/components/dev/DevTierSwitcher";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 
@@ -17,6 +18,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         />
         <main className="flex-1">{children}</main>
         <Footer />
+        <DevTierSwitcher />
       </div>
     </LoginRequiredProvider>
   );

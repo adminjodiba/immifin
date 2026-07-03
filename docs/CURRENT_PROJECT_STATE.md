@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Current Sprint** | Sprint 4 |
-| **Production Version** | v0.4.0 *(committed; pending Cloudflare deploy)* |
+| **Production Version** | v0.4.0 |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
 | **Cloudflare** | 🟢 Healthy |
@@ -17,7 +17,7 @@
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** S4-001 — app-wide authentication gate (`feat(auth): enforce authentication for all application features`)  
+**Latest commit:** `1affb01` — feat(auth): enforce authentication for all application features (S4-001)  
 **Owner:** Technical Architecture (CTO)
 
 ---
@@ -466,8 +466,8 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 
 | Area | Status | Detail |
 |------|--------|--------|
-| **Repository** | ✅ Stable | S4-001 committed; pending deploy |
-| **Production** | ✅ Stable | `immifin.com` on v0.3.0 until v0.4.0 deploy |
+| **Repository** | ✅ Stable | S4-001 deployed via GitHub → Cloudflare auto-deploy |
+| **Production** | ✅ Stable | `immifin.com` on v0.4.0 (S4-001 auth gate) |
 | **Build** | ✅ Passing | `npm run build` — middleware 90 kB |
 | **Engineering process** | ✅ Mature | Workflow v2.0, playbook v2.1, release checklist, dev tunnel docs |
 | **Documentation** | ✅ Current | S4-001 closeout documented |
@@ -477,7 +477,7 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 
 | Commit | Description |
 |--------|-------------|
-| S4-001 | App-wide authentication gate; Login Required UX; return URL sign-in |
+| `1affb01` | S4-001 — App-wide authentication gate; Login Required UX; return URL sign-in |
 
 ### Sprint 3 key commits (reference)
 
@@ -570,3 +570,4 @@ npm run dev:local
 | v1.0 | 2026-07-01 | Created as Sprint 4 handoff (`SPRINT_4_HANDOFF.md`) |
 | v2.0 | 2026-07-01 | Promoted to permanent project state (`CURRENT_PROJECT_STATE.md`) |
 | v2.1 | 2026-07-01 | S4-001 — app-wide authentication gate documented |
+| v2.2 | 2026-07-01 | S4-001 deployed; closeout workflow updated |

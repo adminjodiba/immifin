@@ -3,6 +3,7 @@
 import { useImmigrationProfileForm } from "@/components/profile/ImmigrationProfileProvider";
 import { ProfileFormAlerts } from "@/components/profile/ProfileFormAlerts";
 import { ProfileFormSaveButton } from "@/components/profile/ProfileFormSaveButton";
+import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
 import { marriedToUsCitizenOptions } from "@/lib/account/immigrationProfileOptions";
 
 export function GreenCardProfileSection() {
@@ -12,7 +13,9 @@ export function GreenCardProfileSection() {
     marriedToUsCitizen,
     setMarriedToUsCitizen,
     isLoading,
+    isSaving,
     handleSubmit,
+    clearGreenCardSection,
   } = useImmigrationProfileForm();
 
   return (
@@ -78,7 +81,19 @@ export function GreenCardProfileSection() {
       )}
 
       <ProfileFormAlerts />
-      <ProfileFormSaveButton label="Save green card details" />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="sm:flex-1">
+          <ProfileFormSaveButton label="Save green card details" />
+        </div>
+        <div className="sm:flex-1">
+          <ProfileSectionResetButton
+            label="Clear Section"
+            confirmMessage="Clear Green Card fields (issue date and marriage status)? This will save empty values for this section only."
+            onReset={clearGreenCardSection}
+            disabled={isLoading || isSaving}
+          />
+        </div>
+      </div>
     </form>
   );
 }
