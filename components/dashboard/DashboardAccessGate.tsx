@@ -12,11 +12,12 @@ type DashboardAccessGateProps = {
 /**
  * Gates full dashboard content by capability.
  *
- * - Development Free override: shows locked Pro preview.
- * - Production without billing: resolveSubscriptionTier defaults to pro (access granted).
+ * - No enrolled tier → Free → locked Pro preview.
+ * - Development may override tier via DEV ONLY controls.
+ * - Production never applies dev overrides.
  *
  * TODO(S4-billing): Pass stored subscription tier into useEffectiveSubscriptionTier
- * when billing/storage exists. Do not rely on the pro default forever.
+ * when billing/storage exists.
  */
 export function DashboardAccessGate({ children }: DashboardAccessGateProps) {
   const { tier } = useEffectiveSubscriptionTier();

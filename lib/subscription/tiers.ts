@@ -22,7 +22,9 @@ export function isSubscriptionTier(value: unknown): value is SubscriptionTier {
  * Priority:
  * 1. Dev-only override (development only — never production)
  * 2. Stored subscription tier when billing exists
- * 3. Default `pro` until billing ships (keeps production users unblocked)
+ * 3. Default `free` when no real tier is enrolled
+ *
+ * Production never applies query-param or localStorage overrides.
  */
 export function resolveSubscriptionTier(options: {
   storedTier?: SubscriptionTier | null;
@@ -34,6 +36,6 @@ export function resolveSubscriptionTier(options: {
   }
 
   // TODO(S4-billing): Connect real subscription tier from billing/storage.
-  // Until then, default to pro so production signed-in users keep dashboard access.
-  return options.storedTier ?? "pro";
+  // Users without an enrolled tier are Free — not Pro/Power.
+  return options.storedTier ?? "free";
 }

@@ -8,6 +8,7 @@ import {
   getEligibilityStatus,
   type CitizenshipEligibilityResult,
 } from "@/lib/citizenship-eligibility";
+import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
@@ -86,7 +87,7 @@ function ResultCard({
 }
 
 export function CitizenshipEligibilityCalculator() {
-  const { defaults, loaded } = useImmigrationProfileDefaults();
+  const { defaults, loaded, showProAutoPopulationHint } = useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [marriedToUSCitizen, setMarriedToUSCitizen] = useState<boolean | null>(null);
   const [result, setResult] = useState<CitizenshipEligibilityResult | null>(null);
@@ -160,6 +161,7 @@ export function CitizenshipEligibilityCalculator() {
         </div>
 
         <div className="p-5 sm:p-8">
+          {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
           <form className="space-y-8" onSubmit={handleCalculate} aria-label="Citizenship eligibility calculator">
             <div className="space-y-6">
               <div>

@@ -1,11 +1,14 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { UserProfile } from "@clerk/nextjs";
 import { ContactProfileSection } from "@/components/profile/ContactProfileSection";
-import { GreenCardProfileSection } from "@/components/profile/GreenCardProfileSection";
+import { GreenCardProfilePage } from "@/components/profile/GreenCardProfilePage";
+import { ImmigrationProfilePage } from "@/components/profile/ImmigrationProfilePage";
 import { ImmigrationProfileProvider } from "@/components/profile/ImmigrationProfileProvider";
-import { ImmigrationProfileSection } from "@/components/profile/ImmigrationProfileSection";
 import { NotificationsProfilePage } from "@/components/profile/NotificationsProfilePage";
+import { ProfileDirtyStateProvider } from "@/components/profile/ProfileDirtyStateProvider";
+import { UserProfileCloseAction } from "@/components/profile/UserProfileCloseAction";
 import {
   ContactTabIcon,
   GreenCardTabIcon,
@@ -13,7 +16,10 @@ import {
   NotificationTabIcon,
 } from "@/components/profile/ProfilePageIcons";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
-import { canAccessNotifications } from "@/lib/subscription/capabilities";
+import {
+  canAccessNotifications,
+  canAccessSaveImmigrationProfile,
+} from "@/lib/subscription/capabilities";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyUserProfileElements } from "@/lib/clerk/emailOnly";
 
@@ -44,32 +50,69 @@ function NotificationsTabIcon({ locked }: { locked: boolean }) {
   );
 }
 
+function ProTabIcon({
+  icon,
+  locked,
+}: {
+  icon: ReactNode;
+  locked: boolean;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      {icon}
+      {locked ? (
+        <span className="rounded bg-brand-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-800">
+          Pro
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 export function UserProfileHub() {
   const { tier } = useEffectiveSubscriptionTier();
   const notificationsLocked = !canAccessNotifications(tier);
+  const immigrationProfileLocked = !canAccessSaveImmigrationProfile(tier);
 
   return (
-    <ImmigrationProfileProvider>
-      <UserProfile routing="hash" appearance={userProfileAppearance}>
-        <UserProfile.Page label="account" />
-        <UserProfile.Page label="security" />
-        <UserProfile.Page label="Contact" url="contact" labelIcon={<ContactTabIcon />}>
-          <ContactProfileSection />
-        </UserProfile.Page>
-        <UserProfile.Page
-          label={notificationsLocked ? "Notifications 🔒 PRO" : "Notifications"}
-          url="notifications"
-          labelIcon={<NotificationsTabIcon locked={notificationsLocked} />}
-        >
-          <NotificationsProfilePage />
-        </UserProfile.Page>
-        <UserProfile.Page label="Immigration" url="immigration" labelIcon={<ImmigrationTabIcon />}>
-          <ImmigrationProfileSection />
-        </UserProfile.Page>
-        <UserProfile.Page label="Green Card" url="green-card" labelIcon={<GreenCardTabIcon />}>
-          <GreenCardProfileSection />
-        </UserProfile.Page>
-      </UserProfile>
-    </ImmigrationProfileProvider>
+    <ProfileDirtyStateProvider>
+      <div className="mb-4 flex justify-end">
+        <UserProfileCloseAction />
+      </div>
+      <ImmigrationProfileProvider>
+        <UserProfile routing="hash" appearance={userProfileAppearance}>
+          <UserProfile.Page label="account" />
+          <UserProfile.Page label="security" />
+          <UserProfile.Page label="Contact" url="contact" labelIcon={<ContactTabIcon />}>
+            <ContactProfileSection />
+          </UserProfile.Page>
+          <UserProfile.Page
+            label={notificationsLocked ? "Notifications 🔒 PRO" : "Notifications"}
+            url="notifications"
+            labelIcon={<NotificationsTabIcon locked={notificationsLocked} />}
+          >
+            <NotificationsProfilePage />
+          </UserProfile.Page>
+          <UserProfile.Page
+            label={immigrationProfileLocked ? "Immigration 🔒 PRO" : "Immigration"}
+            url="immigration"
+            labelIcon={
+              <ProTabIcon icon={<ImmigrationTabIcon />} locked={immigrationProfileLocked} />
+            }
+          >
+            <ImmigrationProfilePage />
+          </UserProfile.Page>
+          <UserProfile.Page
+            label={immigrationProfileLocked ? "Green Card 🔒 PRO" : "Green Card"}
+            url="green-card"
+            labelIcon={
+              <ProTabIcon icon={<GreenCardTabIcon />} locked={immigrationProfileLocked} />
+            }
+          >
+            <GreenCardProfilePage />
+          </UserProfile.Page>
+        </UserProfile>
+      </ImmigrationProfileProvider>
+    </ProfileDirtyStateProvider>
   );
 }

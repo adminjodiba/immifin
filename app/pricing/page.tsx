@@ -74,7 +74,7 @@ export default function PricingPage() {
         description="Start free. Upgrade when you are ready for automation and intelligence."
       />
 
-      <section className="section-padding !pt-10 sm:!pt-16">
+      <section id="plans" className="section-padding !pt-10 sm:!pt-16">
         <div className="container-main">
           <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
             {plans.map((plan) => (

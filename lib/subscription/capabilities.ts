@@ -11,6 +11,8 @@ import type { SubscriptionTier } from "@/lib/subscription/tiers";
 
 export const SUBSCRIPTION_CAPABILITIES = [
   "accessPersonalDashboard",
+  "accessSaveImmigrationProfile",
+  "accessPriorityDateTracking",
   "accessAI",
   "accessMultipleProfiles",
   "accessEmailAlerts",
@@ -25,11 +27,14 @@ export type SubscriptionCapability = (typeof SUBSCRIPTION_CAPABILITIES)[number];
 export type TierCapabilities = Record<SubscriptionCapability, boolean>;
 
 /**
+ * Official Free / Pro / Power capability map.
  * Future tiers (Business, Enterprise) will extend this map when introduced.
  */
 const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
   free: {
     accessPersonalDashboard: false,
+    accessSaveImmigrationProfile: false,
+    accessPriorityDateTracking: false,
     accessAI: false,
     accessMultipleProfiles: false,
     accessEmailAlerts: false,
@@ -40,6 +45,8 @@ const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
   },
   pro: {
     accessPersonalDashboard: true,
+    accessSaveImmigrationProfile: true,
+    accessPriorityDateTracking: true,
     accessAI: false,
     accessMultipleProfiles: false,
     accessEmailAlerts: true,
@@ -50,6 +57,8 @@ const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
   },
   power: {
     accessPersonalDashboard: true,
+    accessSaveImmigrationProfile: true,
+    accessPriorityDateTracking: true,
     accessAI: true,
     accessMultipleProfiles: true,
     accessEmailAlerts: true,
@@ -73,6 +82,14 @@ export function hasCapability(
 
 export function canAccessPersonalDashboard(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessPersonalDashboard");
+}
+
+export function canAccessSaveImmigrationProfile(tier: SubscriptionTier): boolean {
+  return hasCapability(tier, "accessSaveImmigrationProfile");
+}
+
+export function canAccessPriorityDateTracking(tier: SubscriptionTier): boolean {
+  return hasCapability(tier, "accessPriorityDateTracking");
 }
 
 export function canAccessAI(tier: SubscriptionTier): boolean {

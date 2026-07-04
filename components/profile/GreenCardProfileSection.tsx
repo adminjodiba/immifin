@@ -88,7 +88,6 @@ export function GreenCardProfileSection() {
         <div className="sm:flex-1">
           <ProfileSectionResetButton
             label="Clear Section"
-            confirmMessage="Clear Green Card fields (issue date and marriage status)? This will save empty values for this section only."
             onReset={clearGreenCardSection}
             disabled={isLoading || isSaving}
           />

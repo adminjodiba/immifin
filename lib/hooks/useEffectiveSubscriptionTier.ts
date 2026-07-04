@@ -27,7 +27,7 @@ function readEffectiveTier(storedTier: SubscriptionTier | null): SubscriptionTie
  * - localStorage key `immifin:devTier`
  * - DevTierSwitcher control
  *
- * Not billing. Production resolves without override (defaults to pro until billing).
+ * Not billing. Production resolves without override (defaults to free until billing).
  */
 export function useEffectiveSubscriptionTier(storedTier: SubscriptionTier | null = null): {
   tier: SubscriptionTier;

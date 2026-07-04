@@ -6,10 +6,15 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
 } from "react";
+import {
+  PROFILE_SECTION_IDS,
+  useProfileDirtyState,
+} from "@/components/profile/ProfileDirtyStateProvider";
 import { marriedToFormValue } from "@/lib/account/immigrationProfileOptions";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
@@ -53,6 +58,8 @@ type ImmigrationProfileContextValue = {
 
 const ImmigrationProfileContext = createContext<ImmigrationProfileContextValue | null>(null);
 
+const SECTION_CLEARED_MESSAGE = "Section cleared. Click Save to apply changes.";
+
 function applyImmigrationProfile(
   immigrationProfile: ImmigrationProfile,
   setters: {
@@ -73,17 +80,51 @@ function applyImmigrationProfile(
 }
 
 export function ImmigrationProfileProvider({ children }: { children: ReactNode }) {
-  const [defaultCategory, setDefaultCategory] = useState("");
-  const [defaultCountry, setDefaultCountry] = useState("");
-  const [defaultBulletinType, setDefaultBulletinType] = useState("");
-  const [priorityDate, setPriorityDate] = useState("");
-  const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
-  const [marriedToUsCitizen, setMarriedToUsCitizen] = useState("false");
+  const { markDirty, markClean, registerSaveHandler } = useProfileDirtyState();
+  const hasLoadedRef = useRef(false);
+
+  const [defaultCategory, setDefaultCategoryState] = useState("");
+  const [defaultCountry, setDefaultCountryState] = useState("");
+  const [defaultBulletinType, setDefaultBulletinTypeState] = useState("");
+  const [priorityDate, setPriorityDateState] = useState("");
+  const [greenCardIssueDate, setGreenCardIssueDateState] = useState("");
+  const [marriedToUsCitizen, setMarriedToUsCitizenState] = useState("false");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [profileEmail, setProfileEmail] = useState<string | null>(null);
+
+  const trackChange = useCallback(
+    <T,>(setter: (value: T) => void) =>
+      (value: T) => {
+        setter(value);
+        if (hasLoadedRef.current) {
+          markDirty(PROFILE_SECTION_IDS.immigration);
+          setSuccess(null);
+        }
+      },
+    [markDirty],
+  );
+
+  const setDefaultCategory = useMemo(
+    () => trackChange(setDefaultCategoryState),
+    [trackChange],
+  );
+  const setDefaultCountry = useMemo(() => trackChange(setDefaultCountryState), [trackChange]);
+  const setDefaultBulletinType = useMemo(
+    () => trackChange(setDefaultBulletinTypeState),
+    [trackChange],
+  );
+  const setPriorityDate = useMemo(() => trackChange(setPriorityDateState), [trackChange]);
+  const setGreenCardIssueDate = useMemo(
+    () => trackChange(setGreenCardIssueDateState),
+    [trackChange],
+  );
+  const setMarriedToUsCitizen = useMemo(
+    () => trackChange(setMarriedToUsCitizenState),
+    [trackChange],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -110,14 +151,16 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
 
         if (data.immigrationProfile) {
           applyImmigrationProfile(data.immigrationProfile, {
-            setDefaultCategory,
-            setDefaultCountry,
-            setDefaultBulletinType,
-            setPriorityDate,
-            setGreenCardIssueDate,
-            setMarriedToUsCitizen,
+            setDefaultCategory: setDefaultCategoryState,
+            setDefaultCountry: setDefaultCountryState,
+            setDefaultBulletinType: setDefaultBulletinTypeState,
+            setPriorityDate: setPriorityDateState,
+            setGreenCardIssueDate: setGreenCardIssueDateState,
+            setMarriedToUsCitizen: setMarriedToUsCitizenState,
           });
         }
+
+        hasLoadedRef.current = true;
       } catch (loadError: unknown) {
         if (!cancelled) {
           const message =
@@ -164,16 +207,17 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
 
         if (responsePayload.immigrationProfile) {
           applyImmigrationProfile(responsePayload.immigrationProfile, {
-            setDefaultCategory,
-            setDefaultCountry,
-            setDefaultBulletinType,
-            setPriorityDate,
-            setGreenCardIssueDate,
-            setMarriedToUsCitizen,
+            setDefaultCategory: setDefaultCategoryState,
+            setDefaultCountry: setDefaultCountryState,
+            setDefaultBulletinType: setDefaultBulletinTypeState,
+            setPriorityDate: setPriorityDateState,
+            setGreenCardIssueDate: setGreenCardIssueDateState,
+            setMarriedToUsCitizen: setMarriedToUsCitizenState,
           });
         }
 
         setSuccess(successMessage);
+        markClean(PROFILE_SECTION_IDS.immigration);
       } catch (saveError: unknown) {
         const message =
           saveError instanceof Error ? saveError.message : "Failed to save immigration profile.";
@@ -183,8 +227,34 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
         setIsSaving(false);
       }
     },
-    [],
+    [markClean],
   );
+
+  const saveCurrentImmigrationProfile = useCallback(async () => {
+    await saveImmigrationProfile(
+      {
+        defaultCategory,
+        defaultCountry,
+        defaultBulletinType,
+        priorityDate,
+        greenCardIssueDate,
+        marriedToUsCitizen: marriedToUsCitizen === "true",
+      },
+      "Immigration profile saved.",
+    );
+  }, [
+    defaultCategory,
+    defaultCountry,
+    defaultBulletinType,
+    priorityDate,
+    greenCardIssueDate,
+    marriedToUsCitizen,
+    saveImmigrationProfile,
+  ]);
+
+  useEffect(() => {
+    return registerSaveHandler(PROFILE_SECTION_IDS.immigration, saveCurrentImmigrationProfile);
+  }, [registerSaveHandler, saveCurrentImmigrationProfile]);
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>, successMessage = "Immigration profile saved.") => {
@@ -218,38 +288,22 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
   );
 
   const clearImmigrationSection = useCallback(async () => {
-    await saveImmigrationProfile(
-      {
-        defaultCategory: "",
-        defaultCountry: "",
-        defaultBulletinType: "",
-        priorityDate: "",
-        greenCardIssueDate,
-        marriedToUsCitizen: marriedToUsCitizen === "true",
-      },
-      "Immigration section cleared.",
-    );
-  }, [greenCardIssueDate, marriedToUsCitizen, saveImmigrationProfile]);
+    setDefaultCategoryState("");
+    setDefaultCountryState("");
+    setDefaultBulletinTypeState("");
+    setPriorityDateState("");
+    setError(null);
+    setSuccess(SECTION_CLEARED_MESSAGE);
+    markDirty(PROFILE_SECTION_IDS.immigration);
+  }, [markDirty]);
 
   const clearGreenCardSection = useCallback(async () => {
-    await saveImmigrationProfile(
-      {
-        defaultCategory,
-        defaultCountry,
-        defaultBulletinType,
-        priorityDate,
-        greenCardIssueDate: "",
-        marriedToUsCitizen: false,
-      },
-      "Green Card section cleared.",
-    );
-  }, [
-    defaultCategory,
-    defaultCountry,
-    defaultBulletinType,
-    priorityDate,
-    saveImmigrationProfile,
-  ]);
+    setGreenCardIssueDateState("");
+    setMarriedToUsCitizenState("false");
+    setError(null);
+    setSuccess(SECTION_CLEARED_MESSAGE);
+    markDirty(PROFILE_SECTION_IDS.immigration);
+  }, [markDirty]);
 
   const value = useMemo<ImmigrationProfileContextValue>(
     () => ({
@@ -277,11 +331,17 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
     [
       profileEmail,
       defaultCategory,
+      setDefaultCategory,
       defaultCountry,
+      setDefaultCountry,
       defaultBulletinType,
+      setDefaultBulletinType,
       priorityDate,
+      setPriorityDate,
       greenCardIssueDate,
+      setGreenCardIssueDate,
       marriedToUsCitizen,
+      setMarriedToUsCitizen,
       isLoading,
       isSaving,
       error,

@@ -139,7 +139,6 @@ export function ImmigrationProfileSection() {
         <div className="sm:flex-1">
           <ProfileSectionResetButton
             label="Clear Section"
-            confirmMessage="Clear immigration fields (category, country, bulletin type, and priority date)? This will save empty values for this section only."
             onReset={clearImmigrationSection}
             disabled={isLoading || isSaving}
           />

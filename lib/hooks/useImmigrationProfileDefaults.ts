@@ -2,6 +2,8 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { canAccessAutoCalculatorPopulation } from "@/lib/subscription/capabilities";
 import type { ImmigrationProfile } from "@/lib/supabase/types";
 
 export type ImmigrationProfileDefaults = {
@@ -40,8 +42,16 @@ function mapImmigrationProfileToDefaults(
   };
 }
 
+/**
+ * Loads saved immigration profile defaults for calculator auto-population.
+ *
+ * Gated by `accessAutoCalculatorPopulation` (Pro/Power only).
+ * Free users get `defaults: null` and a manual input experience.
+ */
 export function useImmigrationProfileDefaults() {
   const { isLoaded, isSignedIn } = useAuth();
+  const { tier } = useEffectiveSubscriptionTier();
+  const autoPopulationEnabled = canAccessAutoCalculatorPopulation(tier);
   const [defaults, setDefaults] = useState<ImmigrationProfileDefaults | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -50,7 +60,8 @@ export function useImmigrationProfileDefaults() {
       return;
     }
 
-    if (!isSignedIn) {
+    // Free / unsigned: no profile auto-load or auto-calculate.
+    if (!isSignedIn || !autoPopulationEnabled) {
       setDefaults(null);
       setLoaded(true);
       return;
@@ -91,7 +102,12 @@ export function useImmigrationProfileDefaults() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, autoPopulationEnabled]);
 
-  return { defaults, loaded };
+  return {
+    defaults,
+    loaded,
+    autoPopulationEnabled,
+    showProAutoPopulationHint: Boolean(isLoaded && isSignedIn && !autoPopulationEnabled),
+  };
 }

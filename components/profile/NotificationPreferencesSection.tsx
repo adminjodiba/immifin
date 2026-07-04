@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
+import {
+  PROFILE_SECTION_IDS,
+  useProfileDirtyState,
+} from "@/components/profile/ProfileDirtyStateProvider";
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   NOTIFICATION_PREFERENCE_FIELDS,
@@ -14,13 +18,18 @@ import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
 const PHONE_DISCLAIMER =
   "Your phone number may be used to send immigration alerts and notifications based on your communication preferences.";
 
+const SECTION_CLEARED_MESSAGE = "Section cleared. Click Save to apply changes.";
+
 type AccountMeResponse = {
   profile: Profile;
   immigrationProfile: ImmigrationProfile | null;
 };
 
 export function NotificationPreferencesSection() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>(
+  const { markDirty, markClean, registerSaveHandler } = useProfileDirtyState();
+  const hasLoadedRef = useRef(false);
+
+  const [preferences, setPreferencesState] = useState<NotificationPreferences>(
     DEFAULT_NOTIFICATION_PREFERENCES,
   );
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +55,8 @@ export function NotificationPreferencesSection() {
         const data = result.data;
 
         if (!cancelled) {
-          setPreferences(readNotificationPreferences(data.immigrationProfile?.preferences));
+          setPreferencesState(readNotificationPreferences(data.immigrationProfile?.preferences));
+          hasLoadedRef.current = true;
         }
       } catch (loadError: unknown) {
         if (!cancelled) {
@@ -71,51 +81,66 @@ export function NotificationPreferencesSection() {
   }, []);
 
   function updatePreference(key: keyof NotificationPreferences, value: boolean) {
-    setPreferences((current) => ({ ...current, [key]: value }));
-  }
-
-  async function savePreferences(
-    nextPreferences: NotificationPreferences,
-    successMessage: string,
-  ) {
-    setIsSaving(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const response = await fetch("/api/account/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationPreferences: nextPreferences }),
-      });
-
-      const result = await readJsonResponseBody<{
-        error?: string;
-        immigrationProfile?: ImmigrationProfile;
-      }>(response);
-
-      if (!result.ok) {
-        throw new Error(result.error);
-      }
-
-      const payload = result.data;
-
-      if (payload.immigrationProfile) {
-        setPreferences(readNotificationPreferences(payload.immigrationProfile.preferences));
-      } else {
-        setPreferences(nextPreferences);
-      }
-
-      setSuccess(successMessage);
-    } catch (saveError: unknown) {
-      const message =
-        saveError instanceof Error ? saveError.message : "Failed to save notification preferences.";
-      setError(message);
-      throw saveError instanceof Error ? saveError : new Error(message);
-    } finally {
-      setIsSaving(false);
+    setPreferencesState((current) => ({ ...current, [key]: value }));
+    if (hasLoadedRef.current) {
+      markDirty(PROFILE_SECTION_IDS.notifications);
+      setSuccess(null);
     }
   }
+
+  const savePreferences = useCallback(
+    async (nextPreferences: NotificationPreferences, successMessage: string) => {
+      setIsSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      try {
+        const response = await fetch("/api/account/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationPreferences: nextPreferences }),
+        });
+
+        const result = await readJsonResponseBody<{
+          error?: string;
+          immigrationProfile?: ImmigrationProfile;
+        }>(response);
+
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+
+        const payload = result.data;
+
+        if (payload.immigrationProfile) {
+          setPreferencesState(readNotificationPreferences(payload.immigrationProfile.preferences));
+        } else {
+          setPreferencesState(nextPreferences);
+        }
+
+        setSuccess(successMessage);
+        markClean(PROFILE_SECTION_IDS.notifications);
+      } catch (saveError: unknown) {
+        const message =
+          saveError instanceof Error
+            ? saveError.message
+            : "Failed to save notification preferences.";
+        setError(message);
+        throw saveError instanceof Error ? saveError : new Error(message);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [markClean],
+  );
+
+  const saveCurrentPreferences = useCallback(async () => {
+    await savePreferences(preferences, "Notification preferences saved.");
+  }, [preferences, savePreferences]);
+
+  useEffect(() => {
+    return registerSaveHandler(PROFILE_SECTION_IDS.notifications, saveCurrentPreferences);
+  }, [registerSaveHandler, saveCurrentPreferences]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -128,10 +153,10 @@ export function NotificationPreferencesSection() {
   }
 
   async function resetToDefault() {
-    await savePreferences(
-      DEFAULT_NOTIFICATION_PREFERENCES,
-      "Notification preferences reset to defaults.",
-    );
+    setPreferencesState(DEFAULT_NOTIFICATION_PREFERENCES);
+    setError(null);
+    setSuccess(SECTION_CLEARED_MESSAGE);
+    markDirty(PROFILE_SECTION_IDS.notifications);
   }
 
   return (
@@ -158,7 +183,9 @@ export function NotificationPreferencesSection() {
               />
               <span>
                 <span className="block text-sm font-semibold text-slate-900">{field.label}</span>
-                <span className="mt-1 block text-xs text-slate-500">{field.description}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-slate-500">
+                  {field.description}
+                </span>
               </span>
             </label>
           ))}
@@ -194,7 +221,9 @@ export function NotificationPreferencesSection() {
         <div className="sm:flex-1">
           <ProfileSectionResetButton
             label="Reset to Default"
-            confirmMessage="Reset notification preferences to defaults? This will save the default settings for this section only."
+            title="Are you sure you want to reset this data?"
+            message="This will reset this section only. It will not affect your account or other profile sections."
+            confirmLabel="Yes, Reset Data"
             onReset={resetToDefault}
             disabled={isLoading || isSaving}
           />

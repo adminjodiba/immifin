@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Product Vision |
-| **Version** | v1.13 |
+| **Version** | v1.16 |
 | **Sprint** | Sprint 4 |
-| **Task ID** | S4-005.5 |
-| **Last Updated** | 2026-07-03 |
+| **Task ID** | S4-005.15 |
+| **Last Updated** | 2026-07-04 |
 | **Owner** | Product Strategy / Founder |
 | **Status** | Official — long-term strategic reference |
 
@@ -14,7 +14,7 @@ This document defines the **long-term direction of IMMIFIN** and is the strategi
 
 It answers: **"What company are we building over the next 5–10 years?"**
 
-**Related documentation:** [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md)
+**Related documentation:** [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) · [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md)
 
 ---
 
@@ -387,9 +387,9 @@ See [BUSINESS_MODEL.md §9–10](./BUSINESS_MODEL.md#9-personal-dashboard) for f
 
 ### Profile Access Philosophy
 
-> **Data entry is Free. Automation is Pro. Intelligence is Power.**
+> **Data Entry = Pro. Automation = Pro. Intelligence = Power.**
 
-Users should not be charged to tell IMMIFIN about themselves. Free users may enter and update profile data (Profile, Security, Immigration, Green Card, Priority Date, category/country). **Notifications** are Pro automation — visible but locked for Free users. AI is Power intelligence.
+Free is for exploration (public tools and manual calculators). Saving an immigration profile and personalized management begin with Pro. Notifications, history, movement tracking, and auto-populated calculators are Pro. AI is Power.
 
 See [BUSINESS_MODEL.md §13](./BUSINESS_MODEL.md#13-profile-access-philosophy).
 
@@ -616,6 +616,84 @@ Status logic remains **separate from marker positioning** — color communicates
 
 ---
 
+## 20. Premium Feature Discovery
+
+> **Premium features should feel like a product demonstration — not a paywall.**
+
+**Premium Feature Discovery** is the standard IMMIFIN UX pattern for Free users encountering Pro or Power features.
+
+### Flow
+
+1. Render the **real feature** underneath.
+2. Display a **blurred preview** (charts, cards, tables remain recognizable).
+3. Show a **premium overlay** explaining value with feature-specific benefit groups.
+4. Allow users to **dismiss the overlay** (X button).
+5. Display an **educational information state** — not a reduced Free version of the feature.
+6. Encourage upgrading without blocking exploration.
+
+### Design intent
+
+Free users should think:
+
+> *"I want those insights."*
+
+Not:
+
+> *"I hit another paywall."*
+
+### Standard for all future premium features
+
+This pattern applies to Dashboard, AI, Finance, Insurance, Documents, Priority Tracking, and all future premium surfaces. Implementation: `components/common/PremiumFeaturePreview.tsx`.
+
+See [BUSINESS_MODEL.md §15–16](./BUSINESS_MODEL.md#15-premium-feature-discovery).
+
+---
+
+## 21. Product Principles (v0.4.1)
+
+Foundation principles established at the v0.4.1 milestone:
+
+1. **Public information should educate. Premium features should personalize.**
+2. **Premium features should demonstrate value before asking users to upgrade.**
+3. **Never create duplicate versions of premium pages.**
+4. **Render the real feature whenever possible.**
+5. **Every premium page should answer:** *"What will I gain by upgrading?"*
+
+These extend [§14 Product Principles](#14-product-principles) with subscription UX specificity. See [BUSINESS_MODEL.md §17](./BUSINESS_MODEL.md#17-product-principles-v041).
+
+---
+
+## 22. Design System 2.0 Preparation
+
+**v0.4.1 completes the IMMIFIN platform foundation.** Design System 2.0 is the **next major initiative** — beginning after v0.4.1 is approved.
+
+### Scope
+
+| Area | Goal |
+|------|------|
+| **Unified visual language** | Consistent typography, color, spacing, and elevation across the platform |
+| **Component library** | Shared, documented UI primitives replacing one-off patterns |
+| **Dashboard redesign** | Visual polish on the stable journey dashboard architecture |
+| **Homepage redesign** | Public-facing brand and conversion experience |
+| **Profile redesign** | Manage Profile visual consistency and usability |
+| **Timeline redesign** | EB and GC timeline visual refinement |
+| **Pricing redesign** | Plan comparison and upgrade flow polish |
+| **Platform-wide UI consistency** | Immigration, Finance, Insurance, My Immifin share one design language |
+
+### What v0.4.1 preserves for Design System 2.0
+
+- Stable dashboard layout architecture (layout stable, content dynamic)
+- Capability-based subscription model
+- Premium Feature Discovery UX pattern
+- My Immifin workspace information architecture
+- Documentation-first development workflow
+
+Design System 2.0 is a **visual and component refresh** — not a rewrite of platform architecture established in v0.4.1.
+
+See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) and [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
+
+---
+
 ## Revision History
 
 | Version | Date | Task | Description |
@@ -634,3 +712,6 @@ Status logic remains **separate from marker positioning** — color communicates
 | v1.11 | 2026-07-03 | S4-005.3 | Subscription capability foundation and Free dashboard lock |
 | v1.12 | 2026-07-03 | S4-005.4 | Profile access philosophy — data entry Free, notifications Pro |
 | v1.13 | 2026-07-03 | S4-005.5 | Upgrade path strategy and /pricing foundation |
+| v1.14 | 2026-07-04 | S4-005.13 | Premium Feature Preview framework reference |
+| v1.15 | 2026-07-04 | S4-005.14 | Close-to-info dismissed state UX |
+| v1.16 | 2026-07-04 | S4-005.15 | Premium Feature Discovery, product principles, Design System 2.0 preparation |

@@ -1,7 +1,11 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  PROFILE_SECTION_IDS,
+  useOptionalProfileDirtyState,
+} from "@/components/profile/ProfileDirtyStateProvider";
 import {
   COUNTRY_CODE_PRESETS,
   inferDefaultCountryCode,
@@ -30,15 +34,44 @@ export function ContactProfileSection({
   onSaved,
 }: ContactProfileSectionProps) {
   const { user } = useUser();
-  const [countryCodePreset, setCountryCodePreset] = useState("+1");
-  const [customCountryCode, setCustomCountryCode] = useState("");
-  const [phoneLocalNumber, setPhoneLocalNumber] = useState("");
+  const dirtyState = useOptionalProfileDirtyState();
+  const tracksDirty = variant === "profile" && dirtyState !== null;
+  const hasLoadedRef = useRef(false);
+
+  const [countryCodePreset, setCountryCodePresetState] = useState("+1");
+  const [customCountryCode, setCustomCountryCodeState] = useState("");
+  const [phoneLocalNumber, setPhoneLocalNumberState] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const isOtherCountryCode = countryCodePreset === "other";
+
+  const trackChange = useCallback(
+    <T,>(setter: (value: T) => void) =>
+      (value: T) => {
+        setter(value);
+        if (tracksDirty && hasLoadedRef.current) {
+          dirtyState?.markDirty(PROFILE_SECTION_IDS.contact);
+          setSuccess(null);
+        }
+      },
+    [dirtyState, tracksDirty],
+  );
+
+  const setCountryCodePreset = useMemo(
+    () => trackChange(setCountryCodePresetState),
+    [trackChange],
+  );
+  const setCustomCountryCode = useMemo(
+    () => trackChange(setCustomCountryCodeState),
+    [trackChange],
+  );
+  const setPhoneLocalNumber = useMemo(
+    () => trackChange(setPhoneLocalNumberState),
+    [trackChange],
+  );
 
   const presetOptions = useMemo(
     () =>
@@ -70,19 +103,21 @@ export function ContactProfileSection({
         if (!cancelled) {
           if (parsed) {
             const isKnown = ["+971", "+91", "+61", "+44", "+1"].includes(parsed.countryCode);
-            setCountryCodePreset(isKnown ? parsed.countryCode : "other");
-            setCustomCountryCode(isKnown ? "" : parsed.countryCode);
-            setPhoneLocalNumber(parsed.localNumber);
+            setCountryCodePresetState(isKnown ? parsed.countryCode : "other");
+            setCustomCountryCodeState(isKnown ? "" : parsed.countryCode);
+            setPhoneLocalNumberState(parsed.localNumber);
           } else {
             const defaults = inferDefaultCountryCode({
               savedPhone: data.profile.phone_number,
               browserLocale: typeof navigator !== "undefined" ? navigator.language : null,
               immigrationCountry: data.immigrationProfile?.default_country ?? null,
             });
-            setCountryCodePreset(defaults.preset);
-            setCustomCountryCode(defaults.customCode);
-            setPhoneLocalNumber("");
+            setCountryCodePresetState(defaults.preset);
+            setCustomCountryCodeState(defaults.customCode);
+            setPhoneLocalNumberState("");
           }
+
+          hasLoadedRef.current = true;
         }
       } catch (loadError: unknown) {
         if (!cancelled) {
@@ -104,8 +139,7 @@ export function ContactProfileSection({
     };
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const saveContactDetails = useCallback(async () => {
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -136,9 +170,9 @@ export function ContactProfileSection({
         const parsed = parseE164Phone(payload.profile.phone_number);
         if (parsed) {
           const isKnown = countryCodePreset !== "other" && parsed.countryCode === countryCodePreset;
-          setCountryCodePreset(isKnown ? parsed.countryCode : "other");
-          setCustomCountryCode(isKnown ? "" : parsed.countryCode);
-          setPhoneLocalNumber(parsed.localNumber);
+          setCountryCodePresetState(isKnown ? parsed.countryCode : "other");
+          setCustomCountryCodeState(isKnown ? "" : parsed.countryCode);
+          setPhoneLocalNumberState(parsed.localNumber);
         }
       }
 
@@ -154,6 +188,7 @@ export function ContactProfileSection({
       setSuccess(
         variant === "profile" ? "Contact details saved." : "Contact preferences saved.",
       );
+      dirtyState?.markClean(PROFILE_SECTION_IDS.contact);
 
       if (variant === "onboarding") {
         onSaved?.();
@@ -162,8 +197,36 @@ export function ContactProfileSection({
       const message =
         saveError instanceof Error ? saveError.message : "Failed to save contact details.";
       setError(message);
+      throw saveError instanceof Error ? saveError : new Error(message);
     } finally {
       setIsSaving(false);
+    }
+  }, [
+    countryCodePreset,
+    phoneLocalNumber,
+    isOtherCountryCode,
+    customCountryCode,
+    user,
+    variant,
+    onSaved,
+    dirtyState,
+  ]);
+
+  useEffect(() => {
+    if (!tracksDirty || !dirtyState) {
+      return;
+    }
+
+    return dirtyState.registerSaveHandler(PROFILE_SECTION_IDS.contact, saveContactDetails);
+  }, [tracksDirty, dirtyState, saveContactDetails]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    try {
+      await saveContactDetails();
+    } catch {
+      // Error state is already set by saveContactDetails.
     }
   }
 

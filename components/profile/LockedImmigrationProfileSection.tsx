@@ -1,9 +1,9 @@
 import { ProFeatureLockedState } from "@/components/subscription/ProFeatureLockedState";
 
 /**
- * Free-tier lock for Notifications (Pro automation).
+ * Free-tier lock for saving immigration profile data (Pro data entry / personalization).
  */
-export function LockedNotificationsSection() {
+export function LockedImmigrationProfileSection() {
   return (
     <ProFeatureLockedState
       title="Available in Pro"

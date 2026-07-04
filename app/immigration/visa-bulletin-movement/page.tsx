@@ -1,3 +1,7 @@
+import {
+  PremiumFeaturePreview,
+  type PremiumFeatureInfoLink,
+} from "@/components/common/PremiumFeaturePreview";
 import { VisaBulletinMovementTracker } from "@/components/VisaBulletinMovementTracker";
 import { createMetadata } from "@/lib/metadata";
 
@@ -8,6 +12,44 @@ export const metadata = createMetadata({
   path: "/immigration/visa-bulletin-movement",
 });
 
+const MOVEMENT_TRACKER_FEATURES = [
+  "Monthly movement tracking",
+  "Personalized priority date comparison",
+  "Historical movement summaries",
+  "Trend analysis",
+  "Future movement insights",
+] as const;
+
+const FREE_TOOL_LINKS: PremiumFeatureInfoLink[] = [
+  { label: "Current Visa Bulletin", href: "/immigration/visa-bulletin" },
+  { label: "Green Card Wait Calculator", href: "/calculators/green-card-wait-time" },
+  { label: "Citizenship Calculator", href: "/calculators/citizenship-eligibility" },
+];
+
+const MOVEMENT_TRACKER_INFO_STATE = {
+  title: "Movement Tracker is a Pro feature",
+  message:
+    "Movement Tracker helps you understand how the Visa Bulletin changed from month to month and how those changes affect your immigration journey.",
+  proBenefits: [
+    "Track monthly movement",
+    "Compare current and previous bulletins",
+    "See category and country movement",
+    "Understand whether your case moved forward, backward, or stayed the same",
+    "Connect movement to your saved profile",
+  ],
+  freeToolsLinks: FREE_TOOL_LINKS,
+} as const;
+
 export default function VisaBulletinMovementPage() {
-  return <VisaBulletinMovementTracker />;
+  return (
+    <PremiumFeaturePreview
+      requiredTier="pro"
+      featureGroupTitle="Movement Intelligence"
+      featureList={[...MOVEMENT_TRACKER_FEATURES]}
+      showCloseButton
+      infoState={MOVEMENT_TRACKER_INFO_STATE}
+    >
+      <VisaBulletinMovementTracker />
+    </PremiumFeaturePreview>
+  );
 }

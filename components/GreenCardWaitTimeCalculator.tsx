@@ -7,6 +7,7 @@ import {
   employmentCategoryOptions,
   type LivePriorityDateCheck,
 } from "@/lib/visaBulletinData";
+import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
@@ -97,7 +98,7 @@ function ResultCard({
 }
 
 export function GreenCardWaitTimeCalculator() {
-  const { defaults, loaded } = useImmigrationProfileDefaults();
+  const { defaults, loaded, showProAutoPopulationHint } = useImmigrationProfileDefaults();
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [priorityDate, setPriorityDate] = useState("");
@@ -211,6 +212,7 @@ export function GreenCardWaitTimeCalculator() {
         </div>
 
         <div className="p-5 sm:p-8">
+          {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
           {savedGreenCardIssueDate && (
             <div
               className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6"

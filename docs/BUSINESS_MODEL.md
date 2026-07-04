@@ -3,16 +3,16 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Business Model |
-| **Version** | v1.7 |
+| **Version** | v2.0 |
 | **Sprint** | Sprint 4 |
-| **Task ID** | S4-005.5 |
-| **Last Updated** | 2026-07-03 |
+| **Task ID** | S4-005.15 |
+| **Last Updated** | 2026-07-04 |
 | **Owner** | Product Strategy / Technical Architecture |
 | **Status** | Official — single source of truth for subscription tiers and monetization |
 
 Engineering decisions **must reference this document** before implementing subscription-based functionality.
 
-**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md)
+**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) · [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md)
 
 ---
 
@@ -36,6 +36,36 @@ Three subscription tiers:
 | **Pro** | Pro |
 | **Power** | Power |
 
+### IMMIFIN Subscription Philosophy
+
+Free users have access to public immigration tools using **manual inputs only**.
+
+Personalized immigration management, historical tracking, saved profiles, automation, notifications, and intelligent recommendations begin with **Pro**.
+
+Power builds upon Pro by adding AI, multiple profiles, advanced planning, and premium support.
+
+**Core Principle:**
+
+| Layer | Tier |
+|-------|------|
+| **Manual Tools** | **Free** |
+| **Personalization & Automation** | **Pro** |
+| **AI & Advanced Intelligence** | **Power** |
+
+Equivalent framing for engineering and product discussions:
+
+| Layer | Tier |
+|-------|------|
+| **Data Entry** (saved immigration profile) | **Pro** |
+| **Automation** | **Pro** |
+| **Intelligence** | **Power** |
+
+- **Free** is intended for exploration.
+- **Pro** is intended for managing your own immigration journey.
+- **Power** is intended for intelligent immigration planning.
+
+> **This document is the source of truth** for all future feature gating decisions. When adding a new premium feature, define its capability in [§12](#12-subscription-capability-architecture) and its Free-user UX in [§15](#15-premium-feature-discovery) before implementation.
+
 ### Purpose of each tier
 
 #### Free
@@ -55,20 +85,20 @@ Complete immigration intelligence platform with AI assistance and advanced manag
 ## 3. Feature Matrix
 
 | Feature | Free | Pro | Power |
-|---------|:----:|:---:|:-----:|
+|---------|------|------|------|
 | Current Visa Bulletin Dashboard | ✅ | ✅ | ✅ |
-| GC Wait Calculator | ✅ Manual cutoff date entry | ✅ Automatic current bulletin | ✅ Automatic current bulletin |
-| Citizenship Calculator | ✅ | ✅ | ✅ |
+| GC Wait Calculator | Manual cutoff date entry | Automatic from current bulletin | Automatic from current bulletin |
+| Citizenship Calculator | Manual | Manual + profile aware | Manual + profile aware |
 | Save Immigration Profile | ❌ | ✅ | ✅ |
 | Priority Date Tracking | ❌ | ✅ | ✅ |
 | Visa Bulletin History | ❌ | ✅ | ✅ |
 | Movement Tracker | ❌ | ✅ | ✅ |
 | Email Alerts | ❌ | ✅ | ✅ |
-| AI Features | ❌ | ❌ | ✅ |
-| Multiple Profiles | ❌ | ❌ | Unlimited |
-| Support | ❌ | Standard (5 Business Days) | Priority (1–2 Business Days) |
-| Personal Dashboard Summary | ❌ | Visa Bulletin based on saved profile | Full Dashboard |
+| Personalized Dashboard | ❌ | Visa Bulletin Dashboard based on profile | Full Personalized Dashboard |
 | Automatic Calculator Population | ❌ | ✅ | ✅ |
+| AI Features | ❌ | ❌ | ✅ |
+| Multiple Profiles | ❌ | ❌ | ✅ |
+| Support | None | Standard (5 business days) | Priority (within 2 business days) |
 
 ---
 
@@ -225,7 +255,7 @@ Access is capability-based (`canAccessPersonalDashboard`, `canAccessAI`) — not
 
 Dashboard is a **Pro/Power** feature. Top-level **My Immifin** never shows a PRO badge; only the Dashboard item is locked for Free.
 
-In development, Free tier also shows a locked dashboard preview when visiting `/dashboard` directly. Production without billing defaults to Pro access until real subscription storage is connected.
+In development and production, users without an enrolled tier default to **Free**. Free users see a locked dashboard preview when visiting `/dashboard` directly. Dev-only tier override works only when `NODE_ENV === "development"`.
 
 ### Dev-only tier testing
 
@@ -262,10 +292,12 @@ Internal product access model. **Billing is not implemented** — this foundatio
 | Capability key | Meaning |
 |----------------|---------|
 | `accessPersonalDashboard` | Full personalized My Immifin dashboard |
+| `accessSaveImmigrationProfile` | Save immigration / green card profile data |
+| `accessPriorityDateTracking` | Priority date tracking on personalized dashboard |
 | `accessAI` | AI assistant and intelligence features |
 | `accessMultipleProfiles` | Multiple saved immigration profiles |
 | `accessEmailAlerts` | Email alert notifications |
-| `accessNotifications` | Notification preferences and automated alerts (Pro automation) |
+| `accessNotifications` | Notification preferences and automated alerts |
 | `accessVisaHistory` | Visa Bulletin history tools |
 | `accessMovementTracker` | Bulletin movement tracker |
 | `accessAutoCalculatorPopulation` | Prefill calculators from saved profile |
@@ -275,6 +307,8 @@ Internal product access model. **Billing is not implemented** — this foundatio
 | Capability | Free | Pro | Power |
 |------------|------|-----|-------|
 | `accessPersonalDashboard` | ❌ | ✅ | ✅ |
+| `accessSaveImmigrationProfile` | ❌ | ✅ | ✅ |
+| `accessPriorityDateTracking` | ❌ | ✅ | ✅ |
 | `accessAI` | ❌ | ❌ | ✅ |
 | `accessMultipleProfiles` | ❌ | ❌ | ✅ |
 | `accessEmailAlerts` | ❌ | ✅ | ✅ |
@@ -291,7 +325,7 @@ Internal product access model. **Billing is not implemented** — this foundatio
 | **Product consumes capabilities** | UI and features call `hasCapability(tier, key)` / `canAccess*(tier)` |
 | **Central map only** | Tier→capability mapping lives in `lib/subscription/capabilities.ts` |
 | **Dev override** | Local development only — not real authorization or billing |
-| **Production default** | Until billing storage exists, effective tier defaults to **Pro** so signed-in users are not blocked |
+| **Production default** | Until billing storage exists, effective tier defaults to **Free** (no Pro/Power without enrollment) |
 
 Helpers: `getCapabilitiesForTier`, `hasCapability`, `canAccessPersonalDashboard`, `canAccessAI`, `canAccessNotifications`.
 
@@ -299,38 +333,36 @@ Helpers: `getCapabilitiesForTier`, `hasCapability`, `canAccessPersonalDashboard`
 
 ## 13. Profile Access Philosophy
 
-> **Data entry is Free. Automation is Pro. Intelligence is Power.**
+> **Data Entry = Pro. Automation = Pro. Intelligence = Power.**
 
-Users should **not** be charged to tell IMMIFIN about themselves. Free users may enter and update profile data. Paid value comes from **automation**, **tracking**, **alerts**, **AI**, and **personalized insight**.
+Free is for **exploration** with public tools and manual calculator input. Saving an immigration profile and all personalized management begin with **Pro**.
 
 | Layer | Tier | Examples |
 |-------|------|----------|
-| **Data entry** | Free | Profile, Security, Immigration Profile, Green Card date, Priority Date, category/country; future Finance/Insurance profile fields |
-| **Automation** | Pro | Personalized Dashboard, Notifications, email alerts, Visa Bulletin tracking, Movement Tracker, auto-populated calculators |
+| **Exploration** | Free | Account/Security/Contact, current Visa Bulletin, manual calculators |
+| **Data entry & automation** | Pro | Save immigration profile, personalized dashboard, notifications, history, movement tracker, auto-populated calculators |
 | **Intelligence** | Power | AI recommendations and assistant |
 
 ### Free users can access
 
-- Profile (account identity)
-- Security
-- Immigration Profile
-- Green Card date entry
-- Priority Date entry
-- Category / Country entry
-- Future Finance Profile data entry
-- Future Insurance Profile data entry
+- Account identity (Profile) and Security
+- Contact phone (account contact)
+- Current Visa Bulletin Dashboard
+- Citizenship Calculator (manual)
+- Green Card Wait Calculator (manual)
+- Pricing, About, public landings
 
 ### Free users cannot access
 
-- Personalized Dashboard
+- Save Immigration Profile / Green Card profile data
+- Personalized Dashboard / Priority Date Tracking
 - Auto-populated calculators
-- Notifications (visible but locked with PRO badge)
-- Email alerts
-- Visa Bulletin tracking
-- Movement tracker
+- Notifications and email alerts
+- Visa Bulletin History
+- Movement Tracker
 - AI recommendations
 
-**Notifications** are Pro because they are **automation**, not data entry. In Manage Profile, Free users see Notifications as locked (`Notifications 🔒 PRO`) with an upgrade message; Pro and Power can edit notification preferences.
+In Manage Profile, Free users see Immigration, Green Card, and Notifications as locked (`🔒 PRO`) with an upgrade path to `/pricing`.
 
 ---
 
@@ -340,8 +372,8 @@ Locked premium features should guide users to the upgrade path.
 
 | Rule | Behavior |
 |------|----------|
-| **Data entry Free** | Free users can enter profile data |
-| **Automation/intelligence paid** | Free users cannot use automation or intelligence features |
+| **Exploration Free** | Free users can use public tools and manual calculators |
+| **Data entry / automation / intelligence paid** | Free users cannot save immigration profiles or use Pro/Power features |
 | **Clear upgrade path** | Locked Pro/Power features provide a clear upgrade CTA |
 | **Primary location** | **My Immifin** is the primary upgrade location |
 | **Destination** | All upgrade CTAs point to **`/pricing`** |
@@ -360,6 +392,95 @@ Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on
 
 ---
 
+## 15. Premium Feature Discovery
+
+**Name:** Premium Feature Discovery
+
+**Purpose:** Rather than presenting a traditional paywall, premium features should feel like a **product demonstration** — not an access restriction.
+
+### Standard Free-user flow
+
+```
+Real Pro page (rendered underneath)
+        ↓
+Blurred preview (blur, brightness reduction, desaturation; interactions disabled)
+        ↓
+Premium overlay (value explanation, feature-specific benefits, upgrade CTA)
+        ↓ (optional: user clicks X)
+Educational information state (no Pro access; links to free tools)
+```
+
+### Rules
+
+| Rule | Behavior |
+|------|----------|
+| **Real page underneath** | Always render the actual premium page — never screenshots or duplicate layouts |
+| **Feature-specific benefits** | Each premium page advertises capabilities belonging only to that feature |
+| **Dismissible overlay** | Users may close the overlay; dismissed state is page/session only (no permanent storage) |
+| **No reduced Free version** | After dismiss, show educational info only — not a stripped-down Pro feature |
+| **Upgrade destination** | All upgrade CTAs point to `/pricing` |
+| **Standard pattern** | This becomes the standard UX for **all future premium features** |
+
+### Initial implementation
+
+| Page | Feature group | Info state |
+|------|---------------|------------|
+| Visa Bulletin History | Historical Intelligence | Feature-specific Pro benefits + free tool links |
+| Visa Bulletin Movement | Movement Intelligence | Feature-specific Pro benefits + free tool links |
+
+Future rollout: Dashboard, AI, Priority Tracking, Documents, Finance, Insurance, Multiple Profiles.
+
+See [PRODUCT_VISION.md §20](./PRODUCT_VISION.md#20-premium-feature-discovery) and `components/common/PremiumFeaturePreview.tsx`.
+
+---
+
+## 16. Premium Feature Preview Framework
+
+Reusable platform component: **`PremiumFeaturePreview`** (`components/common/PremiumFeaturePreview.tsx`).
+
+### Architecture principles
+
+| Principle | Meaning |
+|-----------|---------|
+| **Live page preview** | Children are the real premium page — future redesigns appear automatically in the preview |
+| **No screenshots** | Never maintain preview images |
+| **No duplicated pages** | Never build separate preview layouts |
+| **Blur overlay** | Backdrop blur, brightness reduction, desaturation; pointer events disabled |
+| **Feature-specific groups** | Callers pass `featureGroupTitle` and `featureList[]` per page |
+| **Upgrade CTA** | Primary button → `/pricing` |
+| **Compare Plans CTA** | Secondary button → `/pricing#plans` |
+| **Close-to-info** | Optional X dismisses overlay → `infoState` educational panel |
+| **Tier gating** | `requiredTier` + `useEffectiveSubscriptionTier`; Pro/Power render normally |
+
+### Component props (summary)
+
+`title`, `description`, `featureGroupTitle`, `featureList[]`, `upgradeButtonText`, `comparePlansButtonText`, `requiredTier`, `icon`, `showCloseButton`, `infoState`, `onClose`, `children`
+
+### Related gating components
+
+| Component | Use case |
+|-----------|----------|
+| `PremiumFeaturePreview` | Full-page premium features (History, Movement, future Dashboard) |
+| `ProFeatureGate` | Embedded sections (Manage Profile tabs) |
+| `ProFeatureLockedState` | Compact locked messaging without live preview |
+| `DashboardAccessGate` | Dashboard-specific access control |
+
+See [SYSTEM_ARCHITECTURE.md §14](./SYSTEM_ARCHITECTURE.md#14-application-access-layer-subscription-capabilities).
+
+---
+
+## 17. Product Principles (v0.4.1)
+
+1. **Public information should educate. Premium features should personalize.**
+2. **Premium features should demonstrate value before asking users to upgrade.**
+3. **Never create duplicate versions of premium pages.**
+4. **Render the real feature whenever possible.**
+5. **Every premium page should answer:** *"What will I gain by upgrading?"*
+
+These principles apply to all subscription-gated surfaces. See also [PRODUCT_VISION.md §21](./PRODUCT_VISION.md#21-product-principles-v041).
+
+---
+
 ## Revision History
 
 | Version | Date | Task | Description |
@@ -372,3 +493,6 @@ Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on
 | v1.5 | 2026-07-03 | S4-005.3 | Subscription capability architecture and central tier foundation |
 | v1.6 | 2026-07-03 | S4-005.4 | Profile access philosophy — data entry Free, notifications Pro |
 | v1.7 | 2026-07-03 | S4-005.5 | Upgrade path strategy and /pricing foundation |
+| v1.8 | 2026-07-04 | S4-005.7 | Production default tier Free; restore Calculator navigation |
+| v1.9 | 2026-07-04 | S4-005.12 | Official subscription matrix; enforce Free tier feature gates |
+| v2.0 | 2026-07-04 | S4-005.15 | v0.4.1 foundation — Premium Feature Discovery, preview framework, product principles |

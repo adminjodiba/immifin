@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-01
+**Last Updated:** 2026-07-04
 
 | Field | Value |
 |-------|-------|
 | **Current Sprint** | Sprint 4 |
-| **Production Version** | v0.4.0 |
+| **Production Version** | v0.4.1 *(foundation milestone — pending user approval)* |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
 | **Cloudflare** | 🟢 Healthy |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Sprint 4 Dashboard |
+| **Current Priority** | v0.4.1 approval → Design System 2.0 |
 
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
@@ -28,6 +28,9 @@
 |----------|------|
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure, domains, deployment |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow, gates, rules |
+| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
+| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
+| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks |
 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture conventions |
@@ -38,7 +41,23 @@
 
 ## 1. Executive Summary
 
-IMMIFIN has successfully completed **Sprint 3** and is actively in **Sprint 4**.
+IMMIFIN has completed the **v0.4.1 platform foundation** at the end of Sprint 4. This milestone establishes the architecture, subscription model, personal workspace, dashboard framework, profile management, and premium feature discovery UX — all documented and stable before **Design System 2.0**.
+
+### v0.4.1 foundation milestone (S4-005)
+
+| Area | Status |
+|------|--------|
+| **My Immifin workspace** | ✅ Navigation dropdown; Dashboard + Manage Profile |
+| **Free / Pro / Power subscription** | ✅ Tiers, capability map, dev tier testing |
+| **Capability-based authorization** | ✅ `lib/subscription/capabilities.ts` — no scattered plan checks |
+| **Pricing foundation** | ✅ `/pricing` page; Coming Soon until Stripe |
+| **Dashboard framework** | ✅ Journey layout, EB timeline, Today's Focus, Action Center |
+| **Profile management** | ✅ Tier gates, dirty state, in-app clear modals |
+| **Premium feature gating** | ✅ `PremiumFeaturePreview`, close-to-info UX |
+| **Cloudflare deployment** | ✅ OpenNext `npm run deploy`; build + deploy workflow documented |
+| **Documentation-first workflow** | ✅ BUSINESS_MODEL, PRODUCT_VISION, release notes updated |
+
+See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for the full milestone summary.
 
 ### Sprint 4 completed (S4-001)
 
@@ -67,7 +86,7 @@ IMMIFIN has successfully completed **Sprint 3** and is actively in **Sprint 4**.
 | **Profile & onboarding** | ✅ Working (application-layer enforcement) |
 | **Clerk ↔ Supabase sync** | ✅ Working (webhooks) |
 | **Build & deploy** | ✅ Passing (`npm run build`, Cloudflare auto-deploy from `main`) |
-| **Sprint 4** | 🟢 In progress — Dashboard architecture |
+| **Sprint 4** | 🟢 Foundation complete — v0.4.1 documented; Design System 2.0 next |
 
 ---
 
@@ -160,16 +179,47 @@ The objective is to provide immigrants with a single trusted platform for planni
 
 ### Profile Hub (`/user-profile`)
 
-| Tab | Capability |
-|-----|------------|
-| **Account** | Clerk-managed account details |
-| **Security** | Password, email, security settings |
-| **Immigration** | Category, country, priority date, bulletin type |
-| **Green Card** | Issue date, married-to-US-citizen |
-| **Contact** | Country code, phone number, validation |
-| **Notifications** | SMS, email, visa bulletin, priority date, citizenship reminder, marketing toggles |
+Tier-gated via capabilities. Free users edit Contact; Immigration, Green Card, and Notifications locked with upgrade CTAs.
 
-Legacy `/account` redirects users to Manage Profile via migration banner.
+| Tab | Capability | Free | Pro | Power |
+|-----|------------|------|-----|-------|
+| **Account** | — | ✅ | ✅ | ✅ |
+| **Security** | — | ✅ | ✅ | ✅ |
+| **Immigration** | `accessSaveImmigrationProfile` | 🔒 | ✅ | ✅ |
+| **Green Card** | `accessSaveImmigrationProfile` | 🔒 | ✅ | ✅ |
+| **Contact** | — | ✅ | ✅ | ✅ |
+| **Notifications** | `accessNotifications` | 🔒 | ✅ | ✅ |
+
+- ✓ In-app Clear Section confirmation modals
+- ✓ Page-level dirty state with unsaved-changes prompt on exit
+
+### My Immifin workspace
+
+- ✓ Top nav **My Immifin** dropdown (Dashboard, Manage Profile)
+- ✓ `/dashboard` — journey dashboard with stable layout
+- ✓ Free users: locked dashboard preview; Pro/Power: full dashboard
+- ✓ Dev tier switcher (development only)
+
+### Premium features (Pro-gated)
+
+- ✓ Visa Bulletin History — `PremiumFeaturePreview` with Historical Intelligence benefits
+- ✓ Movement Tracker — `PremiumFeaturePreview` with Movement Intelligence benefits
+- ✓ Close (X) → educational Free-state info panel (no Pro access)
+
+### Calculators
+
+- ✓ Free: manual input only
+- ✓ Pro/Power: auto-population from saved profile (`accessAutoCalculatorPopulation`)
+
+### Pricing
+
+- ✓ `/pricing` — Free / Pro / Power plan cards; Coming Soon CTAs
+
+### Immigration (Free tools)
+
+- ✓ Current Visa Bulletin Dashboard (`/immigration/visa-bulletin`)
+- ✓ Green Card Wait Calculator (manual input for Free)
+- ✓ Citizenship Calculator (manual input for Free)
 
 ### Onboarding
 
@@ -178,13 +228,7 @@ Legacy `/account` redirects users to Manage Profile via migration banner.
 - ✓ Post-login/signup redirect when `phone_number` is missing
 - ✓ After save → homepage (`/`)
 
-### Immigration
-
-- ✓ Visa Bulletin Dashboard
-- ✓ Movement Tracker
-- ✓ Historical Trends
-- ✓ Green Card Calculator (auto-prefill from profile)
-- ✓ Citizenship Calculator (auto-prefill from profile)
+Legacy `/account` redirects users to Manage Profile via migration banner.
 
 ### Infrastructure
 
@@ -192,6 +236,7 @@ Legacy `/account` redirects users to Manage Profile via migration banner.
 - ✓ Soft delete (`profiles.status = 'deleted'`)
 - ✓ Cloudflare deployment (auto from `main`)
 - ✓ Cloudflare dev tunnel (`npm run dev:local`, tunnel `immifin-dev`)
+- ✓ OpenNext build: `npm run deploy`; Cloudflare deploy command: `echo done`
 
 ---
 
@@ -399,9 +444,10 @@ Intentional deferred items — not bugs:
 |------|-------|
 | **Notification engine** | Preferences UI exists; delivery engine (scheduled alerts) not built |
 | **SMS integration** | Toggle exists; Twilio/provider not integrated |
-| **Dashboard** | Sprint 4 primary goal — `/dashboard` route does not exist yet |
-| **AI Assistant** | Roadmap Phase 5 — not started |
-| **Subscription management** | `profiles.plan` exists; Stripe billing not integrated |
+| **AI Assistant** | Power-tier capability defined; not implemented |
+| **Stripe billing** | Pricing page exists; checkout not connected |
+| **Premium preview rollout** | Apply `PremiumFeaturePreview` to Dashboard, AI, Finance, Insurance, Documents |
+| **Design System 2.0** | Next major initiative — unified visual language and component library |
 | **Analytics** | No product analytics pipeline |
 | **Visa Bulletin Dashboard toggle** | Final Action / Dates for Filing toggle — match Movement Tracker pattern |
 | **Onboarding on all routes** | Guard on `/`, `/user-profile`, `/account`; all other routes now require auth via middleware (S4-001) |
@@ -413,23 +459,26 @@ Intentional deferred items — not bugs:
 
 ## Current Priorities
 
-1. **Dashboard** (Primary Focus)
-2. **Notification Engine**
-3. **AI Assistant**
-4. **Subscription Platform**
-5. **Analytics & Insights**
+1. **v0.4.1 approval** — User verification of foundation milestone
+2. **Design System 2.0** — Unified visual language, component library, platform-wide UI consistency
+3. **Stripe billing** — Connect pricing page to checkout
+4. **Notification Engine**
+5. **AI Assistant** (Power tier)
+6. **Premium preview rollout** — Dashboard, AI, Finance, Insurance, Documents
 
 ---
 
 ## 9. Sprint 4 Objectives
 
-### Primary goal
+### Primary goal (achieved in v0.4.1 foundation)
 
-**Design and build the Dashboard.**
+**Build the platform foundation** — My Immifin workspace, subscription capabilities, dashboard framework, profile management, and Premium Feature Discovery UX.
 
-The Dashboard should become the **central command center** for IMMIFIN — aggregating immigration status, priority dates, visa bulletin movement, notification summary, and quick actions.
+### Next initiative
 
-### Constraints
+**Design System 2.0** — visual and component refresh on the stable v0.4.1 architecture. See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation).
+
+### Constraints (ongoing)
 
 - **No coding should begin until architecture is finalized**
 - Follow Development Workflow v2.0: inspect → architecture review → approval → feature branch → implement
@@ -467,11 +516,11 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 | Area | Status | Detail |
 |------|--------|--------|
 | **Repository** | ✅ Stable | S4-001 deployed via GitHub → Cloudflare auto-deploy |
-| **Production** | ✅ Stable | `immifin.com` on v0.4.0 (S4-001 auth gate) |
-| **Build** | ✅ Passing | `npm run build` — middleware 90 kB |
-| **Engineering process** | ✅ Mature | Workflow v2.0, playbook v2.1, release checklist, dev tunnel docs |
-| **Documentation** | ✅ Current | S4-001 closeout documented |
-| **Sprint 4** | 🟢 Active | S4-001 complete; Dashboard architecture next |
+| **Production** | ✅ Stable | `immifin.com` — v0.4.1 foundation documented |
+| **Build** | ✅ Passing | `npm run build`, `npm run deploy` |
+| **Engineering process** | ✅ Mature | Workflow v2.0, playbook, release notes v0.4.1 |
+| **Documentation** | ✅ Current | v0.4.1 foundation milestone documented (S4-005.15) |
+| **Sprint 4** | 🟢 Foundation complete | Design System 2.0 next |
 
 ### Sprint 4 key commits (reference)
 
@@ -508,7 +557,12 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 | Contact status API | `app/api/account/contact-status/route.ts` |
 | Phone lookup | `lib/account/hasProfilePhone.ts` |
 | Clerk webhooks | `app/api/webhooks/clerk/route.ts` |
-| Dev tunnel script | `scripts/dev-start.ps1` |
+| Subscription tiers | `lib/subscription/tiers.ts` |
+| Subscription capabilities | `lib/subscription/capabilities.ts` |
+| Premium preview | `components/common/PremiumFeaturePreview.tsx` |
+| Dashboard access gate | `components/dashboard/DashboardAccessGate.tsx` |
+| Dev tier switcher | `components/dev/DevTierSwitcher.tsx` |
+| Pricing page | `app/pricing/page.tsx` |
 
 ---
 
@@ -524,11 +578,11 @@ Every engineer working on IMMIFIN **must read** the following **before making co
 | 4 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, webhooks, troubleshooting |
 | 5 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
 
-### Sprint 4 first action
+### Sprint 4 starting point (v0.4.1 complete)
 
 1. Read documents 1–5 above
-2. Schedule **Sprint 4.1 — Dashboard Architecture** review
-3. Propose dashboard ADR and wireframe before any `/dashboard` code
+2. Review [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for foundation summary
+3. Begin **Design System 2.0** planning after user approval of v0.4.1
 
 ---
 
@@ -571,3 +625,4 @@ npm run dev:local
 | v2.0 | 2026-07-01 | Promoted to permanent project state (`CURRENT_PROJECT_STATE.md`) |
 | v2.1 | 2026-07-01 | S4-001 — app-wide authentication gate documented |
 | v2.2 | 2026-07-01 | S4-001 deployed; closeout workflow updated |
+| v3.0 | 2026-07-04 | S4-005.15 — v0.4.1 foundation milestone documented |

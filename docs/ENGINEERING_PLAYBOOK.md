@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-07-01 |
+| **Last Updated** | 2026-07-04 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -141,7 +141,8 @@ Every sprint must update the following documents **when applicable**:
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | When infrastructure, domains, or deployment changes |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | When local dev, tunnel, or webhook workflow changes |
 | [CHANGELOG.md](./CHANGELOG.md) | Per-release change log |
-| `RELEASE_NOTES.md` | *Future* — user-facing release summaries |
+| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone release notes |
+| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers and capabilities — source of truth for feature gating |
 
 **Documentation is part of the Definition of Done.** A task is not complete until the relevant docs reflect the change.
 
@@ -364,7 +365,39 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 ---
 
-## 16. Revision History
+## 17. v0.4.1 Foundation Milestone
+
+**Sprint 4 (S4-005)** completes the IMMIFIN platform foundation at **v0.4.1**. This is the stable baseline before **Design System 2.0**.
+
+### What v0.4.1 establishes
+
+| Area | Location / pattern |
+|------|-------------------|
+| **Subscription tiers** | `lib/subscription/tiers.ts` |
+| **Capability authorization** | `lib/subscription/capabilities.ts` — always use `hasCapability` / `canAccess*` |
+| **My Immifin workspace** | Top nav dropdown; `/dashboard`, `/user-profile` |
+| **Premium Feature Discovery** | `components/common/PremiumFeaturePreview.tsx` |
+| **Embedded profile gates** | `ProFeatureGate`, `ProFeatureLockedState` |
+| **Dev tier testing** | `?devTier=`, DevTierSwitcher — development only |
+| **Business source of truth** | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) |
+
+See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) and [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
+
+### Implementing new premium features
+
+1. Add capability to `lib/subscription/capabilities.ts` and [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
+2. Define feature-specific benefit group and `infoState` copy in the page.
+3. Wrap the real page with `PremiumFeaturePreview` — **never** build duplicate preview layouts or screenshots.
+4. For embedded sections (profile tabs), use `ProFeatureGate`.
+5. All upgrade CTAs point to `/pricing`.
+
+### Documentation-first rule (v0.4.1+)
+
+Architecture, subscription, and UX decisions are documented **before or alongside** implementation. [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) is the source of truth for feature gating. Product principles in [PRODUCT_VISION.md §21](./PRODUCT_VISION.md#21-product-principles-v041) govern premium UX.
+
+---
+
+## 18. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -373,6 +406,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 | v1.2 | 2026-06-27 | Never Do Again section; official deployment workflow finalized. |
 | v2.0 | 2026-06-30 | **Development Workflow v2.0** — feature branches, inspect-first, localhost + user approval, build gate, no infra/feature mixing, clean repo policy. |
 | v2.1 | 2026-07-01 | Mandatory Cloudflare tunnel + Clerk webhook workflow; release gate 3b; tunnel-offline incident documented; [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) expanded. |
+| v2.2 | 2026-07-04 | v0.4.1 foundation milestone; Premium Feature Discovery implementation guide; documentation-first rule (S4-005.15). |
 
 ---
 
@@ -386,4 +420,5 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint |
 | [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md) | Backlog and priorities |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture decisions |
-| [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) | Product phases |
+| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Product vision and Design System 2.0 scope |
+| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation release notes |

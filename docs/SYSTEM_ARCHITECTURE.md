@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | This document describes the complete infrastructure architecture of the Immifin platform. |
-| **Last Updated** | 2026-07-03 |
+| **Last Updated** | 2026-07-04 |
 | **Owner** | Technical Architecture (CTO) |
 
 This document is the **single source of truth** for Immifin's infrastructure, environments, deployment flow, networking, external services, and operational architecture.
@@ -393,11 +393,34 @@ Product feature access is **capability-based**, not plan-name checks in UI.
 
 Billing will later assign a tier. Application code consumes capabilities. See [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
 
+### Premium feature gating components
+
+| Component | Path | Role |
+|-----------|------|------|
+| `PremiumFeaturePreview` | `components/common/PremiumFeaturePreview.tsx` | Full-page premium preview — live page + blur overlay + upgrade CTA; optional close-to-info |
+| `ProFeatureGate` | `components/subscription/ProFeatureGate.tsx` | Capability check; renders children or `ProFeatureLockedState` |
+| `ProFeatureLockedState` | `components/subscription/ProFeatureLockedState.tsx` | Shared locked messaging and upgrade CTAs |
+| `DashboardAccessGate` | `components/dashboard/DashboardAccessGate.tsx` | Dashboard-specific access control |
+| `useEffectiveSubscriptionTier` | `lib/hooks/useEffectiveSubscriptionTier.ts` | Effective tier for UI (includes dev override) |
+
+**Premium Feature Discovery** is the standard Free-user UX for premium pages. See [BUSINESS_MODEL.md §15](./BUSINESS_MODEL.md#15-premium-feature-discovery) and [PRODUCT_VISION.md §20](./PRODUCT_VISION.md#20-premium-feature-discovery).
+
 ---
 
-## 15. Future Improvements
+## 15. Design System 2.0 (next initiative)
+
+v0.4.1 completes the platform foundation. **Design System 2.0** is the next major initiative — unified visual language, component library, and platform-wide UI consistency.
+
+Architecture and capability models established in v0.4.1 are preserved; Design System 2.0 is a visual and component refresh.
+
+See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation) and [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md).
+
+---
+
+## 16. Future Improvements
 
 
+- [ ] Design System 2.0 (unified visual language and component library)
 - [ ] Separate Development Environment
 - [ ] Separate Preview Environment
 - [ ] Separate Production Environment
@@ -421,6 +444,7 @@ Billing will later assign a tier. Application code consumes capabilities. See [B
 | v0.1 | 2026-06-23 | Initial architecture documentation created after Sprint 1. |
 | v1.2 | 2026-06-27 | Expanded Architecture Principles; known stable configuration reference in DEPLOYMENT.md. |
 | v1.3 | 2026-07-03 | Application access layer — subscription tiers and capabilities (S4-005.3). |
+| v1.4 | 2026-07-04 | Premium feature gating components; Design System 2.0 reference (S4-005.15). |
 
 ---
 
@@ -430,7 +454,9 @@ Billing will later assign a tier. Application code consumes capabilities. See [B
 |----------|----------|
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands, secrets, deployment workflow |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Engineering workflow and release gates |
-| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint status |
+| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone release notes |
+| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities, Premium Feature Discovery |
+| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision and Design System 2.0 scope |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture and coding conventions |
 | [auth/PHASE1.md](./auth/PHASE1.md) | Clerk, Supabase, middleware, webhooks |
 | [.env.example](../.env.example) | Local environment variable template |
