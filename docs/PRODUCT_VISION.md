@@ -3,9 +3,9 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Product Vision |
-| **Version** | v1.16 |
-| **Sprint** | Sprint 4 |
-| **Task ID** | S4-005.15 |
+| **Version** | v1.17 |
+| **Sprint** | Sprint 4 Closeout |
+| **Task ID** | S4-005.16 |
 | **Last Updated** | 2026-07-04 |
 | **Owner** | Product Strategy / Founder |
 | **Status** | Official — long-term strategic reference |
@@ -663,9 +663,13 @@ These extend [§14 Product Principles](#14-product-principles) with subscription
 
 ---
 
-## 22. Design System 2.0 Preparation
+## 22. Design System 2.0 Initiative
 
-**v0.4.1 completes the IMMIFIN platform foundation.** Design System 2.0 is the **next major initiative** — beginning after v0.4.1 is approved.
+**Design System 2.0 is now the official Sprint 5 priority.**
+
+Sprint 5 is **not a feature sprint** — it is the **Design System 2.0 & Product Experience** sprint. The goal: a first-time visitor should believe IMMIFIN is a **polished commercial SaaS product** within 10 seconds of landing on the site.
+
+v0.4.1 completes the IMMIFIN platform foundation. Design System 2.0 is a **visual and component refresh** — not a rewrite of platform architecture.
 
 ### Scope
 
@@ -680,17 +684,26 @@ These extend [§14 Product Principles](#14-product-principles) with subscription
 | **Pricing redesign** | Plan comparison and upgrade flow polish |
 | **Platform-wide UI consistency** | Immigration, Finance, Insurance, My Immifin share one design language |
 
-### What v0.4.1 preserves for Design System 2.0
+### What Design System 2.0 must preserve
 
-- Stable dashboard layout architecture (layout stable, content dynamic)
-- Capability-based subscription model
-- Premium Feature Discovery UX pattern
-- My Immifin workspace information architecture
-- Documentation-first development workflow
+The initiative must **preserve existing product architecture**:
 
-Design System 2.0 is a **visual and component refresh** — not a rewrite of platform architecture established in v0.4.1.
+| Architecture | Must remain |
+|--------------|-------------|
+| **My Immifin** | Personal workspace — navigation and information architecture |
+| **Free / Pro / Power** | Subscription tiers and capability map |
+| **Premium Feature Discovery** | Real page + blur overlay + upgrade CTA pattern |
+| **PremiumFeaturePreview** | Reusable premium gating component |
+| **Capability-based access** | `hasCapability` / `canAccess*` — not scattered plan checks |
+| **Dashboard framework** | Stable layout — main content + right sidebar; content dynamic |
 
-See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) and [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
+Design System 2.0 changes **visual language, components, and UX consistency**. It must **not** casually redesign the business model or subscription architecture.
+
+### Documentation before redesign
+
+Design System 2.0 must be **documented and approved** (`docs/DESIGN_SYSTEM_2.0.md`) before major page redesigns begin.
+
+See [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md), [ROADMAP_v2.md](./ROADMAP_v2.md), [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md), and [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md).
 
 ---
 
@@ -715,3 +728,4 @@ See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) and [CURRENT_PROJECT_ST
 | v1.14 | 2026-07-04 | S4-005.13 | Premium Feature Preview framework reference |
 | v1.15 | 2026-07-04 | S4-005.14 | Close-to-info dismissed state UX |
 | v1.16 | 2026-07-04 | S4-005.15 | Premium Feature Discovery, product principles, Design System 2.0 preparation |
+| v1.17 | 2026-07-04 | S4-005.16 | Design System 2.0 Initiative — official Sprint 5 priority |

@@ -397,7 +397,25 @@ Architecture, subscription, and UX decisions are documented **before or alongsid
 
 ---
 
-## 18. Revision History
+## 19. Roadmap Revision Procedure
+
+When strategic sprint sequencing changes:
+
+| Rule | Behavior |
+|------|----------|
+| **Do not silently rewrite history** | Completed sprints remain documented as completed |
+| **Create a new roadmap version** | e.g. [ROADMAP_v2.md](./ROADMAP_v2.md) when sequencing changes |
+| **Explain why** | Document the reason for the revision (e.g. v0.4.1 foundation maturity) |
+| **Preserve completed work** | Sprint 1–4 history is immutable |
+| **Shift planned work transparently** | Previously planned sprints move forward — nothing removed |
+| **Cross-reference** | Update [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) and create handoff docs |
+| **Living strategy** | The roadmap is a living product strategy, not a fixed contract |
+
+Sprint 5 revision example: Design System 2.0 inserted; feature sprints shifted to Sprints 6–10. See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md).
+
+---
+
+## 20. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -407,6 +425,7 @@ Architecture, subscription, and UX decisions are documented **before or alongsid
 | v2.0 | 2026-06-30 | **Development Workflow v2.0** — feature branches, inspect-first, localhost + user approval, build gate, no infra/feature mixing, clean repo policy. |
 | v2.1 | 2026-07-01 | Mandatory Cloudflare tunnel + Clerk webhook workflow; release gate 3b; tunnel-offline incident documented; [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) expanded. |
 | v2.2 | 2026-07-04 | v0.4.1 foundation milestone; Premium Feature Discovery implementation guide; documentation-first rule (S4-005.15). |
+| v2.3 | 2026-07-04 | Roadmap revision procedure; Sprint 5 handoff references (S4-005.16). |
 
 ---
 
@@ -422,3 +441,6 @@ Architecture, subscription, and UX decisions are documented **before or alongsid
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture decisions |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Product vision and Design System 2.0 scope |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation release notes |
+| [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap |
+| [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 handoff — start here |
+| [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | v0.4.1 formal sign-off |

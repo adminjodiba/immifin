@@ -4,20 +4,48 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 4 |
-| **Production Version** | v0.4.1 *(foundation milestone — pending user approval)* |
+| **Current Sprint** | Sprint 4 Closeout / Preparing Sprint 5 |
+| **Production Version** | v0.4.1 Foundation Release |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
 | **Cloudflare** | 🟢 Healthy |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | v0.4.1 approval → Design System 2.0 |
+| **Current Priority** | Sprint 5 — Design System 2.0 & Product Experience |
+
+## Current Version
+
+**IMMIFIN v0.4.1 Foundation Release** (tag `v0.4.1`, commit `704bc7c`)
+
+## Current Phase
+
+Sprint 4 Closeout / Preparing Sprint 5
+
+## Next Sprint
+
+**Sprint 5 — Design System 2.0 & Product Experience**
+
+## Roadmap Revision
+
+Following v0.4.1, Sprint 5 was **intentionally changed** to Design System 2.0 before adding more product features.
+
+**Reason:**
+
+- Improve commercial product quality
+- Avoid UI/design debt
+- Establish reusable component library
+- Make future AI, Finance, Insurance, and Automation features consistent
+
+See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md).
+
+> The roadmap is a living product strategy, not a fixed contract. Previously planned Sprint 5+ work shifts forward — nothing is removed.
 
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** `1affb01` — feat(auth): enforce authentication for all application features (S4-001)  
+**Latest commit:** `704bc7c` — v0.4.1 Foundation Release  
+**Latest tag:** `v0.4.1`  
 **Owner:** Technical Architecture (CTO)
 
 ---
@@ -31,6 +59,9 @@
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
+| [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
+| [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | **Start here for Sprint 5** — mandatory reading order |
+| [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | Formal v0.4.1 sign-off and frozen decisions |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks |
 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture conventions |
@@ -86,7 +117,8 @@ See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for the full milestone 
 | **Profile & onboarding** | ✅ Working (application-layer enforcement) |
 | **Clerk ↔ Supabase sync** | ✅ Working (webhooks) |
 | **Build & deploy** | ✅ Passing (`npm run build`, Cloudflare auto-deploy from `main`) |
-| **Sprint 4** | 🟢 Foundation complete — v0.4.1 documented; Design System 2.0 next |
+| **Sprint 4** | ✅ Complete — v0.4.1 released and tagged |
+| **Sprint 5** | 🟡 Next — Design System 2.0 & Product Experience |
 
 ---
 
@@ -459,12 +491,11 @@ Intentional deferred items — not bugs:
 
 ## Current Priorities
 
-1. **v0.4.1 approval** — User verification of foundation milestone
+1. **Sprint 5 planning** — S5-000 Design System 2.0 document
 2. **Design System 2.0** — Unified visual language, component library, platform-wide UI consistency
-3. **Stripe billing** — Connect pricing page to checkout
-4. **Notification Engine**
-5. **AI Assistant** (Power tier)
-6. **Premium preview rollout** — Dashboard, AI, Finance, Insurance, Documents
+3. **Stripe billing** — Sprint 10 (Commercial Launch Readiness)
+4. **AI Assistant** — Sprint 6 (Power tier)
+5. **Premium preview rollout** — Dashboard, AI, Finance, Insurance, Documents
 
 ---
 
@@ -578,11 +609,11 @@ Every engineer working on IMMIFIN **must read** the following **before making co
 | 4 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, webhooks, troubleshooting |
 | 5 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
 
-### Sprint 4 starting point (v0.4.1 complete)
+### Sprint 5 starting point
 
-1. Read documents 1–5 above
-2. Review [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for foundation summary
-3. Begin **Design System 2.0** planning after user approval of v0.4.1
+1. Read [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) first
+2. Read documents 1–5 in the handoff mandatory reading order
+3. Begin **S5-000 — Create IMMIFIN Design System 2.0 Document**
 
 ---
 
@@ -626,3 +657,4 @@ npm run dev:local
 | v2.1 | 2026-07-01 | S4-001 — app-wide authentication gate documented |
 | v2.2 | 2026-07-01 | S4-001 deployed; closeout workflow updated |
 | v3.0 | 2026-07-04 | S4-005.15 — v0.4.1 foundation milestone documented |
+| v3.1 | 2026-07-04 | S4-005.16 — Roadmap v2, Sprint 5 handoff, v0.4.1 sign-off |
