@@ -8,7 +8,7 @@
 | **Handoff Date** | 2026-07-04 |
 | **Task ID** | S4-005.16 |
 | **Previous release** | v0.4.1 Foundation Release (`704bc7c`, tag `v0.4.1`) |
-| **Status** | Ready for Sprint 5 planning and implementation |
+| **Status** | Sprint 5 in progress — first DS 2.0 page approved |
 
 > **This document is the first thing a new AI assistant or engineer must read.**
 
@@ -137,7 +137,9 @@ Do **not** replace capability-based access with scattered `tier === "pro"` check
 | **Preserve architecture** | My Immifin, capabilities, Premium Feature Discovery, dashboard layout rules |
 | **Document before redesign** | Design System 2.0 spec approved before major page changes |
 
-Design System 2.0 is **not yet implemented** — Sprint 5 creates the documentation and begins application.
+Design System 2.0 documentation is complete and **application has begun**. The first approved page redesign is **Visa Bulletin History**.
+
+See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md).
 
 See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-initiative).
 
@@ -156,7 +158,7 @@ Design System 2.0 should be **documented and approved** before major page redesi
 | 5 | Homepage redesign | Code — public landing experience |
 | 6 | Pricing redesign | Code — plan comparison polish |
 | 7 | Dashboard redesign | Code — visual refresh on stable layout |
-| 8 | Visa Bulletin pages redesign | Code — immigration tools polish |
+| 8 | Visa Bulletin pages redesign | Code — **Visa Bulletin History approved** (mockup `/immigration/visa-bulletin/tracker-2`); Movement Tracker planned |
 | 9 | Calculator redesign | Code — form and results polish |
 | 10 | Manage Profile redesign | Code — profile hub polish |
 
@@ -221,3 +223,4 @@ Every task must include:
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-04 | S4-005.16 | Sprint 5 handoff — Design System 2.0 & Product Experience |
+| v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 approved — first Sprint 5 page complete |

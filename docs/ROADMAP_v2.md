@@ -5,9 +5,9 @@
 | **Title** | IMMIFIN Roadmap v2 |
 | **Version** | v2.0 |
 | **Task ID** | S4-005.16 |
-| **Last Updated** | 2026-07-04 |
+| **Last Updated** | 2026-07-05 |
 | **Owner** | Product Strategy / Technical Architecture |
-| **Status** | Official — supersedes informal Sprint 5+ sequencing from Roadmap v1 |
+| **Status** | Official — Sprint 5 in progress; first DS 2.0 page approved |
 | **Supersedes** | Informal sprint sequencing prior to v0.4.1 Foundation Release |
 
 **Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md)
@@ -39,7 +39,7 @@ When strategic sequencing changes, create a new roadmap version, explain why, pr
 | Sprint 2 | Data / Visa Bulletin Foundation | Data / Visa Bulletin Foundation | Complete |
 | Sprint 3 | Authentication / Personalization | Authentication / Personalization | Complete |
 | Sprint 4 | Platform Foundation | Platform Foundation (v0.4.1) | Complete |
-| Sprint 5 | Previously planned feature sprint | **Design System 2.0 & Product Experience** | **Current Sprint** |
+| Sprint 5 | Previously planned feature sprint | **Design System 2.0 & Product Experience** | **In Progress** |
 | Sprint 6 | Previously planned Sprint 5 | AI & Personalization | Planned |
 | Sprint 7 | Previously planned Sprint 6 | Finance Platform | Planned |
 | Sprint 8 | Previously planned Sprint 7 | Insurance Platform | Planned |
@@ -101,6 +101,26 @@ A first-time visitor should believe IMMIFIN is a **polished commercial SaaS prod
 
 See [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) for mandatory reading, deliverables, and first recommended task.
 
+### Sprint 5 progress (2026-07-05)
+
+| Milestone | Status |
+|-----------|--------|
+| Design System 2.0 documentation framework | ✅ Complete |
+| **Visa Bulletin History — first DS 2.0 page** | ✅ **Approved** |
+| Homepage, Pricing, Dashboard, Movement Tracker, Calculators, Profile redesigns | ⏳ Planned |
+
+The Visa Bulletin History mockup (`/immigration/visa-bulletin/tracker-2`) has been **approved and promoted** as the official Design System 2.0 implementation for that page. See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md).
+
+**Approved deliverables for Visa Bulletin History:**
+
+- Design System 2.0 premium SaaS styling
+- New KPI cards and cleaner analysis workspace
+- Responsive charts with scrollable timeline and quarter markers
+- Historical table redesign with vertical scroll
+- 6 Month default date range
+- Chart retrogression highlighting
+- Removed duplicate sections; improved information density
+
 ---
 
 ## Sprint 6–10 (Planned Summary)
@@ -122,3 +142,4 @@ Detailed task breakdowns for Sprints 6–10 will be created at the start of each
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v2.0 | 2026-07-04 | S4-005.16 | Roadmap v2 — Design System 2.0 inserted as Sprint 5; prior sprints shifted forward |
+| v2.1 | 2026-07-05 | S5-004 | Sprint 5 in progress — Visa Bulletin History DS 2.0 approved as first page |

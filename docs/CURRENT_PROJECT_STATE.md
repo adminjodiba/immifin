@@ -1,10 +1,10 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-04
+**Last Updated:** 2026-07-05
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 4 Closeout / Preparing Sprint 5 |
+| **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience *(In Progress)* |
 | **Production Version** | v0.4.1 Foundation Release |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
@@ -20,7 +20,31 @@
 
 ## Current Phase
 
-Sprint 4 Closeout / Preparing Sprint 5
+Sprint 5 — Design System 2.0 & Product Experience *(In Progress)*
+
+### Sprint 5 progress — first page complete
+
+The **Visa Bulletin History** redesign is the **first approved Design System 2.0 page**. The mockup at `/immigration/visa-bulletin/tracker-2` has been promoted as the official implementation target.
+
+See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) for the full promotion record.
+
+| Deliverable | Status |
+|-------------|--------|
+| Design System 2.0 documentation framework | ✅ Complete |
+| **Visa Bulletin History DS 2.0** | ✅ **Approved — first production-ready redesign** |
+| Remaining Sprint 5 page redesigns | ⏳ Planned |
+
+**Visa Bulletin History DS 2.0 highlights:**
+
+- Design System 2.0 premium SaaS styling
+- New KPI summary cards
+- Responsive dual-chart analysis workspace
+- Scrollable history timeline with quarter markers
+- Historical table redesign (inline vertical scroll, newest first)
+- Cleaner workspace — removed duplicate sections
+- Improved information density
+- **6 Month** default date range
+- Chart retrogression highlighting (red/blue segments)
 
 ## Next Sprint
 
@@ -61,6 +85,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | **Start here for Sprint 5** — mandatory reading order |
+| [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — Visa Bulletin History promotion |
 | [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | Formal v0.4.1 sign-off and frozen decisions |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks |
 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
@@ -118,7 +143,7 @@ See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for the full milestone 
 | **Clerk ↔ Supabase sync** | ✅ Working (webhooks) |
 | **Build & deploy** | ✅ Passing (`npm run build`, Cloudflare auto-deploy from `main`) |
 | **Sprint 4** | ✅ Complete — v0.4.1 released and tagged |
-| **Sprint 5** | 🟡 Next — Design System 2.0 & Product Experience |
+| **Sprint 5** | 🟡 In Progress — first DS 2.0 page (Visa Bulletin History) approved |
 
 ---
 
@@ -479,7 +504,7 @@ Intentional deferred items — not bugs:
 | **AI Assistant** | Power-tier capability defined; not implemented |
 | **Stripe billing** | Pricing page exists; checkout not connected |
 | **Premium preview rollout** | Apply `PremiumFeaturePreview` to Dashboard, AI, Finance, Insurance, Documents |
-| **Design System 2.0** | Next major initiative — unified visual language and component library |
+| **Design System 2.0** | 🟡 In Progress — Visa Bulletin History approved; remaining pages planned |
 | **Analytics** | No product analytics pipeline |
 | **Visa Bulletin Dashboard toggle** | Final Action / Dates for Filing toggle — match Movement Tracker pattern |
 | **Onboarding on all routes** | Guard on `/`, `/user-profile`, `/account`; all other routes now require auth via middleware (S4-001) |
@@ -491,8 +516,8 @@ Intentional deferred items — not bugs:
 
 ## Current Priorities
 
-1. **Sprint 5 planning** — S5-000 Design System 2.0 document
-2. **Design System 2.0** — Unified visual language, component library, platform-wide UI consistency
+1. **Sprint 5 — Design System 2.0** — Visa Bulletin History approved; continue remaining page redesigns
+2. **Promote Visa Bulletin History mockup to production route** — future engineering task after user approval
 3. **Stripe billing** — Sprint 10 (Commercial Launch Readiness)
 4. **AI Assistant** — Sprint 6 (Power tier)
 5. **Premium preview rollout** — Dashboard, AI, Finance, Insurance, Documents
@@ -551,7 +576,7 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 | **Build** | ✅ Passing | `npm run build`, `npm run deploy` |
 | **Engineering process** | ✅ Mature | Workflow v2.0, playbook, release notes v0.4.1 |
 | **Documentation** | ✅ Current | v0.4.1 foundation milestone documented (S4-005.15) |
-| **Sprint 4** | 🟢 Foundation complete | Design System 2.0 next |
+| **Sprint 4** | 🟢 Foundation complete | Design System 2.0 in progress |
 
 ### Sprint 4 key commits (reference)
 
@@ -658,3 +683,4 @@ npm run dev:local
 | v2.2 | 2026-07-01 | S4-001 deployed; closeout workflow updated |
 | v3.0 | 2026-07-04 | S4-005.15 — v0.4.1 foundation milestone documented |
 | v3.1 | 2026-07-04 | S4-005.16 — Roadmap v2, Sprint 5 handoff, v0.4.1 sign-off |
+| v3.2 | 2026-07-05 | S5-004 — Visa Bulletin History DS 2.0 approved; Sprint 5 in progress |
