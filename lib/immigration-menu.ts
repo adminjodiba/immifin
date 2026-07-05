@@ -5,8 +5,8 @@ export const immigrationMenuLinks = [
     description: "Live employment-based final action dates",
   },
   {
-    href: "/immigration/visa-bulletin-movement",
-    label: "Visa Bulletin Movement Tracker",
+    href: "/immigration/visa-bulletin-movement-2",
+    label: "Visa Bulletin Movement Tracker 2",
     description: "Month-over-month visa bulletin date movement",
   },
   {
