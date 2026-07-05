@@ -1,6 +1,6 @@
 export type AppUserRole = "user" | "admin";
 
-export type AppPlan = "free" | "basic" | "pro";
+export type AppPlan = "free" | "basic" | "pro" | "power";
 
 export type ProfileStatus = "active" | "suspended" | "deleted";
 

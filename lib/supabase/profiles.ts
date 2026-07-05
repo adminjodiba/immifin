@@ -1,5 +1,6 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
+  AppPlan,
   ImmigrationProfile,
   Profile,
   ProfileWithRelations,
@@ -277,4 +278,79 @@ export async function updateProfileContact(
   }
 
   return mapProfile(data);
+}
+
+/**
+ * Update subscription plan for development mode and future Stripe billing.
+ * Keeps profiles.plan and subscriptions.plan in sync for Stripe compatibility.
+ */
+export async function updateSubscriptionPlan(
+  profileId: string,
+  plan: AppPlan,
+): Promise<{ profile: Profile; subscription: Subscription }> {
+  const supabase = getSupabaseAdminClient();
+
+  const { data: existingSubscription, error: fetchError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to load subscription: ${fetchError.message}`);
+  }
+
+  const subscriptionStatus = plan === "free" ? "inactive" : "active";
+
+  let subscription: Subscription;
+
+  if (!existingSubscription) {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .insert({
+        profile_id: profileId,
+        plan,
+        status: subscriptionStatus,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create subscription: ${error.message}`);
+    }
+
+    subscription = mapSubscription(data);
+  } else {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .update({
+        plan,
+        status: subscriptionStatus,
+      })
+      .eq("profile_id", profileId)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update subscription: ${error.message}`);
+    }
+
+    subscription = mapSubscription(data);
+  }
+
+  const { data: profileData, error: profileError } = await supabase
+    .from("profiles")
+    .update({ plan })
+    .eq("id", profileId)
+    .select("*")
+    .single();
+
+  if (profileError) {
+    throw new Error(`Failed to update profile plan: ${profileError.message}`);
+  }
+
+  return {
+    profile: mapProfile(profileData),
+    subscription,
+  };
 }

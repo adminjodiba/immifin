@@ -9,5 +9,5 @@ export function getEffectivePlan(profile: Profile, subscription: Subscription | 
 }
 
 export function isExecutivePlan(plan: AppPlan): boolean {
-  return plan === "pro";
+  return plan === "pro" || plan === "power";
 }

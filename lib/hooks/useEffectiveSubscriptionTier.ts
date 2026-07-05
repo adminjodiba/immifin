@@ -7,33 +7,44 @@ import {
   readDevTierFromStorage,
   writeDevTierToStorage,
 } from "@/lib/subscription/devTier";
+import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import {
   resolveSubscriptionTier,
   type SubscriptionTier,
 } from "@/lib/subscription/tiers";
+import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 
 const DEV_TIER_EVENT = "immifin:devTier";
 
+function readDevOverride(): SubscriptionTier | null {
+  if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
+    return null;
+  }
+
+  return readDevTierFromStorage();
+}
+
 function readEffectiveTier(storedTier: SubscriptionTier | null): SubscriptionTier {
-  const devOverride = isDevTierTestingEnabled() ? readDevTierFromStorage() : null;
+  const devOverride = readDevOverride();
   return resolveSubscriptionTier({ storedTier, devOverride });
 }
 
 /**
  * Effective subscription tier for UI capability checks.
  *
- * Development only:
- * - `?devTier=free|pro|power` (persisted to localStorage)
- * - localStorage key `immifin:devTier`
- * - DevTierSwitcher control
- *
- * Not billing. Production resolves without override (defaults to free until billing).
+ * Priority:
+ * 1. Persisted subscription plan (Development Subscription Mode / future Stripe)
+ * 2. Dev-only localStorage override (legacy local UI testing when dev mode off)
+ * 3. Default free
  */
-export function useEffectiveSubscriptionTier(storedTier: SubscriptionTier | null = null): {
+export function useEffectiveSubscriptionTier(storedTierProp: SubscriptionTier | null = null): {
   tier: SubscriptionTier;
   setDevTier: (tier: SubscriptionTier) => void;
   isDevTesting: boolean;
 } {
+  const subscriptionContext = useSubscriptionTierContext();
+  const storedTier = subscriptionContext?.storedTier ?? storedTierProp;
+
   const [tier, setTier] = useState<SubscriptionTier>(() =>
     resolveSubscriptionTier({ storedTier }),
   );
@@ -43,13 +54,13 @@ export function useEffectiveSubscriptionTier(storedTier: SubscriptionTier | null
   }, [storedTier]);
 
   useEffect(() => {
-    if (isDevTierTestingEnabled()) {
+    if (isDevTierTestingEnabled() && !isDevSubscriptionModeEnabled()) {
       consumeDevTierQueryParam();
     }
 
     refresh();
 
-    if (!isDevTierTestingEnabled()) {
+    if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
       return;
     }
 
@@ -63,7 +74,7 @@ export function useEffectiveSubscriptionTier(storedTier: SubscriptionTier | null
   }, [refresh]);
 
   const setDevTier = useCallback((nextTier: SubscriptionTier) => {
-    if (!isDevTierTestingEnabled()) {
+    if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
       return;
     }
 
@@ -74,6 +85,6 @@ export function useEffectiveSubscriptionTier(storedTier: SubscriptionTier | null
   return {
     tier,
     setDevTier,
-    isDevTesting: isDevTierTestingEnabled(),
+    isDevTesting: isDevTierTestingEnabled() && !isDevSubscriptionModeEnabled(),
   };
 }

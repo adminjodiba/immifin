@@ -7,6 +7,7 @@ import { GreenCardProfilePage } from "@/components/profile/GreenCardProfilePage"
 import { ImmigrationProfilePage } from "@/components/profile/ImmigrationProfilePage";
 import { ImmigrationProfileProvider } from "@/components/profile/ImmigrationProfileProvider";
 import { NotificationsProfilePage } from "@/components/profile/NotificationsProfilePage";
+import { SubscriptionProfilePage } from "@/components/profile/SubscriptionProfilePage";
 import { ProfileDirtyStateProvider } from "@/components/profile/ProfileDirtyStateProvider";
 import { UserProfileCloseAction } from "@/components/profile/UserProfileCloseAction";
 import {
@@ -20,6 +21,7 @@ import {
   canAccessNotifications,
   canAccessSaveImmigrationProfile,
 } from "@/lib/subscription/capabilities";
+import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyUserProfileElements } from "@/lib/clerk/emailOnly";
 
@@ -71,6 +73,7 @@ function ProTabIcon({
 
 export function UserProfileHub() {
   const { tier } = useEffectiveSubscriptionTier();
+  const devSubscriptionMode = isDevSubscriptionModeEnabled();
   const notificationsLocked = !canAccessNotifications(tier);
   const immigrationProfileLocked = !canAccessSaveImmigrationProfile(tier);
 
@@ -83,6 +86,15 @@ export function UserProfileHub() {
         <UserProfile routing="hash" appearance={userProfileAppearance}>
           <UserProfile.Page label="account" />
           <UserProfile.Page label="security" />
+          {devSubscriptionMode ? (
+            <UserProfile.Page
+              label="Subscription"
+              url="subscription"
+              labelIcon={<ImmigrationTabIcon />}
+            >
+              <SubscriptionProfilePage />
+            </UserProfile.Page>
+          ) : null}
           <UserProfile.Page label="Contact" url="contact" labelIcon={<ContactTabIcon />}>
             <ContactProfileSection />
           </UserProfile.Page>

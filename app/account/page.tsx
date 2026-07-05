@@ -8,6 +8,7 @@ import {
   ImmigrationProfileProvider,
   useImmigrationProfileForm,
 } from "@/components/profile/ImmigrationProfileProvider";
+import { DevelopmentSubscriptionPanel } from "@/components/subscription/DevelopmentSubscriptionPanel";
 
 function AccountMigrationBanner() {
   return (
@@ -28,6 +29,8 @@ function AccountPageContent() {
   return (
     <>
       <AccountMigrationBanner />
+
+      <DevelopmentSubscriptionPanel />
 
       {profileEmail && (
         <p className="mb-6 text-sm text-slate-600">

@@ -21,7 +21,7 @@ export function isSubscriptionTier(value: unknown): value is SubscriptionTier {
  *
  * Priority:
  * 1. Dev-only override (development only — never production)
- * 2. Stored subscription tier when billing exists
+ * 2. Stored subscription plan (Development Subscription Mode / future Stripe)
  * 3. Default `free` when no real tier is enrolled
  *
  * Production never applies query-param or localStorage overrides.
