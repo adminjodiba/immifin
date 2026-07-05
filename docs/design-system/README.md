@@ -46,6 +46,7 @@ Read documents in this order:
 | 4 | [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) | Reusable component catalog and hierarchy |
 | 5 | [PAGE_TEMPLATE.md](./PAGE_TEMPLATE.md) | Per-page redesign package structure |
 | 6 | [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — promotion record |
+| 7 | [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) | Second approved DS 2.0 page — Movement Tracker promotion |
 
 Before implementing any specific page, also read that page's files in `docs/design-pages/{page-slug}/`.
 
@@ -111,6 +112,7 @@ See [../SPRINT_5_HANDOFF.md](../SPRINT_5_HANDOFF.md) and [../PRODUCT_VISION.md �
 | [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) | Reusable component catalog |
 | [PAGE_TEMPLATE.md](./PAGE_TEMPLATE.md) | Per-page redesign documentation template |
 | [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — Visa Bulletin History promotion |
+| [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) | Second approved DS 2.0 page — Movement Tracker promotion |
 
 Per-page packages live in `docs/design-pages/{page-slug}/`.
 
@@ -122,3 +124,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 |---------|------|------|-------------|
 | v1.0 | 2026-07-04 | S5-DOC-002 | Official Design System 2.0 documentation framework |
 | v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 promotion documented |
+| v1.2 | 2026-07-05 | S5-007 | Visa Bulletin Movement Tracker DS 2.0 promotion documented |

@@ -135,7 +135,7 @@ S5-004 documents the **approval and promotion decision only**. No application co
 | Homepage redesign | ⏳ Planned |
 | Pricing redesign | ⏳ Planned |
 | Dashboard redesign | ⏳ Planned |
-| Movement Tracker redesign | ⏳ Planned |
+| Movement Tracker redesign | ✅ Complete (approved mockup — S5-007) |
 | Calculator redesign | ⏳ Planned |
 | Manage Profile redesign | ⏳ Planned |
 
