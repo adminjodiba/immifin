@@ -72,6 +72,64 @@ const plans: readonly PlanConfig[] = [
   },
 ];
 
+const TIER_RANK: Record<SubscriptionTier, number> = {
+  free: 0,
+  pro: 1,
+  power: 2,
+};
+
+const SWITCH_LABELS: Record<SubscriptionTier, string> = {
+  free: "Switch to Free",
+  pro: "Switch to Pro",
+  power: "Switch to Power",
+};
+
+type DevModeButtonConfig = {
+  label: string;
+  disabled: boolean;
+  className: string;
+  isCurrentPlan: boolean;
+};
+
+function getCurrentPlanButtonClass(plan: PlanConfig): string {
+  const base = plan.ctaStyle === "btn-primary" ? "btn-primary" : "btn-secondary";
+  const hoverReset =
+    plan.ctaStyle === "btn-primary"
+      ? "hover:bg-brand-700 hover:shadow-brand-700/20"
+      : "hover:border-slate-200 hover:bg-white hover:shadow-sm";
+
+  return `${base} w-full cursor-not-allowed opacity-75 transition-none active:scale-100 ${hoverReset}`;
+}
+
+function getDevModeButtonConfig(plan: PlanConfig, currentTier: SubscriptionTier): DevModeButtonConfig {
+  const isCurrentPlan = plan.id === currentTier;
+
+  if (isCurrentPlan) {
+    return {
+      label: "Current Plan",
+      disabled: true,
+      className: getCurrentPlanButtonClass(plan),
+      isCurrentPlan: true,
+    };
+  }
+
+  if (TIER_RANK[plan.id] < TIER_RANK[currentTier]) {
+    return {
+      label: SWITCH_LABELS[plan.id],
+      disabled: false,
+      className: `${plan.ctaStyle} w-full`,
+      isCurrentPlan: false,
+    };
+  }
+
+  return {
+    label: plan.cta,
+    disabled: false,
+    className: `${plan.ctaStyle} w-full`,
+    isCurrentPlan: false,
+  };
+}
+
 export function PricingPlans() {
   const pathname = usePathname();
   const router = useRouter();
@@ -121,7 +179,6 @@ export function PricingPlans() {
     }
 
     if (planId === currentTier) {
-      setSuccessMessage(`${formatSubscriptionPlanLabel(planId)} is already your current plan.`);
       return;
     }
 
@@ -158,6 +215,8 @@ export function PricingPlans() {
           <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
             {plans.map((plan) => {
               const isCurrentPlan = devMode && isSignedIn && currentTier === plan.id;
+              const devButton =
+                devMode && isSignedIn ? getDevModeButtonConfig(plan, currentTier) : null;
 
               return (
                 <article
@@ -175,9 +234,12 @@ export function PricingPlans() {
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">{plan.description}</p>
 
                   {isCurrentPlan ? (
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-700">
-                      Current plan
-                    </p>
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
+                        Current plan
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">Your current plan</p>
+                    </div>
                   ) : null}
 
                   <ul className="mt-6 flex-1 space-y-3">
@@ -193,13 +255,34 @@ export function PricingPlans() {
 
                   <div className="mt-8">
                     {devMode ? (
-                      <button
-                        type="button"
-                        className={`${plan.ctaStyle} w-full`}
-                        onClick={() => handlePlanClick(plan.id)}
-                      >
-                        {plan.id === "free" ? "Switch to Free" : plan.cta}
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className={devButton?.className ?? `${plan.ctaStyle} w-full`}
+                          onClick={() => handlePlanClick(plan.id)}
+                          disabled={devButton?.disabled ?? false}
+                          aria-disabled={devButton?.isCurrentPlan ?? false}
+                        >
+                          {devButton?.isCurrentPlan ? (
+                            <>
+                              <span
+                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-sm font-bold"
+                                aria-hidden="true"
+                              >
+                                ✓
+                              </span>
+                              Current Plan
+                            </>
+                          ) : (
+                            (devButton?.label ?? plan.cta)
+                          )}
+                        </button>
+                        {devButton?.isCurrentPlan ? (
+                          <p className="mt-2 text-center text-xs text-slate-500">
+                            Your active subscription
+                          </p>
+                        ) : null}
+                      </>
                     ) : plan.id === "free" ? (
                       <Link href="/signup" className={`${plan.ctaStyle} w-full`}>
                         {plan.cta}
