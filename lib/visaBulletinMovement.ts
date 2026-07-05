@@ -147,6 +147,10 @@ export function compareBulletinMovement(
   const parsedCurrent = parseBulletinCutoffDate(currentRaw);
 
   if (parsedCurrent === "C") {
+    if (parsedPrevious === "C") {
+      return buildMovementResult("no-change", 0, 0);
+    }
+
     return buildMovementResult("current", null, null);
   }
 

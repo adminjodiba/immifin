@@ -154,6 +154,33 @@ async function loadAllVisaBulletinHistoryRecords(): Promise<VisaBulletinHistoryR
     .sort((a, b) => a.month.localeCompare(b.month));
 }
 
+/** Most recent bulletin month in VisaBulletinHistory (YYYY-MM), from uploaded sheet data. */
+export async function getLatestVisaBulletinMonth(): Promise<string | null> {
+  const records = await getCachedVisaBulletinHistoryRecords();
+
+  if (records.length === 0) {
+    return null;
+  }
+
+  return records.reduce(
+    (latest, record) => (record.month > latest ? record.month : latest),
+    records[0].month,
+  );
+}
+
+/** Formats YYYY-MM as short bulletin label, e.g. 2026-07 → Jul-26. */
+export function formatVisaBulletinMonthShort(month: string): string {
+  const [year, monthNumber] = month.split("-");
+  const date = new Date(Number(year), Number(monthNumber) - 1, 1);
+
+  if (Number.isNaN(date.getTime())) {
+    return month;
+  }
+
+  const shortMonth = date.toLocaleDateString("en-US", { month: "short" });
+  return `${shortMonth}-${year.slice(-2)}`;
+}
+
 const getCachedVisaBulletinHistoryRecords = unstable_cache(
   loadAllVisaBulletinHistoryRecords,
   ["visa-bulletin-history-records"],
