@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | This document describes the complete infrastructure architecture of the Immifin platform. |
-| **Last Updated** | 2026-07-04 |
+| **Last Updated** | 2026-07-05 |
 | **Owner** | Technical Architecture (CTO) |
 
 This document is the **single source of truth** for Immifin's infrastructure, environments, deployment flow, networking, external services, and operational architecture.
@@ -184,7 +184,7 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `123bbdb` — *Add Cloudflare OpenNext deployment configuration* |
+| **Latest production commit** | `5f40203` — Subscription Foundation + Cloudflare build variable rebuild |
 | **Production build command** | `npm run deploy` |
 | **Production deploy command** | `echo done` |
 
@@ -389,7 +389,9 @@ Product feature access is **capability-based**, not plan-name checks in UI.
 |-------|----------|------|
 | **Tiers** | `lib/subscription/tiers.ts` | `free` / `pro` / `power` (+ future Business/Enterprise) |
 | **Capabilities** | `lib/subscription/capabilities.ts` | Tier→capability map; `hasCapability`, `canAccess*` |
-| **Dev override** | `lib/subscription/devTier.ts` | Local development only — not billing |
+| **Dev override** | `lib/subscription/devTier.ts` | Local development only — disabled when Dev Subscription Mode on |
+| **Dev subscription mode** | `lib/subscription/devSubscriptionMode.ts` | Beta tier activation without Stripe |
+| **Subscription service** | `lib/subscription/service.ts` | Read tier from Supabase profile/subscription |
 
 Billing will later assign a tier. Application code consumes capabilities. See [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
 
@@ -404,6 +406,60 @@ Billing will later assign a tier. Application code consumes capabilities. See [B
 | `useEffectiveSubscriptionTier` | `lib/hooks/useEffectiveSubscriptionTier.ts` | Effective tier for UI (includes dev override) |
 
 **Premium Feature Discovery** is the standard Free-user UX for premium pages. See [BUSINESS_MODEL.md §15](./BUSINESS_MODEL.md#15-premium-feature-discovery) and [PRODUCT_VISION.md §20](./PRODUCT_VISION.md#20-premium-feature-discovery).
+
+---
+
+## 17. Subscription Architecture
+
+Subscription access flows through a single plan field to capability checks — no parallel gating systems.
+
+```
+User
+  ↓
+Pricing Page / Account Panel
+  ↓
+Subscription Service (lib/subscription/service.ts)
+  ↓
+Supabase — profiles.plan + subscriptions.plan
+  ↓
+SubscriptionTierProvider / useEffectiveSubscriptionTier
+  ↓
+Feature Gates (hasCapability / canAccess*)
+  ↓
+Application Features
+```
+
+### Tiers
+
+| Tier | Role |
+|------|------|
+| **Free** | Manual tools, public dashboards, basic calculators |
+| **Pro** | Personalization, automation, saved profile, Visa Bulletin History, Movement Tracker, email alerts |
+| **Power** | Everything in Pro + AI, multiple profiles, advanced intelligence |
+
+**Source of truth:** [BUSINESS_MODEL.md](./BUSINESS_MODEL.md)
+
+### Development Subscription Mode
+
+Temporary beta flow until Stripe integration. Gated by `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true`.
+
+| Component | Path |
+|-----------|------|
+| Feature flag | `lib/subscription/devSubscriptionMode.ts` |
+| Plan mapping | `lib/subscription/plan.ts` |
+| Persistence | `lib/supabase/profiles.ts` → `updateSubscriptionPlan()` |
+| API | `app/api/account/subscription/route.ts` |
+| Client state | `lib/hooks/SubscriptionTierProvider.tsx` |
+| Pricing UI | `components/pricing/PricingPlans.tsx` |
+| Account UI | `components/subscription/DevelopmentSubscriptionPanel.tsx` |
+
+**Important:** The flag must be a Cloudflare **Build Variable** for production UI — see [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
+
+### Future Stripe integration
+
+Stripe webhooks will update the same `profiles.plan` and `subscriptions.plan` fields. Capability authorization remains unchanged. Development Subscription Mode UI is replaced by Stripe checkout.
+
+See [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md).
 
 ---
 
@@ -445,6 +501,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.2 | 2026-06-27 | Expanded Architecture Principles; known stable configuration reference in DEPLOYMENT.md. |
 | v1.3 | 2026-07-03 | Application access layer — subscription tiers and capabilities (S4-005.3). |
 | v1.4 | 2026-07-04 | Premium feature gating components; Design System 2.0 reference (S4-005.15). |
+| v1.5 | 2026-07-05 | Subscription Architecture; Development Subscription Mode; deployment docs (S5-ENG-004). |
 
 ---
 
@@ -452,7 +509,10 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 
 | Document | Contents |
 |----------|----------|
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands, secrets, deployment workflow |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands, secrets, deployment workflow (summary) |
+| [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Full Cloudflare deployment guide |
+| [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) | Build variable incident |
+| [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md) | Development Subscription Mode ADR |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Engineering workflow and release gates |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone release notes |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities, Premium Feature Discovery |

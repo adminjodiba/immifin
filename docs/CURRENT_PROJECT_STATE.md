@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-05
+**Last Updated:** 2026-07-05 (Subscription Foundation + Cloudflare deployment documentation)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience *(In Progress)* |
+| **Current Sprint** | Sprint 5 — Design System 2.0 & Subscription Foundation |
 | **Production Version** | v0.4.1 Foundation Release |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
-| **Cloudflare** | 🟢 Healthy |
+| **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Sprint 5 — Design System 2.0 & Product Experience |
+| **Current Priority** | Sprint 5 — Design System 2.0 & Subscription Foundation |
 
 ## Current Version
 
@@ -33,6 +33,8 @@ See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_H
 | Design System 2.0 documentation framework | ✅ Complete |
 | **Visa Bulletin History DS 2.0** | ✅ **Approved — first production-ready redesign** |
 | Remaining Sprint 5 page redesigns | ⏳ Planned |
+| **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
+| **Pricing UX polish (S5-ENG-005/006)** | ✅ **Complete** — Current Plan / Upgrade / Switch buttons |
 
 **Visa Bulletin History DS 2.0 highlights:**
 
@@ -45,6 +47,21 @@ See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_H
 - Improved information density
 - **6 Month** default date range
 - Chart retrogression highlighting (red/blue segments)
+
+### Sprint 5 — Subscription Foundation (completed)
+
+| Deliverable | Status |
+|-------------|--------|
+| Development Subscription Mode | ✅ Complete (`ef412e0`) |
+| Pricing page redesign (`PricingPlans`) | ✅ Complete |
+| Current Plan / Upgrade / Switch UX | ✅ Complete (`b64317c`, S5-ENG-005/006) |
+| User plan persistence (Supabase) | ✅ Complete — `profiles.plan` + `subscriptions.plan` |
+| Subscription API | ✅ Complete — `/api/account/subscription` |
+| SubscriptionTierProvider | ✅ Complete |
+| Profile / Account integration | ✅ Complete — `/account`, `/user-profile#/subscription` |
+| Pro feature gating | ✅ Operational — capability model unchanged |
+| Power tier architecture | ✅ Prepared — `power` added to `app_plan` enum |
+| Stripe billing | ⏳ Intentionally deferred |
 
 ## Next Sprint
 
@@ -68,7 +85,8 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** `704bc7c` — v0.4.1 Foundation Release  
+**Latest commit:** `5f40203` — chore: rebuild after enabling NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE  
+**Subscription Foundation:** `ef412e0` — Development Subscription Mode · `b64317c` — Pricing UX polish  
 **Latest tag:** `v0.4.1`  
 **Owner:** Technical Architecture (CTO)
 
@@ -86,6 +104,9 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | **Start here for Sprint 5** — mandatory reading order |
 | [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — Visa Bulletin History promotion |
+| [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Cloudflare build/deploy guide — Build vs Runtime variables |
+| [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) | Production pricing / build variable incident |
+| [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md) | Development Subscription Mode ADR |
 | [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | Formal v0.4.1 sign-off and frozen decisions |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks |
 | [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) | Pre-deploy acceptance |
@@ -106,7 +127,7 @@ IMMIFIN has completed the **v0.4.1 platform foundation** at the end of Sprint 4.
 | **My Immifin workspace** | ✅ Navigation dropdown; Dashboard + Manage Profile |
 | **Free / Pro / Power subscription** | ✅ Tiers, capability map, dev tier testing |
 | **Capability-based authorization** | ✅ `lib/subscription/capabilities.ts` — no scattered plan checks |
-| **Pricing foundation** | ✅ `/pricing` page; Coming Soon until Stripe |
+| **Pricing foundation** | ✅ `/pricing` — Development Subscription Mode when flag enabled; Coming Soon fallback when off |
 | **Dashboard framework** | ✅ Journey layout, EB timeline, Today's Focus, Action Center |
 | **Profile management** | ✅ Tier gates, dirty state, in-app clear modals |
 | **Premium feature gating** | ✅ `PremiumFeaturePreview`, close-to-info UX |
@@ -143,7 +164,46 @@ See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) for the full milestone 
 | **Clerk ↔ Supabase sync** | ✅ Working (webhooks) |
 | **Build & deploy** | ✅ Passing (`npm run build`, Cloudflare auto-deploy from `main`) |
 | **Sprint 4** | ✅ Complete — v0.4.1 released and tagged |
-| **Sprint 5** | 🟡 In Progress — first DS 2.0 page (Visa Bulletin History) approved |
+| **Sprint 5** | 🟡 In Progress — Visa Bulletin History DS 2.0 promoted; Subscription Foundation complete |
+
+---
+
+## Cloudflare Deployment Resolution
+
+**Incident (2026-07-05):** Production `/pricing` showed "Coming Soon" while localhost showed Development Subscription Mode.
+
+### Deployment pipeline (verified)
+
+```
+Cursor → Commit → GitHub main → Cloudflare Git Build → OpenNext Build → Wrangler Deploy → Production
+```
+
+| Component | Detail |
+|-----------|--------|
+| **Git integration** | Push to `main` triggers automatic Cloudflare build |
+| **Build command** | `npm run deploy` (`opennextjs-cloudflare build && deploy`) |
+| **Deploy command** | `echo done` (deploy runs inside build script) |
+| **OpenNext** | Bundles Next.js for Cloudflare Workers runtime |
+| **Wrangler** | Deploys Worker + static assets from `.open-next/` |
+
+### Build Variables vs Runtime Variables
+
+| Type | When evaluated | Used for |
+|------|----------------|----------|
+| **Build Variables** | During `opennextjs-cloudflare build` | `NEXT_PUBLIC_*` — inlined into client JS and prerendered HTML |
+| **Runtime Variables / Secrets** | Each Worker request | Server secrets (`CLERK_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) |
+
+### Root cause — "Coming Soon" on production
+
+`NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` was set as a **runtime** Cloudflare variable but **not** as a **Build Variable**. Next.js evaluates `NEXT_PUBLIC_*` at build time. `/pricing` is prerendered (`x-nextjs-prerender: 1`), so the Coming Soon branch was baked into production HTML.
+
+### Resolution
+
+1. Add `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true` as a **Cloudflare Build Variable**
+2. Trigger full rebuild (push to `main`)
+3. Verify `/pricing` shows Development Subscription Mode after deploy
+
+See [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) and [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ---
 
@@ -270,7 +330,11 @@ Tier-gated via capabilities. Free users edit Contact; Immigration, Green Card, a
 
 ### Pricing
 
-- ✓ `/pricing` — Free / Pro / Power plan cards; Coming Soon CTAs
+- ✓ `/pricing` — Free / Pro / Power plan cards
+- ✓ Development Subscription Mode — tier activation via `/pricing` and `/account` (when `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true`)
+- ✓ Current Plan / Upgrade / Switch button UX (signed-in users)
+- ✓ Coming Soon fallback when dev mode flag is off (pre-Stripe production default)
+- ⏳ Stripe checkout — intentionally deferred
 
 ### Immigration (Free tools)
 
@@ -569,14 +633,37 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 
 ## 11. Current Repository Health
 
+**Overall Status: Production Stable**
+
+### Completed
+
+| Area | Status |
+|------|--------|
+| ✅ Authentication | Clerk sign-in, sign-up, sessions, app-wide gate |
+| ✅ User Profiles | Manage Profile hub, contact onboarding, tier gates |
+| ✅ Subscription Foundation | Development Subscription Mode, persistence, API |
+| ✅ Pricing UX | Current Plan, Upgrade, Switch workflow |
+| ✅ Feature Gates | Capability-based authorization operational |
+| ✅ Cloudflare Auto Deploy | GitHub `main` → OpenNext → Wrangler |
+| ✅ Deployment Documentation | Build vs Runtime variables documented |
+
+### Pending
+
+| Area | Status |
+|------|--------|
+| ⏳ Stripe | Checkout, webhooks, billing portal |
+| ⏳ Payment Webhooks | Not integrated |
+| ⏳ Billing Portal | Not built |
+| ⏳ Subscription Management | Real billing UI deferred |
+
 | Area | Status | Detail |
 |------|--------|--------|
-| **Repository** | ✅ Stable | S4-001 deployed via GitHub → Cloudflare auto-deploy |
-| **Production** | ✅ Stable | `immifin.com` — v0.4.1 foundation documented |
+| **Repository** | ✅ Stable | Subscription Foundation on `main` |
+| **Production** | ✅ Stable | `immifin.com` — auto-deploy verified |
 | **Build** | ✅ Passing | `npm run build`, `npm run deploy` |
-| **Engineering process** | ✅ Mature | Workflow v2.0, playbook, release notes v0.4.1 |
-| **Documentation** | ✅ Current | v0.4.1 foundation milestone documented (S4-005.15) |
-| **Sprint 4** | 🟢 Foundation complete | Design System 2.0 in progress |
+| **Engineering process** | ✅ Mature | Workflow v2.1, deployment troubleshooting documented |
+| **Documentation** | ✅ Current | Subscription Foundation + Cloudflare deployment |
+| **Sprint 5** | 🟡 In Progress | DS 2.0 + Subscription Foundation complete |
 
 ### Sprint 4 key commits (reference)
 
@@ -619,6 +706,12 @@ Milestones 4.5 and 4.6 may span into Sprint 5 depending on scope approval.
 | Dashboard access gate | `components/dashboard/DashboardAccessGate.tsx` |
 | Dev tier switcher | `components/dev/DevTierSwitcher.tsx` |
 | Pricing page | `app/pricing/page.tsx` |
+| Pricing plans UI | `components/pricing/PricingPlans.tsx` |
+| Dev subscription mode | `lib/subscription/devSubscriptionMode.ts` |
+| Subscription service | `lib/subscription/service.ts` |
+| Subscription API | `app/api/account/subscription/route.ts` |
+| Subscription provider | `lib/hooks/SubscriptionTierProvider.tsx` |
+| Dev subscription panel | `components/subscription/DevelopmentSubscriptionPanel.tsx` |
 
 ---
 
@@ -684,3 +777,4 @@ npm run dev:local
 | v3.0 | 2026-07-04 | S4-005.15 — v0.4.1 foundation milestone documented |
 | v3.1 | 2026-07-04 | S4-005.16 — Roadmap v2, Sprint 5 handoff, v0.4.1 sign-off |
 | v3.2 | 2026-07-05 | S5-004 — Visa Bulletin History DS 2.0 approved; Sprint 5 in progress |
+| v3.3 | 2026-07-05 | S5-ENG-004/005/006 — Subscription Foundation; Cloudflare deployment resolution documented |

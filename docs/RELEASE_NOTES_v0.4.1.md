@@ -8,7 +8,46 @@
 | **Status** | Foundation milestone — stable platform before Design System 2.0 |
 | **Owner** | Technical Architecture (CTO) |
 
-**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md)
+**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md)
+
+---
+
+## Subscription Foundation (Sprint 5 — post v0.4.1)
+
+**Commits:** `ef412e0` (Development Subscription Mode) · `b64317c` (Pricing UX polish)
+
+### Completed
+
+| Area | Detail |
+|------|--------|
+| **Development Subscription Mode** | Free / Pro / Power activation without Stripe |
+| **Pricing page redesign** | `components/pricing/PricingPlans.tsx` — tier-aware buttons |
+| **Current Plan UI** | Disabled button with ✓ icon and "Your active subscription" helper |
+| **Upgrade / Switch workflow** | Confirmation dialog; sign-in required for activation |
+| **User plan persistence** | `profiles.plan` + `subscriptions.plan` (Supabase) |
+| **Subscription provider** | `SubscriptionTierProvider` + `/api/account/subscription` |
+| **Feature gating** | Unchanged capability model — `hasCapability` / `canAccess*` |
+| **Account integration** | `/account` panel + `/user-profile#/subscription` tab |
+
+### Deployment improvements
+
+| Area | Detail |
+|------|--------|
+| Git auto deployment | Verified — push to `main` triggers Cloudflare build |
+| OpenNext build | `npm run deploy` pipeline stable |
+| Wrangler deployment | Worker deploys via OpenNext adapter |
+| Cloudflare Build Variables | Documented — `NEXT_PUBLIC_*` must be build-time vars |
+| Production verification | Build vs runtime env incident resolved (2026-07-05) |
+
+### Known limitations
+
+| Limitation | Notes |
+|------------|-------|
+| **Stripe not integrated** | No checkout, webhooks, or billing portal |
+| **Billing disabled** | Development mode activation only |
+| **Development mode enabled** | Requires `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true` as Build Variable |
+
+See [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md).
 
 ---
 
@@ -56,7 +95,8 @@ No billing integration ships in this release. Stripe and real subscription stora
 ### Pricing foundation
 
 - `/pricing` page with Free / Pro / Power plan cards
-- Coming Soon CTAs until Stripe billing connects
+- Development Subscription Mode when `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true` (Sprint 5)
+- Coming Soon CTAs when dev mode flag is off (pre-Stripe default)
 
 ### Calculators
 
@@ -150,8 +190,9 @@ See [PRODUCT_VISION.md §20](./PRODUCT_VISION.md#20-premium-feature-discovery) a
 - **Build command:** `npm run deploy`
 - **Deploy command:** `echo done` (OpenNext build includes deploy step)
 - **Auto-deploy:** GitHub `main` → Cloudflare
+- **Build Variables:** Required for `NEXT_PUBLIC_*` flags (see [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md))
 
-See [SYSTEM_ARCHITECTURE.md §8](./SYSTEM_ARCHITECTURE.md#8-production-deployment) and [DEPLOYMENT.md](./DEPLOYMENT.md).
+See [SYSTEM_ARCHITECTURE.md §8](./SYSTEM_ARCHITECTURE.md#8-production-deployment) and [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ---
 
@@ -207,3 +248,4 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | Version | Date | Description |
 |---------|------|-------------|
 | v0.4.1 | 2026-07-04 | Foundation milestone release notes (S4-005.15) |
+| v0.4.1+ | 2026-07-05 | Subscription Foundation section added (S5-ENG-004) |

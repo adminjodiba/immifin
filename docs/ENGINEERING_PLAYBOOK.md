@@ -230,7 +230,7 @@ Optional: test `dev.immifin.com` before merging when tunnel access is available 
 
 See [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) for local dev and tunnel setup.
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for build commands and secrets management.
+See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) and [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ### Emergency / hotfix exception
 
@@ -415,7 +415,59 @@ Sprint 5 revision example: Design System 2.0 inserted; feature sprints shifted t
 
 ---
 
-## 20. Revision History
+## 21. Deployment Best Practices
+
+Follow this sequence for every production release:
+
+| Step | Action |
+|------|--------|
+| 1 | **Localhost first** — verify on `http://localhost:3000` |
+| 2 | **Verify tunnel** — when auth/webhooks changed: `https://dev.immifin.com` healthy |
+| 3 | **Verify GitHub commit** — correct branch, message, and files staged |
+| 4 | **Verify Cloudflare build** — Dashboard → Deployments completes without error |
+| 5 | **Verify production** — smoke test `https://immifin.com` immediately after deploy |
+| 6 | **Verify feature gate** — test tier-specific behavior (Free / Pro / Power) when subscription work changed |
+
+After changing **Build Variables** (`NEXT_PUBLIC_*`): always trigger a full rebuild — runtime-only changes are insufficient.
+
+See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
+
+---
+
+## 22. Cloudflare Lessons Learned (2026-07-05)
+
+### `NEXT_PUBLIC_*` variables
+
+- Evaluated at **build time**, not Worker runtime
+- Inlined into client JavaScript bundles
+- Affect prerendered HTML (`x-nextjs-prerender: 1`)
+
+### Build variables vs runtime variables
+
+| Type | Cloudflare location | When to use |
+|------|---------------------|-------------|
+| **Build Variables** | Builds & deployments → Build variables | `NEXT_PUBLIC_*`, anything affecting client UI |
+| **Runtime Variables / Secrets** | Variables and Secrets → Production | Server secrets, API keys |
+
+### OpenNext deployment
+
+- `npm run deploy` = `opennextjs-cloudflare build` + `opennextjs-cloudflare deploy`
+- Plain `npm run build` is **not** sufficient for Workers
+- Deploy command in dashboard: `echo done`
+
+### Wrangler deployment
+
+- Inspect deployments: `npx wrangler deployments list --name immifin`
+- Secrets: `npx wrangler versions secret put VARIABLE_NAME`
+- Rollback via Cloudflare Dashboard → Deployments
+
+### Incident reference
+
+Production showed Coming Soon on `/pricing` while localhost showed Development Subscription Mode. Root cause: `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` missing from Build Variables. See [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md).
+
+---
+
+## 23. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -426,6 +478,7 @@ Sprint 5 revision example: Design System 2.0 inserted; feature sprints shifted t
 | v2.1 | 2026-07-01 | Mandatory Cloudflare tunnel + Clerk webhook workflow; release gate 3b; tunnel-offline incident documented; [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) expanded. |
 | v2.2 | 2026-07-04 | v0.4.1 foundation milestone; Premium Feature Discovery implementation guide; documentation-first rule (S4-005.15). |
 | v2.3 | 2026-07-04 | Roadmap revision procedure; Sprint 5 handoff references (S4-005.16). |
+| v2.4 | 2026-07-05 | Deployment best practices; Cloudflare Build vs Runtime variables (S5-ENG-004). |
 
 ---
 
@@ -434,7 +487,9 @@ Sprint 5 revision example: Design System 2.0 inserted; feature sprints shifted t
 | Document | Contents |
 |----------|----------|
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks, release checklist |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration (summary) |
+| [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Full Cloudflare deployment guide |
+| [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) | Build variable troubleshooting |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure and deployment |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Current phase and sprint |
 | [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md) | Backlog and priorities |
