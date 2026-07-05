@@ -6,9 +6,9 @@ import { VisaBulletinHistoricalTrends } from "@/components/VisaBulletinHistorica
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "Visa Bulletin Historical Trends",
+  title: "Visa Bulletin History",
   description:
-    "Explore archived employment-based visa bulletin cutoff dates by category, country, and date type over time.",
+    "Track historical cutoff dates and identify trends for your immigration journey.",
   path: "/immigration/visa-bulletin-history",
 });
 
