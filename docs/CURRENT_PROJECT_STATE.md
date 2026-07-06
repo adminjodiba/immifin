@@ -22,16 +22,22 @@
 
 Sprint 5 — Design System 2.0 & Product Experience *(In Progress)*
 
-### Sprint 5 progress — first page complete
+### Sprint 5 progress — Visa Bulletin DS 2.0 pages
 
-The **Visa Bulletin History** redesign is the **first approved Design System 2.0 page**. The mockup at `/immigration/visa-bulletin/tracker-2` has been promoted as the official implementation target.
+Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two are **live on production**; History is approved and pending promotion.
 
-See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) for the full promotion record.
+| Page | Production route | DS 2.0 doc | Status |
+|------|------------------|------------|--------|
+| **Visa Bulletin History** | `/immigration/visa-bulletin-history` | [VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) | ✅ Approved — mockup `/immigration/visa-bulletin/tracker-2` |
+| **Movement Tracker** | `/immigration/visa-bulletin-movement` | [VISA_BULLETIN_MOVEMENT_2.0.md](./design-system/VISA_BULLETIN_MOVEMENT_2.0.md) | ✅ **Promoted** (2026-07-05) |
+| **Visa Bulletin Dashboard** | `/immigration/visa-bulletin` | [VISA_BULLETIN_DASHBOARD_2.0.md](./design-system/VISA_BULLETIN_DASHBOARD_2.0.md) | ✅ **Promoted** (2026-07-06) |
 
 | Deliverable | Status |
 |-------------|--------|
 | Design System 2.0 documentation framework | ✅ Complete |
-| **Visa Bulletin History DS 2.0** | ✅ **Approved — first production-ready redesign** |
+| **Visa Bulletin History DS 2.0** | ✅ Approved — promotion pending |
+| **Visa Bulletin Movement Tracker DS 2.0** | ✅ **Promoted to production** |
+| **Visa Bulletin Dashboard DS 2.0** | ✅ **Promoted to production** |
 | Remaining Sprint 5 page redesigns | ⏳ Planned |
 | **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
 | **Pricing UX polish (S5-ENG-005/006)** | ✅ **Complete** — Current Plan / Upgrade / Switch buttons |

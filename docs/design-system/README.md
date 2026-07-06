@@ -6,7 +6,7 @@
 | **Version** | v1.0 |
 | **Sprint** | Sprint 5 |
 | **Task ID** | S5-DOC-002 |
-| **Last Updated** | 2026-07-05 |
+| **Last Updated** | 2026-07-06 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | Official — **entry point for all Design System 2.0 documentation** |
 
@@ -129,3 +129,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 | v1.2 | 2026-07-05 | S5-007 | Visa Bulletin Movement Tracker DS 2.0 promotion documented |
 | v1.3 | 2026-07-05 | S5-007 | Movement Tracker DS 2.0 promoted to production route |
 | v1.4 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard DS 2.0 promotion documented |
+| v1.5 | 2026-07-06 | S5-008 | Dashboard DS 2.0 promoted to production route |

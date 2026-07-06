@@ -134,8 +134,8 @@ S5-004 documents the **approval and promotion decision only**. No application co
 | **First DS 2.0 page — Visa Bulletin History** | ✅ **Complete (approved mockup)** |
 | Homepage redesign | ⏳ Planned |
 | Pricing redesign | ⏳ Planned |
-| Dashboard redesign | ✅ Complete (approved mockup — S5-008) |
-| Movement Tracker redesign | ✅ Complete (approved mockup — S5-007) |
+| Dashboard redesign | ✅ Complete (promoted — S5-008) |
+| Movement Tracker redesign | ✅ Complete (promoted — S5-007) |
 | Calculator redesign | ⏳ Planned |
 | Manage Profile redesign | ⏳ Planned |
 

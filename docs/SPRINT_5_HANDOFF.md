@@ -158,7 +158,7 @@ Design System 2.0 should be **documented and approved** before major page redesi
 | 5 | Homepage redesign | Code — public landing experience |
 | 6 | Pricing redesign | Code — plan comparison polish |
 | 7 | Dashboard redesign | Code — visual refresh on stable layout |
-| 8 | Visa Bulletin pages redesign | Code — **Visa Bulletin History approved** (mockup `/immigration/visa-bulletin/tracker-2`); Movement Tracker planned |
+| 8 | Visa Bulletin pages redesign | Code — **History approved** (`/immigration/visa-bulletin/tracker-2`); **Movement Tracker promoted** (`/immigration/visa-bulletin-movement`); **Dashboard promoted** (`/immigration/visa-bulletin`) |
 | 9 | Calculator redesign | Code — form and results polish |
 | 10 | Manage Profile redesign | Code — profile hub polish |
 
@@ -224,3 +224,4 @@ Every task must include:
 |---------|------|------|-------------|
 | v1.0 | 2026-07-04 | S4-005.16 | Sprint 5 handoff — Design System 2.0 & Product Experience |
 | v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 approved — first Sprint 5 page complete |
+| v1.2 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard and Movement Tracker promoted; DS 2.0 progress updated |

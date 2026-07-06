@@ -3,12 +3,12 @@
 | Field | Value |
 |-------|-------|
 | **Title** | Visa Bulletin Dashboard Design System 2.0 |
-| **Version** | v1.0 |
+| **Version** | v1.1 |
 | **Sprint** | Sprint 5 |
 | **Task ID** | S5-008 |
 | **Last Updated** | 2026-07-06 |
 | **Owner** | Technical Architecture (CTO) |
-| **Status** | **Approved — ready for promotion to official implementation** |
+| **Status** | **Approved — promoted to official implementation** |
 
 **Related documentation:** [DESIGN_SYSTEM_2.0.md](./DESIGN_SYSTEM_2.0.md) · [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) · [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) · [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) · [../CURRENT_PROJECT_STATE.md](../CURRENT_PROJECT_STATE.md) · [../ROADMAP_v2.md](../ROADMAP_v2.md)
 
@@ -16,15 +16,15 @@
 
 ## Summary
 
-The **Visa Bulletin Dashboard** page is the **third completed Sprint 5 Design System 2.0 redesign** (after Visa Bulletin History and Movement Tracker). The mockup developed and reviewed on the preview route has been **approved** and is designated as the **new official implementation target** for this free-tier feature.
+The **Visa Bulletin Dashboard** page is the **third completed Sprint 5 Design System 2.0 redesign** (after Visa Bulletin History and Movement Tracker). The mockup developed and reviewed on the preview route has been **approved** and **promoted** as the **official production implementation** for this free-tier feature.
 
-This document records what was delivered, what changed from the v0.4.1 production page, what architecture was preserved, and the UX decisions made during mockup review.
+This document records what was delivered, what changed from the v0.4.1 production page, what architecture was preserved, the UX decisions made during mockup review, and the production promotion executed on 2026-07-06.
 
 | Field | Value |
 |-------|-------|
-| **Production route (current)** | `/immigration/visa-bulletin` |
-| **Design System 2.0 mockup route** | `/immigration/visa-bulletin-dashboard-2` |
-| **Promotion status** | Approved — mockup becomes official target |
+| **Production route (official)** | `/immigration/visa-bulletin` |
+| **Former mockup route** | `/immigration/visa-bulletin-dashboard-2` → redirects to production |
+| **Promotion status** | ✅ **Promoted — DS 2.0 live on production route** |
 | **Subscription tier** | Free (no `PremiumFeaturePreview` gating) |
 | **Architecture preserved** | API/data layer, SWR client pattern, Final Action + Dates for Filing data types |
 
@@ -39,7 +39,7 @@ The redesign applies the Sprint 5 commercial SaaS visual language to the Visa Bu
 | Deliverable | Description |
 |-------------|-------------|
 | **Design System 2.0 styling** | Premium SaaS look — refined cards, spacing, typography, and elevation aligned with Movement Tracker 2.0 |
-| **Compact page header** | Icon, title, MOCK badge only — no breadcrumb, no hero section, no subtitle line |
+| **Compact page header** | Icon and title only — no MOCK badge in production; no breadcrumb, hero section, or subtitle line |
 | **Dual-panel desktop layout** | Final Action Dates and Dates for Filing shown **side by side** on `xl`+ screens |
 | **Mobile / tablet fallback** | Below `xl`: tab switcher between Final Action Dates and Dates for Filing (single table) |
 | **Related Tools footer** | Three linked cards with icons and chevrons (matches History / Movement pattern) |
@@ -82,7 +82,7 @@ The redesign applies the Sprint 5 commercial SaaS visual language to the Visa Bu
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ Header: icon + Visa Bulletin Dashboard 2 + MOCK badge                    │
+│ Header: icon + Visa Bulletin Dashboard                                   │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Jul-26 Visa Bulletin                          [EB ▼] [Country ▼] [Reset] │
 │ (Data source : U.S. Department of State Visa Bulletin)                   │
@@ -128,7 +128,7 @@ The following v0.4.1 decisions were **not** changed by this redesign:
 | **Client data pattern** | SWR + `jsonFetcher` + `visaBulletinSwrOptions` |
 | **Tab types** | Final Action Dates and Dates for Filing both supported |
 | **Authentication** | App-wide Clerk gate unchanged |
-| **Production component** | `VisaBulletinDashboardClient.tsx` untouched during mockup phase |
+| **Legacy component** | `VisaBulletinDashboardClient.tsx` retained but no longer served |
 
 ---
 
@@ -157,16 +157,18 @@ The Dashboard 2 mockup was built incrementally through reviewed Sprint 5 UX iter
 | UX iteration | Dual side-by-side panels (Final Action \| Dates for Filing) on desktop |
 | UX iteration | Colored bold panel headers; remove page subtitle |
 | UX iteration | Remove panel scroll cap; compact padding for full-table visibility |
-| Final review | **Approved** — ready for promotion |
+| Final review | **Approved** — promoted to production |
 
-### Implementation files (mockup route)
+### Implementation files
 
 | File | Role |
 |------|------|
-| `app/immigration/visa-bulletin-dashboard-2/page.tsx` | Server page — metadata, bulletin month prop from history sheet |
-| `components/VisaBulletinDashboard2.tsx` | Full DS 2.0 client UI |
+| `app/immigration/visa-bulletin/page.tsx` | **Production** server page — metadata, bulletin month prop from history sheet |
+| `components/VisaBulletinDashboard2.tsx` | **Production** DS 2.0 client UI |
+| `app/immigration/visa-bulletin-dashboard-2/page.tsx` | Redirect to production route |
+| `lib/immigration-menu.ts` | Immigration nav — links to `/immigration/visa-bulletin` |
 
-**Not modified during mockup:** `components/VisaBulletinDashboardClient.tsx`, `components/VisaBulletinDashboard.tsx`, `app/immigration/visa-bulletin/page.tsx`
+**Retained (not wired to production):** `components/VisaBulletinDashboardClient.tsx`, `components/VisaBulletinDashboard.tsx` — legacy v0.4.1; may be removed in a future cleanup task.
 
 ---
 
@@ -175,13 +177,25 @@ The Dashboard 2 mockup was built incrementally through reviewed Sprint 5 UX iter
 | Decision | Detail |
 |----------|--------|
 | **Approved** | Visa Bulletin Dashboard Design System 2.0 mockup |
-| **Becomes** | Official Visa Bulletin Dashboard implementation target |
+| **Promoted** | 2026-07-06 — DS 2.0 component live at `/immigration/visa-bulletin` |
 | **Production title** | Visa Bulletin Dashboard (no "2", no MOCK badge) |
-| **Next engineering step** | Promote mockup to production route `/immigration/visa-bulletin` *(future task)* |
-| **Production page during Sprint 5** | v0.4.1 implementation remains at `/immigration/visa-bulletin` until promotion executes |
-| **Mock route after promotion** | Remove or redirect `/immigration/visa-bulletin-dashboard-2` per release checklist |
+| **Immigration menu** | Points to `/immigration/visa-bulletin` with official product name |
+| **Mock route** | `/immigration/visa-bulletin-dashboard-2` redirects to production |
+| **Legacy component** | `VisaBulletinDashboardClient.tsx` retained but no longer served |
 
-S5-008 documents the **design approval**. Production promotion is a separate engineering task.
+---
+
+## Production Promotion (2026-07-06)
+
+| Change | Detail |
+|--------|--------|
+| **Production page** | `app/immigration/visa-bulletin/page.tsx` now renders `VisaBulletinDashboard2` |
+| **Bulletin month** | Server-fetched via `getLatestVisaBulletinMonth()` passed as `bulletinMonthLabel` prop |
+| **User-facing name** | Page title uses **Visa Bulletin Dashboard** |
+| **Mock route** | `visa-bulletin-dashboard-2` → permanent redirect to production |
+| **Deploy** | Pushed to `main` on GitHub (`ddcd8bf`); Cloudflare auto-deploy from `main` |
+
+S5-008 documents both the **design approval** and the **production promotion** executed after review.
 
 ---
 
@@ -192,7 +206,7 @@ S5-008 documents the **design approval**. Production promotion is a separate eng
 | Design System 2.0 documentation framework | ✅ Complete (S5-DOC-002) |
 | First DS 2.0 page — Visa Bulletin History | ✅ Complete (S5-004) |
 | Second DS 2.0 page — Movement Tracker | ✅ Complete (S5-007, promoted) |
-| **Third DS 2.0 page — Visa Bulletin Dashboard** | ✅ **Complete (approved mockup)** |
+| **Third DS 2.0 page — Visa Bulletin Dashboard** | ✅ **Complete (promoted to production)** |
 | Homepage redesign | ⏳ Planned |
 | Pricing redesign | ⏳ Planned |
 | Manage Profile redesign | ⏳ Planned |
@@ -205,3 +219,4 @@ S5-008 documents the **design approval**. Production promotion is a separate eng
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-06 | S5-008 | Document Visa Bulletin Dashboard DS 2.0 approval and deliverables |
+| v1.1 | 2026-07-06 | S5-008 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin` |
