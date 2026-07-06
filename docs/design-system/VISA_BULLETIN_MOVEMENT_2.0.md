@@ -243,7 +243,7 @@ S5-007 documents both the **design approval** and the **production promotion** e
 | **Second DS 2.0 page — Movement Tracker** | ✅ **Complete (promoted to production)** |
 | Homepage redesign | ⏳ Planned |
 | Pricing redesign | ⏳ Planned |
-| Dashboard redesign | ⏳ Planned |
+| Dashboard redesign | ✅ Complete (approved mockup — S5-008) |
 | Calculator redesign | ⏳ Planned |
 | Manage Profile redesign | ⏳ Planned |
 
