@@ -101,13 +101,21 @@ A first-time visitor should believe IMMIFIN is a **polished commercial SaaS prod
 
 See [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) for mandatory reading, deliverables, and first recommended task.
 
-### Sprint 5 progress (2026-07-05)
+### Sprint 5 progress (2026-07-06)
 
 | Milestone | Status |
 |-----------|--------|
 | Design System 2.0 documentation framework | ✅ Complete |
 | **Visa Bulletin History — first DS 2.0 page** | ✅ **Approved** |
-| Homepage, Pricing, Dashboard, Movement Tracker, Calculators, Profile redesigns | ⏳ Planned |
+| **Visa Bulletin Movement Tracker** | ✅ **Promoted** (2026-07-05) |
+| **Visa Bulletin Dashboard** | ✅ **Promoted** (2026-07-06) |
+| **Workspace page shell (`WorkspacePageShell`)** | ✅ **Complete** — site-wide DS 2.0 layout |
+| **My Immifin dashboard polish (v0.4.2)** | ✅ **Complete** — compact timelines, Immigration Details, Action Center |
+| **Favorites (Pro/Power)** | ✅ **Complete** |
+| **Pro calculator auto-population** | ✅ **Complete** |
+| Homepage, Pricing, Manage Profile full redesigns | ⏳ Planned |
+
+Production release: **v0.4.2** (`71d5add`) — see [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
 
 The Visa Bulletin History mockup (`/immigration/visa-bulletin/tracker-2`) has been **approved and promoted** as the official Design System 2.0 implementation for that page. See [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md).
 
@@ -143,3 +151,4 @@ Detailed task breakdowns for Sprints 6–10 will be created at the start of each
 |---------|------|------|-------------|
 | v2.0 | 2026-07-04 | S4-005.16 | Roadmap v2 — Design System 2.0 inserted as Sprint 5; prior sprints shifted forward |
 | v2.1 | 2026-07-05 | S5-004 | Sprint 5 in progress — Visa Bulletin History DS 2.0 approved as first page |
+| v2.2 | 2026-07-06 | S5-009 | v0.4.2 — dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |

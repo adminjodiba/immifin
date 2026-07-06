@@ -157,12 +157,14 @@ Design System 2.0 should be **documented and approved** before major page redesi
 | 4 | Reusable UI component foundation | Code — shared primitives in `components/ui/` or equivalent |
 | 5 | Homepage redesign | Code — public landing experience |
 | 6 | Pricing redesign | Code — plan comparison polish |
-| 7 | Dashboard redesign | Code — visual refresh on stable layout |
+| 7 | Dashboard redesign | Code — **v0.4.2 polish shipped** — compact employment timeline, Immigration Details sidebar, Action Center table, blurred preview for Free |
 | 8 | Visa Bulletin pages redesign | Code — **History approved** (`/immigration/visa-bulletin/tracker-2`); **Movement Tracker promoted** (`/immigration/visa-bulletin-movement`); **Dashboard promoted** (`/immigration/visa-bulletin`) |
-| 9 | Calculator redesign | Code — form and results polish |
+| 9 | Calculator redesign | Code — **Pro auto-population shipped**; DS 2.0 workspace layout on calculator pages |
 | 10 | Manage Profile redesign | Code — profile hub polish |
+| 11 | Workspace page shell | Code — ✅ **`WorkspacePageShell`** migrated across Immigration, Finance, Calculators, About, Pricing, Account, Dashboard, auth |
+| 12 | Favorites (Pro/Power) | Code — ✅ star on pages, nav dropdown, `/api/account/favorites`, max 10 |
 
-Deliverables 1–3 should precede deliverables 4–10.
+Deliverables 1–3 should precede deliverables 4–12.
 
 ---
 
@@ -225,3 +227,4 @@ Every task must include:
 | v1.0 | 2026-07-04 | S4-005.16 | Sprint 5 handoff — Design System 2.0 & Product Experience |
 | v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 approved — first Sprint 5 page complete |
 | v1.2 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard and Movement Tracker promoted; DS 2.0 progress updated |
+| v1.3 | 2026-07-06 | S5-009 | v0.4.2 — My Immifin dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |

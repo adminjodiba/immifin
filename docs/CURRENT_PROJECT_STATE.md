@@ -42,6 +42,11 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 | **Visa Bulletin History DS 2.0** | ✅ Approved — promotion pending |
 | **Visa Bulletin Movement Tracker DS 2.0** | ✅ **Promoted to production** |
 | **Visa Bulletin Dashboard DS 2.0** | ✅ **Promoted to production** |
+| **Workspace page shell (DS 2.0)** | ✅ **Complete** — `WorkspacePageShell`, `WorkspacePageHeader`, `WorkspaceSection` |
+| **My Immifin dashboard polish (v0.4.2)** | ✅ **Complete** — compact timeline cards, Immigration Details, Action Center |
+| **Favorites (Pro/Power)** | ✅ **Complete** — nav, star, API, max 10 |
+| **Pro calculator auto-population** | ✅ **Complete** — Green Card Wait Time + Citizenship |
+| **Subscription data retention policy** | ✅ **Documented** — tier changes never delete profile data |
 | Remaining Sprint 5 page redesigns | ⏳ Planned |
 | **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
 | **Pricing UX polish (S5-ENG-005/006)** | ✅ **Complete** — Current Plan / Upgrade / Switch buttons |
@@ -788,3 +793,4 @@ npm run dev:local
 | v3.1 | 2026-07-04 | S4-005.16 — Roadmap v2, Sprint 5 handoff, v0.4.1 sign-off |
 | v3.2 | 2026-07-05 | S5-004 — Visa Bulletin History DS 2.0 approved; Sprint 5 in progress |
 | v3.3 | 2026-07-05 | S5-ENG-004/005/006 — Subscription Foundation; Cloudflare deployment resolution documented |
+| v3.4 | 2026-07-06 | S5-009 — v0.4.2: My Immifin dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |

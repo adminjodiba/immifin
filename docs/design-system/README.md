@@ -115,6 +115,7 @@ See [../SPRINT_5_HANDOFF.md](../SPRINT_5_HANDOFF.md) and [../PRODUCT_VISION.md �
 | [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — Visa Bulletin History promotion |
 | [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) | Second approved DS 2.0 page — Movement Tracker promotion |
 | [VISA_BULLETIN_DASHBOARD_2.0.md](./VISA_BULLETIN_DASHBOARD_2.0.md) | Third approved DS 2.0 page — Visa Bulletin Dashboard promotion |
+| [MY_IMMIFIN_DASHBOARD_2.0.md](./MY_IMMIFIN_DASHBOARD_2.0.md) | My Immifin dashboard polish — v0.4.2 employment journey UX |
 
 Per-page packages live in `docs/design-pages/{page-slug}/`.
 
@@ -130,3 +131,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 | v1.3 | 2026-07-05 | S5-007 | Movement Tracker DS 2.0 promoted to production route |
 | v1.4 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard DS 2.0 promotion documented |
 | v1.5 | 2026-07-06 | S5-008 | Dashboard DS 2.0 promoted to production route |
+| v1.6 | 2026-07-06 | S5-009 | My Immifin dashboard polish documented (v0.4.2) |
