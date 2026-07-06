@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Visa Bulletin Dashboard 2 — Design System 2.0 mock (S5-008).
+ * Visa Bulletin Dashboard — Design System 2.0 (S5-008).
  * Visual language aligned with Visa Bulletin Movement Tracker (Sprint 5).
  */
 
@@ -434,14 +434,9 @@ export function VisaBulletinDashboard2({
                 </svg>
               </span>
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
-                  Visa Bulletin Dashboard 2
+                <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
+                  Visa Bulletin Dashboard
                 </h1>
-                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
-                    Mock
-                  </span>
-                </div>
               </div>
             </div>
         </header>
