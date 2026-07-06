@@ -23,47 +23,42 @@ function ActionAvailabilityBadge({ action }: { action: DashboardActionItem }) {
   return <span className="text-xs font-semibold text-emerald-700">Available</span>;
 }
 
-function actionRowClass(action: DashboardActionItem, interactive: boolean): string {
-  const base = "rounded-xl border px-4 py-3";
-
-  if (action.comingSoon || !interactive) {
-    return `${base} border-dashed border-slate-200 bg-slate-50/60`;
+function actionRowClass(action: DashboardActionItem): string {
+  if (action.comingSoon || action.locked) {
+    return "bg-slate-50/60";
   }
 
-  if (action.locked) {
-    return `${base} border-dashed border-slate-200 bg-slate-50/60 transition-colors hover:border-slate-300`;
-  }
-
-  return `${base} border-slate-200 bg-white transition-colors hover:border-brand-200 hover:bg-brand-50/40`;
+  return "transition-colors hover:bg-brand-50/40";
 }
 
-function ActionRow({ action }: { action: DashboardActionItem }) {
-  const content = (
-    <>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-900">{action.title}</p>
-        {action.description ? (
-          <p className="mt-0.5 text-xs leading-snug text-slate-500">{action.description}</p>
-        ) : null}
-      </div>
-      <div className="shrink-0 pl-3">
-        <ActionAvailabilityBadge action={action} />
-      </div>
-    </>
-  );
-
-  if (action.comingSoon || !action.href) {
-    return (
-      <div className={actionRowClass(action, false)}>
-        <div className="flex items-start justify-between gap-2">{content}</div>
-      </div>
-    );
-  }
+function ActionTableRow({ action }: { action: DashboardActionItem }) {
+  const hasLink = Boolean(action.href && !action.comingSoon);
 
   return (
-    <Link href={action.href} className={`block ${actionRowClass(action, true)}`}>
-      <div className="flex items-start justify-between gap-2">{content}</div>
-    </Link>
+    <tr className={`border-b border-slate-100 last:border-b-0 ${actionRowClass(action)}`}>
+      <td className="py-3 pr-4 align-top sm:whitespace-nowrap">
+        {hasLink ? (
+          <Link
+            href={action.href!}
+            className="text-sm font-semibold text-brand-700 underline underline-offset-2 decoration-brand-300 transition-colors hover:text-brand-800 hover:decoration-brand-500"
+          >
+            {action.title}
+          </Link>
+        ) : (
+          <p className="text-sm font-semibold text-slate-600">{action.title}</p>
+        )}
+      </td>
+      <td className="py-3 pr-4 align-top">
+        {action.description ? (
+          <p className="text-xs leading-snug text-slate-500">{action.description}</p>
+        ) : (
+          <span className="text-xs text-slate-400">—</span>
+        )}
+      </td>
+      <td className="py-3 align-top text-right sm:whitespace-nowrap">
+        <ActionAvailabilityBadge action={action} />
+      </td>
+    </tr>
   );
 }
 
@@ -74,14 +69,23 @@ export function DashboardActionCenterCard({
   const actions = getDashboardActionCenterItems(journeyStage, focusId);
 
   return (
-    <section className="card-static">
+    <section className="card-static overflow-x-auto">
       <h2 className="heading-3 text-slate-900">Action Center</h2>
       <p className="mt-1 text-sm text-slate-600">{ACTION_CENTER_SUBTITLE}</p>
-      <div className="mt-4 flex flex-col gap-2">
-        {actions.map((action) => (
-          <ActionRow key={action.id} action={action} />
-        ))}
-      </div>
+      <table className="mt-4 w-full min-w-[32rem] text-left">
+        <thead>
+          <tr className="border-b border-slate-200 text-[0.65rem] font-bold uppercase tracking-wide text-slate-500 sm:text-xs">
+            <th className="pb-3 pr-4 font-bold">Action</th>
+            <th className="pb-3 pr-4 font-bold">Description</th>
+            <th className="pb-3 text-right font-bold">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {actions.map((action) => (
+            <ActionTableRow key={action.id} action={action} />
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatCategoryLabel, formatCountryLabel, formatDisplayDate } from "@/lib/dashboard/formatProfileLabels";
 import type { EmploymentJourneyData } from "@/lib/dashboard/employmentJourney";
 import type { GreenCardJourneyData } from "@/lib/dashboard/journeyDates";
+import { hasValidGreenCardDate } from "@/lib/dashboard/journeyStage";
 import type { ImmigrationProfile } from "@/lib/supabase/types";
 
 type ProfileFieldProps = {
@@ -38,25 +39,24 @@ function EmploymentYourJourneyContent({
   return (
     <dl className="mt-5 space-y-4">
       <ProfileField label="Stage" value="Employment-Based Green Card" />
-      <ProfileField
-        label="Category"
-        value={formatCategoryLabel(immigrationProfile.default_category)}
-      />
-      <ProfileField
-        label="Country"
-        value={formatCountryLabel(immigrationProfile.default_country)}
-      />
-      <ProfileField label="Priority Date" value={journey.priorityDateFormatted} />
-      {journey.preferredBulletinTypeLabel ? (
-        <ProfileField label="Preferred Bulletin Type" value={journey.preferredBulletinTypeLabel} />
-      ) : null}
-      <ProfileField label="Current Visa Bulletin" value={journey.bulletinMonthLabel} />
-      {immigrationProfile.updated_at ? (
+      <div className="grid grid-cols-2 gap-4">
         <ProfileField
-          label="Last Updated"
-          value={formatDisplayDate(immigrationProfile.updated_at)}
+          label="Category"
+          value={formatCategoryLabel(immigrationProfile.default_category)}
+        />
+        <ProfileField
+          label="Country"
+          value={formatCountryLabel(immigrationProfile.default_country)}
+        />
+      </div>
+      <ProfileField label="Priority Date" value={journey.priorityDateFormatted} />
+      {hasValidGreenCardDate(immigrationProfile.green_card_issue_date) ? (
+        <ProfileField
+          label="Green Card Issue Date"
+          value={formatDisplayDate(immigrationProfile.green_card_issue_date)}
         />
       ) : null}
+      <ProfileField label="Current Visa Bulletin" value={journey.bulletinMonthLabel} />
     </dl>
   );
 }
@@ -65,7 +65,9 @@ function GreenCardYourJourneyContent({ journey }: Omit<GreenCardYourJourneyProps
   return (
     <dl className="mt-5 space-y-4">
       <ProfileField label="Stage" value="Permanent Resident" />
-      <ProfileField label="Green Card Since" value={journey.greenCardIssueDateFormatted} />
+      {journey.greenCardIssueDateFormatted ? (
+        <ProfileField label="Green Card Issue Date" value={journey.greenCardIssueDateFormatted} />
+      ) : null}
       <ProfileField label="Years as Permanent Resident" value={journey.yearsAsPermanentResident} />
       <ProfileField
         label="Earliest N-400 Filing Date"
@@ -83,7 +85,7 @@ export function YourJourneySidebarCard(props: YourJourneySidebarCardProps) {
   return (
     <section className="card-static">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="heading-3 text-slate-900">Your Journey</h2>
+        <h2 className="heading-3 text-slate-900">Immigration Details</h2>
         <Link
           href={editHref}
           className="text-sm font-semibold text-brand-700 hover:text-brand-800"

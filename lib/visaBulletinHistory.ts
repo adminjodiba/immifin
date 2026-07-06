@@ -168,6 +168,21 @@ export async function getLatestVisaBulletinMonth(): Promise<string | null> {
   );
 }
 
+/** Formats YYYY-MM as long bulletin label, e.g. 2026-07 → July 2026. */
+export function formatVisaBulletinMonthLong(month: string): string {
+  const [year, monthNumber] = month.split("-");
+  const date = new Date(Number(year), Number(monthNumber) - 1, 1);
+
+  if (Number.isNaN(date.getTime())) {
+    return month;
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 /** Formats YYYY-MM as short bulletin label, e.g. 2026-07 → Jul-26. */
 export function formatVisaBulletinMonthShort(month: string): string {
   const [year, monthNumber] = month.split("-");

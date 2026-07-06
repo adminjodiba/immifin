@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { canAccessAutoCalculatorPopulation } from "@/lib/subscription/capabilities";
 import type { ImmigrationProfile } from "@/lib/supabase/types";
 
@@ -50,6 +51,8 @@ function mapImmigrationProfileToDefaults(
  */
 export function useImmigrationProfileDefaults() {
   const { isLoaded, isSignedIn } = useAuth();
+  const subscriptionContext = useSubscriptionTierContext();
+  const subscriptionLoading = Boolean(isSignedIn && (subscriptionContext?.isLoading ?? true));
   const { tier } = useEffectiveSubscriptionTier();
   const autoPopulationEnabled = canAccessAutoCalculatorPopulation(tier);
   const [defaults, setDefaults] = useState<ImmigrationProfileDefaults | null>(null);
@@ -60,7 +63,11 @@ export function useImmigrationProfileDefaults() {
       return;
     }
 
-    // Free / unsigned: no profile auto-load or auto-calculate.
+    if (subscriptionLoading) {
+      setLoaded(false);
+      return;
+    }
+
     if (!isSignedIn || !autoPopulationEnabled) {
       setDefaults(null);
       setLoaded(true);
@@ -70,6 +77,8 @@ export function useImmigrationProfileDefaults() {
     let cancelled = false;
 
     async function loadDefaults() {
+      setLoaded(false);
+
       try {
         const response = await fetch("/api/account/me");
 
@@ -102,12 +111,12 @@ export function useImmigrationProfileDefaults() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, autoPopulationEnabled]);
+  }, [isLoaded, isSignedIn, autoPopulationEnabled, subscriptionLoading]);
 
   return {
     defaults,
     loaded,
     autoPopulationEnabled,
-    showProAutoPopulationHint: Boolean(isLoaded && isSignedIn && !autoPopulationEnabled),
+    showProAutoPopulationHint: Boolean(isLoaded && isSignedIn && !subscriptionLoading && !autoPopulationEnabled),
   };
 }

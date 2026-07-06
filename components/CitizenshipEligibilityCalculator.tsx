@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   calculateCitizenshipEligibility,
@@ -9,6 +9,7 @@ import {
   type CitizenshipEligibilityResult,
 } from "@/lib/citizenship-eligibility";
 import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
+import { CalculatorProfilePrefillHint } from "@/components/CalculatorProfilePrefillHint";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
@@ -87,18 +88,27 @@ function ResultCard({
 }
 
 export function CitizenshipEligibilityCalculator() {
-  const { defaults, loaded, showProAutoPopulationHint } = useImmigrationProfileDefaults();
+  const { defaults, loaded, autoPopulationEnabled, showProAutoPopulationHint } =
+    useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
   const [marriedToUSCitizen, setMarriedToUSCitizen] = useState<boolean | null>(null);
   const [result, setResult] = useState<CitizenshipEligibilityResult | null>(null);
+  const [prefilledFromProfile, setPrefilledFromProfile] = useState(false);
+  const profileDefaultsApplied = useRef(false);
 
   useEffect(() => {
-    if (!loaded || !defaults) {
+    if (!loaded || !autoPopulationEnabled || !defaults || profileDefaultsApplied.current) {
       return;
     }
 
+    profileDefaultsApplied.current = true;
+
     const profileDate = defaults.greenCardIssueDate ?? "";
     const profileMarried = defaults.marriedToUSCitizen;
+
+    if (profileDate || profileMarried !== null) {
+      setPrefilledFromProfile(true);
+    }
 
     setGreenCardIssueDate((current) => current || profileDate);
     setMarriedToUSCitizen((current) => {
@@ -116,7 +126,7 @@ export function CitizenshipEligibilityCalculator() {
     if (profileDate && profileMarried !== null && profileMarried !== undefined) {
       setResult(calculateCitizenshipEligibility(profileDate, profileMarried));
     }
-  }, [loaded, defaults]);
+  }, [loaded, autoPopulationEnabled, defaults]);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const canCalculate = greenCardIssueDate !== "" && marriedToUSCitizen !== null;
@@ -162,6 +172,7 @@ export function CitizenshipEligibilityCalculator() {
 
         <div className="p-5 sm:p-8">
           {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
+          {prefilledFromProfile && autoPopulationEnabled ? <CalculatorProfilePrefillHint /> : null}
           <form className="space-y-8" onSubmit={handleCalculate} aria-label="Citizenship eligibility calculator">
             <div className="space-y-6">
               <div>
@@ -182,6 +193,7 @@ export function CitizenshipEligibilityCalculator() {
                   value={greenCardIssueDate}
                   onChange={(event) => {
                     setGreenCardIssueDate(event.target.value);
+                    setPrefilledFromProfile(false);
                     setResult(null);
                   }}
                   className={inputClassName}
@@ -212,6 +224,7 @@ export function CitizenshipEligibilityCalculator() {
                         type="button"
                         onClick={() => {
                           setMarriedToUSCitizen(option.value);
+                          setPrefilledFromProfile(false);
                           setResult(null);
                         }}
                         className={`min-h-[48px] rounded-xl border-2 px-4 py-3.5 text-sm font-semibold transition-all active:scale-[0.98] ${

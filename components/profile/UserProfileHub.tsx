@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { UserProfile } from "@clerk/nextjs";
 import { ContactProfileSection } from "@/components/profile/ContactProfileSection";
 import { GreenCardProfilePage } from "@/components/profile/GreenCardProfilePage";
@@ -9,6 +8,7 @@ import { ImmigrationProfileProvider } from "@/components/profile/ImmigrationProf
 import { NotificationsProfilePage } from "@/components/profile/NotificationsProfilePage";
 import { SubscriptionProfilePage } from "@/components/profile/SubscriptionProfilePage";
 import { ProfileDirtyStateProvider } from "@/components/profile/ProfileDirtyStateProvider";
+import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { UserProfileCloseAction } from "@/components/profile/UserProfileCloseAction";
 import {
   ContactTabIcon,
@@ -39,38 +39,6 @@ const userProfileAppearance = {
   },
 };
 
-function NotificationsTabIcon({ locked }: { locked: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <NotificationTabIcon />
-      {locked ? (
-        <span className="rounded bg-brand-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-800">
-          Pro
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
-function ProTabIcon({
-  icon,
-  locked,
-}: {
-  icon: ReactNode;
-  locked: boolean;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      {icon}
-      {locked ? (
-        <span className="rounded bg-brand-100 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-800">
-          Pro
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
 export function UserProfileHub() {
   const { tier } = useEffectiveSubscriptionTier();
   const devSubscriptionMode = isDevSubscriptionModeEnabled();
@@ -79,9 +47,13 @@ export function UserProfileHub() {
 
   return (
     <ProfileDirtyStateProvider>
-      <div className="mb-4 flex justify-end">
+      <header className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-2">
+          <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">Manage Profile</h1>
+          <FavoriteStar pageLabel="Manage Profile" pageHref="/user-profile" />
+        </div>
         <UserProfileCloseAction />
-      </div>
+      </header>
       <ImmigrationProfileProvider>
         <UserProfile routing="hash" appearance={userProfileAppearance}>
           <UserProfile.Page label="account" />
@@ -101,25 +73,21 @@ export function UserProfileHub() {
           <UserProfile.Page
             label={notificationsLocked ? "Notifications 🔒 PRO" : "Notifications"}
             url="notifications"
-            labelIcon={<NotificationsTabIcon locked={notificationsLocked} />}
+            labelIcon={<NotificationTabIcon />}
           >
             <NotificationsProfilePage />
           </UserProfile.Page>
           <UserProfile.Page
             label={immigrationProfileLocked ? "Immigration 🔒 PRO" : "Immigration"}
             url="immigration"
-            labelIcon={
-              <ProTabIcon icon={<ImmigrationTabIcon />} locked={immigrationProfileLocked} />
-            }
+            labelIcon={<ImmigrationTabIcon />}
           >
             <ImmigrationProfilePage />
           </UserProfile.Page>
           <UserProfile.Page
             label={immigrationProfileLocked ? "Green Card 🔒 PRO" : "Green Card"}
             url="green-card"
-            labelIcon={
-              <ProTabIcon icon={<GreenCardTabIcon />} locked={immigrationProfileLocked} />
-            }
+            labelIcon={<GreenCardTabIcon />}
           >
             <GreenCardProfilePage />
           </UserProfile.Page>

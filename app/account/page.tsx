@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
+import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { ContactOnboardingGuard } from "@/components/onboarding/ContactOnboardingGuard";
 import { AccountImmigrationProfileForm } from "@/components/profile/AccountImmigrationProfileForm";
 import {
@@ -46,23 +47,19 @@ function AccountPageContent() {
 export default function AccountPage() {
   return (
     <ContactOnboardingGuard>
-      <>
-        <PageHeader
-          breadcrumb="Account"
-          title="Account Settings"
-          description="Manage your immigration defaults for calculators and bulletin tools."
-        />
-
-        <section className="section-padding !pt-10 sm:!pt-16">
-          <div className="container-main">
-            <div className="mx-auto max-w-2xl">
-              <ImmigrationProfileProvider>
-                <AccountPageContent />
-              </ImmigrationProfileProvider>
-            </div>
+      <PageHeader
+        breadcrumb="Account"
+        title="Account Settings"
+        description="Manage your immigration defaults for calculators and bulletin tools."
+      >
+        <WorkspaceSection>
+          <div className="mx-auto max-w-2xl">
+            <ImmigrationProfileProvider>
+              <AccountPageContent />
+            </ImmigrationProfileProvider>
           </div>
-        </section>
-      </>
+        </WorkspaceSection>
+      </PageHeader>
     </ContactOnboardingGuard>
   );
 }

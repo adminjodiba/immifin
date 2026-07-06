@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
 import { createMetadata } from "@/lib/metadata";
 
@@ -11,14 +12,12 @@ export const metadata = createMetadata({
 
 export default function PricingPage() {
   return (
-    <>
-      <PageHeader
-        breadcrumb="Pricing"
-        title="Choose Your Immifin Plan"
-        description="Start free. Upgrade when you are ready for automation and intelligence."
-      />
-
+    <PageHeader
+      breadcrumb="Pricing"
+      title="Choose Your Immifin Plan"
+      description="Start free. Upgrade when you are ready for automation and intelligence."
+    >
       <PricingPlans />
-    </>
+    </PageHeader>
   );
 }

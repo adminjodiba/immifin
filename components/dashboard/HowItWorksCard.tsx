@@ -6,9 +6,6 @@ type HowItWorksCardProps = {
 
 const employmentItems = [
   "Your Priority Date is your fixed milestone — it does not change.",
-  "Visa Bulletin dates move monthly and determine when your case may advance.",
-  "Dates for Filing relates to Form I-485 filing eligibility.",
-  "Final Action Date relates to Green Card approval eligibility.",
   {
     text: "Green means the Visa Bulletin cutoff has reached or passed your Priority Date.",
     emphasis: "Green",

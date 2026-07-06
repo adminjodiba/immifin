@@ -17,13 +17,6 @@ type TimelineSegment = {
 
 type MarkerKind = "cutoff" | "priority" | "today";
 
-type TimelineMarker = {
-  kind: MarkerKind;
-  percent: number;
-};
-
-const LABEL_COLLISION_THRESHOLD = 12;
-
 function markerPositionStyle(percent: number): CSSProperties {
   if (percent <= 0) {
     return { left: "0%" };
@@ -60,13 +53,9 @@ function getCardTitle(title: string): string {
   return title;
 }
 
-function getCardSubtitle(title: string, fallback: string): string {
-  if (title === "Dates for Filing") {
-    return "We compare the Visa Bulletin Dates for Filing with your Priority Date.";
-  }
-
-  if (title === "Final Action Date") {
-    return "We compare the Visa Bulletin Final Action Date with your Priority Date.";
+function getCardSubtitle(title: string, fallback: string): string | null {
+  if (title === "Dates for Filing" || title === "Final Action Date") {
+    return null;
   }
 
   return fallback;
@@ -169,36 +158,6 @@ function cutoffLabelTitleClass(timeline: BulletinTimelineCardData): string {
   return timeline.isPositive ? "text-emerald-700" : "text-red-700";
 }
 
-function resolveLabelRow(timeline: BulletinTimelineCardData): {
-  cutoffOffset: "upper" | "lower";
-  priorityOffset: "upper" | "lower";
-} {
-  const isCollision =
-    Math.abs(timeline.cutoffMarkerPercent - timeline.priorityMarkerPercent) <
-    LABEL_COLLISION_THRESHOLD;
-
-  if (!isCollision) {
-    return { cutoffOffset: "upper", priorityOffset: "upper" };
-  }
-
-  if (timeline.cutoffMarkerPercent <= timeline.priorityMarkerPercent) {
-    return { cutoffOffset: "upper", priorityOffset: "lower" };
-  }
-
-  return { cutoffOffset: "lower", priorityOffset: "upper" };
-}
-
-function InfoIcon() {
-  return (
-    <span
-      className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700"
-      aria-hidden="true"
-    >
-      i
-    </span>
-  );
-}
-
 function TimelineDot({
   kind,
   timeline,
@@ -217,7 +176,7 @@ function TimelineDot({
 
   return (
     <span
-      className={`absolute top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 rounded-full ring-4 ${edgeClass} ${markerDotClass(kind, timeline)}`}
+      className={`absolute top-1/2 z-10 h-3 w-3 -translate-y-1/2 rounded-full ring-2 ${edgeClass} ${markerDotClass(kind, timeline)}`}
       style={style}
       aria-hidden="true"
     />
@@ -226,18 +185,16 @@ function TimelineDot({
 
 function PositionedBlock({
   percent,
-  rowOffset,
   children,
   className = "",
 }: {
   percent: number;
-  rowOffset?: "upper" | "lower";
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div
-      className={`absolute max-w-[9.5rem] px-0.5 sm:max-w-[10.5rem] ${rowOffset === "lower" ? "top-[2.75rem]" : "top-0"} ${markerAlignClass(percent)} ${className}`}
+      className={`absolute max-w-[9.5rem] px-0.5 sm:max-w-[10.5rem] ${markerAlignClass(percent)} ${className}`}
       style={markerPositionStyle(percent)}
     >
       {children}
@@ -245,68 +202,101 @@ function PositionedBlock({
   );
 }
 
+function MarkerConnector({
+  percent,
+  span = false,
+  extendIntoBar = false,
+  placement = "below",
+}: {
+  percent: number;
+  span?: boolean;
+  extendIntoBar?: boolean;
+  placement?: "above" | "below";
+}) {
+  const positionClass =
+    percent <= 0
+      ? "ml-[6px]"
+      : percent >= 100
+        ? "right-0 mr-[6px]"
+        : "-translate-x-1/2";
+
+  const sizeClass = span
+    ? extendIntoBar && placement === "below"
+      ? "-top-1 h-[calc(100%+0.25rem)]"
+      : extendIntoBar && placement === "above"
+        ? "top-0 h-[calc(100%+0.25rem)]"
+        : "top-0 h-full"
+    : "top-0 h-3";
+
+  return (
+    <span
+      className={`absolute block w-px border-l border-dashed border-slate-400 ${positionClass} ${sizeClass}`}
+      style={percent > 0 && percent < 100 ? markerPositionStyle(percent) : undefined}
+      aria-hidden="true"
+    />
+  );
+}
+
+function TimelineMarkerLabel({
+  title,
+  date,
+  titleClassName,
+}: {
+  title: string;
+  date: string;
+  titleClassName: string;
+}) {
+  return (
+    <p className="text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+      <span className={`font-bold uppercase tracking-wide ${titleClassName}`}>{title}</span>
+      <span className="mx-1 text-slate-300" aria-hidden="true">
+        ·
+      </span>
+      <span className="font-medium text-slate-700">{date}</span>
+    </p>
+  );
+}
+
 function EbTimelineTrack({ timeline }: { timeline: BulletinTimelineCardData }) {
   const segments = buildSegments(timeline);
-  const markers: TimelineMarker[] = [
-    { kind: "cutoff", percent: timeline.cutoffMarkerPercent },
-    { kind: "priority", percent: timeline.priorityMarkerPercent },
-    { kind: "today", percent: timeline.todayMarkerPercent },
-  ];
-  const { cutoffOffset, priorityOffset } = resolveLabelRow(timeline);
-  const hasLowerRow = cutoffOffset === "lower" || priorityOffset === "lower";
 
   return (
     <div className="mx-auto w-full max-w-[1000px]">
-      <div className={`relative ${hasLowerRow ? "min-h-[4rem]" : "min-h-[3rem]"}`}>
-        <PositionedBlock percent={timeline.cutoffMarkerPercent} rowOffset={cutoffOffset}>
-          <p
-            className={`text-[0.65rem] font-bold uppercase leading-snug tracking-wide sm:text-xs ${cutoffLabelTitleClass(timeline)}`}
-          >
-            {cutoffLabelTitle(timeline)}
-          </p>
-          <p className="mt-0.5 text-xs font-medium text-slate-700">{timeline.cutoffFormatted}</p>
-        </PositionedBlock>
-
-        <PositionedBlock percent={timeline.priorityMarkerPercent} rowOffset={priorityOffset}>
-          <p className="text-[0.65rem] font-bold uppercase leading-snug tracking-wide text-emerald-700 sm:text-xs">
-            Your Priority Date
-          </p>
-          <p className="mt-0.5 text-xs font-medium text-slate-700">
-            {timeline.priorityDateFormatted}
-          </p>
+      <div className="relative h-7">
+        <PositionedBlock percent={timeline.priorityMarkerPercent}>
+          <TimelineMarkerLabel
+            title="Priority Date"
+            date={timeline.priorityDateFormatted}
+            titleClassName="text-emerald-700"
+          />
         </PositionedBlock>
 
         <PositionedBlock percent={timeline.todayMarkerPercent}>
-          <p className="text-[0.65rem] font-bold uppercase leading-snug tracking-wide text-brand-700 sm:text-xs">
-            Today
-          </p>
-          <p className="mt-0.5 text-xs font-medium text-slate-700">{timeline.todayFormatted}</p>
+          <TimelineMarkerLabel
+            title="Today"
+            date={timeline.todayFormatted}
+            titleClassName="text-brand-700"
+          />
         </PositionedBlock>
       </div>
 
-      <div className="relative mt-1 h-2.5">
-        {markers.map((marker) => (
-          <span
-            key={`${marker.kind}-connector`}
-            className={`absolute top-0 block h-3 w-px border-l border-dashed border-slate-300 ${
-              marker.percent <= 0
-                ? "ml-[6px]"
-                : marker.percent >= 100
-                  ? "right-0 mr-[6px]"
-                  : "-translate-x-1/2"
-            }`}
-            style={
-              marker.percent > 0 && marker.percent < 100
-                ? markerPositionStyle(marker.percent)
-                : undefined
-            }
-            aria-hidden="true"
-          />
-        ))}
+      <div className="relative mb-1 h-3">
+        <MarkerConnector
+          percent={timeline.priorityMarkerPercent}
+          span
+          extendIntoBar
+          placement="above"
+        />
+        <MarkerConnector
+          percent={timeline.todayMarkerPercent}
+          span
+          extendIntoBar
+          placement="above"
+        />
       </div>
 
-      <div className="relative py-0.5">
-        <div className="relative h-2 overflow-hidden rounded-full bg-slate-200">
+      <div className="relative">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-slate-200">
           {segments.map((segment, index) => (
             <div
               key={`${segment.from}-${segment.to}-${index}`}
@@ -328,11 +318,30 @@ function EbTimelineTrack({ timeline }: { timeline: BulletinTimelineCardData }) {
         />
         <TimelineDot kind="today" timeline={timeline} />
       </div>
+
+      <div className="relative mt-1 h-3">
+        <MarkerConnector
+          percent={timeline.cutoffMarkerPercent}
+          span
+          extendIntoBar
+          placement="below"
+        />
+      </div>
+
+      <div className="relative h-7 pt-0.5">
+        <PositionedBlock percent={timeline.cutoffMarkerPercent}>
+          <TimelineMarkerLabel
+            title={cutoffLabelTitle(timeline)}
+            date={timeline.cutoffFormatted}
+            titleClassName={cutoffLabelTitleClass(timeline)}
+          />
+        </PositionedBlock>
+      </div>
     </div>
   );
 }
 
-function DaysSincePriorityCard({ timeline }: { timeline: BulletinTimelineCardData }) {
+function DaysSincePriorityHeaderStat({ timeline }: { timeline: BulletinTimelineCardData }) {
   const daysColor =
     timeline.status === "unavailable"
       ? "text-slate-700"
@@ -341,15 +350,12 @@ function DaysSincePriorityCard({ timeline }: { timeline: BulletinTimelineCardDat
         : "text-red-700";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+    <div className="text-center">
+      <p className="text-[0.625rem] font-bold uppercase tracking-wide text-slate-500 sm:text-[0.6875rem]">
         Days Since Priority Date
       </p>
-      <p className={`mt-1.5 text-2xl font-bold sm:text-3xl ${daysColor}`}>
+      <p className={`mt-0.5 text-base font-bold leading-none sm:text-lg ${daysColor}`}>
         {timeline.daysSincePriorityDate.toLocaleString()} days
-      </p>
-      <p className="mt-2 text-xs leading-relaxed text-slate-500">
-        From your priority date ({timeline.priorityDateFormatted}) to today
       </p>
     </div>
   );
@@ -360,17 +366,17 @@ function EbTimelineStatusCard({ timeline }: { timeline: BulletinTimelineCardData
 
   if (timeline.status === "unavailable") {
     return (
-      <div className="rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-3.5 sm:p-4">
-        <div className="flex gap-3">
-          <span className="text-lg leading-none" aria-hidden="true">
+      <div className="rounded-lg border border-brand-200 bg-brand-50/70 px-3 py-2.5">
+        <div className="flex gap-2.5">
+          <span className="text-sm leading-none" aria-hidden="true">
             ℹ️
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-slate-900">Data Unavailable</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
               {timeline.title === "Final Action Date"
-                ? "The Final Action Date is currently unavailable for your category and country. IMMIFIN will update this chart when bulletin data becomes available."
-                : "We could not determine this status from the current Visa Bulletin data. Please check your profile details or try again later."}
+                ? "Final Action Date is unavailable for your category and country right now."
+                : "We could not determine this status from the current Visa Bulletin data."}
             </p>
           </div>
         </div>
@@ -380,50 +386,54 @@ function EbTimelineStatusCard({ timeline }: { timeline: BulletinTimelineCardData
 
   if (timeline.isPositive) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-3.5 sm:p-4">
-        <div className="flex gap-3">
-          <span className="text-lg leading-none" aria-hidden="true">
-            🎉
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">Great News!</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              {chartType === "filing"
-                ? "The Dates for Filing cutoff has reached your Priority Date. You may now be eligible to file Form I-485, subject to current USCIS filing guidance."
-                : "The Final Action Date has reached your Priority Date. Your Green Card approval may now be possible once all required processing is complete."}
-            </p>
-            <Link
-              href="/immigration/visa-bulletin"
-              className="mt-3 inline-flex text-sm font-semibold text-brand-700 hover:text-brand-800"
-            >
-              View Visa Bulletin Dashboard →
-            </Link>
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2.5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 gap-2.5">
+            <span className="text-sm leading-none" aria-hidden="true">
+              🎉
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900">Great News!</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                {chartType === "filing"
+                  ? "The Dates for Filing cutoff has reached your Priority Date. You may be eligible to file Form I-485."
+                  : "The Final Action Date has reached your Priority Date. Green Card approval may now be possible."}
+              </p>
+            </div>
           </div>
+          <Link
+            href="/immigration/visa-bulletin"
+            className="inline-flex shrink-0 text-xs font-semibold text-brand-700 hover:text-brand-800 sm:pt-0.5"
+          >
+            View Visa Bulletin →
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-3.5 sm:p-4">
-      <div className="flex gap-3">
-        <span className="text-lg leading-none" aria-hidden="true">
-          📈
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">Still Waiting</p>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            {chartType === "filing"
-              ? "The Dates for Filing cutoff has not reached your Priority Date yet. IMMIFIN will continue helping you track monthly movement."
-              : "The Final Action Date has not reached your Priority Date yet. IMMIFIN will continue helping you monitor when your category becomes current."}
-          </p>
-          <Link
-            href="/immigration/visa-bulletin"
-            className="mt-3 inline-flex text-sm font-semibold text-brand-700 hover:text-brand-800"
-          >
-            View Visa Bulletin Dashboard →
-          </Link>
+    <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-2.5">
+          <span className="text-sm leading-none" aria-hidden="true">
+            📈
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-900">Still Waiting</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              {chartType === "filing"
+                ? "The Dates for Filing cutoff has not reached your Priority Date yet."
+                : "The Final Action Date has not reached your Priority Date yet."}
+            </p>
+          </div>
         </div>
+        <Link
+          href="/immigration/visa-bulletin"
+          className="inline-flex shrink-0 text-xs font-semibold text-brand-700 hover:text-brand-800 sm:pt-0.5"
+        >
+          View Visa Bulletin →
+        </Link>
       </div>
     </div>
   );
@@ -431,40 +441,40 @@ function EbTimelineStatusCard({ timeline }: { timeline: BulletinTimelineCardData
 
 export function VisaBulletinJourneyCard({ timeline }: VisaBulletinJourneyCardProps) {
   const badge = statusBadgePresentation(timeline);
+  const cardSubtitle = getCardSubtitle(timeline.title, timeline.subtitle);
 
   return (
-    <section className={`card-static overflow-hidden border !py-4 sm:!py-5 ${cardBorderClass(timeline)}`}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex min-w-0 items-start gap-2">
-          <h2 className="heading-3 text-slate-900">{getCardTitle(timeline.title)}</h2>
-          <InfoIcon />
-        </div>
+    <section className={`card-static overflow-hidden border !py-3 sm:!py-4 ${cardBorderClass(timeline)}`}>
+      <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <h2 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg sm:justify-self-start">
+          {getCardTitle(timeline.title)}
+        </h2>
+
+        {timeline.title === "Dates for Filing" ? (
+          <DaysSincePriorityHeaderStat timeline={timeline} />
+        ) : (
+          <span className="hidden sm:block" aria-hidden="true" />
+        )}
+
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${badge.wrapper}`}
+          className={`inline-flex w-fit items-center gap-1.5 justify-self-start rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold sm:justify-self-end sm:px-3 sm:py-1 sm:text-xs ${badge.wrapper}`}
         >
-          <span className={`h-2 w-2 rounded-full ${badge.dot}`} aria-hidden="true" />
+          <span className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 ${badge.dot}`} aria-hidden="true" />
           {timeline.statusLabel}
         </span>
       </div>
 
-      <p className="mt-1 max-w-3xl text-sm leading-snug text-slate-600">
-        {getCardSubtitle(timeline.title, timeline.subtitle)}
-      </p>
+      {cardSubtitle ? (
+        <p className="mt-1 max-w-3xl text-xs leading-snug text-slate-600 sm:text-sm">{cardSubtitle}</p>
+      ) : null}
 
-      <div className="mt-3">
+      <div className="mt-2">
         <EbTimelineTrack timeline={timeline} />
       </div>
 
-      {timeline.status === "unavailable" ? (
-        <div className="mt-3.5">
-          <EbTimelineStatusCard timeline={timeline} />
-        </div>
-      ) : (
-        <div className="mt-3.5 grid gap-3 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)]">
-          <DaysSincePriorityCard timeline={timeline} />
-          <EbTimelineStatusCard timeline={timeline} />
-        </div>
-      )}
+      <div className="mt-2.5">
+        <EbTimelineStatusCard timeline={timeline} />
+      </div>
     </section>
   );
 }

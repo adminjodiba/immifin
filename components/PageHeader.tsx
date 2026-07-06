@@ -1,37 +1,49 @@
-import Link from "next/link";
+import type { ReactNode } from "react";
+import { WorkspacePageHeader } from "@/components/layout/WorkspacePageHeader";
+import { workspaceContainerClass, WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 
 type PageHeaderProps = {
   title: string;
-  description: string;
+  description?: string;
   breadcrumb?: string;
   wide?: boolean;
+  pageHref?: string;
+  showFavorite?: boolean;
+  icon?: ReactNode;
+  actions?: ReactNode;
+  titleClassName?: string;
+  children?: ReactNode;
 };
 
-export function PageHeader({ title, description, breadcrumb, wide = false }: PageHeaderProps) {
-  const containerClass = wide ? "container-dashboard" : "container-main";
+export function PageHeader({
+  title,
+  description,
+  breadcrumb,
+  wide = false,
+  pageHref,
+  showFavorite = true,
+  icon,
+  actions,
+  titleClassName,
+  children,
+}: PageHeaderProps) {
+  const containerClass = workspaceContainerClass(wide);
 
   return (
-    <section className="relative overflow-hidden border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
-      <div className="absolute inset-0 bg-gradient-to-r from-brand-50/80 via-white to-white" />
-      <div className={`${containerClass} relative py-10 sm:py-14 lg:py-16`}>
-        {breadcrumb && (
-          <nav aria-label="Breadcrumb" className="mb-4">
-            <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-              <li>
-                <Link href="/" className="transition-colors hover:text-brand-700">
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden="true" className="text-slate-300">
-                /
-              </li>
-              <li className="font-medium text-brand-700">{breadcrumb}</li>
-            </ol>
-          </nav>
-        )}
-        <h1 className="heading-1 text-brand-900">{title}</h1>
-        <p className="mt-4 max-w-3xl text-lead">{description}</p>
+    <WorkspacePageShell wide={wide}>
+      <div className={`${containerClass} py-4 sm:py-5`}>
+        <WorkspacePageHeader
+          title={title}
+          description={description}
+          breadcrumb={breadcrumb}
+          pageHref={pageHref}
+          showFavorite={showFavorite}
+          icon={icon}
+          actions={actions}
+          titleClassName={titleClassName}
+        />
       </div>
-    </section>
+      {children}
+    </WorkspacePageShell>
   );
 }

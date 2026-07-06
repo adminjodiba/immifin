@@ -8,6 +8,7 @@ import {
   type LivePriorityDateCheck,
 } from "@/lib/visaBulletinData";
 import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
+import { CalculatorProfilePrefillHint } from "@/components/CalculatorProfilePrefillHint";
 import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
 import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 
@@ -98,13 +99,15 @@ function ResultCard({
 }
 
 export function GreenCardWaitTimeCalculator() {
-  const { defaults, loaded, showProAutoPopulationHint } = useImmigrationProfileDefaults();
+  const { defaults, loaded, autoPopulationEnabled, showProAutoPopulationHint } =
+    useImmigrationProfileDefaults();
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [priorityDate, setPriorityDate] = useState("");
   const [result, setResult] = useState<LivePriorityDateCheck | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [prefilledFromProfile, setPrefilledFromProfile] = useState(false);
   const profileDefaultsApplied = useRef(false);
 
   const savedGreenCardIssueDate =
@@ -138,7 +141,7 @@ export function GreenCardWaitTimeCalculator() {
   }
 
   useEffect(() => {
-    if (!loaded || !defaults || profileDefaultsApplied.current) {
+    if (!loaded || !autoPopulationEnabled || !defaults || profileDefaultsApplied.current) {
       return;
     }
 
@@ -155,18 +158,18 @@ export function GreenCardWaitTimeCalculator() {
         : "";
     const profilePriority = defaults.priorityDate ?? "";
 
+    if (profileCategory || profileCountry || profilePriority) {
+      setPrefilledFromProfile(true);
+    }
+
     setCategory((current) => current || profileCategory);
     setCountry((current) => current || profileCountry);
     setPriorityDate((current) => current || profilePriority);
 
-    if (defaults.greenCardIssueDate) {
-      return;
-    }
-
     if (profileCategory && profileCountry && profilePriority) {
       void runCheck(profileCategory, profileCountry, profilePriority);
     }
-  }, [loaded, defaults]);
+  }, [loaded, autoPopulationEnabled, defaults]);
 
   const maxDate = new Date().toISOString().split("T")[0];
   const canCalculate = category !== "" && country !== "" && priorityDate !== "";
@@ -213,6 +216,7 @@ export function GreenCardWaitTimeCalculator() {
 
         <div className="p-5 sm:p-8">
           {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
+          {prefilledFromProfile && autoPopulationEnabled ? <CalculatorProfilePrefillHint /> : null}
           {savedGreenCardIssueDate && (
             <div
               className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6"
@@ -250,6 +254,7 @@ export function GreenCardWaitTimeCalculator() {
                   value={category}
                   onChange={(event) => {
                     setCategory(event.target.value);
+                    setPrefilledFromProfile(false);
                     setResult(null);
                     setError(null);
                   }}
@@ -275,6 +280,7 @@ export function GreenCardWaitTimeCalculator() {
                   value={country}
                   onChange={(event) => {
                     setCountry(event.target.value);
+                    setPrefilledFromProfile(false);
                     setResult(null);
                     setError(null);
                   }}
@@ -302,6 +308,7 @@ export function GreenCardWaitTimeCalculator() {
                   value={priorityDate}
                   onChange={(event) => {
                     setPriorityDate(event.target.value);
+                    setPrefilledFromProfile(false);
                     setResult(null);
                     setError(null);
                   }}

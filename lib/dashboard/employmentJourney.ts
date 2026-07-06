@@ -10,8 +10,11 @@ import {
 } from "@/lib/dashboard/journeyDates";
 import { formatEligibilityDate } from "@/lib/citizenship-eligibility";
 import {
+  formatVisaBulletinMonthLong,
+  getLatestVisaBulletinMonth,
+} from "@/lib/visaBulletinHistory";
+import {
   comparePriorityToBulletin,
-  latestVisaBulletin,
   type LivePriorityDateCheck,
   type LivePriorityDateStatus,
 } from "@/lib/visaBulletinData";
@@ -277,9 +280,10 @@ export async function buildEmploymentJourneyData(
   let filingError: string | null = null;
   let finalActionError: string | null = null;
 
-  const [filingResult, finalActionResult] = await Promise.allSettled([
+  const [filingResult, finalActionResult, latestMonthResult] = await Promise.allSettled([
     comparePriorityToBulletin(priorityDate, category, chargeability, "filing"),
     comparePriorityToBulletin(priorityDate, category, chargeability, "final-action"),
+    getLatestVisaBulletinMonth(),
   ]);
 
   if (filingResult.status === "fulfilled") {
@@ -300,7 +304,10 @@ export async function buildEmploymentJourneyData(
         : "Unable to load Final Action Date data.";
   }
 
-  const bulletinMonthLabel = `${latestVisaBulletin.month} ${latestVisaBulletin.year}`;
+  const bulletinMonthLabel =
+    latestMonthResult.status === "fulfilled" && latestMonthResult.value
+      ? formatVisaBulletinMonthLong(latestMonthResult.value)
+      : "Unavailable";
 
   return {
     priorityDate,

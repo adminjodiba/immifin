@@ -1,13 +1,14 @@
 import { DashboardAccessGate } from "@/components/dashboard/DashboardAccessGate";
 import { MyImmifinWorkspaceHeader } from "@/components/dashboard/MyImmifinWorkspaceHeader";
 import { PersonalDashboard } from "@/components/dashboard/PersonalDashboard";
+import { workspaceContainerClass, WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { ContactOnboardingGuard } from "@/components/onboarding/ContactOnboardingGuard";
 import { getPersonalDashboardData } from "@/lib/dashboard/getPersonalDashboardData";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
   title: "My Immifin",
-  description: "Your personalized IMMIFIN workspace — immigration journey, profile, and next steps.",
+  description: "Your personalized Dashboard",
   path: "/dashboard",
 });
 
@@ -16,14 +17,14 @@ export default async function DashboardPage() {
 
   return (
     <ContactOnboardingGuard>
-      <section className="section-padding !pt-10 sm:!pt-16">
-        <div className="container-dashboard">
+      <WorkspacePageShell wide>
+        <div className={`${workspaceContainerClass(true)} space-y-3 py-4 sm:py-5`}>
           <MyImmifinWorkspaceHeader welcomeName={dashboardData.welcomeName} />
           <DashboardAccessGate>
             <PersonalDashboard {...dashboardData} />
           </DashboardAccessGate>
         </div>
-      </section>
+      </WorkspacePageShell>
     </ContactOnboardingGuard>
   );
 }

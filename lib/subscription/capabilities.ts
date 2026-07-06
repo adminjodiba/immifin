@@ -20,6 +20,7 @@ export const SUBSCRIPTION_CAPABILITIES = [
   "accessVisaHistory",
   "accessMovementTracker",
   "accessAutoCalculatorPopulation",
+  "accessFavorites",
 ] as const;
 
 export type SubscriptionCapability = (typeof SUBSCRIPTION_CAPABILITIES)[number];
@@ -42,6 +43,7 @@ const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
     accessVisaHistory: false,
     accessMovementTracker: false,
     accessAutoCalculatorPopulation: false,
+    accessFavorites: false,
   },
   pro: {
     accessPersonalDashboard: true,
@@ -54,6 +56,7 @@ const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
     accessVisaHistory: true,
     accessMovementTracker: true,
     accessAutoCalculatorPopulation: true,
+    accessFavorites: true,
   },
   power: {
     accessPersonalDashboard: true,
@@ -66,6 +69,7 @@ const CAPABILITIES_BY_TIER: Record<SubscriptionTier, TierCapabilities> = {
     accessVisaHistory: true,
     accessMovementTracker: true,
     accessAutoCalculatorPopulation: true,
+    accessFavorites: true,
   },
 };
 
@@ -119,4 +123,8 @@ export function canAccessMovementTracker(tier: SubscriptionTier): boolean {
 
 export function canAccessAutoCalculatorPopulation(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessAutoCalculatorPopulation");
+}
+
+export function canAccessFavorites(tier: SubscriptionTier): boolean {
+  return hasCapability(tier, "accessFavorites");
 }

@@ -1,4 +1,5 @@
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
+import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 
 type HeroProps = {
   title: string;
@@ -21,9 +22,12 @@ export function Hero({ title, subtitle, primaryCta, secondaryCta, compact = fals
               <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100">
                 Immigration &amp; Finance
               </span>
-              <h1 className="mt-3 whitespace-nowrap text-[clamp(0.9rem,3.8vw,2.25rem)] font-bold leading-tight tracking-tight text-white sm:mt-4">
-                {title}
-              </h1>
+              <div className="mt-3 flex items-center justify-center gap-2 sm:mt-4">
+                <h1 className="whitespace-nowrap text-[clamp(0.9rem,3.8vw,2.25rem)] font-bold leading-tight tracking-tight text-white">
+                  {title}
+                </h1>
+                <FavoriteStar pageLabel="Home" pageHref="/" variant="onDark" />
+              </div>
               <p className="mt-2 text-sm leading-relaxed text-blue-100 sm:mt-3 sm:text-base">
                 {subtitle}
               </p>
@@ -60,9 +64,12 @@ export function Hero({ title, subtitle, primaryCta, secondaryCta, compact = fals
           <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-100 backdrop-blur">
             Immigration &amp; Finance
           </span>
-          <h1 className="mt-6 text-3xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            {title}
-          </h1>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              {title}
+            </h1>
+            <FavoriteStar pageLabel="Home" pageHref="/" variant="onDark" />
+          </div>
           <p className="mt-6 text-base leading-relaxed text-blue-100 sm:text-xl">{subtitle}</p>
           {(primaryCta || secondaryCta) && (
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">

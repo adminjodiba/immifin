@@ -203,7 +203,7 @@ export function PricingPlans() {
         </div>
       ) : null}
 
-      <section id="plans" className="section-padding !pt-10 sm:!pt-16">
+      <section id="plans" className="workspace-section">
         <div className="container-main">
           {devMode ? (
             <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { CalculatorCard } from "@/components/CalculatorCard";
 import { calculators } from "@/lib/data/calculators";
 import { createMetadata } from "@/lib/metadata";
@@ -35,37 +36,33 @@ const categories = [
 
 export default function CalculatorsPage() {
   return (
-    <>
-      <PageHeader
-        breadcrumb="Calculators"
-        title="Calculators"
-        description="Free tools to help you plan your immigration timeline, estimate taxes, and make smarter financial decisions in America."
-      />
-
+    <PageHeader
+      breadcrumb="Calculators"
+      title="Calculators"
+      description="Free tools to help you plan your immigration timeline, estimate taxes, and make smarter financial decisions in America."
+    >
       {categories.map((category, index) => {
         const items = calculators.filter((c) => c.category === category.key);
         return (
-          <section
+          <WorkspaceSection
             key={category.key}
-            className={`section-padding ${index % 2 === 1 ? "section-alt" : ""}`}
+            alt={index % 2 === 1}
             aria-labelledby={`category-${category.key}`}
           >
-            <div className="container-main">
-              <h2 id={`category-${category.key}`} className="heading-2">
-                {category.label}
-              </h2>
-              <p className="mt-3 max-w-2xl text-lead">{category.description}</p>
-              <div className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-                {items.map((calculator) => (
-                  <article key={calculator.slug} id={calculator.slug} className="scroll-mt-24">
-                    <CalculatorCard calculator={calculator} />
-                  </article>
-                ))}
-              </div>
+            <h2 id={`category-${category.key}`} className="heading-2">
+              {category.label}
+            </h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{category.description}</p>
+            <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+              {items.map((calculator) => (
+                <article key={calculator.slug} id={calculator.slug} className="scroll-mt-24">
+                  <CalculatorCard calculator={calculator} />
+                </article>
+              ))}
             </div>
-          </section>
+          </WorkspaceSection>
         );
       })}
-    </>
+    </PageHeader>
   );
 }

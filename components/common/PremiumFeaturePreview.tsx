@@ -63,7 +63,7 @@ function PremiumFeatureInfoPanel({
   upgradeButtonText,
 }: PremiumFeatureInfoPanelProps) {
   return (
-    <section className="section-padding !pt-10 sm:!pt-16">
+    <section className="workspace-section">
       <div className="container-main">
         <div className="mx-auto max-w-2xl space-y-6">
           <header>

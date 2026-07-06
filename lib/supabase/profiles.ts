@@ -283,6 +283,9 @@ export async function updateProfileContact(
 /**
  * Update subscription plan for development mode and future Stripe billing.
  * Keeps profiles.plan and subscriptions.plan in sync for Stripe compatibility.
+ *
+ * Does not modify immigration profile, favorites, or other user setup data on
+ * downgrade — see lib/subscription/dataRetention.ts.
  */
 export async function updateSubscriptionPlan(
   profileId: string,

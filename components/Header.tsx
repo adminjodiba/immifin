@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Fragment } from "react";
 import { useAuth, useUser, UserButton } from "@clerk/nextjs";
 import { useEffect, useId, useRef, useState } from "react";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
+import {
+  FavoritesMobileSection,
+  FavoritesNavDropdown,
+} from "@/components/favorites/FavoritesNavDropdown";
 import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
@@ -292,7 +297,12 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
             {navLinks.map((link) => {
               if ("hasDropdown" in link && link.hasDropdown) {
                 if ("isMyImmifin" in link && link.isMyImmifin) {
-                  return <MyImmifinDropdown key={link.href} />;
+                  return (
+                    <Fragment key={link.href}>
+                      <MyImmifinDropdown />
+                      <FavoritesNavDropdown />
+                    </Fragment>
+                  );
                 }
                 if (link.href === "/immigration") {
                   return <ImmigrationDropdown key={link.href} />;
@@ -387,6 +397,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                               </ProtectedLink>
                             ),
                           )}
+                        </div>
+                        <div className="mt-2 border-t border-slate-200/80 pt-2">
+                          <FavoritesMobileSection onNavigate={onToggleMenu} />
                         </div>
                       </div>
                     );

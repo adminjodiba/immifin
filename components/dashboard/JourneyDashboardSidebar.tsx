@@ -1,4 +1,3 @@
-import { DashboardActionCenterCard } from "@/components/dashboard/DashboardActionCenterCard";
 import { DashboardTodaysFocusCard } from "@/components/dashboard/DashboardTodaysFocusCard";
 import { HowItWorksCard } from "@/components/dashboard/HowItWorksCard";
 import { YourJourneySidebarCard } from "@/components/dashboard/YourJourneySidebarCard";
@@ -34,9 +33,8 @@ export function JourneyDashboardSidebar(props: JourneyDashboardSidebarProps) {
           immigrationProfile={props.immigrationProfile}
           journey={props.journey}
         />
-        <HowItWorksCard variant="employment" />
         <DashboardTodaysFocusCard focus={focus} />
-        <DashboardActionCenterCard journeyStage="employment" focusId={focus.id} />
+        <HowItWorksCard variant="employment" />
       </>
     );
   }
@@ -46,9 +44,8 @@ export function JourneyDashboardSidebar(props: JourneyDashboardSidebarProps) {
   return (
     <>
       <YourJourneySidebarCard variant="green_card" journey={props.journey} />
-      <HowItWorksCard variant="green_card" />
       <DashboardTodaysFocusCard focus={focus} />
-      <DashboardActionCenterCard journeyStage="green_card" focusId={focus.id} />
+      <HowItWorksCard variant="green_card" />
     </>
   );
 }

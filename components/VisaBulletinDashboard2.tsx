@@ -6,6 +6,8 @@
  */
 
 import Link from "next/link";
+import { FavoriteStar } from "@/components/favorites/FavoriteStar";
+import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
@@ -419,7 +421,7 @@ export function VisaBulletinDashboard2({
   };
 
   return (
-    <div className="min-h-screen bg-[#eef4fb]">
+    <WorkspacePageShell>
       <div className="container-main py-4 sm:py-5">
         <header>
           <div className="flex items-start gap-2.5">
@@ -434,9 +436,12 @@ export function VisaBulletinDashboard2({
                 </svg>
               </span>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
-                  Visa Bulletin Dashboard
-                </h1>
+                <div className="flex items-start gap-2">
+                  <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
+                    Visa Bulletin Dashboard
+                  </h1>
+                  <FavoriteStar pageLabel="Visa Bulletin Dashboard" pageHref="/immigration/visa-bulletin" />
+                </div>
               </div>
             </div>
         </header>
@@ -615,6 +620,6 @@ export function VisaBulletinDashboard2({
           </p>
         </div>
       </div>
-    </div>
+    </WorkspacePageShell>
   );
 }

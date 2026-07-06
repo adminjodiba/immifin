@@ -12,6 +12,7 @@ import {
   resolveSubscriptionTier,
   type SubscriptionTier,
 } from "@/lib/subscription/tiers";
+import { SUBSCRIPTION_TIER_EVENT } from "@/lib/hooks/SubscriptionTierProvider";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 
 const DEV_TIER_EVENT = "immifin:devTier";
@@ -60,14 +61,23 @@ export function useEffectiveSubscriptionTier(storedTierProp: SubscriptionTier | 
 
     refresh();
 
+    function handleSubscriptionChange() {
+      refresh();
+    }
+
+    window.addEventListener(SUBSCRIPTION_TIER_EVENT, handleSubscriptionChange);
+
     if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
-      return;
+      return () => {
+        window.removeEventListener(SUBSCRIPTION_TIER_EVENT, handleSubscriptionChange);
+      };
     }
 
     window.addEventListener(DEV_TIER_EVENT, refresh);
     window.addEventListener("storage", refresh);
 
     return () => {
+      window.removeEventListener(SUBSCRIPTION_TIER_EVENT, handleSubscriptionChange);
       window.removeEventListener(DEV_TIER_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };

@@ -1,11 +1,11 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-05 (Subscription Foundation + Cloudflare deployment documentation)
+**Last Updated:** 2026-07-06 (Dashboard polish, Favorites, DS 2.0 workspace, v0.4.2)
 
 | Field | Value |
 |-------|-------|
 | **Current Sprint** | Sprint 5 — Design System 2.0 & Subscription Foundation |
-| **Production Version** | v0.4.1 Foundation Release |
+| **Production Version** | v0.4.2 |
 | **Repository** | `main` |
 | **Production Status** | 🟢 Stable |
 | **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
@@ -16,7 +16,11 @@
 
 ## Current Version
 
-**IMMIFIN v0.4.1 Foundation Release** (tag `v0.4.1`, commit `704bc7c`)
+**IMMIFIN v0.4.2** — Dashboard polish, Favorites, DS 2.0 workspace layout, Pro calculator auto-population
+
+See [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
+
+**Previous:** v0.4.1 Foundation Release (tag `v0.4.1`, commit `704bc7c`)
 
 ## Current Phase
 

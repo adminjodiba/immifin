@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/PageHeader";
 import { ContactOnboardingGuard } from "@/components/onboarding/ContactOnboardingGuard";
+import { WorkspacePageShell, workspaceContainerClass } from "@/components/layout/WorkspacePageShell";
 import { UserProfileHub } from "@/components/profile/UserProfileHub";
 import { createMetadata } from "@/lib/metadata";
 
@@ -12,21 +12,11 @@ export const metadata = createMetadata({
 export default function ManageProfilePage() {
   return (
     <ContactOnboardingGuard>
-      <>
-        <PageHeader
-          breadcrumb="Profile"
-          title="Manage Profile"
-          description="Update your Clerk account details, security settings, and IMMIFIN immigration planning fields."
-        />
-
-        <section className="section-padding !pt-10 sm:!pt-16">
-          <div className="container-main">
-            <div className="mx-auto max-w-5xl min-w-0">
-              <UserProfileHub />
-            </div>
-          </div>
-        </section>
-      </>
+      <WorkspacePageShell>
+        <div className={`${workspaceContainerClass()} py-4 sm:py-5`}>
+          <UserProfileHub />
+        </div>
+      </WorkspacePageShell>
     </ContactOnboardingGuard>
   );
 }
