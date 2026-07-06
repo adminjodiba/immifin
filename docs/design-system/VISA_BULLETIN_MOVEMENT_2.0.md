@@ -3,12 +3,12 @@
 | Field | Value |
 |-------|-------|
 | **Title** | Visa Bulletin Movement Tracker Design System 2.0 |
-| **Version** | v1.0 |
+| **Version** | v1.1 |
 | **Sprint** | Sprint 5 |
 | **Task ID** | S5-007 |
 | **Last Updated** | 2026-07-05 |
 | **Owner** | Technical Architecture (CTO) |
-| **Status** | **Approved — ready for promotion to official implementation** |
+| **Status** | **Approved — promoted to official implementation** |
 
 **Related documentation:** [DESIGN_SYSTEM_2.0.md](./DESIGN_SYSTEM_2.0.md) · [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) · [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) · [../CURRENT_PROJECT_STATE.md](../CURRENT_PROJECT_STATE.md) · [../ROADMAP_v2.md](../ROADMAP_v2.md)
 
@@ -16,15 +16,15 @@
 
 ## Summary
 
-The **Visa Bulletin Movement Tracker** page is the **second completed Sprint 5 Design System 2.0 redesign** (after Visa Bulletin History). The mockup developed and reviewed on the preview route has been **approved** and is designated as the **new official implementation target** for this Pro feature.
+The **Visa Bulletin Movement Tracker** page is the **second completed Sprint 5 Design System 2.0 redesign** (after Visa Bulletin History). The mockup developed and reviewed on the preview route has been **approved** and **promoted** as the **official production implementation** for this Pro feature.
 
-This document records what was delivered, what changed from the v0.4.1 production page, what shared business-logic updates were introduced, and what architecture was preserved.
+This document records what was delivered, what changed from the v0.4.1 production page, what shared business-logic updates were introduced, what architecture was preserved, and the production promotion executed on 2026-07-05.
 
 | Field | Value |
 |-------|-------|
-| **Production route (current)** | `/immigration/visa-bulletin-movement` |
-| **Design System 2.0 mockup route** | `/immigration/visa-bulletin-movement-2` |
-| **Promotion status** | Approved — mockup becomes official target |
+| **Production route (official)** | `/immigration/visa-bulletin-movement` |
+| **Former mockup route** | `/immigration/visa-bulletin-movement-2` → redirects to production |
+| **Promotion status** | ✅ **Promoted — DS 2.0 live on production route** |
 | **Subscription tier** | Pro / Power (`PremiumFeaturePreview`, `requiredTier="pro"`) |
 | **Architecture preserved** | Capabilities, Premium Feature Discovery, API/data layer, SWR client pattern |
 
@@ -40,7 +40,7 @@ The redesign applies the Sprint 5 commercial SaaS visual language to the Movemen
 |-------------|-------------|
 | **Design System 2.0 styling** | Premium SaaS look — refined cards, spacing, typography, and elevation aligned with Visa Bulletin History 2.0 |
 | **Three-section vertical workspace** | KPI summary → What Changed glance → All Changes table; single scrollable analysis flow |
-| **Simplified page header** | Icon, title, MOCK badge, subtitle left; Final Action / Dates for Filing tabs right only |
+| **Simplified page header** | Icon, title, subtitle left; Final Action / Dates for Filing tabs right only (no MOCK badge in production) |
 | **Removed header chrome** | Breadcrumb, Export, Share, Compare, and Refresh removed from mockup scope |
 | **Related Tools footer** | Three linked cards with icons and chevrons (matches History 2.0 related-tools pattern) |
 | **Legal disclaimer** | Compact informational footer retained |
@@ -196,12 +196,14 @@ The Movement Tracker 2 mockup was built incrementally through reviewed Sprint 5 
 
 | File | Role |
 |------|------|
-| `app/immigration/visa-bulletin-movement-2/page.tsx` | Server page — metadata, `PremiumFeaturePreview`, bulletin month prop |
-| `components/VisaBulletinMovementTracker2.tsx` | Full DS 2.0 client UI |
+| `app/immigration/visa-bulletin-movement/page.tsx` | **Production** server page — metadata, `PremiumFeaturePreview`, bulletin month prop |
+| `components/VisaBulletinMovementTracker2.tsx` | **Production** DS 2.0 client UI |
+| `app/immigration/visa-bulletin-movement-2/page.tsx` | Redirect to production route |
+| `lib/immigration-menu.ts` | Immigration nav — links to production route with official title |
 | `lib/visaBulletinHistory.ts` | `getLatestVisaBulletinMonth`, `formatVisaBulletinMonthShort` |
 | `lib/visaBulletinMovement.ts` | Both-Current → No Change classification |
 
-**Not modified during mockup:** `components/VisaBulletinMovementTracker.tsx`, `app/immigration/visa-bulletin-movement/page.tsx`
+**Retained (not wired to production):** `components/VisaBulletinMovementTracker.tsx` — legacy v0.4.1 component; may be removed in a future cleanup task.
 
 ---
 
@@ -210,12 +212,25 @@ The Movement Tracker 2 mockup was built incrementally through reviewed Sprint 5 
 | Decision | Detail |
 |----------|--------|
 | **Approved** | Visa Bulletin Movement Tracker Design System 2.0 mockup |
-| **Becomes** | Official Visa Bulletin Movement Tracker implementation target |
-| **Next engineering step** | Promote mockup components to production route `/immigration/visa-bulletin-movement` *(future task — not part of S5-007 documentation)* |
-| **Production page during Sprint 5** | v0.4.1 implementation remains at `/immigration/visa-bulletin-movement` until promotion task executes |
-| **Mock route after promotion** | Remove or redirect `/immigration/visa-bulletin-movement-2` per release checklist |
+| **Promoted** | 2026-07-05 — DS 2.0 component live at `/immigration/visa-bulletin-movement` |
+| **Production title** | Visa Bulletin Movement Tracker (no "2", no MOCK badge) |
+| **Immigration menu** | Points to `/immigration/visa-bulletin-movement` with official product name |
+| **Mock route** | `/immigration/visa-bulletin-movement-2` redirects to production |
+| **Legacy component** | `VisaBulletinMovementTracker.tsx` retained but no longer served |
 
-S5-007 documents the **approval and promotion decision**. Application code for the mockup is implemented; production promotion is a separate engineering task.
+---
+
+## Production Promotion (2026-07-05)
+
+| Change | Detail |
+|--------|--------|
+| **Production page** | `app/immigration/visa-bulletin-movement/page.tsx` now renders `VisaBulletinMovementTracker2` |
+| **Bulletin month** | Server-fetched via `getLatestVisaBulletinMonth()` passed as `bulletinMonthLabel` prop |
+| **User-facing name** | Page title and Immigration menu use **Visa Bulletin Movement Tracker** |
+| **Mock route** | `visa-bulletin-movement-2` → permanent redirect to production |
+| **Deploy** | Pushed to `main` on GitHub; Cloudflare auto-deploy from `main` |
+
+S5-007 documents both the **design approval** and the **production promotion** executed after review.
 
 ---
 
@@ -225,7 +240,7 @@ S5-007 documents the **approval and promotion decision**. Application code for t
 |-----------|--------|
 | Design System 2.0 documentation framework | ✅ Complete (S5-DOC-002) |
 | First DS 2.0 page — Visa Bulletin History | ✅ Complete (S5-004) |
-| **Second DS 2.0 page — Movement Tracker** | ✅ **Complete (approved mockup)** |
+| **Second DS 2.0 page — Movement Tracker** | ✅ **Complete (promoted to production)** |
 | Homepage redesign | ⏳ Planned |
 | Pricing redesign | ⏳ Planned |
 | Dashboard redesign | ⏳ Planned |
@@ -239,3 +254,4 @@ S5-007 documents the **approval and promotion decision**. Application code for t
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-05 | S5-007 | Document Visa Bulletin Movement Tracker DS 2.0 approval and deliverables |
+| v1.1 | 2026-07-05 | S5-007 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin-movement` |

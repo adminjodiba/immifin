@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Visa Bulletin Movement Tracker 2 — Design System 2.0 mock (S5-007).
+ * Visa Bulletin Movement Tracker — Design System 2.0 (S5-007).
  * Visual language aligned with Visa Bulletin History (Sprint 5).
  */
 
@@ -815,14 +815,9 @@ export function VisaBulletinMovementTracker2({
                 </svg>
               </span>
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">
-                    Visa Bulletin Movement Tracker 2
-                  </h1>
-                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
-                    Mock
-                  </span>
-                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">
+                  Visa Bulletin Movement Tracker
+                </h1>
                 <p className="mt-1 max-w-xl text-sm text-slate-600">
                   Compare Visa Bulletin movements between two consecutive months.
                 </p>

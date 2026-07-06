@@ -2,8 +2,12 @@ import {
   PremiumFeaturePreview,
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
-import { VisaBulletinMovementTracker } from "@/components/VisaBulletinMovementTracker";
+import { VisaBulletinMovementTracker2 } from "@/components/VisaBulletinMovementTracker2";
 import { createMetadata } from "@/lib/metadata";
+import {
+  formatVisaBulletinMonthShort,
+  getLatestVisaBulletinMonth,
+} from "@/lib/visaBulletinHistory";
 
 export const metadata = createMetadata({
   title: "Visa Bulletin Movement Tracker",
@@ -40,7 +44,10 @@ const MOVEMENT_TRACKER_INFO_STATE = {
   freeToolsLinks: FREE_TOOL_LINKS,
 } as const;
 
-export default function VisaBulletinMovementPage() {
+export default async function VisaBulletinMovementPage() {
+  const latestMonth = await getLatestVisaBulletinMonth();
+  const bulletinMonthLabel = latestMonth ? formatVisaBulletinMonthShort(latestMonth) : null;
+
   return (
     <PremiumFeaturePreview
       requiredTier="pro"
@@ -49,7 +56,7 @@ export default function VisaBulletinMovementPage() {
       showCloseButton
       infoState={MOVEMENT_TRACKER_INFO_STATE}
     >
-      <VisaBulletinMovementTracker />
+      <VisaBulletinMovementTracker2 bulletinMonthLabel={bulletinMonthLabel} />
     </PremiumFeaturePreview>
   );
 }

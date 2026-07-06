@@ -125,3 +125,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 | v1.0 | 2026-07-04 | S5-DOC-002 | Official Design System 2.0 documentation framework |
 | v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 promotion documented |
 | v1.2 | 2026-07-05 | S5-007 | Visa Bulletin Movement Tracker DS 2.0 promotion documented |
+| v1.3 | 2026-07-05 | S5-007 | Movement Tracker DS 2.0 promoted to production route |
