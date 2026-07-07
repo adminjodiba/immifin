@@ -65,7 +65,7 @@ function PremiumFeatureInfoPanel({
   return (
     <section className="workspace-section">
       <div className="container-main">
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="space-y-6">
           <header>
             <p className="text-sm font-medium text-brand-600">Pro Feature</p>
             <h2 className="heading-2 mt-2 text-slate-900">{infoState.title}</h2>

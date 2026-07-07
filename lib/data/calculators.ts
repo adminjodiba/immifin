@@ -12,10 +12,19 @@ export const calculators: Calculator[] = [
     slug: "citizenship-eligibility",
     title: "Citizenship Eligibility Calculator",
     description:
-      "Estimate when you may apply for U.S. citizenship based on your green card date and marital status.",
+      "Estimate when you may apply for U.S. citizenship based on your green card issue date.",
     category: "immigration",
     featured: true,
     href: "/calculators/citizenship-eligibility",
+  },
+  {
+    slug: "green-card-wait-time",
+    title: "Green Card Calculator",
+    description:
+      "Check how your priority date compares to the latest visa bulletin cutoffs.",
+    category: "immigration",
+    featured: true,
+    href: "/calculators/green-card-wait-time",
   },
   {
     slug: "visa-wait-time",
@@ -24,15 +33,6 @@ export const calculators: Calculator[] = [
       "Estimate processing times for common visa categories based on current USCIS data.",
     category: "immigration",
     featured: true,
-  },
-  {
-    slug: "green-card-priority-date",
-    title: "Green Card Priority Date Calculator",
-    description:
-      "Check how your priority date compares to the latest visa bulletin cutoffs.",
-    category: "immigration",
-    featured: true,
-    href: "/calculators/green-card-wait-time",
   },
   {
     slug: "tax-residency",
@@ -65,11 +65,20 @@ export const calculators: Calculator[] = [
     category: "finance",
   },
   {
-    slug: "h1b-lottery-odds",
-    title: "H-1B Lottery Odds Estimator",
+    slug: "h1b-wage-level-estimator",
+    title: "H-1B Wage Level Estimator",
     description:
-      "Understand your chances in the annual H-1B cap lottery based on registration data.",
+      "Estimate your likely H-1B wage level using occupation, location, salary, experience, and education.",
     category: "immigration",
+    href: "/immigration/h1b-wage-level-estimator",
+  },
+  {
+    slug: "h1b-lottery-odds-calculator",
+    title: "H-1B Lottery Odds Calculator",
+    description:
+      "Estimate your H-1B lottery odds using wage level and U.S. master's cap eligibility.",
+    category: "immigration",
+    href: "/immigration/h1b-lottery-odds-calculator",
   },
   {
     slug: "fica-exemption",

@@ -33,12 +33,11 @@ const values = [
 export default function AboutPage() {
   return (
     <PageHeader
-      breadcrumb="About"
       title="About Immifin"
       description="We help immigrants navigate the complexities of life in America — from visa applications to building wealth."
     >
       <WorkspaceSection>
-        <div className="card-static mx-auto max-w-3xl">
+        <div className="card-static">
           <h2 className="heading-2">Our Mission</h2>
           <p className="mt-5 text-sm leading-relaxed text-slate-600 sm:text-base">
             Moving to a new country is one of life&apos;s biggest transitions. Immifin was

@@ -20,7 +20,7 @@ export function ProFeatureLockedState({
   embedded = false,
 }: ProFeatureLockedStateProps) {
   const content = (
-    <div className={embedded ? "space-y-5 p-1" : "mx-auto max-w-2xl space-y-6"}>
+    <div className={embedded ? "space-y-5 p-1" : "w-full space-y-6"}>
       <header>
         <p className="text-sm font-medium text-brand-600">Pro Feature</p>
         <h2 className={`${embedded ? "heading-2 text-lg" : "heading-2"} mt-2 text-slate-900`}>

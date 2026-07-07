@@ -11,7 +11,6 @@ export const metadata = createMetadata({
 export default function ContactPreferencesOnboardingPage() {
   return (
     <ClerkAuthShell
-      breadcrumb="Onboarding"
       title="Complete your profile"
       description="Add your phone number to finish account setup. You only need to do this once."
     >

@@ -125,7 +125,7 @@ export function ImmigrationProfileSection() {
               onChange={(event) => setPriorityDate(event.target.value)}
             />
             <p className="mt-1.5 text-xs text-slate-500">
-              Used to prefill the Green Card Wait Time Calculator.
+              Used to prefill the Green Card Calculator.
             </p>
           </div>
         </>

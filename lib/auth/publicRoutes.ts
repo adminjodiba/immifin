@@ -1,10 +1,15 @@
 /**
  * Routes that do not require authentication (middleware).
- * Landing page `/` only — plus Clerk auth and required public endpoints.
+ * Public exploration surfaces per BUSINESS_MODEL.md — landing, pricing, manual calculators.
  */
+
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
   "/pricing",
+  "/calculators(.*)",
+  "/immigration/h1b-wage-level-estimator(.*)",
+  "/immigration/h1b-lottery-odds-calculator(.*)",
+  "/api/check-priority-date(.*)",
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",
@@ -12,10 +17,30 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/robots.txt",
 ] as const;
 
+function normalizePathname(path: string): string {
+  return path.split("?")[0]?.split("#")[0] ?? path;
+}
+
+/** Manual immigration calculators and the calculators index (Free tier — BUSINESS_MODEL §13). */
+export function isPublicCalculatorPath(path: string): boolean {
+  const pathname = normalizePathname(path);
+  return (
+    pathname === "/calculators" ||
+    pathname.startsWith("/calculators/") ||
+    pathname === "/immigration/h1b-wage-level-estimator" ||
+    pathname === "/immigration/h1b-lottery-odds-calculator"
+  );
+}
+
 /** Paths safe to navigate without sign-in. */
 export function isPublicLandingPath(path: string): boolean {
-  const pathname = path.split("?")[0]?.split("#")[0] ?? path;
-  return pathname === "/" || pathname === "" || pathname === "/pricing";
+  const pathname = normalizePathname(path);
+  return (
+    pathname === "/" ||
+    pathname === "" ||
+    pathname === "/pricing" ||
+    isPublicCalculatorPath(pathname)
+  );
 }
 
 /** Whether a href should prompt login when the visitor is signed out. */

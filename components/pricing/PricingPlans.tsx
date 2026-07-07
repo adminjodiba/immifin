@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { DevSubscriptionActivationDialog } from "@/components/pricing/DevSubscriptionActivationDialog";
 import { buildSignInUrl } from "@/lib/auth/signInRedirect";
+import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscriptionTools";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
 import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
@@ -134,7 +135,7 @@ export function PricingPlans() {
   const pathname = usePathname();
   const router = useRouter();
   const { isSignedIn } = useAuth();
-  const devMode = isDevSubscriptionModeEnabled();
+  const { canUse: devMode } = useCanUseDevSubscriptionTools();
   const subscriptionContext = useSubscriptionTierContext();
   const { tier: currentTier } = useEffectiveSubscriptionTier();
   const [pendingPlan, setPendingPlan] = useState<SubscriptionTier | null>(null);
@@ -207,12 +208,13 @@ export function PricingPlans() {
         <div className="container-main">
           {devMode ? (
             <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-              Development Subscription Mode is active. Select a plan to test Free, Pro, or Power —
-              no payment is collected.
+              {isDevSubscriptionModeEnabled()
+                ? "Development Subscription Mode is active. Select a plan to test Free, Pro, or Power — no payment is collected."
+                : "Admin testing mode is active. Select a plan to test Free, Pro, or Power — no payment is collected."}
             </p>
           ) : null}
 
-          <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
+          <div className="grid w-full gap-6 lg:grid-cols-3">
             {plans.map((plan) => {
               const isCurrentPlan = devMode && isSignedIn && currentTier === plan.id;
               const devButton =

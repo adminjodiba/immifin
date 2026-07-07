@@ -11,12 +11,11 @@ export const metadata = createMetadata({
 export default function ContactPage() {
   return (
     <PageHeader
-      breadcrumb="Contact"
       title="Contact Us"
       description="Have a question, suggestion, or partnership inquiry? We'd love to hear from you."
     >
       <WorkspaceSection>
-        <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="card-static">
             <h2 className="heading-2">Get in Touch</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">

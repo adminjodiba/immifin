@@ -38,7 +38,6 @@ const topics = [
 export default function FinancePage() {
   return (
     <PageHeader
-      breadcrumb="Finance"
       title="Finance Guides"
       description="Build a strong financial foundation in America. From credit and banking to taxes and investing, we help immigrants make informed money decisions."
     >

@@ -13,7 +13,6 @@ export const metadata = createMetadata({
 export default function PricingPage() {
   return (
     <PageHeader
-      breadcrumb="Pricing"
       title="Choose Your Immifin Plan"
       description="Start free. Upgrade when you are ready for automation and intelligence."
     >

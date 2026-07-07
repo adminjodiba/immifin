@@ -94,7 +94,7 @@ const relatedTools = [
     ),
   },
   {
-    title: "Green Card Wait Time",
+    title: "Green Card Calculator",
     description: "Estimate wait based on priority date.",
     href: "/calculators/green-card-wait-time",
     icon: (
@@ -445,17 +445,6 @@ export function VisaBulletinHistoricalTrends() {
       <div className="container-main py-5 sm:py-6 lg:py-7">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <nav aria-label="Breadcrumb" className="mb-2">
-              <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                <li><Link href="/" className="hover:text-brand-700">Home</Link></li>
-                <li aria-hidden="true">/</li>
-                <li><Link href="/immigration" className="hover:text-brand-700">Immigration</Link></li>
-                <li aria-hidden="true">/</li>
-                <li><Link href="/immigration/visa-bulletin" className="hover:text-brand-700">Visa Bulletin</Link></li>
-                <li aria-hidden="true">/</li>
-                <li className="font-medium text-brand-700">History</li>
-              </ol>
-            </nav>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Visa Bulletin History</h1>
               <FavoriteStar

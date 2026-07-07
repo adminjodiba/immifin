@@ -11,12 +11,11 @@ export const metadata = createMetadata({
 export default function PrivacyPage() {
   return (
     <PageHeader
-      breadcrumb="Privacy Policy"
       title="Privacy Policy"
       description="Last updated: June 22, 2025"
     >
       <WorkspaceSection>
-        <div className="card-static mx-auto max-w-3xl space-y-8">
+        <div className="card-static space-y-8">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Information We Collect</h2>
             <p className="mt-3 leading-relaxed text-slate-600">

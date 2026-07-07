@@ -33,7 +33,7 @@ export default function HomePage() {
               description="Practical tools to plan your immigration timeline, taxes, and financial future."
               href="/calculators"
             />
-            <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-3.5 lg:grid-cols-4">
               {featuredCalculators.map((calculator) => (
                 <CalculatorCard key={calculator.slug} calculator={calculator} />
               ))}

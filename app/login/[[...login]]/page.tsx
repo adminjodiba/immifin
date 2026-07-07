@@ -22,7 +22,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <ClerkAuthShell
-      breadcrumb="Sign In"
       title="Welcome back"
       description="Sign in to access your Immifin account."
     >

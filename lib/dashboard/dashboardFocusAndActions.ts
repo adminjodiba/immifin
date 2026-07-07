@@ -35,7 +35,7 @@ const employmentActions: DashboardActionItem[] = [
   },
   {
     id: "gc-wait-calculator",
-    title: "GC Wait Calculator",
+    title: "Green Card Calculator",
     description: "Estimate wait time based on historical movement.",
     href: "/calculators/green-card-wait-time",
   },

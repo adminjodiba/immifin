@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { useIsAdminRole } from "@/lib/hooks/useIsAdminRole";
 import { SUBSCRIPTION_TIERS, type SubscriptionTier } from "@/lib/subscription/tiers";
 
 /**
@@ -9,8 +10,9 @@ import { SUBSCRIPTION_TIERS, type SubscriptionTier } from "@/lib/subscription/ti
  */
 export function DevTierSwitcher() {
   const { tier, setDevTier, isDevTesting } = useEffectiveSubscriptionTier();
+  const { isAdmin, isLoading: adminLoading } = useIsAdminRole();
 
-  if (!isDevTesting) {
+  if (!isDevTesting || adminLoading || isAdmin) {
     return null;
   }
 

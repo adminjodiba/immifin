@@ -48,16 +48,13 @@ export default function AccountPage() {
   return (
     <ContactOnboardingGuard>
       <PageHeader
-        breadcrumb="Account"
         title="Account Settings"
         description="Manage your immigration defaults for calculators and bulletin tools."
       >
         <WorkspaceSection>
-          <div className="mx-auto max-w-2xl">
-            <ImmigrationProfileProvider>
-              <AccountPageContent />
-            </ImmigrationProfileProvider>
-          </div>
+          <ImmigrationProfileProvider>
+            <AccountPageContent />
+          </ImmigrationProfileProvider>
         </WorkspaceSection>
       </PageHeader>
     </ContactOnboardingGuard>

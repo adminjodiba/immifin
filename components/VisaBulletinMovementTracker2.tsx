@@ -136,7 +136,7 @@ const relatedTools = [
     ),
   },
   {
-    title: "Green Card Wait Time",
+    title: "Green Card Calculator",
     description: "Estimate wait based on priority date.",
     href: "/calculators/green-card-wait-time",
     iconClass: "bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100",

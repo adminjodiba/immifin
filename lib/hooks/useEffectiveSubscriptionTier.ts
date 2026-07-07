@@ -7,26 +7,28 @@ import {
   readDevTierFromStorage,
   writeDevTierToStorage,
 } from "@/lib/subscription/devTier";
+import { SUBSCRIPTION_TIER_EVENT, useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import {
   resolveSubscriptionTier,
   type SubscriptionTier,
 } from "@/lib/subscription/tiers";
-import { SUBSCRIPTION_TIER_EVENT } from "@/lib/hooks/SubscriptionTierProvider";
-import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 
 const DEV_TIER_EVENT = "immifin:devTier";
 
-function readDevOverride(): SubscriptionTier | null {
-  if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
+function readDevOverride(devSubscriptionActive: boolean): SubscriptionTier | null {
+  if (!isDevTierTestingEnabled() || devSubscriptionActive) {
     return null;
   }
 
   return readDevTierFromStorage();
 }
 
-function readEffectiveTier(storedTier: SubscriptionTier | null): SubscriptionTier {
-  const devOverride = readDevOverride();
+function readEffectiveTier(
+  storedTier: SubscriptionTier | null,
+  devSubscriptionActive: boolean,
+): SubscriptionTier {
+  const devOverride = readDevOverride(devSubscriptionActive);
   return resolveSubscriptionTier({ storedTier, devOverride });
 }
 
@@ -45,17 +47,19 @@ export function useEffectiveSubscriptionTier(storedTierProp: SubscriptionTier | 
 } {
   const subscriptionContext = useSubscriptionTierContext();
   const storedTier = subscriptionContext?.storedTier ?? storedTierProp;
+  const devSubscriptionActive =
+    subscriptionContext?.devSubscriptionMode ?? isDevSubscriptionModeEnabled();
 
   const [tier, setTier] = useState<SubscriptionTier>(() =>
     resolveSubscriptionTier({ storedTier }),
   );
 
   const refresh = useCallback(() => {
-    setTier(readEffectiveTier(storedTier));
-  }, [storedTier]);
+    setTier(readEffectiveTier(storedTier, devSubscriptionActive));
+  }, [storedTier, devSubscriptionActive]);
 
   useEffect(() => {
-    if (isDevTierTestingEnabled() && !isDevSubscriptionModeEnabled()) {
+    if (isDevTierTestingEnabled() && !devSubscriptionActive) {
       consumeDevTierQueryParam();
     }
 
@@ -67,7 +71,7 @@ export function useEffectiveSubscriptionTier(storedTierProp: SubscriptionTier | 
 
     window.addEventListener(SUBSCRIPTION_TIER_EVENT, handleSubscriptionChange);
 
-    if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
+    if (!isDevTierTestingEnabled() || devSubscriptionActive) {
       return () => {
         window.removeEventListener(SUBSCRIPTION_TIER_EVENT, handleSubscriptionChange);
       };
@@ -81,20 +85,20 @@ export function useEffectiveSubscriptionTier(storedTierProp: SubscriptionTier | 
       window.removeEventListener(DEV_TIER_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [refresh]);
+  }, [refresh, devSubscriptionActive]);
 
   const setDevTier = useCallback((nextTier: SubscriptionTier) => {
-    if (!isDevTierTestingEnabled() || isDevSubscriptionModeEnabled()) {
+    if (!isDevTierTestingEnabled() || devSubscriptionActive) {
       return;
     }
 
     writeDevTierToStorage(nextTier);
     window.dispatchEvent(new Event(DEV_TIER_EVENT));
-  }, []);
+  }, [devSubscriptionActive]);
 
   return {
     tier,
     setDevTier,
-    isDevTesting: isDevTierTestingEnabled() && !isDevSubscriptionModeEnabled(),
+    isDevTesting: isDevTierTestingEnabled() && !devSubscriptionActive,
   };
 }

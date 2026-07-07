@@ -26,7 +26,7 @@ const MOVEMENT_TRACKER_FEATURES = [
 
 const FREE_TOOL_LINKS: PremiumFeatureInfoLink[] = [
   { label: "Current Visa Bulletin", href: "/immigration/visa-bulletin" },
-  { label: "Green Card Wait Calculator", href: "/calculators/green-card-wait-time" },
+  { label: "Green Card Calculator", href: "/calculators/green-card-wait-time" },
   { label: "Citizenship Calculator", href: "/calculators/citizenship-eligibility" },
 ];
 

@@ -40,7 +40,6 @@ const topics = [
 export default function ImmigrationPage() {
   return (
     <PageHeader
-      breadcrumb="Immigration"
       title="Immigration Guides"
       description="Navigate the U.S. immigration system with confidence. Our guides cover visas, green cards, work authorization, and the path to citizenship."
     >

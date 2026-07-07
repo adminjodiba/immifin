@@ -163,8 +163,14 @@ Design System 2.0 should be **documented and approved** before major page redesi
 | 10 | Manage Profile redesign | Code — profile hub polish |
 | 11 | Workspace page shell | Code — ✅ **`WorkspacePageShell`** migrated across Immigration, Finance, Calculators, About, Pricing, Account, Dashboard, auth |
 | 12 | Favorites (Pro/Power) | Code — ✅ star on pages, nav dropdown, `/api/account/favorites`, max 10 |
+| 13 | **H-1B calculators (pair)** | Code — ✅ Wage Level Estimator + Lottery Odds; SOC occupation search; DS 2.0 layout |
+| 14 | **Admin Dashboard MVP** | Code — ✅ `/admin` Data Refresh Center; role-gated nav + `requireAdmin()` |
+| 15 | **Unified Manage Profile hub** | Code — ✅ Clerk Account/Security + Immigration, Green Card, Contact, Notifications tabs |
+| 16 | **Admin subscription testing** | Code — ✅ admins can switch Free/Pro/Power without global dev mode flag |
 
 Deliverables 1–3 should precede deliverables 4–12.
+
+See [CALCULATORS.md](./CALCULATORS.md) and [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md).
 
 ---
 
@@ -228,3 +234,35 @@ Every task must include:
 | v1.1 | 2026-07-05 | S5-004 | Visa Bulletin History DS 2.0 approved — first Sprint 5 page complete |
 | v1.2 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard and Movement Tracker promoted; DS 2.0 progress updated |
 | v1.3 | 2026-07-06 | S5-009 | v0.4.2 — My Immifin dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |
+| v1.4 | 2026-07-06 | S6-ADM-001 | Admin force sync + manual archive parked to [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
+| v1.5 | 2026-07-07 | S5-CALC-001/002, S5-ADM-001 | H-1B calculators, Admin Dashboard MVP, profile hub, admin subscription testing — [CALCULATORS.md](./CALCULATORS.md), [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
+
+---
+
+## 14. Parked for Sprint 6
+
+The following was agreed during Sprint 5 planning and **must not be forgotten**:
+
+| Item | Task ID | Constraint |
+|------|---------|------------|
+| Admin **Force Sync** (visa bulletin) | S6-ADM-001 | Bypass 24h cache — `/admin` MVP shipped without this |
+| Manual history archive in admin UI | S6-ADM-001 | **Manual admin action only** — no cron, no auto-archive on sync |
+
+**Shipped in Sprint 5 (admin MVP):** `/admin` Data Refresh Center, My Immifin → Admin nav, admin role bootstrap, admin dev subscription testing. See [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md).
+
+Full Sprint 6 specification: [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
+
+---
+
+## 15. Sprint 5 deliverables — calculators & admin (2026-07-07)
+
+| Deliverable | Task | Status | Reference |
+|-------------|------|--------|-----------|
+| H-1B Wage Level Estimator | S5-CALC-001 | ✅ Shipped | `/immigration/h1b-wage-level-estimator` |
+| H-1B Lottery Odds Calculator | S5-CALC-002 | ✅ Shipped | `/immigration/h1b-lottery-odds-calculator` |
+| Calculator navigation standard | S5-CALC-003 | ✅ Shipped | Close (X) → `/calculators`; `.cursor/rules/calculator-navigation.mdc` |
+| Admin Dashboard MVP | S5-ADM-001 | ✅ Shipped | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
+| My Immifin → Admin (role-gated) | S5-ADM-002 | ✅ Shipped | `lib/my-immifin-menu.ts`, `useIsAdminRole` |
+| Admin dev subscription testing | S5-ADM-003 | ✅ Shipped | `lib/subscription/devSubscriptionAccess.ts` |
+| Unified Manage Profile hub | S5-PROF-001 | ✅ Shipped | `/user-profile` — Immigration + Green Card tabs |
+| Calculator catalog documentation | S5-DOC-001 | ✅ Shipped | [CALCULATORS.md](./CALCULATORS.md) |

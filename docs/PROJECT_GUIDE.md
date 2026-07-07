@@ -5,7 +5,7 @@
 | **Title** | IMMIFIN Project Guide |
 | **Version** | v1.1 |
 | **Task ID** | S4-005.18 |
-| **Last Updated** | 2026-07-04 |
+| **Last Updated** | 2026-07-07 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | Official — **master entry point for all contributors** |
 
@@ -115,7 +115,8 @@ Major completed modules and patterns:
 | **Current Visa Bulletin** | `/immigration/visa-bulletin` | Free — live bulletin dashboard |
 | **Visa Bulletin History** | `/immigration/visa-bulletin-history` | Pro — Premium Feature Discovery |
 | **Movement Tracker** | `/immigration/visa-bulletin-movement` | Pro — Premium Feature Discovery |
-| **Calculators** | `/calculators/*` | Free manual input; Pro auto-population |
+| **Calculators** | `/calculators/*`, `/immigration/h1b-*` | Free manual input; Pro auto-population — see [CALCULATORS.md](./CALCULATORS.md) |
+| **Admin Dashboard** | `/admin` | Admin role only — Data Refresh Center — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
 | **My Immifin** | Top nav dropdown | Personal workspace — Dashboard, Manage Profile |
 | **Dashboard** | `/dashboard` | Pro/Power — journey layout, EB/GC timelines |
 | **Pricing** | `/pricing` | Free / Pro / Power plan cards |
@@ -162,6 +163,10 @@ Engineering must use **capability-based authorization** (`hasCapability`, `canAc
 |----------|---------|
 | [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) | **Master entry point** — read first |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 context, goals, constraints, first task |
+| [CALCULATORS.md](./CALCULATORS.md) | Live calculators, H-1B pair, navigation rules |
+| [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP, role access, subscription testing |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 — admin force sync, AI & Personalization |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 context — admin force sync (manual archive), AI & Personalization |
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Authoritative project state, capabilities, ADRs |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision — Life OS for Immigrants |

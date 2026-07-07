@@ -261,7 +261,7 @@ function EbTimelineTrack({ timeline }: { timeline: BulletinTimelineCardData }) {
   const segments = buildSegments(timeline);
 
   return (
-    <div className="mx-auto w-full max-w-[1000px]">
+    <div className="w-full">
       <div className="relative h-7">
         <PositionedBlock percent={timeline.priorityMarkerPercent}>
           <TimelineMarkerLabel

@@ -1,13 +1,13 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-06 (Dashboard polish, Favorites, DS 2.0 workspace, v0.4.2)
+**Last Updated:** 2026-07-07 (H-1B calculators, Admin Dashboard MVP, profile hub, admin subscription testing)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 5 — Design System 2.0 & Subscription Foundation |
+| **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience |
 | **Production Version** | v0.4.2 |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable |
+| **Production Status** | 🟢 Stable (v0.4.2 deployed; Sprint 5 work pending next deploy) |
 | **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
@@ -46,6 +46,12 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 | **My Immifin dashboard polish (v0.4.2)** | ✅ **Complete** — compact timeline cards, Immigration Details, Action Center |
 | **Favorites (Pro/Power)** | ✅ **Complete** — nav, star, API, max 10 |
 | **Pro calculator auto-population** | ✅ **Complete** — Green Card Wait Time + Citizenship |
+| **H-1B Wage Level Estimator** | ✅ **Complete** — `/immigration/h1b-wage-level-estimator` — [CALCULATORS.md](./CALCULATORS.md) |
+| **H-1B Lottery Odds Calculator** | ✅ **Complete** — `/immigration/h1b-lottery-odds-calculator` — [CALCULATORS.md](./CALCULATORS.md) |
+| **Admin Dashboard MVP** | ✅ **Complete** — `/admin` Data Refresh Center — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
+| **My Immifin → Admin nav** | ✅ **Complete** — `profiles.role = admin` only |
+| **Admin subscription testing** | ✅ **Complete** — admins switch Free/Pro/Power without global dev flag |
+| **Unified Manage Profile hub** | ✅ **Complete** — `/user-profile` (Immigration, Green Card, Contact, Notifications) |
 | **Subscription data retention policy** | ✅ **Documented** — tier changes never delete profile data |
 | Remaining Sprint 5 page redesigns | ⏳ Planned |
 | **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
@@ -80,7 +86,17 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 
 ## Next Sprint
 
-**Sprint 5 — Design System 2.0 & Product Experience**
+**Sprint 5 — Design System 2.0 & Product Experience** *(in progress)*
+
+### Planned — Sprint 6
+
+See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
+
+| Deliverable | Task ID | Notes |
+|-------------|---------|-------|
+| **Admin Operations page** | S6-ADM-001 | Force sync visa bulletin from Google Sheet (bypass 24h cache) — **MVP dashboard shipped**; sync UI pending |
+| **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |
+| **AI & Personalization** | S6-AI-xxx | Primary Sprint 6 theme — detailed tasks at kickoff |
 
 ## Roadmap Revision
 
@@ -118,6 +134,9 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | **Start here for Sprint 5** — mandatory reading order |
+| [CALCULATORS.md](./CALCULATORS.md) | Live immigration calculators + H-1B pair |
+| [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP, role bootstrap, subscription testing |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 — force sync, AI & Personalization |
 | [design-system/VISA_BULLETIN_HISTORY_2.0.md](./design-system/VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — Visa Bulletin History promotion |
 | [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Cloudflare build/deploy guide — Build vs Runtime variables |
 | [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) | Production pricing / build variable incident |

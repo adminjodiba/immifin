@@ -22,6 +22,11 @@ type SubscriptionApiResponse = {
   devSubscriptionMode: boolean;
 };
 
+type SubscriptionState = {
+  tier: SubscriptionTier | null;
+  devSubscriptionMode: boolean;
+};
+
 type SubscriptionTierContextValue = {
   storedTier: SubscriptionTier | null;
   isLoading: boolean;
@@ -33,14 +38,14 @@ type SubscriptionTierContextValue = {
 
 const SubscriptionTierContext = createContext<SubscriptionTierContextValue | null>(null);
 
-async function fetchStoredTier(): Promise<SubscriptionTier | null> {
+async function fetchSubscriptionState(): Promise<SubscriptionState> {
   const response = await fetch("/api/account/subscription", {
     method: "GET",
     cache: "no-store",
   });
 
   if (response.status === 401) {
-    return null;
+    return { tier: null, devSubscriptionMode: isDevSubscriptionModeEnabled() };
   }
 
   if (!response.ok) {
@@ -52,17 +57,24 @@ async function fetchStoredTier(): Promise<SubscriptionTier | null> {
     throw new Error(body.error);
   }
 
-  return body.data.tier;
+  return {
+    tier: body.data.tier,
+    devSubscriptionMode: body.data.devSubscriptionMode,
+  };
 }
 
 export function SubscriptionTierProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [storedTier, setStoredTier] = useState<SubscriptionTier | null>(null);
+  const [devSubscriptionMode, setDevSubscriptionMode] = useState(() =>
+    isDevSubscriptionModeEnabled(),
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshStoredTier = useCallback(async (): Promise<SubscriptionTier | null> => {
     if (!isSignedIn) {
       setStoredTier(null);
+      setDevSubscriptionMode(isDevSubscriptionModeEnabled());
       setIsLoading(false);
       return null;
     }
@@ -70,11 +82,13 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
     setIsLoading(true);
 
     try {
-      const tier = await fetchStoredTier();
-      setStoredTier(tier);
-      return tier;
+      const state = await fetchSubscriptionState();
+      setStoredTier(state.tier);
+      setDevSubscriptionMode(state.devSubscriptionMode);
+      return state.tier;
     } catch {
       setStoredTier(null);
+      setDevSubscriptionMode(isDevSubscriptionModeEnabled());
       return null;
     } finally {
       setIsLoading(false);
@@ -119,6 +133,7 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
       }
 
       setStoredTier(body.data.tier);
+      setDevSubscriptionMode(body.data.devSubscriptionMode);
       window.dispatchEvent(new Event(SUBSCRIPTION_TIER_EVENT));
       return body.data.tier;
     },
@@ -130,11 +145,11 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
       storedTier,
       isLoading,
       isSignedIn: Boolean(isSignedIn),
-      devSubscriptionMode: isDevSubscriptionModeEnabled(),
+      devSubscriptionMode,
       refreshStoredTier,
       updateSubscriptionPlan,
     }),
-    [storedTier, isLoading, isSignedIn, refreshStoredTier, updateSubscriptionPlan],
+    [storedTier, isLoading, isSignedIn, devSubscriptionMode, refreshStoredTier, updateSubscriptionPlan],
   );
 
   return (

@@ -11,12 +11,11 @@ export const metadata = createMetadata({
 export default function TermsPage() {
   return (
     <PageHeader
-      breadcrumb="Terms"
       title="Terms of Service"
       description="Last updated: June 22, 2025"
     >
       <WorkspaceSection>
-        <div className="card-static mx-auto max-w-3xl space-y-8">
+        <div className="card-static space-y-8">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Acceptance of Terms</h2>
             <p className="mt-3 leading-relaxed text-slate-600">

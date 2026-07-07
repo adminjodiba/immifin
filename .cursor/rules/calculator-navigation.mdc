@@ -1,0 +1,30 @@
+---
+description: Calculator page navigation — close button, not back links
+globs: app/**/calculator*/**/*,app/**/calculators/**/*,components/**/*Calculator*.tsx,components/**/*Estimator*.tsx
+alwaysApply: false
+---
+
+# Calculator navigation
+
+Do **not** add a "Back to Immigration Tools" (or similar text back link) on calculator pages.
+
+Use the **close (X) button** in the page header instead — same pattern as `CitizenshipEligibilityCalculator`:
+
+- Top-right of the header row (`flex ... justify-between`)
+- Icon-only `Link` with `aria-label="Close and return to calculators"`
+- Default destination: `/calculators`
+- Classes: `h-9 w-9`, rounded border, white background, X SVG icon
+
+```tsx
+<Link
+  href="/calculators"
+  className="flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+  aria-label="Close and return to calculators"
+>
+  {/* X icon */}
+</Link>
+```
+
+Reference implementations: `components/CitizenshipEligibilityCalculator.tsx`, `components/GreenCardWaitTimeCalculator.tsx`.
+
+Secondary cross-links between related tools (e.g. H-1B wage ↔ lottery) may stay as text links in the header — but never replace the close button with a back link.

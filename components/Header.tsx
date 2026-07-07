@@ -13,6 +13,7 @@ import { navLinks } from "@/lib/site";
 import { calculatorMenuLinks } from "@/lib/calculator-menu";
 import { immigrationMenuLinks } from "@/lib/immigration-menu";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { useIsAdminRole } from "@/lib/hooks/useIsAdminRole";
 import {
   DASHBOARD_PRO_LOCK_MESSAGE,
   getVisibleMyImmifinMenuItems,
@@ -170,8 +171,8 @@ function CalculatorDropdown() {
   return <NavDropdown href="/calculators" label="Calculator" items={calculatorMenuLinks} />;
 }
 
-function buildMyImmifinItems(tier: SubscriptionTier): MyImmifinNavItem[] {
-  return getVisibleMyImmifinMenuItems(tier).map((item) => ({
+function buildMyImmifinItems(tier: SubscriptionTier, isAdmin: boolean): MyImmifinNavItem[] {
+  return getVisibleMyImmifinMenuItems(tier, { isAdmin }).map((item) => ({
     href: item.href,
     label: item.label,
     description: item.description,
@@ -184,7 +185,8 @@ function buildMyImmifinItems(tier: SubscriptionTier): MyImmifinNavItem[] {
  */
 function MyImmifinDropdown() {
   const { tier } = useEffectiveSubscriptionTier();
-  const items = buildMyImmifinItems(tier);
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
+  const items = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -274,13 +276,14 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const { tier } = useEffectiveSubscriptionTier();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const showSignedOutAuth = isLoaded && !isSignedIn;
   const showSignedInAuth = isLoaded && isSignedIn;
   const greetingLine = user
     ? getGreetingLine(user.firstName, user.fullName, user.username)
     : getTimeGreeting();
 
-  const myImmifinItems = buildMyImmifinItems(tier);
+  const myImmifinItems = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">

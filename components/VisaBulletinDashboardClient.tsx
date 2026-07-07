@@ -259,27 +259,6 @@ export function VisaBulletinDashboardClient() {
       <section className="relative overflow-hidden border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-brand-50/80 via-white to-white" />
         <div className="container-main relative py-10 sm:py-14 lg:py-16">
-          <nav aria-label="Breadcrumb" className="mb-4">
-            <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-              <li>
-                <Link href="/" className="transition-colors hover:text-brand-700">
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden="true" className="text-slate-300">
-                /
-              </li>
-              <li>
-                <Link href="/immigration" className="transition-colors hover:text-brand-700">
-                  Immigration
-                </Link>
-              </li>
-              <li aria-hidden="true" className="text-slate-300">
-                /
-              </li>
-              <li className="font-medium text-brand-700">Visa Bulletin Dashboard</li>
-            </ol>
-          </nav>
           <h1 className="heading-1 text-brand-900">Visa Bulletin Dashboard</h1>
           <p className="mt-4 max-w-3xl text-lead">
             Live employment-based visa bulletin data updated from the U.S. Department of State.
@@ -364,7 +343,7 @@ export function VisaBulletinDashboardClient() {
                 Visa Bulletin History
               </Link>
               <Link href="/calculators/green-card-wait-time" className="btn-secondary">
-                Green Card Wait Time Calculator
+                Green Card Calculator
               </Link>
               <Link href="/calculators/citizenship-eligibility" className="btn-secondary">
                 Citizenship Eligibility Calculator

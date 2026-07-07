@@ -17,8 +17,8 @@ export default async function DashboardPage() {
 
   return (
     <ContactOnboardingGuard>
-      <WorkspacePageShell wide>
-        <div className={`${workspaceContainerClass(true)} space-y-3 py-4 sm:py-5`}>
+      <WorkspacePageShell>
+        <div className={`${workspaceContainerClass()} space-y-3 py-4 sm:py-5`}>
           <MyImmifinWorkspaceHeader welcomeName={dashboardData.welcomeName} />
           <DashboardAccessGate>
             <PersonalDashboard {...dashboardData} />

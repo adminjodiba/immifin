@@ -10,22 +10,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates u
 
 ### Added
 
-- **S4-001 — Application-wide authentication gate** (2026-07-01)
-  - Only landing page `/` is public; all tools, calculators, immigration, finance, and account routes require Clerk sign-in
-  - Middleware uses public-route allowlist with Clerk `auth.protect()` (no Supabase lookups)
-  - `ProtectedLink` and Login Required toast for signed-out visitors clicking features from `/`
-  - Sign-in honors `redirect_url` query parameter for post-login return navigation
-- **Development Workflow v2.0** documented in `ENGINEERING_PLAYBOOK.md`, `PROJECT_DECISIONS.md`, `PROJECT_STATUS.md`, and `CHANGELOG.md`
-  - Feature branches required for new work; no feature development directly on `main`
-  - Inspect before coding; explain architecture before implementation
-  - Localhost test + user approval before merge
-  - `npm run build` gate before merge/push
-  - Separate infrastructure and feature work; keep repo clean at session end
+- **H-1B calculators (Sprint 5)** — Wage Level Estimator and Lottery Odds Calculator with SOC occupation search, DS 2.0 layout, and cross-tool CTAs ([CALCULATORS.md](./docs/CALCULATORS.md))
+- **Admin Dashboard MVP** — `/admin` Data Refresh Center, role-gated My Immifin nav, `requireAdmin()` protection ([ADMIN_DASHBOARD.md](./docs/ADMIN_DASHBOARD.md))
+- **Admin subscription testing** — admins can activate Free/Pro/Power without `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE`
+- **Unified Manage Profile hub** — `/user-profile` with Immigration, Green Card, Contact, and Notifications tabs
+- **Calculator navigation standard** — close (X) button to `/calculators`; project rule `.cursor/rules/calculator-navigation.mdc`
+
+### Changed
+
+- H-1B and existing calculator pages — DS 2.0 workspace layout; removed “Back to Immigration Tools” header links
+- `/admin` — no longer a public route; requires Clerk sign-in + admin role
 
 ### Planned
 
+- Admin Force Sync + manual archive UI (S6-ADM-001)
 - Visa Bulletin Dashboard — Dates for Filing (see v0.2.0 known issue)
-- `/account` and `/admin` portal pages
 
 ---
 

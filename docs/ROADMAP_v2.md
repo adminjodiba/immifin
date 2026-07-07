@@ -131,17 +131,39 @@ The Visa Bulletin History mockup (`/immigration/visa-bulletin/tracker-2`) has be
 
 ---
 
-## Sprint 6–10 (Planned Summary)
+## Sprint 6 — AI & Personalization + Admin Operations
+
+**Status:** Planned — starts after Sprint 5 closeout (v0.5.0).
+
+See **[SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)** for full scope, acceptance criteria, and mandatory reading.
+
+| Deliverable | Task ID | Priority | Notes |
+|-------------|---------|----------|-------|
+| **Admin Operations page** | S6-ADM-001 | High | Parked from Sprint 5 — force sync visa bulletin from Google Sheet; bypass 24h cache |
+| **Manual history archive** | S6-ADM-001 | High | Expose existing archive API in admin UI — **manual admin action only**; no automation |
+| **AI Assistant architecture** | S6-AI-xxx | Primary theme | Power-tier grounded Q&A; detailed tasks at kickoff |
+| **Advanced personalization** | S6-AI-xxx | Primary theme | Power-tier intelligence beyond Pro |
+
+### Admin visa bulletin workflow (Sprint 6)
+
+When USCIS publishes a new bulletin:
+
+1. Admin updates Google Sheet (external, manual)
+2. Admin → **Force Sync** in `/admin` — users get fresh data immediately
+3. Admin → **Archive month** when ready — **manual only**; never automatic on sync
+
+---
+
+## Sprint 7–10 (Planned Summary)
 
 | Sprint | Theme | Primary focus |
 |--------|-------|---------------|
-| **Sprint 6** | AI & Personalization | AI assistant architecture, Power-tier intelligence, advanced personalization |
 | **Sprint 7** | Finance Platform | Finance guides, calculators, dashboard widgets |
 | **Sprint 8** | Insurance Platform | Insurance education, planning tools, dashboard integration |
 | **Sprint 9** | Notifications & Automation | Notification delivery engine, email/SMS alerts, automated tracking |
 | **Sprint 10** | Commercial Launch Readiness | Stripe billing, subscription enforcement, launch polish |
 
-Detailed task breakdowns for Sprints 6–10 will be created at the start of each sprint.
+Detailed AI task breakdowns for Sprint 6 will be created at Sprint 6 kickoff. See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 
 ---
 
@@ -152,3 +174,4 @@ Detailed task breakdowns for Sprints 6–10 will be created at the start of each
 | v2.0 | 2026-07-04 | S4-005.16 | Roadmap v2 — Design System 2.0 inserted as Sprint 5; prior sprints shifted forward |
 | v2.1 | 2026-07-05 | S5-004 | Sprint 5 in progress — Visa Bulletin History DS 2.0 approved as first page |
 | v2.2 | 2026-07-06 | S5-009 | v0.4.2 — dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |
+| v2.3 | 2026-07-06 | S6-ADM-001 | Sprint 6 handoff — admin force sync + manual archive parked from Sprint 5 |

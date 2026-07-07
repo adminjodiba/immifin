@@ -11,7 +11,6 @@ export const metadata = createMetadata({
 export default function SignUpPage() {
   return (
     <ClerkAuthShell
-      breadcrumb="Sign Up"
       title="Create your account"
       description="Join Immifin to track immigration tools and resources."
     >

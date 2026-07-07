@@ -7,39 +7,23 @@ import { createMetadata } from "@/lib/metadata";
 export const metadata = createMetadata({
   title: "Calculators",
   description:
-    "Free immigration and finance calculators for visa wait times, taxes, mortgages, credit building, and more.",
+    "Immigration and finance calculators for visa wait times, taxes, mortgages, credit building, and more.",
   path: "/calculators",
 });
 
 const categories = [
-  {
-    key: "immigration" as const,
-    label: "Immigration",
-    description: "Visa timelines, green card dates, and lottery odds.",
-  },
-  {
-    key: "finance" as const,
-    label: "Finance",
-    description: "Mortgages, retirement savings, and credit planning.",
-  },
-  {
-    key: "tax" as const,
-    label: "Tax",
-    description: "Residency tests and FICA exemption checks.",
-  },
-  {
-    key: "insurance" as const,
-    label: "Insurance",
-    description: "Health, auto, and renters insurance estimates.",
-  },
+  { key: "immigration" as const, label: "Immigration" },
+  { key: "finance" as const, label: "Finance" },
+  { key: "tax" as const, label: "Tax" },
+  { key: "insurance" as const, label: "Insurance" },
 ];
 
 export default function CalculatorsPage() {
   return (
     <PageHeader
-      breadcrumb="Calculators"
       title="Calculators"
-      description="Free tools to help you plan your immigration timeline, estimate taxes, and make smarter financial decisions in America."
+      description="Tools to help you plan your immigration timeline, estimate taxes, and make smarter financial decisions in America."
+      descriptionClassName="mt-1 text-sm text-slate-600 lg:whitespace-nowrap"
     >
       {categories.map((category, index) => {
         const items = calculators.filter((c) => c.category === category.key);
@@ -49,16 +33,17 @@ export default function CalculatorsPage() {
             alt={index % 2 === 1}
             aria-labelledby={`category-${category.key}`}
           >
-            <h2 id={`category-${category.key}`} className="heading-2">
-              {category.label}
-            </h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{category.description}</p>
-            <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-              {items.map((calculator) => (
-                <article key={calculator.slug} id={calculator.slug} className="scroll-mt-24">
-                  <CalculatorCard calculator={calculator} />
-                </article>
-              ))}
+            <div className="space-y-3">
+              <h2 id={`category-${category.key}`} className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                {category.label}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-3.5 lg:grid-cols-3 xl:grid-cols-4">
+                {items.map((calculator) => (
+                  <article key={calculator.slug} id={calculator.slug} className="scroll-mt-24">
+                    <CalculatorCard calculator={calculator} />
+                  </article>
+                ))}
+              </div>
             </div>
           </WorkspaceSection>
         );

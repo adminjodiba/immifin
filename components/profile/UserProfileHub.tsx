@@ -16,12 +16,12 @@ import {
   ImmigrationTabIcon,
   NotificationTabIcon,
 } from "@/components/profile/ProfilePageIcons";
+import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscriptionTools";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
 import {
   canAccessNotifications,
   canAccessSaveImmigrationProfile,
 } from "@/lib/subscription/capabilities";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 import { emailOnlyUserProfileElements } from "@/lib/clerk/emailOnly";
 
@@ -41,7 +41,7 @@ const userProfileAppearance = {
 
 export function UserProfileHub() {
   const { tier } = useEffectiveSubscriptionTier();
-  const devSubscriptionMode = isDevSubscriptionModeEnabled();
+  const { canUse: devSubscriptionMode } = useCanUseDevSubscriptionTools();
   const notificationsLocked = !canAccessNotifications(tier);
   const immigrationProfileLocked = !canAccessSaveImmigrationProfile(tier);
 

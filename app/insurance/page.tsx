@@ -40,7 +40,6 @@ export default function InsurancePage() {
 
   return (
     <PageHeader
-      breadcrumb="Insurance"
       title="Insurance Guides"
       description="Understand health, auto, renters, and life insurance options available to immigrants in the United States."
     >
@@ -56,7 +55,7 @@ export default function InsurancePage() {
         <h2 id="insurance-calculators" className="heading-2">
           Insurance Calculators
         </h2>
-        <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-3.5 lg:grid-cols-3 xl:grid-cols-4">
           {insuranceCalculators.map((calculator) => (
             <CalculatorCard key={calculator.slug} calculator={calculator} />
           ))}

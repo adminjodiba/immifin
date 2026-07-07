@@ -16,7 +16,7 @@ const DASHBOARD_FEATURES = [
 
 const FREE_TOOL_LINKS: PremiumFeatureInfoLink[] = [
   { label: "Visa Bulletin Dashboard", href: "/immigration/visa-bulletin" },
-  { label: "Green Card Wait Calculator", href: "/calculators/green-card-wait-time" },
+  { label: "Green Card Calculator", href: "/calculators/green-card-wait-time" },
   { label: "All Calculators", href: "/calculators" },
 ];
 

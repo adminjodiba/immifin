@@ -8,7 +8,7 @@ const quickActions = [
     primary: true,
   },
   {
-    title: "GC Wait Calculator",
+    title: "Green Card Calculator",
     description: "Estimate how long you may wait based on your priority date.",
     href: "/calculators/green-card-wait-time",
   },

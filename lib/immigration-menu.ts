@@ -15,4 +15,16 @@ export const immigrationMenuLinks = [
     description:
       "Historical trends, charts, and movement analysis for Visa Bulletin cutoff dates.",
   },
+  {
+    href: "/immigration/h1b-wage-level-estimator",
+    label: "H-1B Wage Level Estimator",
+    description:
+      "Estimate your likely H-1B wage level using occupation, location, salary, and experience.",
+  },
+  {
+    href: "/immigration/h1b-lottery-odds-calculator",
+    label: "H-1B Lottery Odds Calculator",
+    description:
+      "Estimate H-1B lottery odds using wage level and U.S. master's cap eligibility.",
+  },
 ] as const;

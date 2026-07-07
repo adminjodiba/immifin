@@ -14,7 +14,8 @@ export type MyImmifinCapability =
   | "subscription"
   | "upgrade"
   | "savedProfiles"
-  | "aiAssistant";
+  | "aiAssistant"
+  | "admin";
 
 export type MyImmifinMenuItem = {
   id: string;
@@ -68,19 +69,41 @@ const subscriptionItem: MyImmifinMenuItem = {
   phase: 1,
 };
 
+const adminItem: MyImmifinMenuItem = {
+  id: "admin",
+  href: "/admin",
+  label: "Admin",
+  description: "Dataset freshness and internal maintenance.",
+  capability: "admin",
+  phase: 1,
+};
+
+export type MyImmifinMenuOptions = {
+  /** When true, append the Admin workspace link (role-gated in the header). */
+  isAdmin?: boolean;
+};
+
 /**
  * Tier-aware My Immifin menu items.
  *
  * Free: Dashboard (locked), Manage Profile, Upgrade to Pro
  * Pro/Power: Dashboard, Manage Profile, Subscription
+ * Admin role: also Admin (appended last)
  */
-export function getVisibleMyImmifinMenuItems(tier: SubscriptionTier): MyImmifinMenuItem[] {
+export function getVisibleMyImmifinMenuItems(
+  tier: SubscriptionTier,
+  options: MyImmifinMenuOptions = {},
+): MyImmifinMenuItem[] {
   const items: MyImmifinMenuItem[] = [dashboardItem, manageProfileItem];
 
   if (canAccessPersonalDashboard(tier)) {
     items.push(subscriptionItem);
   } else {
     items.push(upgradeToProItem);
+  }
+
+  if (options.isAdmin) {
+    items.push(adminItem);
   }
 
   return items;

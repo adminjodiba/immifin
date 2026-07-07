@@ -1,10 +1,9 @@
-import { PageHeader } from "@/components/PageHeader";
-import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
+import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { GreenCardWaitTimeCalculator } from "@/components/GreenCardWaitTimeCalculator";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "Green Card Wait Time Calculator",
+  title: "Green Card Calculator",
   description:
     "Check how your priority date compares to the latest visa bulletin cutoffs by employment category and country.",
   path: "/calculators/green-card-wait-time",
@@ -12,15 +11,10 @@ export const metadata = createMetadata({
 
 export default function GreenCardWaitTimePage() {
   return (
-    <PageHeader
-      breadcrumb="Green Card Wait Time Calculator"
-      title="Green Card Wait Time Calculator"
-      description="See whether your priority date is current, eligible, or still waiting based on the latest visa bulletin."
-      pageHref="/calculators/green-card-wait-time"
-    >
-      <WorkspaceSection>
+    <WorkspacePageShell>
+      <div className="container-main py-4 sm:py-5">
         <GreenCardWaitTimeCalculator />
-      </WorkspaceSection>
-    </PageHeader>
+      </div>
+    </WorkspacePageShell>
   );
 }
