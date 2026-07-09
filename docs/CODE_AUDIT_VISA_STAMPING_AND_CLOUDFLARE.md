@@ -68,6 +68,7 @@ The largest **remaining code risk** is a **public unauthenticated `?refresh=true
 | **Risk** | Intermittent **Error 1102** on cold boot / first request after idle — independent of Visa Stamping correctness. |
 | **Recommended fix** | Upgrade to **Workers Paid**, then set `limits.cpu_ms` (e.g. 60000) in `wrangler.jsonc` and redeploy. |
 | **Required before production?** | **Yes** (ops) for reliable production |
+| **Status** | **Fixed** — Workers Paid enabled; `limits.cpu_ms: 60000` in `wrangler.jsonc` |
 
 ### H2 — Cold-cache sheet build expands all cities × 13 visa types
 
@@ -233,7 +234,7 @@ Leaflet is **not** imported server-side for the wait map page (verified). Accide
 | Priority | Action | Owner | Status |
 |----------|--------|-------|--------|
 | **P0** | Remove public `refresh=true` from stamping API | Engineering | **Done** |
-| **P0** | Upgrade Cloudflare Workers to **Paid** + set `cpu_ms` | Ops / Founder | Open |
+| **P0** | Upgrade Cloudflare Workers to **Paid** + set `cpu_ms` | Ops / Founder | **Done** |
 | **P1** | Stop redundant history CSV fetch on `includeHistory` | Engineering | **Done** |
 | **P1** | Slim cold build / cache by `visaType` | Engineering | Open |
 | **P2** | Slim history API response to one city | Engineering | **Done** |
@@ -249,8 +250,8 @@ Leaflet is **not** imported server-side for the wait map page (verified). Accide
 |----------|--------|
 | Is Visa Stamping feature architecture sound? | **Yes** — CSV + cache + lazy history + client map |
 | Can Error 1102 still happen today? | **Yes** — mainly Workers Free cold starts; worsened by public refresh / cold miss |
-| Must-fix before calling production “stable”? | **Workers Paid (H1)** remaining; C1/H3/M1/M3 remediated in code (deploy pending) |
-| Safe to keep map live meanwhile? | **Yes**, with awareness of intermittent Free-plan 1102 |
+| Must-fix before calling production “stable”? | **H1 remediated** (Workers Paid + `cpu_ms`); C1/H3/M1/M3 remediated; H2 (visaType-scoped cold build) still recommended |
+| Safe to keep map live meanwhile? | **Yes** |
 
 ---
 
@@ -277,3 +278,4 @@ Leaflet is **not** imported server-side for the wait map page (verified). Accide
 |---------|------|-------------|
 | v1.0 | 2026-07-09 | Initial read-only audit after Sprint 5 closeout / Sprint 6 kickoff |
 | v1.1 | 2026-07-09 | Remediated C1, H3, M1, M3 in code; H1 (Workers Paid) and H2 (visaType-scoped cold build) still open |
+| v1.2 | 2026-07-09 | H1 closed — Workers Paid + `limits.cpu_ms: 60000`; H2 still open |

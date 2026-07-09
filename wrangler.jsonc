@@ -32,5 +32,10 @@
   },
   "observability": {
     "enabled": true
+  },
+  // Workers Paid required — Free rejects this (API 100328).
+  // Raises per-request CPU above Free's ~10 ms hard cap (Error 1102 / OpenNext cold start).
+  "limits": {
+    "cpu_ms": 60000
   }
 }

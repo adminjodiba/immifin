@@ -12,15 +12,15 @@ This document is the authoritative guide for IMMIFIN production deployment on Cl
 
 ## Workers plan note (Error 1102)
 
-IMMIFIN currently runs on the **Workers Free** plan. Free Workers are limited to ~**10 ms CPU** per request. OpenNext cold starts often need **~25–33 ms**, which can return **Cloudflare Error 1102** (`Worker exceeded resource limits`) intermittently.
+IMMIFIN runs on **Workers Paid** (upgraded 2026-07-09). `wrangler.jsonc` sets `limits.cpu_ms: 60000` so OpenNext cold starts (~25–41 ms) are no longer blocked by the Free ~10 ms CPU hard cap that caused intermittent **Error 1102**.
 
 | Action | Effect |
 |--------|--------|
-| **Upgrade to Workers Paid** | Allows raising `limits.cpu_ms` in `wrangler.jsonc` — **recommended** |
-| Code optimizations (Sprint 5) | Slim Visa Stamping API; lazy history — reduces CPU but cannot beat Free hard cap on cold boot |
+| **Workers Paid + `cpu_ms: 60000`** | Primary fix for cold-start 1102 |
+| Code optimizations (Sprint 5 / audit remediations) | Slim Visa Stamping API; lazy history; no public `?refresh=true` |
 | Manual deploy | `npm run deploy` when Git auto-deploy lags |
 
-Do **not** commit `limits.cpu_ms` while on Free — Cloudflare rejects the deploy.
+Do **not** remove `limits.cpu_ms` or downgrade to Free without expecting 1102 to return.
 
 ---
 
