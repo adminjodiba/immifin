@@ -1,8 +1,8 @@
 # Immifin — Project Status
 
 **Last updated:** 2026-07-09  
-**Version:** v0.4.2 (main — Sprint 5 in progress; Visa Stamping Wait Map shipping)  
-**Latest production commit:** pending this push — *Global Visa Stamping Wait Map*  
+**Version:** v0.4.2 (main — Sprint 5 in progress; Visa Stamping Wait Map live)  
+**Latest production commit:** `241d5d4` — *Global Visa Stamping Wait Map*  
 **Development workflow:** v2.1 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 > **Authoritative status:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) supersedes this document for current production state.

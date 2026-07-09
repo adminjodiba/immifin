@@ -7,7 +7,7 @@
 | **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience |
 | **Production Version** | v0.4.2 (+ Visa Stamping Wait Map shipping) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Visa Stamping Wait Map deploying with this push |
+| **Production Status** | 🟢 Stable — Visa Stamping Wait Map live (`241d5d4`) |
 | **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
@@ -125,7 +125,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** `5f40203` — chore: rebuild after enabling NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE  
+**Latest commit:** `241d5d4` — feat: ship Global Visa Stamping Wait Map with Sheets data and DS 2.0 docs.  
 **Subscription Foundation:** `ef412e0` — Development Subscription Mode · `b64317c` — Pricing UX polish  
 **Latest tag:** `v0.4.1`  
 **Owner:** Technical Architecture (CTO)
