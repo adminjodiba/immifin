@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   attachHistoryPointsForPost,
   filterVisaStampingSheetRecords,
+  getVisaStampingHistoryRows,
   getVisaStampingSheetData,
   stripHistoryPointsFromPosts,
 } from "@/lib/visa/visaStampingSheetService";
@@ -12,7 +13,6 @@ import {
   type VisaStampingAppointmentType,
   type VisaStampingVisaType,
 } from "@/lib/visa/visaStampingWaitTimes";
-import { getHistoricalStampingWaitTimes } from "@/lib/visaStampingSheets";
 
 export const runtime = "nodejs";
 export const revalidate = 86_400;
@@ -33,7 +33,6 @@ export async function GET(request: Request) {
   const country = searchParams.get("country")?.trim() || "India";
   const visaTypeParam = searchParams.get("visaType");
   const appointmentTypeParam = searchParams.get("appointmentType");
-  const forceRefresh = searchParams.get("refresh") === "true";
   const includeHistory = searchParams.get("includeHistory") === "true";
   const historyCity = searchParams.get("city")?.trim() || "";
 
@@ -46,7 +45,8 @@ export async function GET(request: Request) {
     : "Interview";
 
   try {
-    const sheetData = await getVisaStampingSheetData({ forceRefresh });
+    // Force refresh is admin-only via POST /api/admin/refresh-visa-stamping.
+    const sheetData = await getVisaStampingSheetData();
     let filtered = filterVisaStampingSheetRecords(sheetData.records, {
       country: country === "Worldwide" ? "Worldwide" : country,
       visaType: visaTypeParam,
@@ -64,11 +64,41 @@ export async function GET(request: Request) {
         );
       }
 
-      const historyRows = await getHistoricalStampingWaitTimes(forceRefresh);
-      filtered = attachHistoryPointsForPost(filtered, {
+      const cityKey = historyCity.toLowerCase();
+      const targetPost = filtered.find((post) => post.city.trim().toLowerCase() === cityKey);
+
+      if (!targetPost) {
+        return NextResponse.json(
+          { error: `No consulate found for city "${historyCity}" with the selected filters.` },
+          { status: 404 },
+        );
+      }
+
+      // Reuse cached history rows — do not re-fetch/parse the history CSV.
+      const historyRows = await getVisaStampingHistoryRows();
+      const [withHistory] = attachHistoryPointsForPost([targetPost], {
         city: historyCity,
         visaType: visaTypeParam,
         historyRows,
+      });
+
+      const data =
+        appointmentType === "Drop-box"
+          ? [{ ...withHistory!, appointmentType: "Drop-box" as const }]
+          : [withHistory!];
+
+      return NextResponse.json({
+        data,
+        metadata: {
+          source: sheetData.source,
+          lastUpdated: formatDisplayDate(sheetData.lastUpdated),
+          lastUpdatedIso: sheetData.lastUpdated,
+          count: data.length,
+          countries: sheetData.countries,
+          history: sheetData.history,
+          includeHistory: true,
+          ...(appointmentType === "Drop-box" ? { appointmentTypeNote: DROPBOX_NOTE } : {}),
+        },
       });
     }
 
@@ -86,8 +116,6 @@ export async function GET(request: Request) {
         count: data.length,
         countries: sheetData.countries,
         history: sheetData.history,
-        includeHistory: includeHistory || undefined,
-        refreshed: forceRefresh || undefined,
         ...(appointmentType === "Drop-box" ? { appointmentTypeNote: DROPBOX_NOTE } : {}),
       },
     });

@@ -108,15 +108,11 @@ function buildApiUrl(
   visaType: VisaStampingVisaType,
   appointmentType: VisaStampingAppointmentType,
   options?: {
-    refresh?: boolean;
     includeHistory?: boolean;
     city?: string;
   },
 ) {
   const params = new URLSearchParams({ country, visaType, appointmentType });
-  if (options?.refresh) {
-    params.set("refresh", "true");
-  }
   if (options?.includeHistory && options.city) {
     params.set("includeHistory", "true");
     params.set("city", options.city);

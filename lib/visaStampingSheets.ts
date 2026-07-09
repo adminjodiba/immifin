@@ -91,8 +91,10 @@ async function fetchStampingSheetRows(
   const csvText = await fetchCsvText(url, sheetName, forceRefresh);
   const rows = parseStampingHeaderCsvRows(csvText);
 
-  console.log(`[visa-stamping] ${sheetName}: loaded ${rows.length} rows from ${url}`);
-  console.log(`[visa-stamping] ${sheetName} sample:`, rows.slice(0, 3));
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[visa-stamping] ${sheetName}: loaded ${rows.length} rows from ${url}`);
+    console.log(`[visa-stamping] ${sheetName} sample:`, rows.slice(0, 3));
+  }
 
   return rows;
 }

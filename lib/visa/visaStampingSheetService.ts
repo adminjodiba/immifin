@@ -534,11 +534,18 @@ function getDemoFallbackResult(): VisaStampingSheetLoadResult {
   };
 }
 
+/** Cached history CSV rows — shared by cold sheet join and History Trend requests. */
+const getCachedVisaStampingHistoryRows = unstable_cache(
+  () => getHistoricalStampingWaitTimes(false),
+  ["visa-stamping-history-rows"],
+  { revalidate: VISA_STAMPING_REVALIDATE_SECONDS, tags: [VISA_STAMPING_CACHE_TAG] },
+);
+
 async function loadVisaStampingSheetData(forceRefresh = false): Promise<VisaStampingSheetLoadResult> {
   try {
     const [currentRows, historyRows, metadataRows] = await Promise.all([
       getCurrentStampingWaitTimes(forceRefresh),
-      getHistoricalStampingWaitTimes(forceRefresh),
+      forceRefresh ? getHistoricalStampingWaitTimes(true) : getCachedVisaStampingHistoryRows(),
       getStampingCityMetadata(forceRefresh),
     ]);
 
@@ -557,7 +564,9 @@ async function loadVisaStampingSheetData(forceRefresh = false): Promise<VisaStam
       records[0]!.lastUpdated,
     );
 
-    console.log(`[visa-stamping] Loaded ${records.length} records from Google Sheets`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[visa-stamping] Loaded ${records.length} records from Google Sheets`);
+    }
 
     return {
       records,
@@ -583,6 +592,16 @@ const getCachedVisaStampingSheetData = unstable_cache(
   ["visa-stamping-sheet-data"],
   { revalidate: VISA_STAMPING_REVALIDATE_SECONDS, tags: [VISA_STAMPING_CACHE_TAG] },
 );
+
+export async function getVisaStampingHistoryRows(options?: {
+  forceRefresh?: boolean;
+}): Promise<StampingCsvRow[]> {
+  if (options?.forceRefresh) {
+    return getHistoricalStampingWaitTimes(true);
+  }
+
+  return getCachedVisaStampingHistoryRows();
+}
 
 export async function getVisaStampingSheetData(options?: {
   forceRefresh?: boolean;

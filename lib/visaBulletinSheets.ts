@@ -60,8 +60,10 @@ async function fetchSheetRows(
   const csvText = await fetchCsvText(url, sheetName, forceRefresh);
   const rows = parseCsvRows(csvText);
 
-  console.log(`[visa-bulletin] ${sheetName}: loaded ${rows.length} rows from ${url}`);
-  console.log(`[visa-bulletin] ${sheetName} sample:`, rows.slice(0, 3));
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[visa-bulletin] ${sheetName}: loaded ${rows.length} rows from ${url}`);
+    console.log(`[visa-bulletin] ${sheetName} sample:`, rows.slice(0, 3));
+  }
 
   return rows;
 }
@@ -72,8 +74,10 @@ export async function fetchVisaBulletinHistoryCsvRows(forceRefresh = false): Pro
   const rows = parseCsvMatrix(csvText);
   const dataRows = rows.length <= 1 ? [] : rows.slice(1);
 
-  console.log(`[visa-bulletin] VisaBulletinHistory: loaded ${dataRows.length} rows from ${url}`);
-  console.log(`[visa-bulletin] VisaBulletinHistory sample:`, dataRows.slice(0, 3));
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[visa-bulletin] VisaBulletinHistory: loaded ${dataRows.length} rows from ${url}`);
+    console.log(`[visa-bulletin] VisaBulletinHistory sample:`, dataRows.slice(0, 3));
+  }
 
   return dataRows;
 }
@@ -111,12 +115,14 @@ export async function loadAllVisaBulletinSheets(options?: {
   const PreviousFinalActionDates = await getPreviousFinalActionDates(forceRefresh);
   const PreviousDatesForFiling = await getPreviousDatesForFiling(forceRefresh);
 
-  console.log("[visa-bulletin] All sheets loaded:", {
-    FinalActionDates: FinalActionDates.length,
-    DatesForFiling: DatesForFiling.length,
-    PreviousFinalActionDates: PreviousFinalActionDates.length,
-    PreviousDatesForFiling: PreviousDatesForFiling.length,
-  });
+  if (process.env.NODE_ENV === "development") {
+    console.log("[visa-bulletin] All sheets loaded:", {
+      FinalActionDates: FinalActionDates.length,
+      DatesForFiling: DatesForFiling.length,
+      PreviousFinalActionDates: PreviousFinalActionDates.length,
+      PreviousDatesForFiling: PreviousDatesForFiling.length,
+    });
+  }
 
   return {
     FinalActionDates,
