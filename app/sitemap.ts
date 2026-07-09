@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/calculators/green-card-wait-time",
     "/immigration/h1b-wage-level-estimator",
     "/immigration/h1b-lottery-odds-calculator",
+    "/immigration/visa-stamping-wait-map",
     "/about",
     "/privacy",
     "/terms",

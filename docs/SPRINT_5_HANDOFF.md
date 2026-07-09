@@ -8,7 +8,7 @@
 | **Handoff Date** | 2026-07-04 |
 | **Task ID** | S4-005.16 |
 | **Previous release** | v0.4.1 Foundation Release (`704bc7c`, tag `v0.4.1`) |
-| **Status** | Sprint 5 in progress — first DS 2.0 page approved |
+| **Status** | Sprint 5 in progress — Visa Stamping Wait Map promoted (2026-07-09) |
 
 > **This document is the first thing a new AI assistant or engineer must read.**
 
@@ -236,6 +236,7 @@ Every task must include:
 | v1.3 | 2026-07-06 | S5-009 | v0.4.2 — My Immifin dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |
 | v1.4 | 2026-07-06 | S6-ADM-001 | Admin force sync + manual archive parked to [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
 | v1.5 | 2026-07-07 | S5-CALC-001/002, S5-ADM-001 | H-1B calculators, Admin Dashboard MVP, profile hub, admin subscription testing — [CALCULATORS.md](./CALCULATORS.md), [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
+| v1.6 | 2026-07-09 | S5-CALC-004 | Global Visa Stamping Wait Map promoted — [VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
 
 ---
 
@@ -261,6 +262,7 @@ Full Sprint 6 specification: [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 | H-1B Wage Level Estimator | S5-CALC-001 | ✅ Shipped | `/immigration/h1b-wage-level-estimator` |
 | H-1B Lottery Odds Calculator | S5-CALC-002 | ✅ Shipped | `/immigration/h1b-lottery-odds-calculator` |
 | Calculator navigation standard | S5-CALC-003 | ✅ Shipped | Close (X) → `/calculators`; `.cursor/rules/calculator-navigation.mdc` |
+| Global Visa Stamping Wait Map | S5-CALC-004 | ✅ Shipped | `/immigration/visa-stamping-wait-map` — [VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
 | Admin Dashboard MVP | S5-ADM-001 | ✅ Shipped | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
 | My Immifin → Admin (role-gated) | S5-ADM-002 | ✅ Shipped | `lib/my-immifin-menu.ts`, `useIsAdminRole` |
 | Admin dev subscription testing | S5-ADM-003 | ✅ Shipped | `lib/subscription/devSubscriptionAccess.ts` |

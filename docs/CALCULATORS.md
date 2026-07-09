@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-07-07 |
+| **Last updated** | 2026-07-09 |
 | **Sprint** | Sprint 5 |
 | **Catalog source** | `lib/data/calculators.ts` |
 | **Navigation rule** | `.cursor/rules/calculator-navigation.mdc` |
@@ -25,8 +25,24 @@ All live calculator pages use Design System 2.0 workspace layout and a **header 
 | **Green Card (priority date)** | `/calculators/green-card-wait-time` | `GreenCardWaitTimeCalculator.tsx` | Free | ✅ Pro/Power |
 | **H-1B Wage Level Estimator** | `/immigration/h1b-wage-level-estimator` | `H1bWageLevelEstimator.tsx` | Free (public) | — |
 | **H-1B Lottery Odds** | `/immigration/h1b-lottery-odds-calculator` | `H1bLotteryOddsCalculator.tsx` | Free (public) | — |
+| **Global Visa Stamping Wait Map** | `/immigration/visa-stamping-wait-map` | `VisaStampingWaitMap.tsx` | Free (public) | — |
 
-Public routes (no sign-in required): H-1B tools are listed in `lib/auth/publicRoutes.ts`.
+Public routes (no sign-in required): H-1B tools and the visa stamping wait map are listed in `lib/auth/publicRoutes.ts`.
+
+---
+
+## Global Visa Stamping Wait Map (Sprint 5)
+
+| Item | Detail |
+|------|--------|
+| **Route** | `/immigration/visa-stamping-wait-map` |
+| **Task ID** | S5-CALC-004 |
+| **DS 2.0 doc** | [design-system/VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
+| **Logic** | `lib/visa/visaStampingWaitTimes.ts`, `lib/visa/visaStampingSheetService.ts` |
+| **UI** | `components/VisaStampingWaitMap.tsx`, `components/visa/VisaStampingLeafletMap.tsx` |
+| **Data** | Live Google Sheets (`stamping_wait_time_current`, `stamping_wait_time_history`, `Stamping_City_Metadata`) via `/api/visa-stamping-wait-times`; demo fallback when sheets unavailable |
+| **Map** | Leaflet + OpenStreetMap / Carto tiles |
+| **History** | History Trend tab charts available monthly points (does not invent missing months) |
 
 ---
 
@@ -83,7 +99,6 @@ Free users always get manual entry. Pro/Power see profile prefill hints when dat
 
 Listed on `/calculators` for roadmap visibility — no `href`, not navigable:
 
-- Visa Wait Time Estimator
 - Tax Residency Calculator
 - Mortgage Affordability Calculator
 - Credit Score Builder Planner

@@ -1,13 +1,13 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-07 (H-1B calculators, Admin Dashboard MVP, profile hub, admin subscription testing)
+**Last Updated:** 2026-07-09 (Global Visa Stamping Wait Map promoted)
 
 | Field | Value |
 |-------|-------|
 | **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience |
-| **Production Version** | v0.4.2 |
+| **Production Version** | v0.4.2 (+ Visa Stamping Wait Map shipping) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable (v0.4.2 deployed; Sprint 5 work pending next deploy) |
+| **Production Status** | 🟢 Stable — Visa Stamping Wait Map deploying with this push |
 | **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
@@ -48,6 +48,7 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 | **Pro calculator auto-population** | ✅ **Complete** — Green Card Wait Time + Citizenship |
 | **H-1B Wage Level Estimator** | ✅ **Complete** — `/immigration/h1b-wage-level-estimator` — [CALCULATORS.md](./CALCULATORS.md) |
 | **H-1B Lottery Odds Calculator** | ✅ **Complete** — `/immigration/h1b-lottery-odds-calculator` — [CALCULATORS.md](./CALCULATORS.md) |
+| **Global Visa Stamping Wait Map** | ✅ **Promoted** (2026-07-09) — `/immigration/visa-stamping-wait-map` — [VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
 | **Admin Dashboard MVP** | ✅ **Complete** — `/admin` Data Refresh Center — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
 | **My Immifin → Admin nav** | ✅ **Complete** — `profiles.role = admin` only |
 | **Admin subscription testing** | ✅ **Complete** — admins switch Free/Pro/Power without global dev flag |
@@ -56,6 +57,14 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 | Remaining Sprint 5 page redesigns | ⏳ Planned |
 | **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
 | **Pricing UX polish (S5-ENG-005/006)** | ✅ **Complete** — Current Plan / Upgrade / Switch buttons |
+
+**Global Visa Stamping Wait Map highlights:**
+
+- Approved simulation dashboard layout (KPI row + Map / Consulates / Details)
+- Live Google Sheets data (`stamping_wait_time_current`, history, city metadata)
+- Leaflet + OpenStreetMap interactive map
+- History Trend tab with Recharts line chart for available months
+- Public free route; demo fallback when sheets unavailable
 
 **Visa Bulletin History DS 2.0 highlights:**
 

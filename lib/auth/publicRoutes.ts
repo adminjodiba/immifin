@@ -9,6 +9,8 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/calculators(.*)",
   "/immigration/h1b-wage-level-estimator(.*)",
   "/immigration/h1b-lottery-odds-calculator(.*)",
+  "/immigration/visa-stamping-wait-map(.*)",
+  "/api/visa-stamping-wait-times(.*)",
   "/api/check-priority-date(.*)",
   "/login(.*)",
   "/signup(.*)",
@@ -28,7 +30,8 @@ export function isPublicCalculatorPath(path: string): boolean {
     pathname === "/calculators" ||
     pathname.startsWith("/calculators/") ||
     pathname === "/immigration/h1b-wage-level-estimator" ||
-    pathname === "/immigration/h1b-lottery-odds-calculator"
+    pathname === "/immigration/h1b-lottery-odds-calculator" ||
+    pathname === "/immigration/visa-stamping-wait-map"
   );
 }
 

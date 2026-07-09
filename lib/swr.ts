@@ -5,6 +5,8 @@ export const visaBulletinSwrOptions = {
   revalidateOnReconnect: false,
 } as const;
 
+export const visaStampingSwrOptions = visaBulletinSwrOptions;
+
 import { readJsonResponse, readJsonResponseBody } from "@/lib/http/readJsonResponse";
 
 export async function jsonFetcher<T>(url: string, fallback = "Request failed."): Promise<T> {

@@ -6,7 +6,7 @@
 | **Version** | v1.0 |
 | **Sprint** | Sprint 5 |
 | **Task ID** | S5-DOC-002 |
-| **Last Updated** | 2026-07-06 |
+| **Last Updated** | 2026-07-09 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | Official — **entry point for all Design System 2.0 documentation** |
 
@@ -48,6 +48,7 @@ Read documents in this order:
 | 6 | [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) | First approved DS 2.0 page — promotion record |
 | 7 | [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) | Second approved DS 2.0 page — Movement Tracker promotion |
 | 8 | [VISA_BULLETIN_DASHBOARD_2.0.md](./VISA_BULLETIN_DASHBOARD_2.0.md) | Third approved DS 2.0 page — Dashboard promotion |
+| 9 | [VISA_STAMPING_WAIT_MAP_2.0.md](./VISA_STAMPING_WAIT_MAP_2.0.md) | Global Visa Stamping Wait Map — promoted calculator dashboard |
 
 Before implementing any specific page, also read that page's files in `docs/design-pages/{page-slug}/`.
 
@@ -116,6 +117,7 @@ See [../SPRINT_5_HANDOFF.md](../SPRINT_5_HANDOFF.md) and [../PRODUCT_VISION.md �
 | [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) | Second approved DS 2.0 page — Movement Tracker promotion |
 | [VISA_BULLETIN_DASHBOARD_2.0.md](./VISA_BULLETIN_DASHBOARD_2.0.md) | Third approved DS 2.0 page — Visa Bulletin Dashboard promotion |
 | [MY_IMMIFIN_DASHBOARD_2.0.md](./MY_IMMIFIN_DASHBOARD_2.0.md) | My Immifin dashboard polish — v0.4.2 employment journey UX |
+| [VISA_STAMPING_WAIT_MAP_2.0.md](./VISA_STAMPING_WAIT_MAP_2.0.md) | Global Visa Stamping Wait Map — Sheets-backed consulate wait dashboard |
 
 Per-page packages live in `docs/design-pages/{page-slug}/`.
 
@@ -132,3 +134,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 | v1.4 | 2026-07-06 | S5-008 | Visa Bulletin Dashboard DS 2.0 promotion documented |
 | v1.5 | 2026-07-06 | S5-008 | Dashboard DS 2.0 promoted to production route |
 | v1.6 | 2026-07-06 | S5-009 | My Immifin dashboard polish documented (v0.4.2) |
+| v1.7 | 2026-07-09 | S5-CALC-004 | Global Visa Stamping Wait Map DS 2.0 page record |

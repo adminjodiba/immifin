@@ -97,6 +97,26 @@ function buildDatasetCatalog(referenceDate: Date): ImmifinDataset[] {
       ],
     },
     {
+      id: "visa-stamping-wait-times",
+      name: "Visa stamping wait times",
+      version: "Immifin GC Dates / stamping_wait_time_current",
+      lastUpdated: todayIso,
+      refreshFrequency: "Monthly or more often",
+      nextRecommendedRefresh: getFirstDayOfNextMonth(referenceDate),
+      urgency: "High",
+      refreshHint:
+        "Update the Google Sheet tabs, then the website API will pull the latest published CSV data after cache refresh.",
+      refreshSteps: [
+        "Copy current data from stamping_wait_time_current and append it into stamping_wait_time_history",
+        "Paste the new Department of State wait-time data into stamping_wait_time_current",
+        "Confirm Stamping_City_Metadata has City, Country, Latitude, Longitude, Region, Active",
+        "Publish each worksheet to web (same publish base as Visa Bulletin)",
+        "Confirm STAMPING_WAIT_TIME_GID_* env vars match tab gids (or use defaults in visaStampingConfig.ts)",
+        "Confirm GOOGLE_SHEET_ID / GOOGLE_SPREADSHEET_ID matches Immifin GC Dates",
+        "Open Global Visa Stamping Wait Map and verify latest date and rankings",
+      ],
+    },
+    {
       id: "visa-bulletin",
       name: "Visa Bulletin dataset",
       version: "Google Sheets feed",

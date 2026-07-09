@@ -27,12 +27,13 @@ export const calculators: Calculator[] = [
     href: "/calculators/green-card-wait-time",
   },
   {
-    slug: "visa-wait-time",
-    title: "Visa Wait Time Estimator",
+    slug: "visa-stamping-wait-map",
+    title: "Global Visa Stamping Wait Map",
     description:
-      "Estimate processing times for common visa categories based on current USCIS data.",
+      "Compare approximate U.S. visa appointment wait times across embassies and consulates worldwide.",
     category: "immigration",
     featured: true,
+    href: "/immigration/visa-stamping-wait-map",
   },
   {
     slug: "tax-residency",

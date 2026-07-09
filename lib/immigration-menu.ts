@@ -16,6 +16,12 @@ export const immigrationMenuLinks = [
       "Historical trends, charts, and movement analysis for Visa Bulletin cutoff dates.",
   },
   {
+    href: "/immigration/visa-stamping-wait-map",
+    label: "Global Visa Stamping Wait Map",
+    description:
+      "Compare approximate U.S. visa appointment wait times across embassies and consulates worldwide.",
+  },
+  {
     href: "/immigration/h1b-wage-level-estimator",
     label: "H-1B Wage Level Estimator",
     description:
