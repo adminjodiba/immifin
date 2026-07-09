@@ -11,7 +11,9 @@
 
 ## Purpose
 
-Internal admin workspace for the solo founder / `profiles.role = admin` users. MVP focuses on **dataset freshness visibility** and refresh instructions — not one-click imports yet.
+Internal admin workspace for the solo founder / `profiles.role = admin` users. MVP focuses on **dataset freshness visibility**, refresh instructions, and **Data Refresh** force-sync for Visa Stamping + Visa Bulletin sheets.
+
+Page chrome: top-right **Close** (returns home) — no “Back to Home” link.
 
 ---
 
@@ -93,7 +95,8 @@ See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md):
 
 | Document | Role |
 |----------|------|
+| [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 complete |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 admin MVP deliverable |
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Force sync + archive specification |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Force sync + archive + Resend email specification |
 | [auth/PHASE1.md](./auth/PHASE1.md) | Admin role bootstrap |
 | [CALCULATORS.md](./CALCULATORS.md) | Calculator datasets monitored in refresh center |

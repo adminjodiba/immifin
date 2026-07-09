@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Title** | Global Visa Stamping Wait Map Design System 2.0 |
-| **Version** | v1.0 |
+| **Version** | v1.1 |
 | **Sprint** | Sprint 5 |
 | **Task ID** | S5-CALC-004 |
 | **Last Updated** | 2026-07-09 |
@@ -153,6 +153,15 @@ Current wait is included as the newest point with `isCurrent: true`.
 - Cold starts (especially local `npm run dev`) may take 15–30s while three published CSVs load
 - Warm cache responses are fast
 
+### API payload (Worker resource optimization — 2026-07-09)
+
+| Mode | Behavior |
+|------|----------|
+| **Default** | Current waits + trend summary (`previousWaitDays`, `changeDays`, `trend`, etc.) — **no** `historyPoints` |
+| **`includeHistory=true&city=`** | Full `historyPoints` for that city + visa type only (History Trend tab) |
+
+Leaflet and Recharts load via `next/dynamic` with `ssr: false`.
+
 ### Demo fallback
 
 If sheet load fails or returns zero joinable records, the API returns demo posts with `metadata.source = "Demo fallback"`.
@@ -221,7 +230,8 @@ If sheet load fails or returns zero joinable records, the API returns demo posts
 | Google Sheets live data + history comparison | ✅ Complete |
 | Leaflet interactive map | ✅ Complete |
 | History Trend tab + chart | ✅ Complete |
-| Admin Data Refresh Center entry | ✅ Dataset listed in `dataFreshness.ts` |
+| Admin Data Refresh Center entry | ✅ Dataset listed + **Data Refresh** button |
+| Lazy History Trend API | ✅ `includeHistory=true&city=` |
 
 ---
 
@@ -230,3 +240,4 @@ If sheet load fails or returns zero joinable records, the API returns demo posts
 | Version | Date | Description |
 |---------|------|-------------|
 | v1.0 | 2026-07-09 | Initial DS 2.0 page record — approved simulation layout, Sheets integration, History Trend, production promotion |
+| v1.1 | 2026-07-09 | Worker resource optimization — slim default API; lazy history; client-only Leaflet/Recharts |

@@ -6,7 +6,7 @@
 | **Theme** | AI & Personalization |
 | **Version range** | v0.5.0 → v0.6.0 (target) |
 | **Handoff Date** | 2026-07-06 |
-| **Status** | Planned — starts after Sprint 5 closeout |
+| **Status** | Planned — starts after Sprint 5 sign-off ([SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)) |
 | **Previous release** | v0.5.0 (Sprint 5 — Design System 2.0, target) |
 
 > **This document is the first thing a new AI assistant or engineer must read when Sprint 6 begins.**
@@ -142,8 +142,23 @@ Before Sprint 6 implementation:
 
 ## 6. Suggested Sprint 6 Order
 
-1. **S6-ADM-001** — Admin Operations page + force sync (parked from Sprint 5)
-2. **S6-AI-xxx** — AI assistant architecture and Power-tier personalization (detailed at kickoff)
+1. **Ops** — Upgrade Cloudflare Workers to **Paid** (stops intermittent Error 1102)
+2. **S6-EMAIL-001** — **Resend** integration for monthly Visa Bulletin update emails (provider agreed 2026-07-09)
+3. **S6-ADM-001** — Admin Operations page + force sync / archive UI (partially shipped in Sprint 5)
+4. **S6-AI-xxx** — AI assistant architecture and Power-tier personalization (detailed at kickoff)
+
+---
+
+## 7. Email alerts (agreed direction)
+
+| Decision | Choice |
+|----------|--------|
+| Provider | **Resend** (not Cloudflare Email Sending as primary) |
+| Trigger | Prefer admin-confirmed send after bulletin refresh; cron later |
+| Audience | Pro users with email alert prefs / `accessEmailAlerts` |
+| Content | Monthly Visa Bulletin update notification |
+
+Cloudflare Email Sending remains optional later; Workers Paid upgrade is primarily for **CPU**, not email.
 
 ---
 
@@ -152,3 +167,4 @@ Before Sprint 6 implementation:
 | Version | Date | Description |
 |---------|------|-------------|
 | v1.0 | 2026-07-06 | Initial Sprint 6 handoff — admin force sync parked from Sprint 5; manual archive constraint documented |
+| v1.1 | 2026-07-09 | Sprint 5 signed off; Resend email alerts + Workers Paid noted as Sprint 6 priorities |

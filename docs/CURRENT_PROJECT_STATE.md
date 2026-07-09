@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-09 (Global Visa Stamping Wait Map promoted)
+**Last Updated:** 2026-07-09 (**Sprint 5 signed off**)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 5 — Design System 2.0 & Product Experience |
-| **Production Version** | v0.4.2 (+ Visa Stamping Wait Map shipping) |
+| **Current Sprint** | Sprint 6 — AI & Personalization *(next)* |
+| **Production Version** | v0.4.2 (Sprint 5 closeout) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Visa Stamping Wait Map live (`241d5d4`) |
-| **Cloudflare** | 🟢 Healthy — Git auto-deploy verified |
+| **Production Status** | 🟢 Stable — Sprint 5 signed off (`65e5c5c`) |
+| **Cloudflare** | 🟢 Deployed — ⚠️ Workers **Free** plan may 1102 on cold start; Paid recommended |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Sprint 5 — Design System 2.0 & Subscription Foundation |
+| **Current Priority** | Sprint 6 kickoff — Workers Paid + Resend + Admin ops |
 
 ## Current Version
 
@@ -24,7 +24,9 @@ See [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
 
 ## Current Phase
 
-Sprint 5 — Design System 2.0 & Product Experience *(In Progress)*
+Sprint 5 — Design System 2.0 & Product Experience *(**Signed off** 2026-07-09)*
+
+See [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
 
 ### Sprint 5 progress — Visa Bulletin DS 2.0 pages
 
@@ -49,12 +51,14 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 | **H-1B Wage Level Estimator** | ✅ **Complete** — `/immigration/h1b-wage-level-estimator` — [CALCULATORS.md](./CALCULATORS.md) |
 | **H-1B Lottery Odds Calculator** | ✅ **Complete** — `/immigration/h1b-lottery-odds-calculator` — [CALCULATORS.md](./CALCULATORS.md) |
 | **Global Visa Stamping Wait Map** | ✅ **Promoted** (2026-07-09) — `/immigration/visa-stamping-wait-map` — [VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
-| **Admin Dashboard MVP** | ✅ **Complete** — `/admin` Data Refresh Center — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
+| **Admin Dashboard MVP + Data Refresh** | ✅ **Complete** — `/admin` — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
 | **My Immifin → Admin nav** | ✅ **Complete** — `profiles.role = admin` only |
 | **Admin subscription testing** | ✅ **Complete** — admins switch Free/Pro/Power without global dev flag |
 | **Unified Manage Profile hub** | ✅ **Complete** — `/user-profile` (Immigration, Green Card, Contact, Notifications) |
 | **Subscription data retention policy** | ✅ **Documented** — tier changes never delete profile data |
-| Remaining Sprint 5 page redesigns | ⏳ Planned |
+| **Site scroll / Calculator menu fix** | ✅ **Complete** — `ScrollToTop`; menu opens at page top |
+| **Sprint 5 sign-off** | ✅ **Complete** — [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) |
+| Remaining Sprint 5 page redesigns | ➡️ Deferred past Sprint 5 (homepage / full profile polish) |
 | **Subscription Foundation (S5-ENG-004)** | ✅ **Complete** — Development Subscription Mode |
 | **Pricing UX polish (S5-ENG-005/006)** | ✅ **Complete** — Current Plan / Upgrade / Switch buttons |
 
@@ -62,9 +66,10 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 
 - Approved simulation dashboard layout (KPI row + Map / Consulates / Details)
 - Live Google Sheets data (`stamping_wait_time_current`, history, city metadata)
-- Leaflet + OpenStreetMap interactive map
-- History Trend tab with Recharts line chart for available months
+- Leaflet + OpenStreetMap interactive map (client-only dynamic import)
+- History Trend tab loads **lazy** (`includeHistory=true&city=`) — default API omits `historyPoints`
 - Public free route; demo fallback when sheets unavailable
+- Admin **Data Refresh** force-syncs sheet cache
 
 **Visa Bulletin History DS 2.0 highlights:**
 
@@ -95,15 +100,17 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 
 ## Next Sprint
 
-**Sprint 5 — Design System 2.0 & Product Experience** *(in progress)*
+**Sprint 6 — AI & Personalization + Admin Operations** *(next)*
+
+See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
 
 ### Planned — Sprint 6
 
-See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
-
 | Deliverable | Task ID | Notes |
 |-------------|---------|-------|
-| **Admin Operations page** | S6-ADM-001 | Force sync visa bulletin from Google Sheet (bypass 24h cache) — **MVP dashboard shipped**; sync UI pending |
+| **Cloudflare Workers Paid** | Ops | Recommended — stops intermittent Error 1102 cold starts |
+| **Resend Visa Bulletin emails** | S6-EMAIL-001 | Monthly update alerts (provider agreed: Resend) |
+| **Admin Operations page** | S6-ADM-001 | Force sync + manual archive UI — **MVP dashboard shipped**; richer ops pending |
 | **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |
 | **AI & Personalization** | S6-AI-xxx | Primary Sprint 6 theme — detailed tasks at kickoff |
 
@@ -125,7 +132,8 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** `241d5d4` — feat: ship Global Visa Stamping Wait Map with Sheets data and DS 2.0 docs.  
+**Latest commit:** `65e5c5c` — Sprint 5 closeout (Visa Stamping resource fix, admin refresh, scroll fix; Free-plan CPU note)  
+**Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)  
 **Subscription Foundation:** `ef412e0` — Development Subscription Mode · `b64317c` — Pricing UX polish  
 **Latest tag:** `v0.4.1`  
 **Owner:** Technical Architecture (CTO)

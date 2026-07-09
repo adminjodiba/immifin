@@ -135,3 +135,4 @@ Per-page packages live in `docs/design-pages/{page-slug}/`.
 | v1.5 | 2026-07-06 | S5-008 | Dashboard DS 2.0 promoted to production route |
 | v1.6 | 2026-07-06 | S5-009 | My Immifin dashboard polish documented (v0.4.2) |
 | v1.7 | 2026-07-09 | S5-CALC-004 | Global Visa Stamping Wait Map DS 2.0 page record |
+| v1.8 | 2026-07-09 | S5-CLOSE | Sprint 5 signed off — stamping API slim + admin refresh noted |

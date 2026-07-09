@@ -8,7 +8,7 @@
 | **Handoff Date** | 2026-07-04 |
 | **Task ID** | S4-005.16 |
 | **Previous release** | v0.4.1 Foundation Release (`704bc7c`, tag `v0.4.1`) |
-| **Status** | Sprint 5 in progress — Visa Stamping Wait Map promoted (2026-07-09) |
+| **Status** | **Sprint 5 signed off** (2026-07-09) — see [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) |
 
 > **This document is the first thing a new AI assistant or engineer must read.**
 
@@ -237,6 +237,7 @@ Every task must include:
 | v1.4 | 2026-07-06 | S6-ADM-001 | Admin force sync + manual archive parked to [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
 | v1.5 | 2026-07-07 | S5-CALC-001/002, S5-ADM-001 | H-1B calculators, Admin Dashboard MVP, profile hub, admin subscription testing — [CALCULATORS.md](./CALCULATORS.md), [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
 | v1.6 | 2026-07-09 | S5-CALC-004 | Global Visa Stamping Wait Map promoted — [VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) |
+| v1.7 | 2026-07-09 | S5-CLOSE | Sprint 5 signed off — resource fix, admin Data Refresh, scroll fix — [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) |
 
 ---
 
@@ -268,3 +269,6 @@ Full Sprint 6 specification: [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 | Admin dev subscription testing | S5-ADM-003 | ✅ Shipped | `lib/subscription/devSubscriptionAccess.ts` |
 | Unified Manage Profile hub | S5-PROF-001 | ✅ Shipped | `/user-profile` — Immigration + Green Card tabs |
 | Calculator catalog documentation | S5-DOC-001 | ✅ Shipped | [CALCULATORS.md](./CALCULATORS.md) |
+| Admin Data Refresh (stamping + bulletin) | S5-ADM-004 | ✅ Shipped | `/api/admin/refresh-visa-stamping`, `/api/admin/refresh-visa-bulletin` |
+| Site scroll-to-top + Calculator menu | S5-UX-001 | ✅ Shipped | `ScrollToTop`; menu href `/calculators` (no category hashes) |
+| Sprint 5 sign-off | S5-CLOSE | ✅ Complete | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) |
