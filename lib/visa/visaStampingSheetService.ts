@@ -250,10 +250,13 @@ function buildHistoryAnalysis(options: {
   currentDate: string;
   currentWaitDays: number;
   historyRows: StampingCsvRow[];
+  /** Full point series is expensive — only build when explicitly requested. */
+  includeHistoryPoints?: boolean;
 }): VisaStampingHistoryAnalysis {
   const columnName = VISA_TYPE_SHEET_COLUMN[options.visaType];
+  const cityKey = options.city.toLowerCase();
   const candidates = options.historyRows
-    .filter((row) => getCell(row, "City").toLowerCase() === options.city.toLowerCase())
+    .filter((row) => getCell(row, "City").toLowerCase() === cityKey)
     .filter((row) => compareSheetDates(getCell(row, "Last_update_date", "Last update date"), options.currentDate) < 0)
     .sort((left, right) =>
       compareSheetDates(
@@ -274,11 +277,13 @@ function buildHistoryAnalysis(options: {
     }
   }
 
-  const historyPoints = buildHistoryPoints({
-    currentDate: options.currentDate,
-    currentWaitDays: options.currentWaitDays,
-    historicalWaits,
-  });
+  const historyPoints = options.includeHistoryPoints
+    ? buildHistoryPoints({
+        currentDate: options.currentDate,
+        currentWaitDays: options.currentWaitDays,
+        historicalWaits,
+      })
+    : undefined;
 
   if (historicalWaits.length === 0) {
     return {
@@ -288,7 +293,7 @@ function buildHistoryAnalysis(options: {
       lowestWaitDays: options.currentWaitDays,
       highestWaitDays: options.currentWaitDays,
       averageWaitDays: options.currentWaitDays,
-      historyPoints,
+      ...(historyPoints ? { historyPoints } : {}),
     };
   }
 
@@ -316,8 +321,72 @@ function buildHistoryAnalysis(options: {
     lowestWaitDays: Math.min(...allWaits),
     highestWaitDays: Math.max(...allWaits),
     averageWaitDays,
-    historyPoints,
+    ...(historyPoints ? { historyPoints } : {}),
   };
+}
+
+function indexHistoryRowsByCity(historyRows: StampingCsvRow[]): Map<string, StampingCsvRow[]> {
+  const indexed = new Map<string, StampingCsvRow[]>();
+  for (const row of historyRows) {
+    const cityKey = getCell(row, "City").toLowerCase();
+    if (!cityKey) {
+      continue;
+    }
+    const bucket = indexed.get(cityKey);
+    if (bucket) {
+      bucket.push(row);
+    } else {
+      indexed.set(cityKey, [row]);
+    }
+  }
+  return indexed;
+}
+
+/** Strip heavy history series from posts for default map payloads. */
+export function stripHistoryPointsFromPosts(posts: VisaStampingPost[]): VisaStampingPost[] {
+  return posts.map((post) => {
+    if (!post.historyAnalysis?.historyPoints) {
+      return post;
+    }
+
+    const { historyPoints: _historyPoints, ...historyAnalysis } = post.historyAnalysis;
+    return {
+      ...post,
+      historyAnalysis,
+    };
+  });
+}
+
+/**
+ * Attach full historyPoints for a single city + visa type only.
+ * Used by includeHistory=true API requests from the History Trend tab.
+ */
+export function attachHistoryPointsForPost(
+  posts: VisaStampingPost[],
+  options: { city: string; visaType: VisaStampingVisaType; historyRows: StampingCsvRow[] },
+): VisaStampingPost[] {
+  const cityKey = options.city.trim().toLowerCase();
+
+  return posts.map((post) => {
+    if (post.city.trim().toLowerCase() !== cityKey || post.visaType !== options.visaType) {
+      return post;
+    }
+
+    const historyAnalysis = buildHistoryAnalysis({
+      city: post.city,
+      visaType: post.visaType,
+      currentDate: post.lastUpdated,
+      currentWaitDays: post.waitDays,
+      historyRows: options.historyRows,
+      includeHistoryPoints: true,
+    });
+
+    return {
+      ...post,
+      previousWaitDays: historyAnalysis.previousWaitDays ?? post.previousWaitDays,
+      historyAnalysis,
+    };
+  });
 }
 
 function sheetRecordToPost(record: VisaStampingSheetRecord): VisaStampingPost {
@@ -349,6 +418,7 @@ function buildRecordsFromSheets(options: {
   const metadataByCity = new Map(
     options.metadata.map((entry) => [entry.city.trim().toLowerCase(), entry]),
   );
+  const historyByCity = indexHistoryRowsByCity(options.historyRows);
 
   const records: VisaStampingSheetRecord[] = [];
 
@@ -361,6 +431,7 @@ function buildRecordsFromSheets(options: {
     }
 
     const lastUpdated = toIsoDate(getCell(row, "Last_update_date", "Last update date"));
+    const cityHistoryRows = historyByCity.get(city.toLowerCase()) ?? [];
 
     for (const visaType of Object.keys(VISA_TYPE_SHEET_COLUMN) as VisaStampingVisaType[]) {
       const rawWait = getWaitValueForVisaType(row, visaType);
@@ -375,7 +446,8 @@ function buildRecordsFromSheets(options: {
         visaType,
         currentDate: getCell(row, "Last_update_date", "Last update date"),
         currentWaitDays: waitDays,
-        historyRows: options.historyRows,
+        historyRows: cityHistoryRows,
+        includeHistoryPoints: false,
       });
 
       records.push({
@@ -427,29 +499,6 @@ function getDemoFallbackResult(): VisaStampingSheetLoadResult {
             lowestWaitDays: Math.min(post.waitDays, post.previousWaitDays),
             highestWaitDays: Math.max(post.waitDays, post.previousWaitDays),
             averageWaitDays: roundToOneDecimal((post.waitDays + post.previousWaitDays) / 2),
-            historyPoints: [
-              {
-                updateDate: post.lastUpdated,
-                waitDays: post.previousWaitDays,
-                trend: "Stable" as const,
-              },
-              {
-                updateDate: post.lastUpdated,
-                waitDays: post.waitDays,
-                changeDays: post.waitDays - post.previousWaitDays,
-                changePercent:
-                  post.previousWaitDays > 0
-                    ? roundToOneDecimal(((post.waitDays - post.previousWaitDays) / post.previousWaitDays) * 100)
-                    : undefined,
-                trend:
-                  post.waitDays - post.previousWaitDays <= -15
-                    ? ("Improving" as const)
-                    : post.waitDays - post.previousWaitDays >= 15
-                      ? ("Increasing" as const)
-                      : ("Stable" as const),
-                isCurrent: true,
-              },
-            ],
           }
         : {
             trend: "Stable",
@@ -458,14 +507,6 @@ function getDemoFallbackResult(): VisaStampingSheetLoadResult {
             lowestWaitDays: post.waitDays,
             highestWaitDays: post.waitDays,
             averageWaitDays: post.waitDays,
-            historyPoints: [
-              {
-                updateDate: post.lastUpdated,
-                waitDays: post.waitDays,
-                trend: "Stable" as const,
-                isCurrent: true,
-              },
-            ],
           };
 
     return {

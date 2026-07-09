@@ -3,9 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
+  /* Do not set scroll-behavior: smooth on html — it fights Next.js
+     App Router scroll-to-top and can leave navigations mid-page. */
 
   body {
     @apply bg-slate-50 text-slate-800 antialiased;

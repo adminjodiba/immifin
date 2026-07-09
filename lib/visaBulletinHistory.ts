@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { fetchVisaBulletinHistoryCsvRows } from "@/lib/visaBulletinSheets";
 import {
   normalizeSheetCategory,
@@ -24,6 +24,7 @@ export type VisaBulletinHistoryQuery = {
 };
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+export const VISA_BULLETIN_HISTORY_CACHE_TAG = "visa-bulletin-history";
 export const VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS = 86400;
 
 export function normalizeMonth(month: string): string {
@@ -145,14 +146,25 @@ function matchesQuery(record: VisaBulletinHistoryRecord, query: VisaBulletinHist
   return true;
 }
 
-async function loadAllVisaBulletinHistoryRecords(): Promise<VisaBulletinHistoryRecord[]> {
-  const values = await fetchVisaBulletinHistoryCsvRows();
+async function loadAllVisaBulletinHistoryRecords(
+  forceRefresh = false,
+): Promise<VisaBulletinHistoryRecord[]> {
+  const values = await fetchVisaBulletinHistoryCsvRows(forceRefresh);
 
   return values
     .map(parseHistoryRow)
     .filter((record): record is VisaBulletinHistoryRecord => record !== null)
     .sort((a, b) => a.month.localeCompare(b.month));
 }
+
+const getCachedVisaBulletinHistoryRecords = unstable_cache(
+  () => loadAllVisaBulletinHistoryRecords(false),
+  ["visa-bulletin-history-records"],
+  {
+    revalidate: VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS,
+    tags: [VISA_BULLETIN_HISTORY_CACHE_TAG],
+  },
+);
 
 /** Most recent bulletin month in VisaBulletinHistory (YYYY-MM), from uploaded sheet data. */
 export async function getLatestVisaBulletinMonth(): Promise<string | null> {
@@ -196,16 +208,16 @@ export function formatVisaBulletinMonthShort(month: string): string {
   return `${shortMonth}-${year.slice(-2)}`;
 }
 
-const getCachedVisaBulletinHistoryRecords = unstable_cache(
-  loadAllVisaBulletinHistoryRecords,
-  ["visa-bulletin-history-records"],
-  { revalidate: VISA_BULLETIN_HISTORY_REVALIDATE_SECONDS },
-);
-
 export async function getVisaBulletinHistory(
   query: VisaBulletinHistoryQuery = {},
+  options?: { forceRefresh?: boolean },
 ): Promise<VisaBulletinHistoryRecord[]> {
-  const records = await getCachedVisaBulletinHistoryRecords();
+  const records = options?.forceRefresh
+    ? await (async () => {
+        revalidateTag(VISA_BULLETIN_HISTORY_CACHE_TAG);
+        return loadAllVisaBulletinHistoryRecords(true);
+      })()
+    : await getCachedVisaBulletinHistoryRecords();
 
   return records.filter((record) => matchesQuery(record, query));
 }

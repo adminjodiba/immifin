@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminDatasetRefreshButton } from "@/components/admin/AdminDatasetRefreshButton";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { PageHeader } from "@/components/PageHeader";
 import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { isAuthError } from "@/lib/auth/errors";
@@ -140,6 +141,14 @@ function DatasetCard({ dataset, status }: { dataset: ImmifinDataset; status: Dat
             </ol>
           </details>
         )}
+        {dataset.refreshAction && (
+          <div className="mt-3">
+            <AdminDatasetRefreshButton
+              label={dataset.refreshAction.label}
+              endpoint={dataset.refreshAction.endpoint}
+            />
+          </div>
+        )}
       </div>
     </article>
   );
@@ -160,7 +169,8 @@ export default async function AdminDashboardPage() {
     throw error;
   }
 
-  const today = new Date();  const datasets = getImmifinDatasets(today);
+  const today = new Date();
+  const datasets = getImmifinDatasets(today);
   const centerAlert = getDataRefreshCenterAlert(datasets, today);
 
   return (
@@ -168,18 +178,9 @@ export default async function AdminDashboardPage() {
       title="IMMIFIN Admin Dashboard"
       description="Monitor dataset freshness and maintenance reminders."
       showFavorite={false}
+      actions={<DashboardCloseAction />}
     >
       <WorkspaceSection>
-        <div className="mb-6">
-          <Link
-            href="/"
-            className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800"
-          >
-            <span aria-hidden="true">←</span>
-            Back to Home
-          </Link>
-        </div>
-
         <div className="space-y-6">
           <div
             className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-slate-800"

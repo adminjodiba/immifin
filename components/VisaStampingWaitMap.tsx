@@ -10,7 +10,6 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
-import { VisaStampingHistoryTrendChart } from "@/components/visa/VisaStampingHistoryTrendChart";
 import { jsonFetcher, visaStampingSwrOptions } from "@/lib/swr";
 import {
   DEFAULT_SELECTED_POST_ID,
@@ -39,6 +38,19 @@ const VisaStampingLeafletMap = dynamic(() => import("@/components/visa/VisaStamp
     </div>
   ),
 });
+
+const VisaStampingHistoryTrendChart = dynamic(
+  () =>
+    import("@/components/visa/VisaStampingHistoryTrendChart").then(
+      (mod) => mod.VisaStampingHistoryTrendChart,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[180px] items-center justify-center text-xs text-slate-500">Loading chart…</div>
+    ),
+  },
+);
 
 const PAGE_HREF = "/immigration/visa-stamping-wait-map";
 const PAGE_TITLE = "Global Visa Stamping Wait Map";
@@ -95,11 +107,19 @@ function buildApiUrl(
   country: CountryFilter,
   visaType: VisaStampingVisaType,
   appointmentType: VisaStampingAppointmentType,
-  refresh = false,
+  options?: {
+    refresh?: boolean;
+    includeHistory?: boolean;
+    city?: string;
+  },
 ) {
   const params = new URLSearchParams({ country, visaType, appointmentType });
-  if (refresh) {
+  if (options?.refresh) {
     params.set("refresh", "true");
+  }
+  if (options?.includeHistory && options.city) {
+    params.set("includeHistory", "true");
+    params.set("city", options.city);
   }
   return `/api/visa-stamping-wait-times?${params.toString()}`;
 }
@@ -539,11 +559,17 @@ function SelectedPostDetailsCard({
   post,
   rank,
   dataSource,
+  country,
+  visaType,
+  appointmentType,
   onClearSelection,
 }: {
   post: VisaStampingPost | null;
   rank: number | null;
   dataSource: "Google Sheets" | "Demo fallback" | undefined;
+  country: CountryFilter;
+  visaType: VisaStampingVisaType;
+  appointmentType: VisaStampingAppointmentType;
   onClearSelection?: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<DetailsTab>("overview");
@@ -553,6 +579,30 @@ function SelectedPostDetailsCard({
     setActiveTab("overview");
     setHistoryRange("12m");
   }, [post?.id]);
+
+  const historyApiUrl =
+    post && activeTab === "history"
+      ? buildApiUrl(country, visaType, appointmentType, {
+          includeHistory: true,
+          city: post.city,
+        })
+      : null;
+
+  const { data: historyData, isLoading: isHistoryLoading } = useSWR<VisaStampingApiResponse>(
+    historyApiUrl,
+    (url) => jsonFetcher<VisaStampingApiResponse>(url, "Failed to load history trend."),
+    visaStampingSwrOptions,
+  );
+
+  const historyPost =
+    historyData?.data.find((entry) => entry.id === post?.id) ??
+    historyData?.data.find(
+      (entry) =>
+        post &&
+        entry.city.toLowerCase() === post.city.toLowerCase() &&
+        entry.visaType === post.visaType,
+    ) ??
+    null;
 
   if (!post) {
     return (
@@ -571,7 +621,7 @@ function SelectedPostDetailsCard({
   const status = getWaitStatus(post.waitDays);
   const history = post.historyAnalysis;
   const hasHistory = Boolean(history && history.historicalSamples > 0);
-  const historyPoints = history?.historyPoints ?? [];
+  const historyPoints = historyPost?.historyAnalysis?.historyPoints ?? [];
   const visiblePoints = filterHistoryPointsByRange(historyPoints, historyRange);
   const hasTrendSeries = visiblePoints.length > 1;
   const overallTrend = overallTrendFromPoints(visiblePoints);
@@ -758,7 +808,11 @@ function SelectedPostDetailsCard({
                 </select>
               </div>
 
-              {hasTrendSeries ? (
+              {isHistoryLoading ? (
+                <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-[11px] text-slate-500">
+                  Loading history for {post.city}…
+                </div>
+              ) : hasTrendSeries ? (
                 <>
                   {visiblePoints.length < 12 && historyRange !== "all" ? (
                     <p className="text-[11px] text-slate-500">
@@ -905,7 +959,6 @@ export function VisaStampingWaitMap() {
   const [mapFocusPostId, setMapFocusPostId] = useState<string | null>(null);
 
   const apiUrl = buildApiUrl(appliedCountry, appliedVisaType, appliedAppointmentType);
-  const countriesApiUrl = buildApiUrl("Worldwide", appliedVisaType, appliedAppointmentType);
 
   const { data, error, isLoading } = useSWR<VisaStampingApiResponse>(
     apiUrl,
@@ -913,20 +966,14 @@ export function VisaStampingWaitMap() {
     visaStampingSwrOptions,
   );
 
-  const { data: countriesData } = useSWR<VisaStampingApiResponse>(
-    countriesApiUrl,
-    (url) => jsonFetcher<VisaStampingApiResponse>(url, "Failed to load country list."),
-    visaStampingSwrOptions,
-  );
-
   const rawPosts = data?.data;
   const metadata = data?.metadata;
 
   const countryOptions = useMemo(() => {
-    const fromApi = countriesData?.metadata.countries ?? data?.metadata.countries;
+    const fromApi = data?.metadata.countries;
     const countries = fromApi?.length ? fromApi : [...VISA_STAMPING_COUNTRIES];
     return ["Worldwide", ...countries.sort((a, b) => a.localeCompare(b))] as CountryFilter[];
-  }, [countriesData, data]);
+  }, [data]);
 
   const visiblePosts = useMemo(
     () =>
@@ -1178,6 +1225,9 @@ export function VisaStampingWaitMap() {
                   post={selectedPost}
                   rank={selectedRank}
                   dataSource={metadata?.source}
+                  country={appliedCountry}
+                  visaType={appliedVisaType}
+                  appointmentType={appliedAppointmentType}
                   onClearSelection={() => {
                     setSelectedPostId(rankedPosts[0]?.id ?? DEFAULT_SELECTED_POST_ID);
                     setMapFocusPostId(null);

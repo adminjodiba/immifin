@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
+  attachHistoryPointsForPost,
   filterVisaStampingSheetRecords,
   getVisaStampingSheetData,
+  stripHistoryPointsFromPosts,
 } from "@/lib/visa/visaStampingSheetService";
 import {
   formatDisplayDate,
@@ -10,6 +12,7 @@ import {
   type VisaStampingAppointmentType,
   type VisaStampingVisaType,
 } from "@/lib/visa/visaStampingWaitTimes";
+import { getHistoricalStampingWaitTimes } from "@/lib/visaStampingSheets";
 
 export const runtime = "nodejs";
 export const revalidate = 86_400;
@@ -31,6 +34,8 @@ export async function GET(request: Request) {
   const visaTypeParam = searchParams.get("visaType");
   const appointmentTypeParam = searchParams.get("appointmentType");
   const forceRefresh = searchParams.get("refresh") === "true";
+  const includeHistory = searchParams.get("includeHistory") === "true";
+  const historyCity = searchParams.get("city")?.trim() || "";
 
   if (!isVisaType(visaTypeParam)) {
     return NextResponse.json({ error: "Invalid or missing visaType parameter." }, { status: 400 });
@@ -42,11 +47,30 @@ export async function GET(request: Request) {
 
   try {
     const sheetData = await getVisaStampingSheetData({ forceRefresh });
-    const filtered = filterVisaStampingSheetRecords(sheetData.records, {
+    let filtered = filterVisaStampingSheetRecords(sheetData.records, {
       country: country === "Worldwide" ? "Worldwide" : country,
       visaType: visaTypeParam,
       appointmentType: appointmentType === "Drop-box" ? undefined : appointmentType,
     });
+
+    // Default map payload: trend summary only — no full historyPoints series.
+    filtered = stripHistoryPointsFromPosts(filtered);
+
+    if (includeHistory) {
+      if (!historyCity) {
+        return NextResponse.json(
+          { error: "city is required when includeHistory=true." },
+          { status: 400 },
+        );
+      }
+
+      const historyRows = await getHistoricalStampingWaitTimes(forceRefresh);
+      filtered = attachHistoryPointsForPost(filtered, {
+        city: historyCity,
+        visaType: visaTypeParam,
+        historyRows,
+      });
+    }
 
     const data =
       appointmentType === "Drop-box"
@@ -62,6 +86,7 @@ export async function GET(request: Request) {
         count: data.length,
         countries: sheetData.countries,
         history: sheetData.history,
+        includeHistory: includeHistory || undefined,
         refreshed: forceRefresh || undefined,
         ...(appointmentType === "Drop-box" ? { appointmentTypeNote: DROPBOX_NOTE } : {}),
       },

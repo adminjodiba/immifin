@@ -2,9 +2,9 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-07-07 |
+| **Last updated** | 2026-07-09 |
 | **Route** | `/admin` |
-| **Sprint** | Sprint 5 (MVP) — force sync parked for Sprint 6 |
+| **Sprint** | Sprint 5 (MVP) — Visa Bulletin force sync parked for Sprint 6 |
 | **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations) |
 
 ---
@@ -42,9 +42,12 @@ Tracked datasets:
 1. Occupation (SOC/O*NET)
 2. DOL prevailing wage
 3. H-1B lottery odds assumptions
-4. Visa Bulletin
+4. Visa stamping wait times — monthly State Department refresh steps + **Data Refresh** button (`/api/admin/refresh-visa-stamping`)
+5. Visa Bulletin — monthly sheet update steps + **Data Refresh** button (`/api/admin/refresh-visa-bulletin`)
 
 Each card shows version, last updated, next recommended refresh, urgency, **How to refresh** summary, and collapsible step list.
+
+**Visa stamping wait times** and **Visa Bulletin** include an on-card **Data Refresh** button that force-refreshes the Google Sheets cache after the sheet tabs are updated. Archive month remains a separate admin action and is **not** triggered by Data Refresh.
 
 Status bands: **Current**, **Due soon** (≤30 days), **Overdue**.
 
@@ -80,7 +83,7 @@ Admins use **persisted Supabase plan** (not the floating DevTierSwitcher localSt
 
 See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md):
 
-- **Force Sync** visa bulletin (bypass 24h cache)
+- **Force Sync** visa bulletin — **partially shipped** as Admin **Data Refresh** (`POST /api/admin/refresh-visa-bulletin`); richer status panel / archive UI still pending
 - **Manual archive month** UI for history sheet
 - `admin_audit_log` entries for sync/archive actions
 

@@ -16,6 +16,8 @@ export type BulletinSheetRow = {
   cutoffDate: string;
 };
 
+export const VISA_BULLETIN_SHEETS_CACHE_TAG = "visa-bulletin-sheets";
+
 function parseCsvMatrix(csvText: string): string[][] {
   return csvText
     .split("\n")
@@ -37,8 +39,11 @@ function parseCsvRows(csvText: string): BulletinSheetRow[] {
   }));
 }
 
-async function fetchCsvText(url: string, label: string): Promise<string> {
-  const response = await fetch(url, { next: { revalidate: 86400 } });
+async function fetchCsvText(url: string, label: string, forceRefresh = false): Promise<string> {
+  const response = await fetch(
+    url,
+    forceRefresh ? { cache: "no-store" } : { next: { revalidate: 86400 } },
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${label} (${response.status})`);
@@ -47,9 +52,12 @@ async function fetchCsvText(url: string, label: string): Promise<string> {
   return response.text();
 }
 
-async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<BulletinSheetRow[]> {
+async function fetchSheetRows(
+  sheetName: VisaBulletinSheetName,
+  forceRefresh = false,
+): Promise<BulletinSheetRow[]> {
   const url = resolveVisaBulletinCsvUrl(sheetName);
-  const csvText = await fetchCsvText(url, sheetName);
+  const csvText = await fetchCsvText(url, sheetName, forceRefresh);
   const rows = parseCsvRows(csvText);
 
   console.log(`[visa-bulletin] ${sheetName}: loaded ${rows.length} rows from ${url}`);
@@ -58,9 +66,9 @@ async function fetchSheetRows(sheetName: VisaBulletinSheetName): Promise<Bulleti
   return rows;
 }
 
-export async function fetchVisaBulletinHistoryCsvRows(): Promise<string[][]> {
+export async function fetchVisaBulletinHistoryCsvRows(forceRefresh = false): Promise<string[][]> {
   const url = resolveVisaBulletinCsvUrl("VisaBulletinHistory");
-  const csvText = await fetchCsvText(url, "VisaBulletinHistory");
+  const csvText = await fetchCsvText(url, "VisaBulletinHistory", forceRefresh);
   const rows = parseCsvMatrix(csvText);
   const dataRows = rows.length <= 1 ? [] : rows.slice(1);
 
@@ -70,33 +78,38 @@ export async function fetchVisaBulletinHistoryCsvRows(): Promise<string[][]> {
   return dataRows;
 }
 
-export async function getCurrentFinalActionDates(): Promise<BulletinSheetRow[]> {
-  return fetchSheetRows("FinalActionDates");
+export async function getCurrentFinalActionDates(forceRefresh = false): Promise<BulletinSheetRow[]> {
+  return fetchSheetRows("FinalActionDates", forceRefresh);
 }
 
-export async function getPreviousFinalActionDates(): Promise<BulletinSheetRow[]> {
-  return fetchSheetRows("PreviousFinalActionDates");
+export async function getPreviousFinalActionDates(
+  forceRefresh = false,
+): Promise<BulletinSheetRow[]> {
+  return fetchSheetRows("PreviousFinalActionDates", forceRefresh);
 }
 
-export async function getCurrentDatesForFiling(): Promise<BulletinSheetRow[]> {
-  return fetchSheetRows("DatesForFiling");
+export async function getCurrentDatesForFiling(forceRefresh = false): Promise<BulletinSheetRow[]> {
+  return fetchSheetRows("DatesForFiling", forceRefresh);
 }
 
-export async function getPreviousDatesForFiling(): Promise<BulletinSheetRow[]> {
-  return fetchSheetRows("PreviousDatesForFiling");
+export async function getPreviousDatesForFiling(forceRefresh = false): Promise<BulletinSheetRow[]> {
+  return fetchSheetRows("PreviousDatesForFiling", forceRefresh);
 }
 
 /** Loads all four sheets sequentially and logs each result. */
-export async function loadAllVisaBulletinSheets(): Promise<{
+export async function loadAllVisaBulletinSheets(options?: {
+  forceRefresh?: boolean;
+}): Promise<{
   FinalActionDates: BulletinSheetRow[];
   DatesForFiling: BulletinSheetRow[];
   PreviousFinalActionDates: BulletinSheetRow[];
   PreviousDatesForFiling: BulletinSheetRow[];
 }> {
-  const FinalActionDates = await getCurrentFinalActionDates();
-  const DatesForFiling = await getCurrentDatesForFiling();
-  const PreviousFinalActionDates = await getPreviousFinalActionDates();
-  const PreviousDatesForFiling = await getPreviousDatesForFiling();
+  const forceRefresh = options?.forceRefresh ?? false;
+  const FinalActionDates = await getCurrentFinalActionDates(forceRefresh);
+  const DatesForFiling = await getCurrentDatesForFiling(forceRefresh);
+  const PreviousFinalActionDates = await getPreviousFinalActionDates(forceRefresh);
+  const PreviousDatesForFiling = await getPreviousDatesForFiling(forceRefresh);
 
   console.log("[visa-bulletin] All sheets loaded:", {
     FinalActionDates: FinalActionDates.length,

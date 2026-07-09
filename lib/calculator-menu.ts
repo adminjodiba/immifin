@@ -1,21 +1,21 @@
 export const calculatorMenuLinks = [
   {
-    href: "/calculators#category-immigration",
+    href: "/calculators",
     label: "Immigration",
     description: "Visa timelines & green card tools",
   },
   {
-    href: "/calculators#category-finance",
+    href: "/calculators",
     label: "Finance",
     description: "Mortgages, credit & retirement",
   },
   {
-    href: "/calculators#category-tax",
+    href: "/calculators",
     label: "Tax",
     description: "Residency & FICA calculators",
   },
   {
-    href: "/calculators#category-insurance",
+    href: "/calculators",
     label: "Insurance",
     description: "Health, auto & renters coverage",
   },

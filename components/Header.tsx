@@ -146,7 +146,7 @@ function NavDropdown({
               />
             ) : (
               <ProtectedLink
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
               >
@@ -423,7 +423,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                       <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
                         {submenu.map((item) => (
                           <ProtectedLink
-                            key={item.href}
+                            key={item.label}
                             href={item.href}
                             className="flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
                             onClick={onToggleMenu}

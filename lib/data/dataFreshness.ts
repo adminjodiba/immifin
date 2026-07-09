@@ -2,6 +2,11 @@ export type DataFreshnessStatus = "current" | "due-soon" | "overdue";
 
 export type DatasetUrgency = "Low" | "High";
 
+export type ImmifinDatasetRefreshAction = {
+  label: string;
+  endpoint: string;
+};
+
 export type ImmifinDataset = {
   id: string;
   name: string;
@@ -12,6 +17,8 @@ export type ImmifinDataset = {
   urgency: DatasetUrgency;
   refreshHint: string;
   refreshSteps: string[];
+  /** Optional admin action (e.g. force-refresh cached sheet data). */
+  refreshAction?: ImmifinDatasetRefreshAction;
 };
 
 export type DataRefreshCenterAlert = {
@@ -101,20 +108,21 @@ function buildDatasetCatalog(referenceDate: Date): ImmifinDataset[] {
       name: "Visa stamping wait times",
       version: "Immifin GC Dates / stamping_wait_time_current",
       lastUpdated: todayIso,
-      refreshFrequency: "Monthly or more often",
+      refreshFrequency: "Monthly",
       nextRecommendedRefresh: getFirstDayOfNextMonth(referenceDate),
       urgency: "High",
       refreshHint:
-        "Update the Google Sheet tabs, then the website API will pull the latest published CSV data after cache refresh.",
+        "Each month: archive current sheet data to history, replace current with the latest State Department wait times, then click Data Refresh on this card.",
       refreshSteps: [
-        "Copy current data from stamping_wait_time_current and append it into stamping_wait_time_history",
-        "Paste the new Department of State wait-time data into stamping_wait_time_current",
-        "Confirm Stamping_City_Metadata has City, Country, Latitude, Longitude, Region, Active",
-        "Publish each worksheet to web (same publish base as Visa Bulletin)",
-        "Confirm STAMPING_WAIT_TIME_GID_* env vars match tab gids (or use defaults in visaStampingConfig.ts)",
-        "Confirm GOOGLE_SHEET_ID / GOOGLE_SPREADSHEET_ID matches Immifin GC Dates",
-        "Open Global Visa Stamping Wait Map and verify latest date and rankings",
+        'Every month, copy the data from "stamping_wait_time_current" and paste it into the "stamping_wait_time_history" tab.',
+        "Download the data from https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html",
+        'Download the data as-is and put it in the Google Sheet tab "stamping_wait_time_current" starting from COLUMN B. Update COLUMN A with Last_update_date.',
+        "Click the Data Refresh button on this Admin page card.",
       ],
+      refreshAction: {
+        label: "Data Refresh",
+        endpoint: "/api/admin/refresh-visa-stamping",
+      },
     },
     {
       id: "visa-bulletin",
@@ -124,13 +132,19 @@ function buildDatasetCatalog(referenceDate: Date): ImmifinDataset[] {
       refreshFrequency: "Monthly",
       nextRecommendedRefresh: getFirstDayOfNextMonth(referenceDate),
       urgency: "High",
-      refreshHint: "Visa Bulletin data is currently maintained through the Google Sheets feed.",
+      refreshHint:
+        "Update the Google Sheet tabs with the latest USCIS Visa Bulletin, then click Data Refresh on this card to pull fresh data into the website immediately.",
       refreshSteps: [
         "Update the Google Sheet tabs for Final Action Dates and Dates for Filing",
         "Confirm the published CSV/feed is accessible",
+        "Click the Data Refresh button on this Admin page card",
         "Verify Visa Bulletin dashboard and movement tracker",
-        "Archive monthly data if needed",
+        "Archive monthly data if needed (separate admin action — not part of Data Refresh)",
       ],
+      refreshAction: {
+        label: "Data Refresh",
+        endpoint: "/api/admin/refresh-visa-bulletin",
+      },
     },
   ];
 }
