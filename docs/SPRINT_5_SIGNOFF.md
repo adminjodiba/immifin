@@ -6,7 +6,7 @@
 | **Theme** | Design System 2.0 & Product Experience |
 | **Version** | v0.4.2 → Sprint 5 closeout on `main` |
 | **Sign-Off Date** | 2026-07-09 |
-| **Latest production commit** | `65e5c5c` |
+| **Latest production commit** | `8500446` |
 | **Status** | **Signed off — Sprint 5 complete** |
 | **Next Sprint** | Sprint 6 — AI & Personalization + Admin Operations + Resend email alerts |
 

@@ -7,7 +7,7 @@
 | **Current Sprint** | Sprint 6 — AI & Personalization *(next)* |
 | **Production Version** | v0.4.2 (Sprint 5 closeout) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Sprint 5 signed off (`65e5c5c`) |
+| **Production Status** | 🟢 Stable — Sprint 5 signed off (`8500446`) |
 | **Cloudflare** | 🟢 Deployed — ⚠️ Workers **Free** plan may 1102 on cold start; Paid recommended |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
@@ -132,7 +132,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 **Document purpose:** Permanent project status reference for IMMIFIN. A new engineer—or a fresh ChatGPT session—should be able to read this document and immediately understand the project, its architecture, current production state, engineering practices, and exactly where development should begin.
 
 **Production branch:** `main`  
-**Latest commit:** `65e5c5c` — Sprint 5 closeout (Visa Stamping resource fix, admin refresh, scroll fix; Free-plan CPU note)  
+**Latest commit:** `8500446` — docs: sign off Sprint 5 and sync project status for closeout.  
 **Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)  
 **Subscription Foundation:** `ef412e0` — Development Subscription Mode · `b64317c` — Pricing UX polish  
 **Latest tag:** `v0.4.1`  

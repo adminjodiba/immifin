@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-09  
 **Version:** v0.4.2 (main — **Sprint 5 signed off**)  
-**Latest production commit:** `65e5c5c` — Sprint 5 closeout on Cloudflare  
+**Latest production commit:** `8500446` — Sprint 5 sign-off docs on Cloudflare  
 **Development workflow:** v2.1 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 > **Authoritative status:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) supersedes this document for current production state.  
