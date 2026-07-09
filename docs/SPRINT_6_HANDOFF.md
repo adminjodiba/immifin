@@ -6,8 +6,9 @@
 | **Theme** | AI & Personalization |
 | **Version range** | v0.5.0 → v0.6.0 (target) |
 | **Handoff Date** | 2026-07-06 |
-| **Status** | Planned — starts after Sprint 5 sign-off ([SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)) |
-| **Previous release** | v0.5.0 (Sprint 5 — Design System 2.0, target) |
+| **Status** | **In progress** — kicked off 2026-07-09 after Sprint 5 sign-off ([SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)) |
+| **Previous release** | v0.4.2 (Sprint 5 — Design System 2.0, signed off) |
+| **Kickoff Date** | 2026-07-09 |
 
 > **This document is the first thing a new AI assistant or engineer must read when Sprint 6 begins.**
 
@@ -168,3 +169,4 @@ Cloudflare Email Sending remains optional later; Workers Paid upgrade is primari
 |---------|------|-------------|
 | v1.0 | 2026-07-06 | Initial Sprint 6 handoff — admin force sync parked from Sprint 5; manual archive constraint documented |
 | v1.1 | 2026-07-09 | Sprint 5 signed off; Resend email alerts + Workers Paid noted as Sprint 6 priorities |
+| v1.2 | 2026-07-09 | Sprint 6 kicked off — status set to In progress |

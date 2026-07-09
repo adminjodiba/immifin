@@ -1,18 +1,19 @@
 # Immifin — Project Status
 
 **Last updated:** 2026-07-09  
-**Version:** v0.4.2 (main — **Sprint 5 signed off**)  
-**Latest production commit:** `8500446` — Sprint 5 sign-off docs on Cloudflare  
+**Version:** v0.4.2 (main — **Sprint 6 in progress**)  
+**Latest production commit:** `4ebd5d7` — Sprint 5 sign-off hash sync  
 **Development workflow:** v2.1 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 > **Authoritative status:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) supersedes this document for current production state.  
-> **Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)
+> **Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)  
+> **Sprint 6 handoff:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)
 
 ---
 
 ## Overall status
 
-**Production Stable** — Sprint 5 complete; Sprint 6 next
+**Production Stable** — Sprint 5 complete; **Sprint 6 started**
 
 | Area | Status |
 |------|--------|
@@ -23,7 +24,7 @@
 | **Design System 2.0** | ✅ Sprint 5 scope complete — Visa Bulletin + Visa Stamping Wait Map promoted |
 | **Admin Dashboard** | ✅ MVP — Data Refresh Center + force-refresh for stamping & bulletin |
 | **Stripe billing** | ⏳ Pending |
-| **Cloudflare Workers plan** | ⚠️ Free plan — intermittent Error 1102 on cold start; **Paid recommended** |
+| **Cloudflare Workers plan** | ⚠️ Free plan — intermittent Error 1102 on cold start; **Paid recommended** (Sprint 6 ops) |
 
 ---
 
@@ -51,15 +52,16 @@
 
 ---
 
-## Pending (Sprint 6+)
+## Pending (Sprint 6 — in progress)
 
 | Item | Notes |
 |------|-------|
-| ⏳ Cloudflare Workers Paid | Raises CPU limit; stops intermittent Error 1102 |
-| ⏳ Resend email alerts | Monthly Visa Bulletin update emails (agreed provider) |
-| ⏳ Admin archive UI / richer ops panel | S6-ADM-001 |
+| 🔄 Cloudflare Workers Paid | Raises CPU limit; stops intermittent Error 1102 |
+| 🔄 Resend email alerts | Monthly Visa Bulletin update emails (S6-EMAIL-001) |
+| 🔄 Admin archive UI / richer ops panel | S6-ADM-001 |
 | ⏳ Stripe | Checkout, webhooks, billing portal |
 | ⏳ Remaining DS 2.0 page redesigns | Homepage, full Manage Profile polish |
+| ⏳ AI & Personalization | S6-AI-xxx — primary theme |
 
 ---
 
@@ -70,7 +72,7 @@
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Authoritative project state |
 | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 formal sign-off |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 deliverables and constraints |
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Next sprint |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | **Current sprint** — AI, Resend, Admin ops |
 | [CALCULATORS.md](./CALCULATORS.md) | Live + planned calculators |
 | [design-system/VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) | Visa Stamping Wait Map DS 2.0 page record |
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP + access model |

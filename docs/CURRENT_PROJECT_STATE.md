@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-09 (**Sprint 5 signed off**)
+**Last Updated:** 2026-07-09 (**Sprint 6 kicked off**)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 6 — AI & Personalization *(next)* |
+| **Current Sprint** | Sprint 6 — AI & Personalization + Admin Operations + Resend *(In Progress)* |
 | **Production Version** | v0.4.2 (Sprint 5 closeout) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Sprint 5 signed off (`8500446`) |
+| **Production Status** | 🟢 Stable — Sprint 5 signed off; Sprint 6 started |
 | **Cloudflare** | 🟢 Deployed — ⚠️ Workers **Free** plan may 1102 on cold start; Paid recommended |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Sprint 6 kickoff — Workers Paid + Resend + Admin ops |
+| **Current Priority** | Sprint 6 — Workers Paid → Resend emails → Admin ops → AI |
 
 ## Current Version
 
@@ -24,11 +24,11 @@ See [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
 
 ## Current Phase
 
-Sprint 5 — Design System 2.0 & Product Experience *(**Signed off** 2026-07-09)*
+**Sprint 6 — AI & Personalization + Admin Operations** *(In Progress — kicked off 2026-07-09)*
 
-See [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
+Sprint 5 is complete. See [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) and [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 
-### Sprint 5 progress — Visa Bulletin DS 2.0 pages
+### Sprint 5 progress — Visa Bulletin DS 2.0 pages *(complete)*
 
 Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two are **live on production**; History is approved and pending promotion.
 
@@ -100,15 +100,15 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 
 ## Next Sprint
 
-**Sprint 6 — AI & Personalization + Admin Operations** *(next)*
+**Sprint 6 — AI & Personalization + Admin Operations** *(**In Progress** — kicked off 2026-07-09)*
 
 See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
 
-### Planned — Sprint 6
+### Sprint 6 priorities (agreed order)
 
 | Deliverable | Task ID | Notes |
 |-------------|---------|-------|
-| **Cloudflare Workers Paid** | Ops | Recommended — stops intermittent Error 1102 cold starts |
+| **Cloudflare Workers Paid** | Ops | Recommended first — stops intermittent Error 1102 cold starts |
 | **Resend Visa Bulletin emails** | S6-EMAIL-001 | Monthly update alerts (provider agreed: Resend) |
 | **Admin Operations page** | S6-ADM-001 | Force sync + manual archive UI — **MVP dashboard shipped**; richer ops pending |
 | **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |

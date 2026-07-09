@@ -8,7 +8,7 @@
 | **Sign-Off Date** | 2026-07-09 |
 | **Latest production commit** | `8500446` |
 | **Status** | **Signed off — Sprint 5 complete** |
-| **Next Sprint** | Sprint 6 — AI & Personalization + Admin Operations + Resend email alerts |
+| **Next Sprint** | Sprint 6 — **In progress** (kicked off 2026-07-09) |
 
 **Related documentation:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md)
 
