@@ -32,10 +32,5 @@
   },
   "observability": {
     "enabled": true
-  },
-  // Paid Workers: raise CPU so OpenNext cold starts / SSR do not return Error 1102.
-  // Free plan is hard-capped at ~10ms and will still 1102 on cold boot — upgrade required.
-  "limits": {
-    "cpu_ms": 60000
   }
 }
