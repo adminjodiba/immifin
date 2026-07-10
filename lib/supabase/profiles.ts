@@ -44,15 +44,28 @@ export async function getProfileByClerkId(clerkUserId: string): Promise<Profile 
   return data ? mapProfile(data) : null;
 }
 
-export async function getProfileWithRelationsByClerkId(
-  clerkUserId: string,
-): Promise<ProfileWithRelations | null> {
-  const profile = await getProfileByClerkId(clerkUserId);
-
-  if (!profile) {
+export async function getProfileByEmail(email: string): Promise<Profile | null> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) {
     return null;
   }
 
+  const supabase = getSupabaseAdminClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("email", normalized)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load profile by email: ${error.message}`);
+  }
+
+  return data ? mapProfile(data) : null;
+}
+
+async function loadProfileRelations(profile: Profile): Promise<ProfileWithRelations> {
   const supabase = getSupabaseAdminClient();
 
   const [{ data: immigrationProfile, error: immigrationError }, { data: subscription, error: subscriptionError }] =
@@ -74,6 +87,30 @@ export async function getProfileWithRelationsByClerkId(
     immigrationProfile: immigrationProfile ? mapImmigrationProfile(immigrationProfile) : null,
     subscription: subscription ? mapSubscription(subscription) : null,
   };
+}
+
+export async function getProfileWithRelationsByClerkId(
+  clerkUserId: string,
+): Promise<ProfileWithRelations | null> {
+  const profile = await getProfileByClerkId(clerkUserId);
+
+  if (!profile) {
+    return null;
+  }
+
+  return loadProfileRelations(profile);
+}
+
+export async function getProfileWithRelationsByEmail(
+  email: string,
+): Promise<ProfileWithRelations | null> {
+  const profile = await getProfileByEmail(email);
+
+  if (!profile) {
+    return null;
+  }
+
+  return loadProfileRelations(profile);
 }
 
 export async function upsertProfileFromClerk(input: UpsertProfileInput): Promise<Profile> {

@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 import { AdminDatasetRefreshButton } from "@/components/admin/AdminDatasetRefreshButton";
+import { AdminMonthlyImmigrationReportPreview } from "@/components/admin/AdminMonthlyImmigrationReportPreview";
+import { AdminMonthlyUpdateControlCenter } from "@/components/admin/AdminMonthlyUpdateControlCenter";
+import { AdminNotificationTestForm } from "@/components/admin/AdminNotificationTestForm";
+import { AdminSendMonthlyImmigrationUpdateForm } from "@/components/admin/AdminSendMonthlyImmigrationUpdateForm";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { PageHeader } from "@/components/PageHeader";
 import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
@@ -217,6 +221,17 @@ export default async function AdminDashboardPage() {
               Future versions may add one-click import, upload validation, and email reminders.
             </p>
           </section>
+
+          <AdminMonthlyUpdateControlCenter />
+
+          <AdminSendMonthlyImmigrationUpdateForm />
+
+          {process.env.NODE_ENV === "development" ? (
+            <>
+              <AdminNotificationTestForm />
+              <AdminMonthlyImmigrationReportPreview />
+            </>
+          ) : null}
 
           <section className="card-static space-y-4">
             <div>

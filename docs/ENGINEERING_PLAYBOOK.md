@@ -479,6 +479,7 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 | v2.2 | 2026-07-04 | v0.4.1 foundation milestone; Premium Feature Discovery implementation guide; documentation-first rule (S4-005.15). |
 | v2.3 | 2026-07-04 | Roadmap revision procedure; Sprint 5 handoff references (S4-005.16). |
 | v2.4 | 2026-07-05 | Deployment best practices; Cloudflare Build vs Runtime variables (S5-ENG-004). |
+| v2.5 | 2026-07-10 | Link AI Engineering Framework (`docs/ENGINEERING_FRAMEWORK/`) — S6-DOC-008 |
 
 ---
 
@@ -486,6 +487,7 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 
 | Document | Contents |
 |----------|----------|
+| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | **AI Engineering Framework** — task templates and agent guidelines (start here for Cursor task prompts) |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks, release checklist |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration (summary) |
 | [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Full Cloudflare deployment guide |

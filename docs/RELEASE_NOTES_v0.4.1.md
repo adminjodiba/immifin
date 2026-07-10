@@ -51,6 +51,29 @@ See [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESH
 
 ---
 
+## Sprint 6 Notification Platform (post v0.4.1)
+
+**Status:** ✅ **Completed — Production Validated** (S6-RELEASE-001, July 2026)  
+**Signoff:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md)
+
+### Completed
+
+| Area | Detail |
+|------|--------|
+| **Provider abstraction** | Notification Service, factory, registry, config, errors; Resend adapter only |
+| **Dashboard-driven email architecture** | Assembler + presentation mapper; dashboard is source of truth |
+| **Journey-aware Monthly Immigration Updates** | Same template; employment + Green Card holder card contents |
+| **Green Card Holder support** | Citizenship journey / N-400 timeline from `buildGreenCardJourneyData` |
+| **Admin Control Center** | Audience summary, preview sample, single-user send, in-app confirm modal |
+| **Bulk campaign workflow** | Batched Pro/Power send + `notification_campaigns` duplicate protection |
+| **Real production validation** | Real dashboard data, Pro subscribers, Green Card holder, inbox delivery via Resend |
+
+### Next initiative
+
+**Stripe Subscription Platform** — checkout, webhooks, billing portal (replaces Development Subscription Mode).
+
+---
+
 ## Summary
 
 v0.4.1 completes the **IMMIFIN platform foundation**. This release establishes the subscription model, capability-based authorization, personal workspace, dashboard framework, profile management, premium feature gating, and the **Premium Feature Discovery** UX pattern — all documented and ready for **Design System 2.0**, the next major initiative.

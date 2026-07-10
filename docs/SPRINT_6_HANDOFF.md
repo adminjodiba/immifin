@@ -6,7 +6,7 @@
 | **Theme** | AI & Personalization |
 | **Version range** | v0.5.0 → v0.6.0 (target) |
 | **Handoff Date** | 2026-07-06 |
-| **Status** | **In progress** — kicked off 2026-07-09 after Sprint 5 sign-off ([SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)) |
+| **Status** | **In progress** — Notification Platform **Completed (Production Validated)**; next initiative **Stripe Subscription Platform** |
 | **Previous release** | v0.4.2 (Sprint 5 — Design System 2.0, signed off) |
 | **Kickoff Date** | 2026-07-09 |
 
@@ -156,9 +156,13 @@ Before Sprint 6 implementation:
 |----------|--------|
 | Provider | **Resend** (not Cloudflare Email Sending as primary) |
 | Trigger | Prefer admin-confirmed send after bulletin refresh; cron later |
-| Audience | Pro users with email alert prefs / `accessEmailAlerts` |
+| Audience | Pro **and Power** users with email alert prefs / `accessEmailAlerts` |
 | Content | Personalized **Monthly Immigration Report** (see design doc — not a generic bulletin blast) |
 | Design authority | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
+
+**Update (2026-07-10 — S6-EMAIL-004.2):** Admin **Monthly Immigration Updates** Control Center ships on `/admin` with Pro/Power audience summary, explicit confirmation, batched bulk send, and per-bulletin duplicate-send protection (`notification_campaigns`). Automatic trigger, scheduling, and Queues remain out of scope for July 16.
+
+**Update (2026-07-10 — S6-RELEASE-001):** Notification Platform **v1.0 Production Validated**. Journey-aware Monthly Updates (employment + Green Card holder), Admin Control Center, and real inbox delivery via Resend are complete. **Next initiative: Stripe Subscription Platform.** See [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md).
 
 **Notification implementation for Sprint 6 must follow the architecture and roadmap documented in [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md).**
 
@@ -183,3 +187,4 @@ Do **not** implement broadcast, avatar, or streaming work in Sprint 6. Continue 
 | v1.2 | 2026-07-09 | Sprint 6 kicked off — status set to In progress |
 | v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design is source of truth for email / alerts |
 | v1.4 | 2026-07-10 | S6-DOC-002 — Immigration Broadcast Platform vision parked (post–July 16 MVP) |
+| v1.5 | 2026-07-10 | S6-RELEASE-001 — Notification Platform Production Validated; next initiative Stripe |

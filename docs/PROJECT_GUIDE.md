@@ -86,6 +86,7 @@ IMMIFIN follows a **documentation-first development model**.
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Product direction and long-term vision |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Technical design and infrastructure |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Implementation workflow and release gates |
+| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | Permanent AI Engineering Framework — task templates for agents |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Sprint sequencing *(may evolve through documented revisions)* |
 
 **Principles:**

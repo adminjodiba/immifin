@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-09 (**Sprint 6 kicked off**)
+**Last Updated:** 2026-07-10 (**Notification Platform Production Validated**)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 6 — AI & Personalization + Admin Operations + Resend *(In Progress)* |
+| **Current Sprint** | Sprint 6 — AI & Personalization + Admin Operations *(In Progress — Notification Platform complete)* |
 | **Production Version** | v0.4.2 (Sprint 5 closeout) |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Sprint 5 signed off; Sprint 6 started |
-| **Cloudflare** | 🟢 Deployed — ⚠️ Workers **Free** plan may 1102 on cold start; Paid recommended |
+| **Production Status** | 🟢 Stable — Notification Platform **Production Validated**; next initiative Stripe |
+| **Cloudflare** | 🟢 Deployed — Workers Paid |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Sprint 6 — Workers Paid → Resend emails → Admin ops → AI |
+| **Current Priority** | Stripe Subscription Platform (next) · remaining Sprint 6 AI / Admin ops |
 
 ## Current Version
 
@@ -110,7 +110,7 @@ See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPR
 |-------------|---------|-------|
 | **Cloudflare Workers Paid** | Ops | Recommended first — stops intermittent Error 1102 cold starts |
 | **Notification Design** | S6-DOC-001 | ✅ [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — architecture + roadmap (source of truth before any send code) |
-| **Resend / Notification Platform** | S6-EMAIL-001 | Must follow [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md); Monthly Immigration Report is flagship (not a generic bulletin blast) |
+| **Resend / Notification Platform** | S6-EMAIL-001 → 005.1 / S6-RELEASE-001 | ✅ **Completed — Production Validated** — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md); living design: [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
 | **Admin Operations page** | S6-ADM-001 | Force sync + manual archive UI — **MVP dashboard shipped**; richer ops pending |
 | **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |
 | **AI & Personalization** | S6-AI-xxx | Primary Sprint 6 theme — detailed tasks at kickoff |
@@ -120,7 +120,8 @@ See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPR
 | Document | Role |
 |----------|------|
 | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 handoff — AI, Admin ops, Resend |
-| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform** architecture, categories, and implementation roadmap |
+| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0** — **Production Validated** (S6-RELEASE-001) |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform** living design blueprint and roadmap |
 | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | **Future vision (parked)** — Broadcast Platform; revisit after July 16, 2026 MVP |
 | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 closeout; deferred notification delivery |
 
@@ -160,8 +161,10 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 |----------|------|
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure, domains, deployment |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow, gates, rules |
+| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | Permanent AI Engineering Framework — task templates for Cursor/agents |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
-| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform design — Sprint 6+ email / alerts blueprint |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform living design blueprint |
+| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0** — **Production Validated** (S6-RELEASE-001) |
 | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | Future Broadcast Platform vision — parked until after July 16, 2026 MVP |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |

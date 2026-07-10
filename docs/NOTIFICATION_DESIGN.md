@@ -263,9 +263,7 @@ Subscription and account lifecycle messages. Audience is the affected user (and 
 | **Audience** | User who upgraded / was set to Pro. |
 | **Template** | `welcome-pro` |
 | **Future improvements** | Deep links to Manage Profile, Favorites, Visa Bulletin History. |
-| **Implementation Status** | ⬜ Not Started |
-
-### 1.2 Welcome to Power
+| **Implementation Status** | ✅ Completed (S6-EMAIL-002.1 — barebone template) |
 
 | Field | Detail |
 |-------|--------|
@@ -274,7 +272,7 @@ Subscription and account lifecycle messages. Audience is the affected user (and 
 | **Audience** | User set to Power. |
 | **Template** | `welcome-power` |
 | **Future improvements** | AI assistant onboarding checklist. |
-| **Implementation Status** | ⬜ Not Started |
+| **Implementation Status** | ✅ Completed (S6-EMAIL-002.2 — barebone template) |
 
 ### 1.3 Upgrade Pro → Power
 
@@ -385,6 +383,67 @@ Do **not** auto-blast on Force Sync. Aligns with manual archive discipline in [S
 
 `monthly-immigration-report`
 
+**Implementation Status:** ✅ MVP template complete (S6-EMAIL-003.1–003.6) — `emails/templates/monthly-immigration-report-email.tsx`. Charts, AI narrative, and admin send flow remain out of scope.
+
+### MVP personalization (S6-EMAIL-003.6)
+
+| Item | Status |
+|------|--------|
+| Personalized profile line (`Category • Country • Priority Date …`) | ✅ Completed |
+| Status indicator standard (colored ● / movement glyphs; text remains accessible) | ✅ Completed |
+| Final MVP CTA wording: **View My Immigration Dashboard** | ✅ Completed |
+
+### Dashboard-Driven Email Principle
+
+**Status:** ✅ Documented + mapper foundation (S6-EMAIL-003.7)
+
+The **Personalized Dashboard is the source of truth** for a user’s immigration snapshot.
+
+The **Monthly Immigration Update is a read-only presentation layer** of that same dashboard data — a concise inbox snapshot, not an independent calculation engine.
+
+| Rule | Requirement |
+|------|-------------|
+| Source of truth | Personalized Dashboard data/calculation layer (`lib/dashboard/**`, `lib/visaBulletinData.ts`, `lib/visaBulletinMovement.ts`) |
+| Email role | Read-only snapshot / presentation mapping only |
+| No duplicate math | Email code must **never** reimplement eligibility, Visa Bulletin movement, status, or journey interpretation |
+| Shared engine | Final Action / Dates for Filing status, MoM movement, eligibility, and journey meaning must come from the **same** dashboard engine the UI uses |
+| Consistency | Email and dashboard must display consistent values for the same user and bulletin month |
+| Change propagation | Future dashboard calculation changes should flow into email automatically through the shared mapper/service |
+
+**Approved data flow:**
+
+```text
+Google Sheets
+  → Existing server service (visa bulletin sheets / history)
+  → Existing dashboard calculation/data layer
+  → Email data mapper (presentation only)
+  → Monthly Immigration Update template
+```
+
+**Mapper:** `lib/notifications/mappers/map-monthly-immigration-report-email.ts`  
+(`mapMonthlyImmigrationReportEmailProps` — journey-aware dashboard-shaped source → `MonthlyImmigrationReportEmailProps`)
+
+Do **not** bypass Sheets → server service → dashboard data layer → presentation.
+
+### Journey-Aware Monthly Updates (S6-EMAIL-005.1)
+
+**Status:** ✅ Completed
+
+The Monthly Immigration Update remains **one template** and **one Notification Service path**. Only the mapped dashboard source and card contents branch by journey.
+
+| Supported journey | Dashboard engine reused | Email card focus |
+|-------------------|-------------------------|------------------|
+| `employment_gc_waiting` | `buildEmploymentJourneyData` + Visa Bulletin movement | Immigration Journey Today + Visa Bulletin Movement |
+| `green_card_holder` | `buildGreenCardJourneyData` + citizenship eligibility | Citizenship Journey + Citizenship Timeline |
+
+**Green Card holder cards (same three-card layout):**
+
+1. **Your Citizenship Journey** — Green Card issue date, earliest N-400 filing date, estimated progress % (from dashboard), days remaining, journey status (`On Track` / `Eligible Soon` / `Eligible Now`)
+2. **Your Citizenship Timeline** — Today, earliest filing date, remaining days, next milestone
+3. **What This Means for You** — concise advisory summary from dashboard citizenship metrics
+
+Green Card holders are **eligible recipients** (not Unsupported Profile) when Pro/Power prefs and assembly succeed.
+
 ### Channel
 
 Email via Resend (HTML + plain-text fallback). Deep links into authenticated IMMIFIN pages.
@@ -395,10 +454,55 @@ Email via Resend (HTML + plain-text fallback). Deep links into authenticated IMM
 - AI narrative (Power)
 - Stamping wait-time section for users with travel intent
 - SMS teaser with email deep link
+- Estimated Green Card / journey progress bar (post-MVP only — deferred after July 16)
 
 ### Implementation Status
 
-⬜ Not Started
+✅ Journey-aware Monthly Update (employment + Green Card holder) complete for July 16; auto-trigger / schedule / webhooks not built
+
+### Single-user controlled send (S6-EMAIL-004.1)
+
+| Item | Status |
+|------|--------|
+| Single-user real-data preview (admin) | ✅ Completed |
+| Single-user controlled send (admin → one existing user) | ✅ Completed |
+| Dashboard-driven email delivery validation | ✅ Completed |
+| Bulk / audience / campaign send | ✅ Completed (S6-EMAIL-004.2) |
+| Scheduling / automatic sends | ⬜ Not Started |
+
+**Admin control:** `components/admin/AdminSendMonthlyImmigrationUpdateForm.tsx`  
+**Endpoint:** `POST /api/admin/notifications/send-monthly-immigration-update` (`action: "preview" | "send"`)  
+**Assembler:** `lib/notifications/build-monthly-immigration-report-dashboard-source.ts`  
+**Audit action:** `SEND_SINGLE_MONTHLY_IMMIGRATION_UPDATE`
+
+Only one existing IMMIFIN user email is accepted. Missing immigration profile data fails safely without sending.
+
+### Admin Monthly Update Control Center (S6-EMAIL-004.2)
+
+| Item | Status |
+|------|--------|
+| Admin Monthly Update Control Center UI | ✅ Completed |
+| Eligible Pro/Power audience summary | ✅ Completed |
+| Explicit send confirmation | ✅ Completed |
+| Controlled bulk-send orchestration (batched) | ✅ Completed |
+| Duplicate-send protection (per bulletin month) | ✅ Completed |
+| Basic campaign/send summary | ✅ Completed |
+| Automatic triggering after bulletin refresh | ⬜ Not Started |
+| Scheduling | ⬜ Not Started |
+| Operational reminder alerts | ⬜ Not Started |
+| Webhook delivery tracking | ⬜ Not Started |
+| Advanced campaign management | ⬜ Not Started |
+| SMS / WhatsApp | ⬜ Not Started |
+
+**UI:** `components/admin/AdminMonthlyUpdateControlCenter.tsx`  
+**Summary:** `GET /api/admin/notifications/monthly-immigration-updates/summary`  
+**Bulk send:** `POST /api/admin/notifications/monthly-immigration-updates/send` (`confirm: true`)  
+**Persistence:** `notification_campaigns` (`supabase/migrations/20260710140000_017_notification_campaigns.sql`)  
+**Audit action:** `SEND_MONTHLY_IMMIGRATION_UPDATES`
+
+**Eligibility:** active Pro/Power (incl. legacy `basic`→Pro), valid email, `emailAlerts` + `visaBulletinUpdates` prefs, dashboard assembler success for `employment_gc_waiting` **or** `green_card_holder`. Free/incomplete/unsupported profiles are skipped (counted, not emailed).
+
+**Batch strategy (Cloudflare Workers safety):** send in batches of 5 with 250ms delay; refuse synchronous send above 75 recipients (Queues required before larger production audiences). No unbounded `Promise.all()`.
 
 ---
 
@@ -454,12 +558,12 @@ All outbound content is template-driven. Templates are versioned identifiers; re
 
 | Template ID | Category | Description | Implementation Status |
 |-------------|----------|-------------|------------------------|
-| `welcome-pro` | Lifecycle | Welcome to Pro | ⬜ Not Started |
-| `welcome-power` | Lifecycle | Welcome to Power | ⬜ Not Started |
+| `welcome-pro` | Lifecycle | Welcome to Pro | ✅ Completed (S6-EMAIL-002.1) |
+| `welcome-power` | Lifecycle | Welcome to Power | ✅ Completed (S6-EMAIL-002.2) |
 | `upgrade-pro-to-power` | Lifecycle | Upgrade confirmation | ⬜ Not Started |
 | `downgrade-to-free` | Lifecycle | Downgrade + data retention note | ⬜ Not Started |
 | `account-deleted` | Lifecycle | Deletion confirmation | ⬜ Not Started |
-| `monthly-immigration-report` | Report | Personalized monthly report | ⬜ Not Started |
+| `monthly-immigration-report` | Report | Personalized monthly report | ✅ Completed (S6-EMAIL-003.1 — MVP template) |
 | `admin-bulletin-unsent-reminder` | Admin | Unsent after bulletin update | ⬜ Not Started |
 | `admin-dos-publication-reminder` | Admin | DOS / bulletin cadence reminder | ⬜ Not Started |
 | `admin-system-alert` | Admin | System / provider failure | ⬜ Not Started |
@@ -992,7 +1096,7 @@ The CTA should represent the single most important action the recipient should p
 |------------|-------------|
 | Welcome Email | Complete My Immigration Profile |
 | Welcome (Profile Already Complete) | View My Dashboard |
-| Monthly Immigration Report | View My Dashboard |
+| Monthly Immigration Report | View My Immigration Dashboard |
 | Visa Bulletin Update | See What's Changed |
 | Subscription Upgrade | Explore My New Features |
 | Subscription Downgrade | Upgrade Again |
@@ -1361,7 +1465,7 @@ Detailed category definitions remain in [§1 User Lifecycle](#1-user-lifecycle-n
 | **Personalization** | Full immigration profile + bulletin context |
 | **Expected email contents** | See §11 |
 | **Future improvements** | AI recommendations; chart images; stamping section |
-| **Implementation Status** | ⬜ Not Started |
+| **Implementation Status** | ✅ Admin Control Center + single-user + batched Pro/Power bulk send (S6-EMAIL-004.1–004.2); auto-trigger / advanced campaigns ⬜ Not Started |
 
 ---
 
@@ -1500,7 +1604,7 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 | Field | Value |
 |-------|-------|
 | **Task ID** | S6-DOC-006 |
-| **Status** | Documentation complete — implementation not started |
+| **Status** | Documentation complete — implementation started (S6-EMAIL-002.1) |
 | **Last updated** | 2026-07-10 |
 
 > The Email Design System defines the visual, functional, and technical standards for every email sent by IMMIFIN.  
@@ -1525,11 +1629,11 @@ Update throughout Sprint 6 as documentation and implementation land.
 | Email Subject Standard | ✅ Completed (documented) |
 | Email Identity Strategy | ✅ Completed (documented) |
 | CTA Standard | ✅ Completed (documented) |
-| Shared Layout | ⬜ Not Started |
-| Shared Components | ⬜ Not Started |
-| Footer Standard | ⬜ Not Started |
-| Legal Disclaimer | ⬜ Not Started |
-| Plain Text Renderer | ⬜ Not Started |
+| Shared Layout | ✅ Completed (S6-EMAIL-002.1 — barebone EmailLayout) |
+| Shared Components | 🟡 In Progress (layout shell only; full component library later) |
+| Footer Standard | 🟡 In Progress (included in EmailLayout) |
+| Legal Disclaimer | ✅ Completed (S6-EMAIL-002.1 — standard copy in EmailLayout) |
+| Plain Text Renderer | ✅ Completed (S6-EMAIL-002.1 — Welcome Pro plain-text fallback) |
 
 #### Visual Components
 
@@ -1550,12 +1654,12 @@ Update throughout Sprint 6 as documentation and implementation land.
 
 | Item | Status |
 |------|--------|
-| Welcome Pro | ⬜ Not Started |
-| Welcome Power | ⬜ Not Started |
+| Welcome Pro | ✅ Completed (S6-EMAIL-002.1 — barebone template) |
+| Welcome Power | ✅ Completed (S6-EMAIL-002.2 — barebone template) |
 | Upgrade Pro → Power | ⬜ Not Started |
 | Downgrade | ⬜ Not Started |
 | Account Deleted | ⬜ Not Started |
-| Monthly Immigration Report | ⬜ Not Started |
+| Monthly Immigration Report | ✅ Completed (S6-EMAIL-003.1 — MVP template) |
 | Admin Reminder | ⬜ Not Started |
 | System Notification | ⬜ Not Started |
 | Billing Notification | ⬜ Not Started |
@@ -1579,9 +1683,9 @@ Update throughout Sprint 6 as documentation and implementation land.
 |------|--------|
 | Shared React Components | ⬜ Not Started |
 | Template Rendering | ⬜ Not Started |
-| Notification Service Integration | ⬜ Not Started |
-| Provider Independence | ⬜ Not Started |
-| Plain Text Version | ⬜ Not Started |
+| Notification Service Integration | 🟡 In Progress (core service + Resend adapter — S6-EMAIL-001A) |
+| Provider Independence | 🟡 In Progress (EmailProvider interface + Resend adapter isolation) |
+| Plain Text Version | ✅ Completed (S6-EMAIL-002.1 — Welcome Pro text fallback) |
 | Testing Strategy | ✅ Completed (documented) |
 | Preview Mode | ✅ Completed (documented) |
 | Production Validation | ⬜ Not Started |
@@ -1594,7 +1698,7 @@ Planned reusable email components. Prefer **React Email** (or equivalent server-
 
 | Component | Purpose | Status |
 |-----------|---------|--------|
-| **EmailLayout** | Outer shell, max-width, background, padding | ⬜ Not Started |
+| **EmailLayout** | Outer shell, max-width, background, padding | ✅ Completed (S6-EMAIL-002.1) |
 | **Header** | Logo + product identity | ⬜ Not Started |
 | **Footer** | Secondary links, disclaimer, copyright | ⬜ Not Started |
 | **Hero** | Optional title / highlight band | ⬜ Not Started |
@@ -1606,7 +1710,7 @@ Planned reusable email components. Prefer **React Email** (or equivalent server-
 | **Timeline** | Movement / history timeline block | ⬜ Not Started |
 | **CTAButton** | Single primary CTA | ⬜ Not Started |
 | **Divider** | Horizontal rule / spacing separator | ⬜ Not Started |
-| **Disclaimer** | Legal informational disclaimer | ⬜ Not Started |
+| **Disclaimer** | Legal informational disclaimer | ✅ Completed (S6-EMAIL-002.1) |
 | **Signature** | Optional closing / team sign-off | ⬜ Not Started |
 | **FooterLinks** | Dashboard, Support, Documentation, Privacy, Terms | ⬜ Not Started |
 
@@ -1659,14 +1763,14 @@ Also see: [Email Identity Strategy](#email-identity-strategy) · [Email Subject 
 | Standard | Guidance | Status |
 |----------|----------|--------|
 | **React Email Components** | Prefer composable React Email (or equivalent) over duplicated HTML strings | ⬜ Not Started |
-| **Shared Layout** | All templates wrap `EmailLayout` | ⬜ Not Started |
+| **Shared Layout** | All templates wrap `EmailLayout` | ✅ Completed (S6-EMAIL-002.1) |
 | **Template Inheritance** | Templates supply content slots only; inherit header/footer/CTA/disclaimer | ⬜ Not Started |
 | **Reusable Footer** | One Footer component | ⬜ Not Started |
 | **Reusable Header** | One Header component | ⬜ Not Started |
 | **Reusable CTA** | One CTAButton; props from Notification Service | ⬜ Not Started |
 | **Reusable Statistics Cards** | Shared for Monthly Immigration Report and future digests | ⬜ Not Started |
 | **Reusable Dashboard Components** | Journey / summary cards aligned with My Immifin concepts | ⬜ Not Started |
-| **Plain Text Support** | Every send includes text/plain alternative | ⬜ Not Started |
+| **Plain Text Support** | Every send includes text/plain alternative | 🟡 In Progress (Welcome Pro only — S6-EMAIL-002.1) |
 | **Cloudflare Compatibility** | Render on server/Worker; no client-only email generation; avoid heavy sync work in request path | ⬜ Not Started |
 | **Resend Compatibility** | HTML + text payloads; attachments only when necessary; respect provider limits | ⬜ Not Started |
 
@@ -1713,11 +1817,11 @@ Overall progress for the Email Design System (update throughout Sprint 6):
 
 | Area | Status |
 |------|--------|
-| **Foundation** | 🟡 In Progress (standards documented; shared layout/components not built) |
-| **Visual Components** | ⬜ Not Started |
-| **Templates** | ⬜ Not Started |
-| **UX** | 🟡 In Progress (CTA / secondary links documented) |
-| **Engineering** | 🟡 In Progress (testing/preview documented; React Email not built) |
+| **Foundation** | 🟡 In Progress (EmailLayout + disclaimer landed — S6-EMAIL-002.1; full component library later) |
+| **Visual Components** | 🟡 In Progress (CTA + footer/disclaimer in layout; logo/cards later) |
+| **Templates** | 🟡 In Progress (Welcome Pro/Power + Monthly Report MVP — S6-EMAIL-002.x / 003.1) |
+| **UX** | 🟡 In Progress (CTA / secondary links documented; greeting in layout) |
+| **Engineering** | 🟡 In Progress (Notification Service + Resend + React Email layout/template — S6-EMAIL-001A / 002.1) |
 | **Testing** | ⬜ Not Started |
 | **Production Ready** | ⬜ Not Started |
 
@@ -1737,15 +1841,15 @@ Platform design document (S6-DOC-001), Email Design blueprint (S6-DOC-003), and 
 
 Implement using **[Email Design](#email-design)** as the infrastructure guide and **[IMMIFIN Email Design System](#immifin-email-design-system)** for presentation standards: account/domain, env secrets, Resend provider adapter, admin-only test send, webhook stub/endpoint design. **No user blasts.**
 
-**Status:** ⬜ Not Started
+**Status:** 🟡 In Progress (S6-EMAIL-001A — core service + Resend adapter landed; domain verify / test send / webhooks still open)
+
+**Code (S6-EMAIL-001A):** `lib/notifications/` — Notification Service, provider interface, fetch-based Resend adapter, config/registry. No templates, campaigns, history, or API routes yet.
 
 ### Phase 3 — Notification Templates
 
 Template IDs, renderer, Welcome / Admin / Report shells — **must use Email Design System shared components** (per Email Design §7 + Design System §2).
 
-**Status:** ⬜ Not Started
-
-### Phase 4 — User Lifecycle Emails
+**Status:** 🟡 In Progress (S6-EMAIL-002.1 — EmailLayout + Welcome Pro barebone; framework not fully complete)
 
 Plan change and account lifecycle dispatches through the engine (Email Design §10 A–E).
 
@@ -1755,7 +1859,7 @@ Plan change and account lifecycle dispatches through the engine (Email Design §
 
 Personalized report generation + admin approve/send (Email Design §§11–12).
 
-**Status:** ⬜ Not Started
+**Status:** 🟡 In Progress (S6-EMAIL-003.1 — MVP email template; generate/approve/send not built)
 
 ### Phase 6 — Admin Notification Center
 
@@ -1842,3 +1946,12 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.4 | 2026-07-10 | — | Call-To-Action (CTA) Standard — one primary button, footer secondary links |
 | v1.5 | 2026-07-10 | S6-DOC-006 | IMMIFIN Email Design System — progress tracker, component library, branding/UX/technical standards |
 | v1.6 | 2026-07-10 | S6-DOC-007 | Provider Capability Matrix — Resend/Twilio strategy, evaluation criteria, adapter principles |
+| v1.7 | 2026-07-10 | S6-EMAIL-001A | Notification core + Resend provider adapter (`lib/notifications/`); Phase 2 in progress |
+| v1.8 | 2026-07-10 | S6-EMAIL-002.1 | Barebone EmailLayout + Welcome Pro template (HTML + plain text); React Email deps |
+| v1.9 | 2026-07-10 | S6-EMAIL-002.2 | Welcome Power template (HTML + plain text) reusing EmailLayout |
+| v1.10 | 2026-07-10 | S6-EMAIL-003.1 | Monthly Immigration Report MVP template (HTML + plain text) |
+| v1.11 | 2026-07-10 | S6-EMAIL-003.6 | Monthly Update personalization — profile line, status indicators, CTA wording |
+| v1.12 | 2026-07-10 | S6-EMAIL-003.7 | Dashboard-Driven Email Principle + Monthly Update email data mapper foundation |
+| v1.13 | 2026-07-10 | S6-EMAIL-004.1 | Single-user Monthly Immigration Update preview + controlled Resend send |
+| v1.14 | 2026-07-10 | S6-EMAIL-004.2 | Admin Monthly Update Control Center — Pro/Power audience summary + batched bulk send |
+| v1.15 | 2026-07-10 | S6-EMAIL-005.1 | Journey-aware Monthly Update — Green Card holder / citizenship journey support |
