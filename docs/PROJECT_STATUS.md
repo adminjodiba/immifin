@@ -57,7 +57,8 @@
 | Item | Notes |
 |------|-------|
 | 🔄 Cloudflare Workers Paid | Raises CPU limit; stops intermittent Error 1102 |
-| 🔄 Resend email alerts | Monthly Visa Bulletin update emails (S6-EMAIL-001) |
+| ✅ Notification Design (S6-DOC-001) | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — **implementation blueprint for all notification work** |
+| 🔄 Resend / Notification Platform | S6-EMAIL-001 — follow NOTIFICATION_DESIGN.md (Monthly Immigration Report flagship) |
 | 🔄 Admin archive UI / richer ops panel | S6-ADM-001 |
 | ⏳ Stripe | Checkout, webhooks, billing portal |
 | ⏳ Remaining DS 2.0 page redesigns | Homepage, full Manage Profile polish |
@@ -73,6 +74,7 @@
 | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 formal sign-off |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 deliverables and constraints |
 | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | **Current sprint** — AI, Resend, Admin ops |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform blueprint** — architecture, roadmap, milestones |
 | [CALCULATORS.md](./CALCULATORS.md) | Live + planned calculators |
 | [design-system/VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) | Visa Stamping Wait Map DS 2.0 page record |
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP + access model |

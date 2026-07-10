@@ -157,7 +157,10 @@ Before Sprint 6 implementation:
 | Provider | **Resend** (not Cloudflare Email Sending as primary) |
 | Trigger | Prefer admin-confirmed send after bulletin refresh; cron later |
 | Audience | Pro users with email alert prefs / `accessEmailAlerts` |
-| Content | Monthly Visa Bulletin update notification |
+| Content | Personalized **Monthly Immigration Report** (see design doc — not a generic bulletin blast) |
+| Design authority | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
+
+**Notification implementation for Sprint 6 must follow the architecture and roadmap documented in [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md).**
 
 Cloudflare Email Sending remains optional later; Workers Paid upgrade is primarily for **CPU**, not email.
 
@@ -170,3 +173,4 @@ Cloudflare Email Sending remains optional later; Workers Paid upgrade is primari
 | v1.0 | 2026-07-06 | Initial Sprint 6 handoff — admin force sync parked from Sprint 5; manual archive constraint documented |
 | v1.1 | 2026-07-09 | Sprint 5 signed off; Resend email alerts + Workers Paid noted as Sprint 6 priorities |
 | v1.2 | 2026-07-09 | Sprint 6 kicked off — status set to In progress |
+| v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design is source of truth for email / alerts |

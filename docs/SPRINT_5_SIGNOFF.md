@@ -73,6 +73,12 @@ Sprint 5 is **signed off** as of 2026-07-09. Remaining commercial billing (Strip
 | Homepage / full Manage Profile DS 2.0 | Later DS work |
 | Cloudflare Workers Paid upgrade | Ops decision (fixes Error 1102 cold starts) |
 
+### Sprint 6 Email / Notifications
+
+Notification implementation for Sprint 6 must follow the architecture and roadmap documented in [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md).
+
+The flagship product email is a **personalized Monthly Immigration Report** (not a generic Visa Bulletin blast). Resend is the primary email provider; application code must not call Resend directly.
+
 ---
 
 ## 6. Production Notes
@@ -102,7 +108,7 @@ Sprint 5 is **signed off** as of 2026-07-09. Remaining commercial billing (Strip
 
 1. Read [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)
 2. Upgrade Cloudflare Workers to **Paid** (recommended before more Worker-heavy features)
-3. Integrate **Resend** for monthly Visa Bulletin update emails
+3. Follow [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — then integrate **Resend** / Notification Platform (S6-EMAIL-001)
 4. Complete Admin Force Sync / archive UI (S6-ADM-001)
 5. Begin AI & Personalization theme
 
@@ -111,3 +117,4 @@ Sprint 5 is **signed off** as of 2026-07-09. Remaining commercial billing (Strip
 | Version | Date | Description |
 |---------|------|-------------|
 | v1.0 | 2026-07-09 | Sprint 5 signed off |
+| v1.1 | 2026-07-09 | S6-DOC-001 — link Sprint 6 email work to NOTIFICATION_DESIGN.md |

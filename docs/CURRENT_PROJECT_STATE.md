@@ -109,10 +109,19 @@ See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPR
 | Deliverable | Task ID | Notes |
 |-------------|---------|-------|
 | **Cloudflare Workers Paid** | Ops | Recommended first — stops intermittent Error 1102 cold starts |
-| **Resend Visa Bulletin emails** | S6-EMAIL-001 | Monthly update alerts (provider agreed: Resend) |
+| **Notification Design** | S6-DOC-001 | ✅ [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — architecture + roadmap (source of truth before any send code) |
+| **Resend / Notification Platform** | S6-EMAIL-001 | Must follow [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md); Monthly Immigration Report is flagship (not a generic bulletin blast) |
 | **Admin Operations page** | S6-ADM-001 | Force sync + manual archive UI — **MVP dashboard shipped**; richer ops pending |
 | **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |
 | **AI & Personalization** | S6-AI-xxx | Primary Sprint 6 theme — detailed tasks at kickoff |
+
+### Sprint 6 documentation references
+
+| Document | Role |
+|----------|------|
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 handoff — AI, Admin ops, Resend |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform** architecture, categories, and implementation roadmap |
+| [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 closeout; deferred notification delivery |
 
 ## Roadmap Revision
 
@@ -147,6 +156,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure, domains, deployment |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow, gates, rules |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform design — Sprint 6+ email / alerts blueprint |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
