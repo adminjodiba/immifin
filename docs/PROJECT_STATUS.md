@@ -1,21 +1,21 @@
 # Immifin — Project Status
 
 **Last updated:** 2026-07-10  
-**Version:** v0.4.2 (main — **Sprint 6 in progress**)  
-**Latest production commit:** `4ebd5d7` — Sprint 5 sign-off hash sync  
+**Version:** v0.4.2 + Notification Platform v1.0 (`main`)  
+**Latest production commit:** `6f1df7e` — Notification Platform v1.0  
 **Development workflow:** v2.1 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 > **Authoritative status:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) supersedes this document for current production state.  
 > **Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)  
-> **Sprint 6 handoff:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)  
-> **Notification Platform v1.0:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) — **Production Validated**
-> **Next initiative:** Stripe Subscription Platform
+> **Sprint 6 handoff:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) — planned vs completed  
+> **Notification Platform v1.0:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) — **Production Validated**  
+> **Next Sprint:** Stripe Subscription Platform
 
 ---
 
 ## Overall status
 
-**Production Stable** — Sprint 5 complete; **Sprint 6 started**
+**Production Stable** — Sprint 6 Notification track closed; **Stripe is next sprint**
 
 | Area | Status |
 |------|--------|
@@ -26,8 +26,8 @@
 | **Design System 2.0** | ✅ Sprint 5 scope complete — Visa Bulletin + Visa Stamping Wait Map promoted |
 | **Admin Dashboard** | ✅ MVP — Data Refresh Center + force-refresh for stamping & bulletin |
 | **Notification Platform** | ✅ **Completed — Production Validated** — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) |
-| **Stripe billing** | ⏳ **Next initiative** |
-| **Cloudflare Workers plan** | ⚠️ Free plan — intermittent Error 1102 on cold start; **Paid recommended** (Sprint 6 ops) |
+| **Stripe billing** | ⏳ **Next Sprint** |
+| **Cloudflare Workers plan** | ✅ Paid (upgraded Sprint 6) |
 
 ---
 
@@ -55,25 +55,25 @@
 
 ---
 
-## Pending (Sprint 6 — in progress)
+## Sprint 6 closeout / next sprint
 
 | Item | Notes |
 |------|-------|
-| 🔄 Cloudflare Workers Paid | Raises CPU limit; stops intermittent Error 1102 |
-| ✅ Notification Design (S6-DOC-001) | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — living design blueprint |
-| ✅ Notification Platform (v1.0) | **Completed — Production Validated** — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) (S6-RELEASE-001); Queues / auto-trigger / webhooks deferred |
-| 🔄 Admin archive UI / richer ops panel | S6-ADM-001 |
-| ⏳ Stripe | Checkout, webhooks, billing portal |
+| ✅ Cloudflare Workers Paid | Completed Sprint 6 |
+| ✅ Notification Design (S6-DOC-001) | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
+| ✅ Notification Platform (v1.0) | **Production Validated** — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) |
+| ⏳ Admin archive UI / richer ops panel | Deferred from Sprint 6 (S6-ADM-001) |
+| ⏳ AI & Personalization | Deferred from Sprint 6 (S6-AI-xxx) |
+| 🔜 **Stripe (next sprint)** | Checkout, webhooks, billing portal |
 | ⏳ Remaining DS 2.0 page redesigns | Homepage, full Manage Profile polish |
-| ⏳ AI & Personalization | S6-AI-xxx — primary theme |
 
-### Parked (post–July 16, 2026 MVP — not Sprint 6 scope)
+### Parked (post–July 16, 2026 MVP)
 
 | Item | Notes |
 |------|-------|
 | 📦 Immigration Broadcast Platform | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) — vision only; revisit after MVP |
 
-> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in `docs/IMMIGRATION_BROADCAST_PLATFORM_VISION.md`. Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
+> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in `docs/IMMIGRATION_BROADCAST_PLATFORM_VISION.md`. Parked until after the July 16, 2026 MVP release.
 
 ---
 
@@ -84,8 +84,8 @@
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Authoritative project state |
 | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 formal sign-off |
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 deliverables and constraints |
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | **Current sprint** — AI, Resend, Admin ops |
-| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0 signoff** — Production Ready |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 — **planned vs completed**; Stripe = next sprint |
+| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0** — Production Validated |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform blueprint** — architecture, roadmap, milestones |
 | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | **Parked future vision** — Broadcast Platform (post-MVP) |
 | [CALCULATORS.md](./CALCULATORS.md) | Live + planned calculators |

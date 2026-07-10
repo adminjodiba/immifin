@@ -131,21 +131,22 @@ The Visa Bulletin History mockup (`/immigration/visa-bulletin/tracker-2`) has be
 
 ---
 
-## Sprint 6 — AI & Personalization + Admin Operations
+## Sprint 6 — AI & Personalization + Admin Operations + Notifications
 
-**Status:** In Progress — **Notification Platform Completed (Production Validated)**.
+**Status:** Notification Platform track **Completed (Production Validated)**. Remaining AI / full Admin ops **deferred**.
 
-**Next initiative after Notification Platform:** Stripe Subscription Platform.
+**Next Sprint:** **Stripe Subscription Platform**.
 
-See **[SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)** for full scope, acceptance criteria, and mandatory reading.
+See **[SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)** for planned vs completed detail.
 
 | Deliverable | Task ID | Priority | Status | Notes |
 |-------------|---------|----------|--------|-------|
+| **Workers Paid** | Ops | High | ✅ Completed | 2026-07-09 |
 | **Notification Platform** | S6-EMAIL-001 → 005.1 / S6-RELEASE-001 | High | ✅ **Completed** | Production Validated — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) |
-| **Admin Operations page** | S6-ADM-001 | High | Partial | Parked from Sprint 5 — force sync visa bulletin from Google Sheet; bypass 24h cache |
-| **Manual history archive** | S6-ADM-001 | High | Pending | Expose existing archive API in admin UI — **manual admin action only**; no automation |
-| **AI Assistant architecture** | S6-AI-xxx | Primary theme | Planned | Power-tier grounded Q&A; detailed tasks at kickoff |
-| **Advanced personalization** | S6-AI-xxx | Primary theme | Planned | Power-tier intelligence beyond Pro |
+| **Admin Operations page** | S6-ADM-001 | High | ⏳ Deferred | Force sync / archive UI polish beyond Sprint 5 MVP |
+| **Manual history archive UI** | S6-ADM-001 | High | ⏳ Deferred | Manual only when resumed |
+| **AI Assistant architecture** | S6-AI-xxx | Was primary theme | ⏳ Deferred | Power-tier grounded Q&A |
+| **Advanced personalization** | S6-AI-xxx | Was primary theme | ⏳ Deferred | Beyond Pro |
 
 ### Completed — Notification Platform (Sprint 6)
 
@@ -197,4 +198,5 @@ Do **not** add Broadcast Platform engineering to Sprint 6 deliverables. Revisit 
 | v2.2 | 2026-07-06 | S5-009 | v0.4.2 — dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |
 | v2.3 | 2026-07-06 | S6-ADM-001 | Sprint 6 handoff — admin force sync + manual archive parked from Sprint 5 |
 | v2.4 | 2026-07-10 | S6-DOC-002 | Parked Immigration Broadcast Platform vision (post–July 16, 2026 MVP) |
-| v2.5 | 2026-07-10 | S6-RELEASE-001 | Notification Platform moved to Completed (Production Validated); next initiative Stripe |
+| v2.5 | 2026-07-10 | S6-RELEASE-001 | Notification Platform moved to Completed (Production Validated) |
+| v2.6 | 2026-07-10 | Sprint 6 handoff | Planned vs completed; **next sprint = Stripe** (AI/Admin deferred) |

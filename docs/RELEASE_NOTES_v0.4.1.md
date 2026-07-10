@@ -68,9 +68,11 @@ See [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESH
 | **Bulk campaign workflow** | Batched Pro/Power send + `notification_campaigns` duplicate protection |
 | **Real production validation** | Real dashboard data, Pro subscribers, Green Card holder, inbox delivery via Resend |
 
-### Next initiative
+### Next Sprint
 
-**Stripe Subscription Platform** — checkout, webhooks, billing portal (replaces Development Subscription Mode).
+**Stripe Subscription Platform** — replaces Development Subscription Mode with real billing.
+
+See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) (Sprint 6 Notification Platform section) and [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 
 ---
 

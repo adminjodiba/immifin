@@ -1,18 +1,18 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-10 (**Notification Platform Production Validated**)
+**Last Updated:** 2026-07-10 (**Sprint 6 Notification track closed — Stripe is next sprint**)
 
 | Field | Value |
 |-------|-------|
-| **Current Sprint** | Sprint 6 — AI & Personalization + Admin Operations *(In Progress — Notification Platform complete)* |
-| **Production Version** | v0.4.2 (Sprint 5 closeout) |
+| **Current Sprint** | Sprint 6 handoff complete (Notification Platform) → **Next: Stripe** |
+| **Production Version** | v0.4.2 + Notification Platform v1.0 on `main` |
 | **Repository** | `main` |
-| **Production Status** | 🟢 Stable — Notification Platform **Production Validated**; next initiative Stripe |
+| **Production Status** | 🟢 Stable — Notification Platform **Production Validated** |
 | **Cloudflare** | 🟢 Deployed — Workers Paid |
 | **Database** | 🟢 Stable |
 | **Authentication** | 🟢 Stable |
 | **Build Status** | 🟢 Passing |
-| **Current Priority** | Stripe Subscription Platform (next) · remaining Sprint 6 AI / Admin ops |
+| **Current Priority** | **Next sprint: Stripe Subscription Platform** |
 
 ## Current Version
 
@@ -24,9 +24,9 @@ See [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
 
 ## Current Phase
 
-**Sprint 6 — AI & Personalization + Admin Operations** *(In Progress — kicked off 2026-07-09)*
+**Sprint 6 Notification track closed** (2026-07-10). **Next sprint: Stripe Subscription Platform.**
 
-Sprint 5 is complete. See [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) and [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
+See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) (planned vs completed) and [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
 
 ### Sprint 5 progress — Visa Bulletin DS 2.0 pages *(complete)*
 
@@ -100,26 +100,28 @@ Three **Visa Bulletin** pages have been redesigned under Design System 2.0. Two 
 
 ## Next Sprint
 
-**Sprint 6 — AI & Personalization + Admin Operations** *(**In Progress** — kicked off 2026-07-09)*
+**Stripe Subscription Platform** *(next sprint after Sprint 6 Notification closeout)*
 
-See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md).
+Sprint 6 Notification Platform is **Production Validated**. Remaining original Sprint 6 items (full S6-ADM-001 polish, AI & Personalization) are **deferred** — see [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
 
-### Sprint 6 priorities (agreed order)
+### Sprint 6 — planned vs completed (summary)
 
-| Deliverable | Task ID | Notes |
-|-------------|---------|-------|
-| **Cloudflare Workers Paid** | Ops | Recommended first — stops intermittent Error 1102 cold starts |
-| **Notification Design** | S6-DOC-001 | ✅ [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — architecture + roadmap (source of truth before any send code) |
-| **Resend / Notification Platform** | S6-EMAIL-001 → 005.1 / S6-RELEASE-001 | ✅ **Completed — Production Validated** — [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md); living design: [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
-| **Admin Operations page** | S6-ADM-001 | Force sync + manual archive UI — **MVP dashboard shipped**; richer ops pending |
-| **Manual history archive** | S6-ADM-001 | Admin UI for existing archive API — **manual only**; no automation |
-| **AI & Personalization** | S6-AI-xxx | Primary Sprint 6 theme — detailed tasks at kickoff |
+| Deliverable | Task ID | Status |
+|-------------|---------|--------|
+| Cloudflare Workers Paid | Ops | ✅ Completed |
+| Notification Design | S6-DOC-001 | ✅ Completed |
+| Resend / Notification Platform | S6-EMAIL-001 → 005.1 / S6-RELEASE-001 | ✅ **Completed — Production Validated** |
+| Admin Operations (full Force Sync / archive UI) | S6-ADM-001 | ⏳ Deferred (MVP Admin from Sprint 5 remains) |
+| AI & Personalization | S6-AI-xxx | ⏳ Deferred |
+
+**Authoritative handoff:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)  
+**Notification signoff:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md)
 
 ### Sprint 6 documentation references
 
 | Document | Role |
 |----------|------|
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 handoff — AI, Admin ops, Resend |
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 handoff — **planned vs completed**; Stripe = next sprint |
 | [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0** — **Production Validated** (S6-RELEASE-001) |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform** living design blueprint and roadmap |
 | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | **Future vision (parked)** — Broadcast Platform; revisit after July 16, 2026 MVP |

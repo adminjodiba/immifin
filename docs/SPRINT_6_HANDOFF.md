@@ -1,180 +1,212 @@
-# IMMIFIN Sprint 6 Handoff — AI & Personalization + Admin Operations
+# IMMIFIN Sprint 6 Handoff — Planned vs Completed
 
 | Field | Value |
 |-------|-------|
 | **Sprint** | Sprint 6 |
-| **Theme** | AI & Personalization |
-| **Version range** | v0.5.0 → v0.6.0 (target) |
-| **Handoff Date** | 2026-07-06 |
-| **Status** | **In progress** — Notification Platform **Completed (Production Validated)**; next initiative **Stripe Subscription Platform** |
-| **Previous release** | v0.4.2 (Sprint 5 — Design System 2.0, signed off) |
-| **Kickoff Date** | 2026-07-09 |
+| **Original theme** | AI & Personalization + Admin Operations + Notification Platform |
+| **Kickoff** | 2026-07-09 |
+| **Handoff / status date** | 2026-07-10 |
+| **Notification Platform** | ✅ **Completed — Production Validated** |
+| **Sprint 6 overall** | **Notification track closed**; remaining original items deferred |
+| **Next Sprint** | **Stripe Subscription Platform** |
+| **Previous release** | v0.4.2 (Sprint 5 — Design System 2.0) |
+| **Production commit** | `6f1df7e` — Notification Platform v1.0 |
 
-> **This document is the first thing a new AI assistant or engineer must read when Sprint 6 begins.**
+**Related:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) · [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [ROADMAP_v2.md](./ROADMAP_v2.md) · [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)
 
----
-
-## 1. Read This First
-
-Sprint 6 is primarily the **AI & Personalization** sprint (Power-tier intelligence, AI assistant architecture). It also includes one **operational deliverable parked from Sprint 5 planning**: an **Admin Operations page** for visa bulletin data management.
-
-Do **not** automate visa bulletin history archiving. Archive remains a **manual admin action** triggered only when an admin decides the month is ready.
+> **Authority:** This document is the Sprint 6 handoff for engineers and AI agents. It records what was planned at kickoff, what shipped, what remains deferred, and what comes next.
 
 ---
 
-## 2. Parked from Sprint 5 — Admin Visa Bulletin Operations
+## 1. Executive summary
 
-**Task ID:** S6-ADM-001  
-**Priority:** High — operational prerequisite for timely bulletin updates  
-**Parked:** 2026-07-06 (agreed during Sprint 5 planning)
+Sprint 6 kicked off as **AI & Personalization + Admin Operations**, with **Resend / Notification Platform** elevated as the first major delivery track (July 16 MVP path).
 
-### Problem
+**What shipped:** A production-validated **Notification Platform v1.0** — provider abstraction, dashboard-driven Monthly Immigration Updates (employment + Green Card holder), Admin Control Center, bulk campaigns, and real inbox delivery via Resend.
 
-**Update (2026-07-07):** Sprint 5 shipped an **Admin Dashboard MVP** at `/admin` (Data Refresh Center, dataset status, refresh instructions). **Force Sync** and **manual archive UI** remain Sprint 6 scope.
+**What did not ship in this track:** Full AI Assistant / Power personalization, and the remaining Admin Force Sync / archive UI polish beyond the Sprint 5 Admin MVP.
 
-Visa bulletin data is read from **published Google Sheet CSV URLs** with a **24-hour Next.js cache**:
+**Next sprint:** **Stripe Subscription Platform** (checkout, webhooks, billing portal — replaces Development Subscription Mode).
 
-| Cache layer | Location | TTL |
-|-------------|----------|-----|
-| Fetch cache | `lib/visaBulletinSheets.ts` — `fetch(..., { next: { revalidate: 86400 } })` | 24 hours |
-| History cache | `lib/visaBulletinHistory.ts` — `unstable_cache(..., { revalidate: 86400 })` | 24 hours |
+---
 
-When USCIS publishes a new visa bulletin and the Google Sheet is updated, users may see **stale data for up to 24 hours** unless an admin force-syncs.
+## 2. What we planned (Sprint 6 kickoff)
 
-### Deliverable — Admin Operations page
+Agreed priority order at kickoff ([§6 original order](#revision-history)):
 
-Build **`/admin`** (admin-only UI) with a **Visa Bulletin Operations** section.
+| # | Planned deliverable | Task ID | Intent |
+|---|---------------------|---------|--------|
+| 1 | Cloudflare Workers **Paid** | Ops | Stop intermittent Error 1102 cold starts |
+| 2 | **Notification Design** then **Resend / Notification Platform** | S6-DOC-001 · S6-EMAIL-001+ | Personalized Monthly Immigration Updates for Pro/Power |
+| 3 | **Admin Operations** — Force Sync + manual archive UI | S6-ADM-001 | Parked from Sprint 5; timely bulletin refresh |
+| 4 | **AI & Personalization** | S6-AI-xxx | Primary theme — Power-tier intelligence, AI assistant architecture |
+| — | Saved calculations | Phase 3 | Often listed with Sprint 6+ |
 
-| Feature | Description |
-|---------|-------------|
-| **Force Sync** | Re-fetch all bulletin sheets bypassing cache; invalidate history cache; show row counts, latest month, sync timestamp; write `admin_audit_log` |
-| **Archive month (manual UI)** | Expose existing `GET /api/admin/archive-visa-bulletin?month=YYYY-MM` in the admin UI — **admin-triggered only** |
-| **Status panel** | Last sync time, row counts per sheet, latest bulletin month |
+### Planned Notification Platform outcomes
 
-### Explicit constraint — manual archive only
+| Outcome | Notes |
+|---------|-------|
+| Provider abstraction | Business code never calls Resend directly |
+| Dashboard-driven email | Dashboard = source of truth; email = presentation |
+| Monthly Immigration Update | Personalized Pro/Power report (not a generic blast) |
+| Admin-controlled send | Preview + confirm; no auto-blast on Force Sync |
+| Future channels | Design for SMS / WhatsApp / Push later via adapters |
 
-> **History archive must remain manual.** There is no cron, scheduled job, or automatic archive on sync. The admin workflow is:
->
-> 1. Update Google Sheet with new USCIS bulletin data (manual, outside app)
-> 2. **Force Sync** — pull fresh data into the app immediately
-> 3. **Archive month** — when ready, admin manually archives `YYYY-MM` to `VisaBulletinHistory` via the admin UI
->
-> Do **not** add automatic archiving as part of force sync or any background process.
+### Planned Admin Operations outcomes (S6-ADM-001)
 
-### Existing backend (reuse — do not rewrite)
+| Outcome | Notes |
+|---------|-------|
+| Force Sync | Bypass 24h sheet cache; audit log |
+| Archive month UI | Manual only — never auto-archive on sync |
+| Status panel | Last sync, row counts, latest month |
 
-| Asset | Purpose |
-|-------|---------|
-| `requireAdmin()` | Clerk session + `profiles.role === 'admin'` |
-| `GET /api/admin/archive-visa-bulletin?month=YYYY-MM` | Append current month to history sheet (Google Sheets API write) |
-| `GET /api/admin/debug-history` | Debug stats on history data |
-| `loadAllVisaBulletinSheets()` | Load all four current/previous tabs |
-| `middleware.ts` | Already protects `/admin` and `/api/admin/*` |
-| `admin_audit_log` | Audit trail for admin actions |
+### Planned AI outcomes (deferred at kickoff detail)
 
-### Implementation sketch
+| Outcome | Notes |
+|---------|-------|
+| AI Assistant architecture | Power-tier grounded Q&A |
+| Advanced personalization | Beyond Pro dashboard |
+| Detailed S6-AI-xxx tasks | To be written at AI kickoff |
 
-| Piece | Approach |
-|-------|----------|
-| **Page** | `app/admin/page.tsx` — admin gate + DS 2.0 workspace shell |
-| **API** | `POST /api/admin/sync-visa-bulletin` — no-store fetch + `revalidateTag('visa-bulletin')` |
-| **Lib** | `forceLoadAllVisaBulletinSheets()` with `cache: 'no-store'`; add cache tags to history `unstable_cache` |
-| **Nav** | “Admin” link in header/profile for `role === admin` only |
-| **Audit** | `action: "force_sync_visa_bulletin"` and existing `archive_visa_bulletin` in `admin_audit_log` |
+### Explicitly out of Sprint 6 plan
 
-### Monthly admin workflow (reference)
+| Item | Notes |
+|------|-------|
+| Stripe checkout / billing | **Next sprint** (not Sprint 6) |
+| Immigration Broadcast Platform | Parked post–July 16 MVP |
+| Auto-archive / cron bulletin archive | Forbidden |
+| SMS / WhatsApp / Queues / auto-send | Deferred post Notification v1.0 |
 
+---
+
+## 3. What we completed
+
+### 3.1 Ops
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Cloudflare Workers Paid | ✅ Done | Upgraded 2026-07-09; `cpu_ms: 60000` |
+
+### 3.2 Notification Platform v1.0 — Production Validated
+
+**Signoff:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md)  
+**Release:** S6-RELEASE-001 · commit `6f1df7e` · deployed to https://immifin.com
+
+| Area | Status | Detail |
+|------|--------|--------|
+| Notification Design | ✅ | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — living blueprint |
+| Engineering Framework | ✅ | Task templates under `docs/ENGINEERING_FRAMEWORK/` |
+| Notification Service + Resend adapter | ✅ | `lib/notifications/**` — no direct Resend from business code |
+| EmailLayout + Welcome Pro/Power | ✅ | `emails/components` · `emails/templates` |
+| Monthly Immigration Update template | ✅ | HTML + plain text; 60-second three-card layout |
+| Dashboard-driven mapper / assembler | ✅ | Reuses dashboard engines — no duplicate math |
+| Journey-aware emails | ✅ | `employment_gc_waiting` + `green_card_holder` |
+| Green Card Holder Monthly Update | ✅ | Citizenship journey / N-400 timeline (S6-EMAIL-005.1) |
+| Single-user preview + send | ✅ | Admin form + API |
+| Admin Monthly Update Control Center | ✅ | Audience summary, exclusions, bulk send |
+| In-app confirm modal | ✅ | Replaced `window.confirm` (S6-EMAIL-004.4) |
+| Campaign persistence | ✅ | `notification_campaigns` migration `017` |
+| Production validation | ✅ | Real Pro users, GC holder, inbox via Resend |
+
+### 3.3 Admin (partial — carried from Sprint 5 + Sprint 6 notifications)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Admin Dashboard MVP (`/admin`) | ✅ (Sprint 5) | Data Refresh Center |
+| Monthly Update Control Center on `/admin` | ✅ (Sprint 6) | Notification campaign UI |
+| Force Sync / archive UI polish (S6-ADM-001 full scope) | ⏳ Deferred | See §4 |
+
+### 3.4 Production validation checklist (Notification)
+
+| Check | Result |
+|-------|--------|
+| Employment journey email | ✓ |
+| Green Card holder email | ✓ |
+| Dashboard mapper | ✓ |
+| Notification Service | ✓ |
+| Admin Control Center | ✓ |
+| Monthly campaign path | ✓ |
+| Inbox delivery (Resend) | ✓ |
+| Lint / TypeScript / build | ✓ |
+| Production deploy | ✓ |
+
+---
+
+## 4. What remains (deferred from original Sprint 6 plan)
+
+These were planned for Sprint 6 but are **not** part of the Notification Platform closeout. They are deferred past this handoff — **do not block the Stripe sprint**.
+
+| Item | Task | Status | Destination |
+|------|------|--------|-------------|
+| Admin Force Sync API + richer status panel | S6-ADM-001 | Partial / pending | Later Admin ops sprint or follow-on |
+| Manual archive-month UI polish | S6-ADM-001 | Pending | Later Admin ops |
+| AI Assistant architecture | S6-AI-xxx | Not started | Later AI sprint |
+| Power-tier advanced personalization | S6-AI-xxx | Not started | Later AI sprint |
+| Saved calculations | Phase 3 | Not started | Later |
+| Auto-trigger Monthly Update / Queues / webhooks | Post-MVP | Deferred | Documented in Notification signoff |
+| SMS / WhatsApp / Push | Post-MVP | Deferred | Notification design roadmap |
+
+### Still locked constraints
+
+- Do **not** automate visa bulletin history archiving
+- Do **not** store bulletin data in Supabase (ADR-002 — Google Sheets)
+- Do **not** call Resend outside the Notification Service adapter
+- Do **not** treat deferred Notification enhancements as shipped
+
+---
+
+## 5. Next Sprint — Stripe Subscription Platform
+
+| Field | Value |
+|-------|-------|
+| **Next Sprint** | **Stripe Subscription Platform** |
+| **Purpose** | Replace Development Subscription Mode with real billing |
+| **Expected scope (high level)** | Checkout, webhooks, customer portal, plan enforcement |
+| **Does not include** | Rebuilding Notification Platform; Broadcast Platform |
+
+Development Subscription Mode remains the temporary path until Stripe ships.
+
+---
+
+## 6. Key architecture locks (carry forward)
+
+```text
+Google Sheets → server services → dashboard engine
+  → email mapper → Monthly Update template
+  → Notification Service → Resend → inbox
 ```
-USCIS publishes bulletin
-        ↓
-Admin updates Google Sheet (manual, external)
-        ↓
-Admin → Force Sync              ← users get fresh data ASAP
-        ↓
-Admin → Archive YYYY-MM         ← manual only, when admin confirms month is ready
-```
 
-### Acceptance criteria
-
-- [ ] Only users with `profiles.role === 'admin'` can access `/admin` and admin sync API
-- [ ] Force Sync bypasses 24-hour cache and returns fresh row counts + latest month
-- [ ] Force Sync does **not** trigger archive automatically
-- [ ] Archive month is a separate explicit admin action with confirmation
-- [ ] All sync and archive actions logged to `admin_audit_log`
-- [ ] Localhost verified before production deploy
+| Lock | Rule |
+|------|------|
+| Dashboard-Driven Email | Dashboard calculates; email only presents |
+| Provider abstraction | Adapters only; no SDK in feature code |
+| Admin confirmation | Real sends require explicit confirm (in-app modal) |
+| Manual archive | Never auto-archive on sync |
+| Sheets as bulletin source | ADR-002 |
 
 ---
 
-## 3. Sprint 6 Primary Theme — AI & Personalization
+## 7. Mandatory reading for the next engineer / agent
 
-See [ROADMAP_v2.md](./ROADMAP_v2.md) and [PRODUCT_VISION.md](./PRODUCT_VISION.md).
+1. This document — Sprint 6 planned vs completed  
+2. [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) — Production Validated  
+3. [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) — living notification blueprint  
+4. [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)  
+5. [ROADMAP_v2.md](./ROADMAP_v2.md)  
+6. [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) — prior closeout  
 
-| Focus | Description |
-|-------|-------------|
-| **AI Assistant architecture** | Power-tier grounded Q&A; architecture spike from Sprint 4.5 |
-| **Power-tier intelligence** | Advanced personalization beyond Pro |
-| **Saved calculations** | Phase 3 — user-saved calculator results (Sprint 6+) |
-
-Detailed AI task breakdown (S6-AI-xxx) to be created at Sprint 6 kickoff.
-
----
-
-## 4. Mandatory Reading Order
-
-Before Sprint 6 implementation:
-
-1. [ROADMAP_v2.md](./ROADMAP_v2.md)
-2. [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)
-3. [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) — Power tier capabilities
-4. [auth/PHASE1.md](./auth/PHASE1.md) — admin role and audit logging
-5. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) — ADR-002 Google Sheets as bulletin source
-6. `lib/visaBulletinSheets.ts`, `lib/visaBulletinHistory.ts`, `lib/visaBulletinArchive.ts`
+For Stripe kickoff: also read subscription foundation docs / ADR-007 Development Subscription Mode and pricing capability model.
 
 ---
 
-## 5. What Not To Do
+## 8. Handoff checklist
 
-- Do **not** automate visa bulletin history archiving (no cron, no sync-triggered archive).
-- Do **not** store bulletin data in Supabase — source of truth remains Google Sheets (ADR-002).
-- Do **not** expose admin routes without `requireAdmin()` server-side authorization.
-- Do **not** modify billing/Stripe unless explicitly requested (Sprint 10).
-
----
-
-## 6. Suggested Sprint 6 Order
-
-1. **Ops** — Upgrade Cloudflare Workers to **Paid** (stops intermittent Error 1102)
-2. **S6-EMAIL-001** — **Resend** integration for monthly Visa Bulletin update emails (provider agreed 2026-07-09)
-3. **S6-ADM-001** — Admin Operations page + force sync / archive UI (partially shipped in Sprint 5)
-4. **S6-AI-xxx** — AI assistant architecture and Power-tier personalization (detailed at kickoff)
-
----
-
-## 7. Email alerts (agreed direction)
-
-| Decision | Choice |
-|----------|--------|
-| Provider | **Resend** (not Cloudflare Email Sending as primary) |
-| Trigger | Prefer admin-confirmed send after bulletin refresh; cron later |
-| Audience | Pro **and Power** users with email alert prefs / `accessEmailAlerts` |
-| Content | Personalized **Monthly Immigration Report** (see design doc — not a generic bulletin blast) |
-| Design authority | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) |
-
-**Update (2026-07-10 — S6-EMAIL-004.2):** Admin **Monthly Immigration Updates** Control Center ships on `/admin` with Pro/Power audience summary, explicit confirmation, batched bulk send, and per-bulletin duplicate-send protection (`notification_campaigns`). Automatic trigger, scheduling, and Queues remain out of scope for July 16.
-
-**Update (2026-07-10 — S6-RELEASE-001):** Notification Platform **v1.0 Production Validated**. Journey-aware Monthly Updates (employment + Green Card holder), Admin Control Center, and real inbox delivery via Resend are complete. **Next initiative: Stripe Subscription Platform.** See [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md).
-
-**Notification implementation for Sprint 6 must follow the architecture and roadmap documented in [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md).**
-
-Cloudflare Email Sending remains optional later; Workers Paid upgrade is primarily for **CPU**, not email.
-
----
-
-## 8. Future Vision — Immigration Broadcast Platform *(parked)*
-
-> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md). Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
-
-Do **not** implement broadcast, avatar, or streaming work in Sprint 6. Continue Notification Platform (Resend), Admin ops, and AI theme as planned.
+- [x] Planned Sprint 6 scope documented  
+- [x] Completed Notification Platform documented and Production Validated  
+- [x] Deferred AI / remaining Admin ops listed  
+- [x] Next sprint identified as **Stripe Subscription Platform**  
+- [x] Code on `main` / GitHub; production Worker deployed (`6f1df7e`)  
+- [x] No real production campaign required for this handoff  
 
 ---
 
@@ -182,9 +214,10 @@ Do **not** implement broadcast, avatar, or streaming work in Sprint 6. Continue 
 
 | Version | Date | Description |
 |---------|------|-------------|
-| v1.0 | 2026-07-06 | Initial Sprint 6 handoff — admin force sync parked from Sprint 5; manual archive constraint documented |
-| v1.1 | 2026-07-09 | Sprint 5 signed off; Resend email alerts + Workers Paid noted as Sprint 6 priorities |
-| v1.2 | 2026-07-09 | Sprint 6 kicked off — status set to In progress |
-| v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design is source of truth for email / alerts |
-| v1.4 | 2026-07-10 | S6-DOC-002 — Immigration Broadcast Platform vision parked (post–July 16 MVP) |
-| v1.5 | 2026-07-10 | S6-RELEASE-001 — Notification Platform Production Validated; next initiative Stripe |
+| v1.0 | 2026-07-06 | Initial Sprint 6 handoff — admin force sync parked from Sprint 5 |
+| v1.1 | 2026-07-09 | Sprint 5 signed off; Resend + Workers Paid noted as priorities |
+| v1.2 | 2026-07-09 | Sprint 6 kicked off — In progress |
+| v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design source of truth |
+| v1.4 | 2026-07-10 | S6-DOC-002 — Broadcast Platform vision parked |
+| v1.5 | 2026-07-10 | S6-RELEASE-001 — Notification Platform Production Validated |
+| **v2.0** | **2026-07-10** | **Rewritten handoff — planned vs completed; Stripe = next sprint** |
