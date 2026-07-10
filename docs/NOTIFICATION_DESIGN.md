@@ -5,7 +5,7 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
@@ -683,6 +683,145 @@ Env vars such as `RESEND_FROM_EMAIL` / `RESEND_FROM_NAME` remain the **Phase 1 d
 
 ---
 
+### Email Subject Standard
+
+> Consistent subject-line convention for all IMMIFIN outbound email (S6-DOC-005).
+
+#### Purpose
+
+All outgoing IMMIFIN emails should follow a consistent subject naming convention.
+
+A consistent subject format improves:
+
+- Brand recognition
+- User trust
+- Inbox visibility
+- Searchability
+- Professional appearance
+
+#### Recommended format
+
+```text
+IMMIFIN | <Subject>
+```
+
+#### Examples
+
+| Example subject |
+|-----------------|
+| `IMMIFIN \| Welcome to Pro` |
+| `IMMIFIN \| Welcome to Power` |
+| `IMMIFIN \| Your Monthly Immigration Report` |
+| `IMMIFIN \| Visa Bulletin Updated` |
+| `IMMIFIN \| Your Subscription Changed` |
+| `IMMIFIN \| Account Successfully Deleted` |
+| `IMMIFIN \| Security Notification` |
+| `IMMIFIN \| Billing Confirmation` |
+| `IMMIFIN \| System Maintenance` |
+
+#### Guidelines
+
+- Keep subjects short and meaningful
+- Avoid excessive capitalization
+- Avoid promotional language for transactional emails
+- **Notification Service** should generate the subject (from template metadata + typed context)
+- **Business code must never hardcode subject lines**
+
+#### Implementation status
+
+| Field | Value |
+|-------|-------|
+| **Status** | ⬜ Planned |
+| **Phase** | Email Infrastructure / Templates (Roadmap Phase 2–3) |
+
+---
+
+### Email Branding Standard
+
+> Standard visual structure for every IMMIFIN email (S6-DOC-005).
+
+#### Purpose
+
+Every email should immediately look recognizable as an IMMIFIN communication.
+
+Maintain a consistent visual identity across all templates so branding updates happen in **one shared layout**, not per template.
+
+#### Recommended layout
+
+```text
+--------------------------------------------------
+IMMIFIN Logo
+--------------------------------------------------
+Email Title
+--------------------------------------------------
+Personalized Greeting
+--------------------------------------------------
+Main Content
+--------------------------------------------------
+Primary Call-To-Action Button
+--------------------------------------------------
+Additional Helpful Links
+  · Dashboard
+  · Support
+  · Documentation
+--------------------------------------------------
+Legal Disclaimer
+  "This email is provided for informational purposes only
+   and does not constitute legal advice."
+--------------------------------------------------
+Copyright
+  © IMMIFIN
+--------------------------------------------------
+```
+
+#### Branding guidelines
+
+| Guideline | Detail |
+|-----------|--------|
+| **Logo** | Use the IMMIFIN logo consistently in the header |
+| **Typography** | Maintain the same typography across templates (email-safe stack aligned with Design System 2.0) |
+| **Spacing** | Use consistent spacing / padding in the shared layout |
+| **Accent color** | Use a single primary accent color matching IMMIFIN branding |
+| **Footer** | Maintain a consistent footer (links, disclaimer, copyright) |
+| **Mobile** | Ensure templates are mobile responsive |
+| **Plain text** | Always include a plain-text version |
+
+#### Future enhancements
+
+| Enhancement | Status |
+|-------------|--------|
+| Dark mode support | ⬜ Future |
+| Accessibility improvements | ⬜ Future |
+| Multilingual branding | ⬜ Future |
+| Dynamic theme support | ⬜ Future |
+
+#### Implementation status
+
+| Field | Value |
+|-------|-------|
+| **Status** | ⬜ Planned |
+| **Phase** | Email Infrastructure / Templates (Roadmap Phase 2–3) |
+
+---
+
+### Subject, branding & identity — engineering recommendation
+
+The **Notification Service** (with shared template layout components) owns:
+
+| Concern | Owner |
+|---------|-------|
+| **Subject selection** | Notification Service / template metadata (`IMMIFIN \| …`) |
+| **Sender identity** | Notification Service — see [Email Identity Strategy](#email-identity-strategy) |
+| **Branding** | Shared layout (logo, typography, accent, spacing) |
+| **Footer** | Shared layout |
+| **Legal disclaimer** | Shared layout (standard informational disclaimer) |
+
+**Individual templates should only define their unique content** (title, greeting variables, body sections, primary CTA target).
+
+Shared layout components should be reused by every template. This minimizes duplication and ensures future branding or subject-prefix updates require changes in **only one place**.
+
+---
+
 ### 3. Environment Variables
 
 | Variable | Purpose | Client-visible? |
@@ -1094,6 +1233,7 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 | Business code never talks to Resend | Events / `notificationService.send` only |
 | Notification Service owns orchestration | Eligibility, prefs, templates, history, retries |
 | Sender identity selected by Notification Service | Never hardcode From addresses in features — see [Email Identity Strategy](#email-identity-strategy) |
+| Subject + branding owned by Notification Service / shared layout | Never hardcode subjects in features; templates supply content only — see [Email Subject Standard](#email-subject-standard) · [Email Branding Standard](#email-branding-standard) |
 | Providers remain replaceable | Resend first; SES/SendGrid/Postmark later without rewriting features |
 | Notification history belongs in Supabase | Durable, queryable, admin-visible |
 | Google Sheets must never store notification history | Sheets = bulletin/stamping data only (ADR-002) |
@@ -1220,3 +1360,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.0 | 2026-07-09 | S6-DOC-001 | Initial Notification Platform design — architecture, categories, roadmap phases 1–10 |
 | v1.1 | 2026-07-10 | S6-DOC-003 | Expand Email Design — Resend integration, architecture, templates, DB, webhooks, campaigns, CTO recommendations |
 | v1.2 | 2026-07-10 | S6-DOC-004 | Email Identity Strategy — subdomain, address catalog, Phase 1 default sender, Notification Service ownership |
+| v1.3 | 2026-07-10 | S6-DOC-005 | Email Subject Standard + Email Branding Standard — shared layout and `IMMIFIN \|` subject convention |
