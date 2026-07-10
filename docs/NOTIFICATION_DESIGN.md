@@ -5,11 +5,11 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
-| **Last updated** | 2026-07-09 |
+| **Last updated** | 2026-07-10 |
 | **Owner** | Technical Architecture (CTO) |
 
 **Related:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
@@ -519,37 +519,522 @@ Do **not** commit secrets. Document in `.env.example` only as placeholders.
 
 ---
 
+## Email Design
+
+> **Implementation blueprint for all IMMIFIN email development (S6-DOC-003).**  
+> This section extends the platform architecture above. It does **not** replace [Architecture Overview](#architecture-overview), [§9 Technical Architecture](#9-technical-architecture), or category definitions in §§1–8.  
+> Email is **Phase 1 of channels only**. SMS / WhatsApp / Push / In-App remain future adapters.
+
+### 1. Purpose
+
+Email is **one notification channel** inside the Notification Platform — not a standalone Resend integration bolted onto features.
+
+IMMIFIN business logic must **never** communicate directly with Resend.
+
+```
+Business Event
+      ↓
+Notification Service
+      ↓
+Email Provider Adapter
+      ↓
+Resend
+```
+
+Future email providers may include:
+
+- Twilio (SendGrid / email APIs)
+- Amazon SES
+- SendGrid
+- Postmark
+
+No application feature (Visa Bulletin pages, calculators, Clerk webhooks, admin Data Refresh) should be tightly coupled to any provider. Features emit events or call `notificationService.send(...)` / `dispatch(...)`; only the Email Provider Adapter talks to Resend.
+
+See also: [Architecture Overview](#architecture-overview) · [Why application code must never call Resend directly](#why-application-code-must-never-call-resend-directly).
+
+---
+
+### 2. Resend Integration
+
+Overall integration process (ops + engineering) before any production user send:
+
+| Step | Action |
+|------|--------|
+| 1 | Create Resend account (IMMIFIN org) |
+| 2 | Generate API key with send permissions |
+| 3 | Store key as a **server-only** Cloudflare / `.env.local` secret — never in git or `NEXT_PUBLIC_*` |
+| 4 | Add and verify the IMMIFIN sending domain in Resend (DNS: SPF, DKIM, DMARC as required) |
+| 5 | Configure webhook endpoint + signing secret (delivery / bounce / complaint events) |
+| 6 | Admin-only test send in development, then production smoke |
+
+| Setting | Recommendation |
+|---------|----------------|
+| **Sender domain** | `notifications.immifin.com` |
+| **From** | `IMMIFIN <updates@notifications.immifin.com>` |
+| **Reply-To** | `support@immifin.com` |
+
+#### Why a dedicated notification subdomain
+
+- Separates transactional/product mail reputation from the primary website / support domain
+- Limits blast radius if a campaign is misconfigured or marked as spam
+- Clearer DNS and DMARC policy for automated mail
+- Allows rotating or pausing notification sending without affecting `immifin.com` web identity
+- Matches common SaaS practice (`updates@`, `noreply@` on a notifications subdomain)
+
+---
+
+### 3. Environment Variables
+
+| Variable | Purpose | Client-visible? |
+|----------|---------|-----------------|
+| `RESEND_API_KEY` | Resend API secret | **No** — server only |
+| `RESEND_FROM_EMAIL` | Verified from address (e.g. `updates@notifications.immifin.com`) | **No** |
+| `RESEND_FROM_NAME` | Display name (e.g. `IMMIFIN`) | **No** |
+| `RESEND_WEBHOOK_SECRET` | Validate Resend webhook signatures | **No** |
+
+Optional (already noted in [§9](#9-technical-architecture)):
+
+| Variable | Purpose |
+|----------|---------|
+| `NOTIFICATION_ADMIN_EMAILS` | Admin operational alert recipients |
+
+**Rules:**
+
+- Document placeholders in `.env.example` only — never real secrets
+- Set production values in Cloudflare Worker secrets / dashboard
+- Never prefix with `NEXT_PUBLIC_`
+- Never return these values from any API route (including debug routes)
+
+---
+
+### 4. Email Architecture
+
+Complete email delivery path:
+
+```
+Business Event
+      ↓
+Notification Service
+      ↓
+Eligibility
+      ↓
+Preferences
+      ↓
+Template Renderer
+      ↓
+Notification History          ← create row (queued / sending)
+      ↓
+Provider Adapter
+      ↓
+Resend
+      ↓
+Recipient
+      ↓
+Webhook
+      ↓
+Supabase Status Update        ← delivered / bounced / failed / …
+```
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Business Event** | Domain signal only (`admin.monthly_report.approved`, `subscription.plan_changed`, …). No Resend SDK. |
+| **Notification Service** | Orchestration entry — see [§5](#5-notification-service). |
+| **Eligibility** | Plan capabilities (`accessEmailAlerts`, `accessNotifications`); valid email; admin campaign audience rules. |
+| **Preferences** | Enforce `notificationPreferences` (and opt-in keys); skip + log when denied. |
+| **Template Renderer** | Template ID + typed context → subject, HTML, plain text. |
+| **Notification History** | Persist attempt before/during/after provider call; update from webhooks. |
+| **Provider Adapter** | Map internal message → Resend API; return provider message id / errors. |
+| **Resend** | Accept, queue, and attempt delivery to mailbox providers. |
+| **Recipient** | User inbox (or spam / bounce — not guaranteed). |
+| **Webhook** | Async delivery events from Resend. |
+| **Supabase Status Update** | Update history row + feed admin statistics. **Never** store notification history in Google Sheets. |
+
+---
+
+### 5. Notification Service
+
+Business code should call:
+
+```ts
+notificationService.send(...)
+// or notificationService.dispatch(event)
+```
+
+instead of importing Resend or calling `fetch("https://api.resend.com/...")`.
+
+**Responsibilities:**
+
+| Responsibility | Detail |
+|----------------|--------|
+| Determine eligibility | Capabilities + audience rules |
+| Choose template | Map event / campaign → template ID |
+| Apply personalization | Profile, bulletin, dashboard context |
+| Call provider | Via Email Provider Adapter only |
+| Log history | Insert/update Supabase notification rows |
+| Handle retries | Bounded retries for transient provider errors; campaign retry UI later |
+| Update status | `queued` → `sending` → `sent` / `failed`; webhooks refine further |
+
+Public product routes and Force Sync must **not** invoke bulk `send` synchronously for all subscribers.
+
+---
+
+### 6. Email Provider
+
+Provider abstraction: a single interface (e.g. `NotificationProvider` / `EmailProvider`) with `send(message) → result`.
+
+| Implementation | Status |
+|----------------|--------|
+| **Resend Provider** | Initial and only implementation for Sprint 6 Phase 2 |
+| Amazon SES | Future |
+| SendGrid | Future |
+| Postmark | Future |
+
+Changing providers must **not** require changes to Visa Bulletin, subscription, or admin campaign business code — only adapter + env configuration.
+
+---
+
+### 7. Email Template Framework
+
+#### Shared components
+
+| Component | Role |
+|-----------|------|
+| **Layout** | Max-width shell, background, consistent padding |
+| **Header** | IMMIFIN wordmark / product name |
+| **Footer** | Links (dashboard, preferences, support), copyright |
+| **Buttons** | Primary CTA deep links into IMMIFIN |
+| **Branding** | Colors/typography aligned with Design System 2.0 (email-safe subset) |
+| **Legal disclaimer** | Informational only — not legal advice |
+| **Plain text version** | Required fallback for deliverability and accessibility |
+
+#### Templates
+
+| Template | Maps to platform template ID | Notes |
+|----------|------------------------------|-------|
+| Welcome Pro | `welcome-pro` | See [§1.1](#11-welcome-to-pro) |
+| Welcome Power | `welcome-power` | See [§1.2](#12-welcome-to-power) |
+| Downgrade | `downgrade-to-free` | Include data-retention messaging |
+| Account Deleted | `account-deleted` | |
+| Monthly Immigration Report | `monthly-immigration-report` | Flagship — [§11](#11-monthly-immigration-report-email-design) |
+| Admin Reminder | `admin-bulletin-unsent-reminder` / `admin-dos-publication-reminder` | |
+| Future Marketing | `marketing-campaign` / `campaign-generic` | Opt-in `marketing` only |
+
+#### Typed template inputs
+
+Each template should declare a TypeScript input type (implementation-time), for example:
+
+| Template | Example typed fields |
+|----------|----------------------|
+| `welcome-pro` | `firstName`, `dashboardUrl`, `pricingUrl` |
+| `monthly-immigration-report` | `firstName`, `category`, `country`, `priorityDate`, `bulletinMonth`, `finalActionSummary`, `movementSummary`, `dashboardUrl`, `historyUrl`, `movementUrl`, `disclaimer` |
+| `downgrade-to-free` | `firstName`, `dataRetentionNote`, `upgradeUrl` |
+
+Renderer rejects incomplete context rather than sending broken mail.
+
+---
+
+### 8. Notification Database
+
+Delivery history belongs in **Supabase** (not Google Sheets; Sheets remain bulletin/stamping source of truth per ADR-002).
+
+Recommended table (name TBD at migration time, e.g. `notification_deliveries`):
+
+| Field | Description |
+|-------|-------------|
+| **Notification ID** | Primary key (UUID) |
+| **Campaign ID** | Nullable FK for bulk/report campaigns |
+| **Recipient** | User id + email (normalized) |
+| **Provider** | `resend` (later `twilio_sms`, etc.) |
+| **Provider Message ID** | Resend email id for webhook correlation |
+| **Template** | Template ID + version |
+| **Notification Type** | Lifecycle / report / admin / campaign |
+| **Status** | See lifecycle below |
+| **Attempt Count** | Send attempts |
+| **Sent Time** | When provider accepted the message |
+| **Delivered Time** | From webhook when available |
+| **Failure Reason** | Provider or skip reason |
+| **Created** | Row created at |
+| **Updated** | Last status change |
+
+#### Lifecycle statuses
+
+| Status | Meaning |
+|--------|---------|
+| **Queued** | Accepted by Notification Service; not yet handed to provider |
+| **Sending** | Provider call in flight |
+| **Sent** | Provider accepted (API success) — **not** proof of inbox delivery |
+| **Delivered** | Provider webhook confirms delivery (when available) |
+| **Delayed** | Temporary deferral / retry scheduled |
+| **Failed** | Permanent or exhausted failure |
+| **Bounced** | Hard/soft bounce from webhook |
+| **Suppressed** | Skipped: prefs, capability, invalid address, or prior bounce suppression |
+
+Aligns with [§6 Notification History](#6-notification-history); this section is the email-channel schema detail for implementers.
+
+---
+
+### 9. Webhook Processing
+
+```
+Resend
+  ↓
+Webhook Endpoint          e.g. POST /api/webhooks/resend
+  ↓
+Validate Signature        RESEND_WEBHOOK_SECRET
+  ↓
+Find Notification         by Provider Message ID
+  ↓
+Update Delivery Status
+  ↓
+Log Event
+  ↓
+Dashboard Statistics      Admin Notification Center
+```
+
+**Important:** Provider API success (`Sent`) does **not** guarantee the message reached the inbox. Webhooks refine status to `Delivered`, `Bounced`, `Failed`, etc.
+
+Webhook handler rules:
+
+- `require` signature validation before any DB write
+- Idempotent updates (Resend may retry)
+- No Resend secret in client bundles
+- Do not block unrelated product traffic on webhook processing failures — log and alert admins
+
+---
+
+### 10. Email Workflows
+
+Detailed category definitions remain in [§1 User Lifecycle](#1-user-lifecycle-notifications) and [§2 Monthly Immigration Report](#2-monthly-immigration-report). This section is the **email-channel workflow blueprint**.
+
+#### A. Welcome to Pro
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Confirm Pro activation; orient to Pro capabilities |
+| **Trigger** | Plan becomes `pro` |
+| **Audience** | That user (if email present) |
+| **Personalization** | Name, deep links to dashboard / profile / bulletin history |
+| **Expected email contents** | Welcome headline; what Pro unlocks; CTA to My Immifin; preference link; disclaimer |
+| **Future improvements** | Checklist of first Pro actions |
+| **Implementation Status** | ⬜ Not Started |
+
+#### B. Welcome to Power
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Confirm Power; introduce advanced / AI surfaces as they ship |
+| **Trigger** | Plan becomes `power` |
+| **Audience** | That user |
+| **Personalization** | Name; Power capability highlights |
+| **Expected email contents** | Welcome; Power vs Pro delta; CTA; disclaimer |
+| **Future improvements** | AI assistant onboarding |
+| **Implementation Status** | ⬜ Not Started |
+
+#### C. Upgrade Pro → Power
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Acknowledge upgrade |
+| **Trigger** | `pro` → `power` |
+| **Audience** | Upgrading user |
+| **Personalization** | Capability diff from `lib/subscription/capabilities.ts` |
+| **Expected email contents** | Upgrade confirmation; new unlocks; CTA |
+| **Future improvements** | In-app tour link |
+| **Implementation Status** | ⬜ Not Started |
+
+#### D. Downgrade
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Confirm downgrade; clarify **data retained**, access gated |
+| **Trigger** | Plan becomes `free` |
+| **Audience** | Downgraded user |
+| **Personalization** | Retention note (`dataRetention` policy) |
+| **Expected email contents** | Confirmation; what is locked; upgrade CTA; disclaimer |
+| **Future improvements** | Win-back timing |
+| **Implementation Status** | ⬜ Not Started |
+
+#### E. Account Deleted
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Confirm deletion for trust / compliance |
+| **Trigger** | Account deletion workflow (when implemented) |
+| **Audience** | Deleted user’s email |
+| **Personalization** | Minimal PII |
+| **Expected email contents** | Confirmation; support contact if error |
+| **Future improvements** | Export-before-delete reminder |
+| **Implementation Status** | ⬜ Not Started |
+
+#### F. Monthly Immigration Report
+
+| Field | Detail |
+|-------|--------|
+| **Purpose** | Flagship personalized monthly email — see [§11](#11-monthly-immigration-report-email-design) |
+| **Trigger** | Admin Generate → Preview → Approve → Send (not Force Sync) |
+| **Audience** | Pro/Power with email prefs |
+| **Personalization** | Full immigration profile + bulletin context |
+| **Expected email contents** | See §11 |
+| **Future improvements** | AI recommendations; chart images; stamping section |
+| **Implementation Status** | ⬜ Not Started |
+
+---
+
+### 11. Monthly Immigration Report (Email Design)
+
+**Flagship notification.** This is **not** a generic “Visa Bulletin updated” blast. It is a personalized monthly immigration report email assembled from the user’s profile and current bulletin data. Product intent is defined in [§2 Monthly Immigration Report](#2-monthly-immigration-report); this subsection specifies **email contents**.
+
+| Section | Email content |
+|---------|----------------|
+| **Immigration Journey** | Category, country of chargeability, path summary |
+| **Priority Date** | User priority date + current / not current framing |
+| **Visa Bulletin Summary** | Relevant Final Action / Dates for Filing for that user |
+| **Movement** | Month-over-month movement for the user’s track |
+| **Dashboard Snapshot** | Compact My Immifin-style status highlights |
+| **Charts** | Lightweight images and/or deep links to History & Movement |
+| **Recommendations (future AI)** | Power-tier narrative — later |
+| **Links back to IMMIFIN** | Dashboard, Visa Bulletin, History, Movement, Preferences |
+| **Legal disclaimer** | Informational only; not legal advice |
+
+Channel: HTML + plain text via Resend. Prefer deep links over large attachments.
+
+---
+
+### 12. Campaign Management
+
+Future admin campaign workflow for bulk email (especially Monthly Immigration Report):
+
+```
+Visa Bulletin Updated
+      ↓
+Generate Campaign
+      ↓
+Preview
+      ↓
+Approve
+      ↓
+Confirmation
+      ↓
+Send
+      ↓
+Completion Statistics
+```
+
+**Recommended confirmation message:**
+
+> You are about to send this Monthly Immigration Report to all eligible users.
+
+| Campaign state | Meaning |
+|----------------|---------|
+| **Draft** | Campaign record created |
+| **Generated** | Per-recipient payloads / counts computed |
+| **Previewed** | Admin reviewed sample render |
+| **Approved** | Explicit admin approval recorded |
+| **Sending** | Fan-out in progress |
+| **Completed** | All attempts finished successfully or skipped |
+| **Completed with Failures** | Finished with one or more `failed` / `bounced` rows |
+
+Force Sync and archive remain **separate** from campaign send ([SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)). See also [§7 Administration](#7-administration) and [§5 Campaign Management](#5-campaign-management).
+
+---
+
+### 13. Sending Strategy
+
+| Recommendation | Reason |
+|----------------|--------|
+| Do **not** send directly from UI | UI calls admin API → Notification Service |
+| Use Notification Service | Single place for rules, history, provider |
+| Safe batch processing initially | Small batches with delays; avoid one giant Worker request |
+| Future: Cloudflare Queues | Decouple accept-from-admin from provider fan-out |
+| Future: Retry Queue | Transient Resend / network errors |
+| Future: Rate limiting | Respect Resend limits; protect reputation |
+| Future: Background processing | Long campaigns off the request path |
+
+**Avoid long-running Worker requests** for full-subscriber fan-out. Admin “Send” should enqueue work and return progress; Workers Paid CPU helps cold start but does not justify unbounded synchronous loops.
+
+---
+
+### 14. Testing Strategy
+
+| Mode | Behavior |
+|------|----------|
+| **Development Mode** | Localhost / preview Worker; may use Resend test mode or allowlist recipients; never blast production users |
+| **Preview Mode** | Render subject/HTML/text for one user or sample context **without** calling Resend send (or with dry-run flag) |
+| **Production Mode** | Real sends only after admin confirmation; history + webhooks enabled |
+
+**Only production admins** (`requireAdmin()`) may trigger actual campaign or production test sends.  
+Preview must be available before Approve/Send.  
+Lifecycle emails in early phases may use admin-triggered fixtures until Stripe webhooks exist.
+
+---
+
+### 15. Future Channels
+
+This email architecture is intentionally channel-agnostic at the Notification Service boundary.
+
+| Channel | Phase |
+|---------|-------|
+| **Email (Resend)** | **Phase 1 — current focus** |
+| SMS | Future (e.g. Twilio) |
+| WhatsApp | Future (e.g. Twilio + Meta templates) |
+| Push Notifications | Future |
+| In-App Notifications | Future |
+| Apple Messages for Business | Future exploration only — **not** a bulk iMessage blast API |
+
+Adding a channel = new provider adapter + preference/capability rules + history `provider` value. Business events and most templates’ *content intent* stay stable; rendering may differ per channel.
+
+See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) for post-MVP media distribution (parked).
+
+---
+
+### 16. CTO Recommendations
+
+| Decision | Guidance |
+|----------|----------|
+| Business code never talks to Resend | Events / `notificationService.send` only |
+| Notification Service owns orchestration | Eligibility, prefs, templates, history, retries |
+| Providers remain replaceable | Resend first; SES/SendGrid/Postmark later without rewriting features |
+| Notification history belongs in Supabase | Durable, queryable, admin-visible |
+| Google Sheets must never store notification history | Sheets = bulletin/stamping data only (ADR-002) |
+| Use server-side templates | Typed inputs; HTML + plain text; shared layout |
+| Always preview before sending | Especially Monthly Immigration Report |
+| Require explicit admin confirmation for campaigns | Confirmation copy in [§12](#12-campaign-management) |
+| Optimize for Cloudflare Workers | Batch/queue; no SSR-blocking sends; no huge synchronous fan-out |
+| Avoid technical debt | No one-off `resend` calls in feature routes “just for now” |
+
+---
+
 ## Implementation Roadmap
 
 Update status boxes as each milestone completes during Sprint 6 and beyond.
 
 ### Phase 1 — Notification Architecture
 
-Design and document the platform (this document). No production send path yet.
+Platform design document (S6-DOC-001) plus Email Design blueprint (S6-DOC-003). No production send path yet.
 
-**Status:** ✅ Complete (S6-DOC-001 — 2026-07-09)
+**Status:** ✅ Complete (S6-DOC-001 — 2026-07-09 · S6-DOC-003 Email Design — 2026-07-10)
 
-### Phase 2 — Resend Integration
+### Phase 2 — Resend Infrastructure
 
-Provider adapter, secrets, health/test send (admin-only), no user blasts.
+Implement using **[Email Design](#email-design)** as the implementation guide: account/domain, env secrets, Resend provider adapter, admin-only test send, webhook stub/endpoint design. **No user blasts.**
 
 **Status:** ⬜ Not Started
 
 ### Phase 3 — Notification Templates
 
-Template IDs, renderer, Welcome / Admin / Report shells.
+Template IDs, renderer, Welcome / Admin / Report shells (per Email Design §7).
 
 **Status:** ⬜ Not Started
 
 ### Phase 4 — User Lifecycle Emails
 
-Plan change and account lifecycle dispatches through the engine.
+Plan change and account lifecycle dispatches through the engine (Email Design §10 A–E).
 
 **Status:** ⬜ Not Started
 
 ### Phase 5 — Monthly Immigration Report
 
-Personalized report generation + admin approve/send.
+Personalized report generation + admin approve/send (Email Design §§11–12).
 
 **Status:** ⬜ Not Started
 
@@ -561,7 +1046,7 @@ Generate / Preview / Approve / Send / Retry UI on `/admin`.
 
 ### Phase 7 — Notification History
 
-Persistent history table + admin browse / failure views.
+Persistent history table + admin browse / failure views (Email Design §8) + webhook status updates (§9).
 
 **Status:** ⬜ Not Started
 
@@ -592,8 +1077,10 @@ End-to-end localhost + production smoke: lifecycle, report, history, prefs, admi
 - Do **not** auto-archive Visa Bulletin history as part of notification send.
 - Do **not** email Free-tier users for Pro-gated alert content.
 - Do **not** store bulletin source-of-truth in Supabase (ADR-002) — reports **read** Sheets-backed APIs / caches.
+- Do **not** store notification delivery history in Google Sheets.
 - Do **not** implement Stripe billing emails until billing ships.
 - Do **not** skip history logging for “quick” test sends in production.
+- Do **not** expose `RESEND_*` secrets to the client.
 
 ---
 
@@ -601,8 +1088,8 @@ End-to-end localhost + production smoke: lifecycle, report, history, prefs, admi
 
 | Phase | Suggested Task ID | Notes |
 |-------|-------------------|-------|
-| 1 | **S6-DOC-001** | This document |
-| 2 | S6-EMAIL-001 | Resend adapter (narrowed from “blast emails” to platform Phase 2) |
+| 1 | **S6-DOC-001** · **S6-DOC-003** | Platform design + Email Design blueprint |
+| 2 | S6-EMAIL-001 | Resend infrastructure — follow [Email Design](#email-design) |
 | 3–5 | S6-EMAIL-002+ | Templates + lifecycle + monthly report |
 | 6–7 | S6-ADM-002 / S6-EMAIL-00x | Admin Notification Center + history |
 | 8–10 | Follow-on | Prefs enforcement, ops alerts, validation |
@@ -621,6 +1108,7 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin UI home for Notification Center |
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Authoritative project state |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | Sprint status board |
+| [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | Post-MVP broadcast distribution (parked) |
 
 ---
 
@@ -629,3 +1117,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-09 | S6-DOC-001 | Initial Notification Platform design — architecture, categories, roadmap phases 1–10 |
+| v1.1 | 2026-07-10 | S6-DOC-003 | Expand Email Design — Resend integration, architecture, templates, DB, webhooks, campaigns, CTO recommendations |
