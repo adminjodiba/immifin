@@ -5,7 +5,7 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
@@ -822,6 +822,108 @@ Shared layout components should be reused by every template. This minimizes dupl
 
 ---
 
+### Call-To-Action (CTA) Standard
+
+> Standard for primary and secondary actions in all IMMIFIN emails (S6-DOC-006).
+
+#### Purpose
+
+Every IMMIFIN email should guide the user toward **one clear next action**.
+
+The email should never overwhelm the recipient with multiple competing primary buttons.
+
+This creates:
+
+- Better user experience
+- Higher click-through rates
+- Cleaner design
+- Consistent branding
+- Better accessibility
+
+#### Primary CTA rule
+
+Every email should contain **exactly ONE** Primary Call-To-Action button.
+
+The CTA should represent the single most important action the recipient should perform after reading the email.
+
+| Email Type | Primary CTA |
+|------------|-------------|
+| Welcome Email | Complete My Immigration Profile |
+| Welcome (Profile Already Complete) | View My Dashboard |
+| Monthly Immigration Report | View My Dashboard |
+| Visa Bulletin Update | See What's Changed |
+| Subscription Upgrade | Explore My New Features |
+| Subscription Downgrade | Upgrade Again |
+| Account Deletion Confirmation | Contact Support |
+| Security Notification | Review Security Activity |
+| Billing Notification | View Billing Details |
+| System Maintenance | View Status Page |
+
+#### Secondary actions
+
+Secondary actions should **not** be displayed as additional primary buttons.
+
+Instead they should appear as simple **footer links**.
+
+Examples:
+
+- Dashboard
+- Support
+- Documentation
+- Privacy Policy
+- Terms of Service
+- Contact Us
+
+#### Button design
+
+Future design guidelines for the primary CTA:
+
+| Guideline | Detail |
+|-----------|--------|
+| **Count** | One prominent primary button per email |
+| **Branding** | Consistent IMMIFIN branding |
+| **Color** | Consistent primary accent (same as Email Branding Standard) |
+| **Spacing** | Consistent spacing above/below the button |
+| **Size** | Consistent button size across templates |
+| **Mobile** | Mobile friendly (full-width or comfortably tappable on small screens) |
+| **Accessibility** | Accessible contrast, clear label text, meaningful link destination |
+
+#### Engineering recommendation
+
+The **Notification Service** selects:
+
+| Concern | Owner |
+|---------|-------|
+| **Primary CTA** | Notification Service (based on notification type + user context) |
+| **CTA URL** | Notification Service (deep link into IMMIFIN) |
+| **CTA label** | Notification Service / template metadata |
+
+Templates simply **render** the provided CTA via a shared button component.
+
+- Business code should **never** hardcode CTA buttons
+- Shared CTA components should be reused by every template
+- Welcome flows may choose between “Complete My Immigration Profile” and “View My Dashboard” based on profile completeness — that decision belongs in the Notification Service, not in feature UI code
+
+Aligns with [Email Branding Standard](#email-branding-standard) (layout slot for Primary CTA) and [Email Subject Standard](#email-subject-standard) / [Email Identity Strategy](#email-identity-strategy) (platform-owned presentation).
+
+#### Future enhancements
+
+| Capability | Status |
+|------------|--------|
+| Dynamic CTA based on user journey | ⬜ Future |
+| Multiple CTA variants for A/B testing | ⬜ Future |
+| Context-aware CTA personalization | ⬜ Future |
+| Analytics-driven CTA optimization | ⬜ Future |
+
+#### Implementation status
+
+| Field | Value |
+|-------|-------|
+| **Status** | ⬜ Planned |
+| **Phase** | Email Template Framework (Roadmap Phase 3) |
+
+---
+
 ### 3. Environment Variables
 
 | Variable | Purpose | Client-visible? |
@@ -1234,6 +1336,7 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 | Notification Service owns orchestration | Eligibility, prefs, templates, history, retries |
 | Sender identity selected by Notification Service | Never hardcode From addresses in features — see [Email Identity Strategy](#email-identity-strategy) |
 | Subject + branding owned by Notification Service / shared layout | Never hardcode subjects in features; templates supply content only — see [Email Subject Standard](#email-subject-standard) · [Email Branding Standard](#email-branding-standard) |
+| Exactly one Primary CTA per email | Notification Service selects label + URL; footer links for secondary actions — see [Call-To-Action (CTA) Standard](#call-to-action-cta-standard) |
 | Providers remain replaceable | Resend first; SES/SendGrid/Postmark later without rewriting features |
 | Notification history belongs in Supabase | Durable, queryable, admin-visible |
 | Google Sheets must never store notification history | Sheets = bulletin/stamping data only (ADR-002) |
@@ -1361,3 +1464,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.1 | 2026-07-10 | S6-DOC-003 | Expand Email Design — Resend integration, architecture, templates, DB, webhooks, campaigns, CTO recommendations |
 | v1.2 | 2026-07-10 | S6-DOC-004 | Email Identity Strategy — subdomain, address catalog, Phase 1 default sender, Notification Service ownership |
 | v1.3 | 2026-07-10 | S6-DOC-005 | Email Subject Standard + Email Branding Standard — shared layout and `IMMIFIN \|` subject convention |
+| v1.4 | 2026-07-10 | S6-DOC-006 | Call-To-Action (CTA) Standard — one primary button, footer secondary links |
