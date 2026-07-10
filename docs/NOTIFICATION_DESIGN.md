@@ -312,6 +312,8 @@ Operational messages for `profiles.role === 'admin'` (and optionally founder ema
 
 All outbound content is template-driven. Templates are versioned identifiers; rendering may start as React Email / HTML strings and later move to a CMS.
 
+**Design authority for visual/UX presentation:** [IMMIFIN Email Design System](#immifin-email-design-system). Template IDs and product intent remain in this section; layout, branding, and CTA rules live in the Email Design System.
+
 | Template ID | Category | Description | Implementation Status |
 |-------------|----------|-------------|------------------------|
 | `welcome-pro` | Lifecycle | Welcome to Pro | ⬜ Not Started |
@@ -523,7 +525,8 @@ Do **not** commit secrets. Document in `.env.example` only as placeholders.
 
 > **Implementation blueprint for all IMMIFIN email development (S6-DOC-003).**  
 > This section extends the platform architecture above. It does **not** replace [Architecture Overview](#architecture-overview), [§9 Technical Architecture](#9-technical-architecture), or category definitions in §§1–8.  
-> Email is **Phase 1 of channels only**. SMS / WhatsApp / Push / In-App remain future adapters.
+> Email is **Phase 1 of channels only**. SMS / WhatsApp / Push / In-App remain future adapters.  
+> **Visual, UX, and template standards:** see [IMMIFIN Email Design System](#immifin-email-design-system) (S6-DOC-006) — single source of truth for every email template.
 
 ### 1. Purpose
 
@@ -824,7 +827,8 @@ Shared layout components should be reused by every template. This minimizes dupl
 
 ### Call-To-Action (CTA) Standard
 
-> Standard for primary and secondary actions in all IMMIFIN emails (S6-DOC-006).
+> Standard for primary and secondary actions in all IMMIFIN emails.  
+> Formalized in the [IMMIFIN Email Design System](#immifin-email-design-system) (S6-DOC-006).
 
 #### Purpose
 
@@ -1036,6 +1040,8 @@ Changing providers must **not** require changes to Visa Bulletin, subscription, 
 
 ### 7. Email Template Framework
 
+> Template shells and typed inputs. **All templates must conform to the [IMMIFIN Email Design System](#immifin-email-design-system)** (shared layout, branding, CTA, accessibility).
+
 #### Shared components
 
 | Component | Role |
@@ -1225,6 +1231,8 @@ Detailed category definitions remain in [§1 User Lifecycle](#1-user-lifecycle-n
 
 **Flagship notification.** This is **not** a generic “Visa Bulletin updated” blast. It is a personalized monthly immigration report email assembled from the user’s profile and current bulletin data. Product intent is defined in [§2 Monthly Immigration Report](#2-monthly-immigration-report); this subsection specifies **email contents**.
 
+**Presentation must follow the [IMMIFIN Email Design System](#immifin-email-design-system)** (shared layout, one Primary CTA — typically “View My Dashboard”, footer secondary links, disclaimer).
+
 | Section | Email content |
 |---------|----------------|
 | **Immigration Journey** | Category, country of chargeability, path summary |
@@ -1345,6 +1353,235 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 | Require explicit admin confirmation for campaigns | Confirmation copy in [§12](#12-campaign-management) |
 | Optimize for Cloudflare Workers | Batch/queue; no SSR-blocking sends; no huge synchronous fan-out |
 | Avoid technical debt | No one-off `resend` calls in feature routes “just for now” |
+| Conform to Email Design System | Every template inherits shared components — see [IMMIFIN Email Design System](#immifin-email-design-system) |
+
+---
+
+## IMMIFIN Email Design System
+
+| Field | Value |
+|-------|-------|
+| **Task ID** | S6-DOC-006 |
+| **Status** | Documentation complete — implementation not started |
+| **Last updated** | 2026-07-10 |
+
+> The Email Design System defines the visual, functional, and technical standards for every email sent by IMMIFIN.  
+>  
+> All email templates should conform to this design system unless an approved architectural decision explicitly overrides it.
+
+This system is the **single source of truth** for email branding, layout, UX, content presentation, accessibility, and technical implementation guidelines. It complements (and does not replace) the [Email Design](#email-design) architecture (Resend, Notification Service, history, campaigns).
+
+**Status key:** ⬜ Not Started · 🟡 In Progress · ✅ Completed
+
+---
+
+### 1. Design System Progress Tracker
+
+Update throughout Sprint 6 as documentation and implementation land.
+
+#### Foundation
+
+| Item | Status |
+|------|--------|
+| Email Branding Standard | ✅ Completed (documented) |
+| Email Subject Standard | ✅ Completed (documented) |
+| Email Identity Strategy | ✅ Completed (documented) |
+| CTA Standard | ✅ Completed (documented) |
+| Shared Layout | ⬜ Not Started |
+| Shared Components | ⬜ Not Started |
+| Footer Standard | ⬜ Not Started |
+| Legal Disclaimer | ⬜ Not Started |
+| Plain Text Renderer | ⬜ Not Started |
+
+#### Visual Components
+
+| Item | Status |
+|------|--------|
+| Logo | ⬜ Not Started |
+| Header | ⬜ Not Started |
+| Hero Section | ⬜ Not Started |
+| Statistics Cards | ⬜ Not Started |
+| Dashboard Summary Cards | ⬜ Not Started |
+| Tables | ⬜ Not Started |
+| Timeline Components | ⬜ Not Started |
+| Call-To-Action Button | ⬜ Not Started |
+| Footer Links | ⬜ Not Started |
+| Copyright Block | ⬜ Not Started |
+
+#### Email Templates
+
+| Item | Status |
+|------|--------|
+| Welcome Pro | ⬜ Not Started |
+| Welcome Power | ⬜ Not Started |
+| Upgrade Pro → Power | ⬜ Not Started |
+| Downgrade | ⬜ Not Started |
+| Account Deleted | ⬜ Not Started |
+| Monthly Immigration Report | ⬜ Not Started |
+| Admin Reminder | ⬜ Not Started |
+| System Notification | ⬜ Not Started |
+| Billing Notification | ⬜ Not Started |
+| Security Notification | ⬜ Not Started |
+
+#### UX Standards
+
+| Item | Status |
+|------|--------|
+| Greeting Style | ⬜ Not Started |
+| Personalization Rules | ⬜ Not Started |
+| One Primary CTA Rule | ✅ Completed (documented) |
+| Secondary Links | ✅ Completed (documented) |
+| Mobile Responsiveness | ⬜ Not Started |
+| Accessibility | ⬜ Not Started |
+| Dark Mode Compatibility | ⬜ Not Started |
+
+#### Engineering Standards
+
+| Item | Status |
+|------|--------|
+| Shared React Components | ⬜ Not Started |
+| Template Rendering | ⬜ Not Started |
+| Notification Service Integration | ⬜ Not Started |
+| Provider Independence | ⬜ Not Started |
+| Plain Text Version | ⬜ Not Started |
+| Testing Strategy | ✅ Completed (documented) |
+| Preview Mode | ✅ Completed (documented) |
+| Production Validation | ⬜ Not Started |
+
+---
+
+### 2. Email Component Library
+
+Planned reusable email components. Prefer **React Email** (or equivalent server-rendered components) shared across all templates.
+
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| **EmailLayout** | Outer shell, max-width, background, padding | ⬜ Not Started |
+| **Header** | Logo + product identity | ⬜ Not Started |
+| **Footer** | Secondary links, disclaimer, copyright | ⬜ Not Started |
+| **Hero** | Optional title / highlight band | ⬜ Not Started |
+| **Greeting** | Personalized salutation | ⬜ Not Started |
+| **SectionTitle** | Consistent H2-style section headings | ⬜ Not Started |
+| **InformationCard** | Generic content card | ⬜ Not Started |
+| **StatisticsCard** | KPI / metric display (report emails) | ⬜ Not Started |
+| **JourneyCard** | Immigration journey snapshot | ⬜ Not Started |
+| **Timeline** | Movement / history timeline block | ⬜ Not Started |
+| **CTAButton** | Single primary CTA | ⬜ Not Started |
+| **Divider** | Horizontal rule / spacing separator | ⬜ Not Started |
+| **Disclaimer** | Legal informational disclaimer | ⬜ Not Started |
+| **Signature** | Optional closing / team sign-off | ⬜ Not Started |
+| **FooterLinks** | Dashboard, Support, Documentation, Privacy, Terms | ⬜ Not Started |
+
+Detailed CTA behavior: [Call-To-Action (CTA) Standard](#call-to-action-cta-standard).  
+Layout skeleton: [Email Branding Standard](#email-branding-standard).
+
+---
+
+### 3. Branding Standards
+
+| Item | Purpose | Implementation notes | Status |
+|------|---------|----------------------|--------|
+| **Logo** | Instant brand recognition | Shared Header component; consistent asset URL / CID; alt text “IMMIFIN” | ⬜ Not Started |
+| **Typography** | Readable, professional hierarchy | Email-safe stack aligned with Design System 2.0; consistent title / body / caption sizes | ⬜ Not Started |
+| **Spacing** | Visual rhythm, less clutter | Shared spacing scale in EmailLayout; avoid one-off margins per template | ⬜ Not Started |
+| **Accent Color** | Brand cue for CTA and highlights | Single primary accent; sufficient contrast on white/light backgrounds | ⬜ Not Started |
+| **Button Style** | One clear action | Shared CTAButton; see CTA Standard | ⬜ Not Started |
+| **Card Style** | Structure report / dashboard content | Shared InformationCard / StatisticsCard / JourneyCard | ⬜ Not Started |
+| **Icons** | Optional visual cues | Sparse use; accessible alternatives; avoid relying on icon-only meaning | ⬜ Not Started |
+| **White Space** | Reduce cognitive load | Prefer breathing room over dense blocks; especially on mobile | ⬜ Not Started |
+| **Footer** | Trust, navigation, legal | Shared Footer + FooterLinks + Disclaimer + copyright | ⬜ Not Started |
+
+Also see: [Email Identity Strategy](#email-identity-strategy) · [Email Subject Standard](#email-subject-standard) (`IMMIFIN \| …`).
+
+---
+
+### 4. User Experience Standards
+
+| Standard | Guidance | Status |
+|----------|----------|--------|
+| **Friendly greeting** | Warm, professional salutation using first name when available | ⬜ Not Started |
+| **Professional tone** | Clear, calm, trustworthy — Life OS for Immigrants, not hype | ⬜ Not Started |
+| **Personalization** | Profile- and bulletin-aware content where eligible; never invent facts | ⬜ Not Started |
+| **One Primary CTA** | Exactly one primary button; see CTA Standard | ✅ Completed (documented) |
+| **Minimal scrolling** | Lead with what matters; link deeper into IMMIFIN for detail | ⬜ Not Started |
+| **Responsive layout** | Single-column friendly; tappable CTA; readable on small screens | ⬜ Not Started |
+| **Accessibility** | Semantic structure, alt text, contrast, meaningful link text | ⬜ Not Started |
+| **Readable typography** | Comfortable body size; clear hierarchy | ⬜ Not Started |
+| **Consistent spacing** | Shared layout rhythm | ⬜ Not Started |
+| **Legal clarity** | Standard disclaimer on every email; not legal advice | ⬜ Not Started |
+
+**Standard disclaimer copy:**
+
+> This email is provided for informational purposes only and does not constitute legal advice.
+
+---
+
+### 5. Technical Standards
+
+| Standard | Guidance | Status |
+|----------|----------|--------|
+| **React Email Components** | Prefer composable React Email (or equivalent) over duplicated HTML strings | ⬜ Not Started |
+| **Shared Layout** | All templates wrap `EmailLayout` | ⬜ Not Started |
+| **Template Inheritance** | Templates supply content slots only; inherit header/footer/CTA/disclaimer | ⬜ Not Started |
+| **Reusable Footer** | One Footer component | ⬜ Not Started |
+| **Reusable Header** | One Header component | ⬜ Not Started |
+| **Reusable CTA** | One CTAButton; props from Notification Service | ⬜ Not Started |
+| **Reusable Statistics Cards** | Shared for Monthly Immigration Report and future digests | ⬜ Not Started |
+| **Reusable Dashboard Components** | Journey / summary cards aligned with My Immifin concepts | ⬜ Not Started |
+| **Plain Text Support** | Every send includes text/plain alternative | ⬜ Not Started |
+| **Cloudflare Compatibility** | Render on server/Worker; no client-only email generation; avoid heavy sync work in request path | ⬜ Not Started |
+| **Resend Compatibility** | HTML + text payloads; attachments only when necessary; respect provider limits | ⬜ Not Started |
+
+Provider calls remain behind the Email Provider Adapter — see [Email Design](#email-design).
+
+---
+
+### 6. Future Enhancements
+
+| Enhancement | Notes | Status |
+|-------------|-------|--------|
+| **Dark Mode** | `prefers-color-scheme` / dual-background patterns where client support allows | ⬜ Not Started |
+| **Localization** | Locale-aware copy selection | ⬜ Not Started |
+| **Multilingual Emails** | Full translated templates | ⬜ Not Started |
+| **Dynamic Theme** | Limited theme tokens without breaking email clients | ⬜ Not Started |
+| **A/B Testing** | Subject / CTA variants via Notification Service | ⬜ Not Started |
+| **Dynamic CTA** | Journey-aware CTA selection | ⬜ Not Started |
+| **AI Personalization** | Power-tier narrative sections — human-reviewed | ⬜ Not Started |
+| **Accessibility Improvements** | Ongoing audits beyond baseline | ⬜ Not Started |
+| **AMP Email** | Future evaluation only — not required for MVP | ⬜ Not Started |
+
+---
+
+### 7. CTO Recommendations
+
+The Email Design System should evolve **exactly like** the IMMIFIN UI Design System (Design System 2.0): shared primitives first, pages/templates second.
+
+| Principle | Guidance |
+|-----------|----------|
+| **No independent templates** | No template should be designed as a one-off HTML page |
+| **Inherit shared components** | All templates inherit EmailLayout, Header, Footer, CTA, Disclaimer |
+| **One place for branding** | Logo, accent, typography, footer changes happen in shared components only |
+| **Separate business logic from presentation** | Notification Service owns eligibility, data, CTA URL/label, subject, sender; templates render |
+| **Provider independence** | Design system does not import Resend; adapter sits below |
+| **Maintainability** | Prefer small composable components over copy-paste |
+| **Cloudflare Workers** | Keep rendering efficient; batch sends; no SSR-blocking fan-out |
+| **Minimize duplicated HTML** | If the same block appears twice, extract a component |
+
+---
+
+### Implementation Tracker
+
+Overall progress for the Email Design System (update throughout Sprint 6):
+
+| Area | Status |
+|------|--------|
+| **Foundation** | 🟡 In Progress (standards documented; shared layout/components not built) |
+| **Visual Components** | ⬜ Not Started |
+| **Templates** | ⬜ Not Started |
+| **UX** | 🟡 In Progress (CTA / secondary links documented) |
+| **Engineering** | 🟡 In Progress (testing/preview documented; React Email not built) |
+| **Testing** | ⬜ Not Started |
+| **Production Ready** | ⬜ Not Started |
 
 ---
 
@@ -1354,19 +1591,19 @@ Update status boxes as each milestone completes during Sprint 6 and beyond.
 
 ### Phase 1 — Notification Architecture
 
-Platform design document (S6-DOC-001) plus Email Design blueprint (S6-DOC-003). No production send path yet.
+Platform design document (S6-DOC-001), Email Design blueprint (S6-DOC-003), and **IMMIFIN Email Design System** (S6-DOC-006). No production send path yet.
 
-**Status:** ✅ Complete (S6-DOC-001 — 2026-07-09 · S6-DOC-003 Email Design — 2026-07-10)
+**Status:** ✅ Complete (S6-DOC-001 · S6-DOC-003 · S6-DOC-004/005 identity-subject-branding-CTA · S6-DOC-006 Email Design System — 2026-07-10)
 
 ### Phase 2 — Resend Infrastructure
 
-Implement using **[Email Design](#email-design)** as the implementation guide: account/domain, env secrets, Resend provider adapter, admin-only test send, webhook stub/endpoint design. **No user blasts.**
+Implement using **[Email Design](#email-design)** as the infrastructure guide and **[IMMIFIN Email Design System](#immifin-email-design-system)** for presentation standards: account/domain, env secrets, Resend provider adapter, admin-only test send, webhook stub/endpoint design. **No user blasts.**
 
 **Status:** ⬜ Not Started
 
 ### Phase 3 — Notification Templates
 
-Template IDs, renderer, Welcome / Admin / Report shells (per Email Design §7).
+Template IDs, renderer, Welcome / Admin / Report shells — **must use Email Design System shared components** (per Email Design §7 + Design System §2).
 
 **Status:** ⬜ Not Started
 
@@ -1432,9 +1669,9 @@ End-to-end localhost + production smoke: lifecycle, report, history, prefs, admi
 
 | Phase | Suggested Task ID | Notes |
 |-------|-------------------|-------|
-| 1 | **S6-DOC-001** · **S6-DOC-003** | Platform design + Email Design blueprint |
+| 1 | **S6-DOC-001** · **S6-DOC-003** · **S6-DOC-006** | Platform design + Email Design + Email Design System |
 | 2 | S6-EMAIL-001 | Resend infrastructure — follow [Email Design](#email-design) |
-| 3–5 | S6-EMAIL-002+ | Templates + lifecycle + monthly report |
+| 3–5 | S6-EMAIL-002+ | Templates per [IMMIFIN Email Design System](#immifin-email-design-system) |
 | 6–7 | S6-ADM-002 / S6-EMAIL-00x | Admin Notification Center + history |
 | 8–10 | Follow-on | Prefs enforcement, ops alerts, validation |
 
@@ -1464,4 +1701,5 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.1 | 2026-07-10 | S6-DOC-003 | Expand Email Design — Resend integration, architecture, templates, DB, webhooks, campaigns, CTO recommendations |
 | v1.2 | 2026-07-10 | S6-DOC-004 | Email Identity Strategy — subdomain, address catalog, Phase 1 default sender, Notification Service ownership |
 | v1.3 | 2026-07-10 | S6-DOC-005 | Email Subject Standard + Email Branding Standard — shared layout and `IMMIFIN \|` subject convention |
-| v1.4 | 2026-07-10 | S6-DOC-006 | Call-To-Action (CTA) Standard — one primary button, footer secondary links |
+| v1.4 | 2026-07-10 | — | Call-To-Action (CTA) Standard — one primary button, footer secondary links |
+| v1.5 | 2026-07-10 | S6-DOC-006 | IMMIFIN Email Design System — progress tracker, component library, branding/UX/technical standards |
