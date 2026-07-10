@@ -5,7 +5,7 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 · S6-DOC-007 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
@@ -109,6 +109,144 @@ Future Providers
 5. **Worker safety** — bulk sends must be queued/batched; direct calls from request handlers risk Cloudflare CPU/timeouts.
 
 **Rule:** Feature code emits a **business event** (or calls `notificationService.dispatch(...)`). Only the Notification Engine talks to Resend.
+
+---
+
+## Provider Capability Matrix
+
+| Field | Value |
+|-------|-------|
+| **Task ID** | S6-DOC-007 |
+| **Status** | 🟡 In Progress |
+| **Last updated** | 2026-07-10 |
+
+> Long-term provider strategy for the IMMIFIN Notification Platform.  
+> Complements [Architecture Overview](#architecture-overview) and [Email Design §6 Email Provider](#6-email-provider).
+
+### Purpose
+
+IMMIFIN is intentionally designed with a **provider-independent** notification architecture.
+
+Business logic must **never** depend directly on any third-party notification provider.
+
+```
+Business Event
+      ↓
+Notification Service
+      ↓
+Provider Adapter
+      ↓
+Provider
+```
+
+Each provider should be evaluated against a consistent capability matrix.
+
+This enables:
+
+- Future provider replacement
+- Multi-provider support
+- Easier architectural decisions
+- Reduced vendor lock-in
+- Better long-term maintainability
+
+---
+
+### Current provider strategy
+
+| Channel | Preferred Provider | Status |
+|---------|-------------------|--------|
+| Email | Resend | Phase 1 |
+| SMS | Twilio | Future |
+| WhatsApp | Twilio | Future |
+| Push Notification | TBD | Future |
+| Apple Messages for Business | TBD | Future |
+| In-App Notifications | IMMIFIN Native | Future |
+
+Additional providers may be introduced **without changing business logic** — only new adapters + configuration. See also [Email Design §15 Future Channels](#15-future-channels).
+
+**Note:** Apple Messages for Business is **not** a bulk iMessage blast API; treat as a future evaluation channel only.
+
+---
+
+### Capability comparison
+
+This matrix is intended to **evolve** as providers are evaluated and onboarded.
+
+| Capability | Resend | Twilio | Future Providers |
+|------------|--------|--------|------------------|
+| Email | ✅ | ❌ | TBD |
+| SMS | ❌ | ✅ | TBD |
+| WhatsApp | ❌ | ✅ | TBD |
+| Apple Messages for Business | ❌ | Planned | TBD |
+| Push Notifications | ❌ | ❌ | TBD |
+| React Email Templates | ✅ | ❌ | TBD |
+| Delivery Tracking | ✅ | ✅ | TBD |
+| Webhooks | ✅ | ✅ | TBD |
+| Retry Support | Provider Supported | Provider Supported | TBD |
+| Batch Sending | Limited by Provider | Limited by Provider | TBD |
+| Analytics | Basic | Basic | TBD |
+
+“React Email Templates” means IMMIFIN can render HTML/text server-side and pass the result to Resend; Twilio is not an email template host for Phase 1.
+
+---
+
+### Provider evaluation criteria
+
+Future providers should be evaluated using consistent criteria:
+
+| Criterion | Why it matters |
+|-----------|----------------|
+| Cloudflare Worker compatibility | Production runtime is OpenNext on Workers |
+| Next.js compatibility | App Router / server modules |
+| API quality | Clear send + status APIs |
+| Webhook support | Delivery, bounce, complaint, opt-out |
+| Reliability | Uptime and delivery reputation |
+| Global availability | Immigrant audience is worldwide |
+| Scalability | Growth beyond early Pro/Power volume |
+| Rate limits | Safe batching from Workers |
+| Cost | Unit economics per send |
+| Security | Secrets, signing, compliance |
+| Documentation quality | Faster, safer integration |
+| SDK maturity | Prefer thin HTTP adapters if SDK is Worker-hostile |
+| Vendor lock-in | Ease of adapter swap |
+| Long-term roadmap | Channel expansion (SMS, WhatsApp, etc.) |
+
+---
+
+### Engineering principles
+
+| Rule | Detail |
+|------|--------|
+| Business code never talks to providers | No Resend/Twilio imports in feature routes or UI |
+| Common provider interface | All adapters implement the same `send` / result contract |
+| Providers are interchangeable | Swap or add providers via adapter + config |
+| Notification Service owns orchestration | Eligibility, prefs, templates, history, retries, routing |
+| Providers are delivery-only | No business rules inside SDKs |
+| SDKs isolated in adapters | Provider-specific code stays under `lib/notifications/providers/*` (or equivalent) |
+
+---
+
+### Future considerations
+
+| Enhancement | Description | Status |
+|-------------|-------------|--------|
+| Multiple email providers | e.g. Resend + SES | ⬜ Future |
+| Automatic provider failover | Secondary email provider on primary failure | ⬜ Future |
+| Channel fallback | Email → SMS if email bounces (preference-gated) | ⬜ Future |
+| Cost-based routing | Choose provider by unit cost / volume | ⬜ Future |
+| Regional provider routing | Latency or compliance by region | ⬜ Future |
+| Provider health monitoring | Error-rate alerts to admins | ⬜ Future |
+| Delivery analytics dashboard | Admin Notification Center stats | ⬜ Future |
+| A/B provider testing | Compare deliverability across providers | ⬜ Future |
+
+---
+
+### Implementation status
+
+| Field | Value |
+|-------|-------|
+| **Status** | 🟡 In Progress |
+| **Reason** | Resend has been selected as the Phase 1 email provider (account/domain/config may still be completing). Additional providers (Twilio SMS/WhatsApp, push, in-app) will be added in future notification phases. |
 
 ---
 
@@ -1703,3 +1841,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.3 | 2026-07-10 | S6-DOC-005 | Email Subject Standard + Email Branding Standard — shared layout and `IMMIFIN \|` subject convention |
 | v1.4 | 2026-07-10 | — | Call-To-Action (CTA) Standard — one primary button, footer secondary links |
 | v1.5 | 2026-07-10 | S6-DOC-006 | IMMIFIN Email Design System — progress tracker, component library, branding/UX/technical standards |
+| v1.6 | 2026-07-10 | S6-DOC-007 | Provider Capability Matrix — Resend/Twilio strategy, evaluation criteria, adapter principles |
