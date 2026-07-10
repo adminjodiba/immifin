@@ -166,6 +166,14 @@ Cloudflare Email Sending remains optional later; Workers Paid upgrade is primari
 
 ---
 
+## 8. Future Vision — Immigration Broadcast Platform *(parked)*
+
+> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md). Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
+
+Do **not** implement broadcast, avatar, or streaming work in Sprint 6. Continue Notification Platform (Resend), Admin ops, and AI theme as planned.
+
+---
+
 ## Revision History
 
 | Version | Date | Description |
@@ -174,3 +182,4 @@ Cloudflare Email Sending remains optional later; Workers Paid upgrade is primari
 | v1.1 | 2026-07-09 | Sprint 5 signed off; Resend email alerts + Workers Paid noted as Sprint 6 priorities |
 | v1.2 | 2026-07-09 | Sprint 6 kicked off — status set to In progress |
 | v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design is source of truth for email / alerts |
+| v1.4 | 2026-07-10 | S6-DOC-002 — Immigration Broadcast Platform vision parked (post–July 16 MVP) |

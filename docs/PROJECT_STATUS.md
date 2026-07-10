@@ -64,6 +64,14 @@
 | ⏳ Remaining DS 2.0 page redesigns | Homepage, full Manage Profile polish |
 | ⏳ AI & Personalization | S6-AI-xxx — primary theme |
 
+### Parked (post–July 16, 2026 MVP — not Sprint 6 scope)
+
+| Item | Notes |
+|------|-------|
+| 📦 Immigration Broadcast Platform | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) — vision only; revisit after MVP |
+
+> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in `docs/IMMIGRATION_BROADCAST_PLATFORM_VISION.md`. Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
+
 ---
 
 ## Related documentation
@@ -75,6 +83,7 @@
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 deliverables and constraints |
 | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | **Current sprint** — AI, Resend, Admin ops |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform blueprint** — architecture, roadmap, milestones |
+| [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | **Parked future vision** — Broadcast Platform (post-MVP) |
 | [CALCULATORS.md](./CALCULATORS.md) | Live + planned calculators |
 | [design-system/VISA_STAMPING_WAIT_MAP_2.0.md](./design-system/VISA_STAMPING_WAIT_MAP_2.0.md) | Visa Stamping Wait Map DS 2.0 page record |
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP + access model |

@@ -121,7 +121,12 @@ See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) and [SPRINT_5_SIGNOFF.md](./SPR
 |----------|------|
 | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 handoff — AI, Admin ops, Resend |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | **Notification Platform** architecture, categories, and implementation roadmap |
+| [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | **Future vision (parked)** — Broadcast Platform; revisit after July 16, 2026 MVP |
 | [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md) | Sprint 5 closeout; deferred notification delivery |
+
+### Future vision (parked — not Sprint 6 scope)
+
+> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md). Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
 
 ## Roadmap Revision
 
@@ -157,6 +162,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow, gates, rules |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform design — Sprint 6+ email / alerts blueprint |
+| [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | Future Broadcast Platform vision — parked until after July 16, 2026 MVP |
 | [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
 | [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone summary |
 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |

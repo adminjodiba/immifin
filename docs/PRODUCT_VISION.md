@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Product Vision |
-| **Version** | v1.17 |
-| **Sprint** | Sprint 4 Closeout |
-| **Task ID** | S4-005.16 |
-| **Last Updated** | 2026-07-04 |
+| **Version** | v1.18 |
+| **Sprint** | Sprint 6 (vision parking) |
+| **Task ID** | S6-DOC-002 |
+| **Last Updated** | 2026-07-10 |
 | **Owner** | Product Strategy / Founder |
 | **Status** | Official — long-term strategic reference |
 
@@ -216,6 +216,10 @@ Potential future modules and capabilities:
 - Appointment Scheduling
 - Secure Messaging
 - Partner Ecosystem
+
+### Future Vision — IMMIFIN Immigration Broadcast Platform
+
+Documented in [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md). **Parked until after the July 16, 2026 MVP release.** This is not part of the active Sprint 6 implementation scope.
 
 These modules extend the Life Operating System vision. Each should be evaluated against the [North Star](#11-north-star) before prioritization.
 
@@ -729,3 +733,4 @@ See [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md), [ROADMAP_v2.md](./ROADMAP_v2.m
 | v1.15 | 2026-07-04 | S4-005.14 | Close-to-info dismissed state UX |
 | v1.16 | 2026-07-04 | S4-005.15 | Premium Feature Discovery, product principles, Design System 2.0 preparation |
 | v1.17 | 2026-07-04 | S4-005.16 | Design System 2.0 Initiative — official Sprint 5 priority |
+| v1.18 | 2026-07-10 | S6-DOC-002 | Parked Immigration Broadcast Platform vision (post–July 16, 2026 MVP) |

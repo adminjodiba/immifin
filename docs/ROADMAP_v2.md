@@ -167,6 +167,14 @@ Detailed AI task breakdowns for Sprint 6 will be created at Sprint 6 kickoff. Se
 
 ---
 
+## Future Vision — IMMIFIN Immigration Broadcast Platform *(parked)*
+
+> **Future Vision — IMMIFIN Immigration Broadcast Platform:** Documented in [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md). Parked until after the July 16, 2026 MVP release. This is not part of the active Sprint 6 implementation scope.
+
+Do **not** add Broadcast Platform engineering to Sprint 6 deliverables. Revisit after MVP launch with discovery, cost modeling, and a single general-broadcast proof of concept before any personalized video work.
+
+---
+
 ## Revision History
 
 | Version | Date | Task | Description |
@@ -175,3 +183,4 @@ Detailed AI task breakdowns for Sprint 6 will be created at Sprint 6 kickoff. Se
 | v2.1 | 2026-07-05 | S5-004 | Sprint 5 in progress — Visa Bulletin History DS 2.0 approved as first page |
 | v2.2 | 2026-07-06 | S5-009 | v0.4.2 — dashboard polish, Favorites, workspace shell, Pro calculator auto-fill |
 | v2.3 | 2026-07-06 | S6-ADM-001 | Sprint 6 handoff — admin force sync + manual archive parked from Sprint 5 |
+| v2.4 | 2026-07-10 | S6-DOC-002 | Parked Immigration Broadcast Platform vision (post–July 16, 2026 MVP) |
