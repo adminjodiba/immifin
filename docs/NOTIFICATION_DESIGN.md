@@ -5,7 +5,7 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 · S6-DOC-003 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
@@ -583,6 +583,106 @@ Overall integration process (ops + engineering) before any production user send:
 
 ---
 
+### Email Identity Strategy
+
+> Long-term naming and sender-identity convention for IMMIFIN outbound email (S6-DOC-004).  
+> Complements [§2 Resend Integration](#2-resend-integration); does not change Phase 2 implementation scope until addresses are provisioned.
+
+#### Document purpose
+
+Email addresses are part of IMMIFIN’s **product identity** and **operational architecture**, not just SMTP configuration.
+
+A clear naming convention improves:
+
+- Professional branding
+- User trust
+- Deliverability
+- Future scalability
+- Operational organization
+
+The strategy distinguishes **categories** of outgoing email while maintaining a consistent IMMIFIN identity.
+
+#### Recommended sending domain
+
+| Recommendation | Value |
+|----------------|-------|
+| **Dedicated subdomain** | `notifications.immifin.com` |
+
+**Reasons:**
+
+- Separate email reputation from the primary website domain (`immifin.com`)
+- Protect the reputation of `immifin.com` (web + support)
+- Allow notification infrastructure to evolve independently (DNS, DMARC, provider, pause/resume)
+
+#### Recommended email addresses
+
+Not every address needs to be implemented immediately. These represent the **long-term communication strategy**.
+
+| Purpose | Email Address | Status |
+|---------|---------------|--------|
+| Monthly Reports | `updates@notifications.immifin.com` | Phase 1 |
+| System Notifications | `system@notifications.immifin.com` | Future |
+| Welcome / Lifecycle Emails | `welcome@notifications.immifin.com` | Future |
+| Customer Support (Reply-To) | `support@immifin.com` | Existing |
+| Security Notifications | `security@notifications.immifin.com` | Future |
+| Billing Notifications | `billing@notifications.immifin.com` | Future |
+| Marketing Campaigns | `newsletter@notifications.immifin.com` | Future |
+
+#### Sender identity (Phase 1 default)
+
+| Field | Value |
+|-------|-------|
+| **Display name** | `IMMIFIN` |
+| **From** | `updates@notifications.immifin.com` |
+| **Reply-To** | `support@immifin.com` |
+
+This default sender should initially be used for:
+
+- Welcome emails
+- Monthly Immigration Reports
+- Administrative notifications
+- Product notifications
+
+Specialized sender identities (`welcome@`, `security@`, `billing@`, `newsletter@`, etc.) may be introduced later without changing product feature code.
+
+#### Future evolution
+
+As IMMIFIN grows, different email categories may use different sender identities while preserving a consistent brand:
+
+| Category | Example From / display direction |
+|----------|----------------------------------|
+| Monthly Immigration Reports | `updates@` · “IMMIFIN Updates” |
+| Security | `security@` |
+| Billing | `billing@` |
+| Marketing | `newsletter@` |
+| System | `system@` |
+| Welcome / lifecycle | `welcome@` (optional split from Phase 1 default) |
+
+This must **not** require changes to business logic: **sender identity is selected by the Notification Service** based on notification type / template (see engineering recommendation below).
+
+#### Engineering recommendation
+
+**Business code must never hardcode sender email addresses.**
+
+Instead:
+
+1. Feature / event code calls `notificationService.send(...)` / `dispatch(...)`
+2. Notification Service maps **notification type → sender identity** (from address, display name, reply-to)
+3. Email Provider Adapter receives the resolved identity and passes it to Resend
+
+This allows sender identities to evolve (new addresses, subdomain changes, A/B from-names) without modifying Visa Bulletin, subscription, calculator, or admin feature code.
+
+Env vars such as `RESEND_FROM_EMAIL` / `RESEND_FROM_NAME` remain the **Phase 1 default**; later a small identity registry (config or DB) can override per notification type.
+
+#### Implementation status
+
+| Field | Value |
+|-------|-------|
+| **Status** | ⬜ Planned |
+| **Phase** | Email Infrastructure (Roadmap Phase 2+) |
+
+---
+
 ### 3. Environment Variables
 
 | Variable | Purpose | Client-visible? |
@@ -993,6 +1093,7 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 |----------|----------|
 | Business code never talks to Resend | Events / `notificationService.send` only |
 | Notification Service owns orchestration | Eligibility, prefs, templates, history, retries |
+| Sender identity selected by Notification Service | Never hardcode From addresses in features — see [Email Identity Strategy](#email-identity-strategy) |
 | Providers remain replaceable | Resend first; SES/SendGrid/Postmark later without rewriting features |
 | Notification history belongs in Supabase | Durable, queryable, admin-visible |
 | Google Sheets must never store notification history | Sheets = bulletin/stamping data only (ADR-002) |
@@ -1118,3 +1219,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 |---------|------|------|-------------|
 | v1.0 | 2026-07-09 | S6-DOC-001 | Initial Notification Platform design — architecture, categories, roadmap phases 1–10 |
 | v1.1 | 2026-07-10 | S6-DOC-003 | Expand Email Design — Resend integration, architecture, templates, DB, webhooks, campaigns, CTO recommendations |
+| v1.2 | 2026-07-10 | S6-DOC-004 | Email Identity Strategy — subdomain, address catalog, Phase 1 default sender, Notification Service ownership |
