@@ -394,3 +394,78 @@ export async function updateSubscriptionPlan(
     subscription,
   };
 }
+
+/**
+ * Persists the trusted Stripe Customer ID for a profile's subscription row.
+ * Used by Stripe customer mapping — does not change plan or capabilities.
+ */
+export async function persistSubscriptionStripeCustomerId(
+  profileId: string,
+  stripeCustomerId: string,
+): Promise<Subscription> {
+  const normalizedCustomerId = stripeCustomerId.trim();
+
+  if (!normalizedCustomerId) {
+    throw new Error("Stripe customer ID is required.");
+  }
+
+  const supabase = getSupabaseAdminClient();
+
+  const { data: existingSubscription, error: fetchError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error(`Failed to load subscription: ${fetchError.message}`);
+  }
+
+  if (!existingSubscription) {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .insert({
+        profile_id: profileId,
+        stripe_customer_id: normalizedCustomerId,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to persist Stripe customer mapping: ${error.message}`);
+    }
+
+    return mapSubscription(data);
+  }
+
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .update({ stripe_customer_id: normalizedCustomerId })
+    .eq("profile_id", profileId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to persist Stripe customer mapping: ${error.message}`);
+  }
+
+  return mapSubscription(data);
+}
+
+export async function getSubscriptionByProfileId(
+  profileId: string,
+): Promise<Subscription | null> {
+  const supabase = getSupabaseAdminClient();
+
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load subscription: ${error.message}`);
+  }
+
+  return data ? mapSubscription(data) : null;
+}
