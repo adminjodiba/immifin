@@ -165,6 +165,7 @@ See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOF
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow, gates, rules |
 | [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | Permanent AI Engineering Framework — task templates for Cursor/agents |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities — **source of truth for feature gating** |
+| [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | **Approved** — Stripe upgrade, downgrade, cancellation, and Customer Portal billing rules |
 | [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform living design blueprint |
 | [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | **Notification Platform v1.0** — **Production Validated** (S6-RELEASE-001) |
 | [IMMIGRATION_BROADCAST_PLATFORM_VISION.md](./IMMIGRATION_BROADCAST_PLATFORM_VISION.md) | Future Broadcast Platform vision — parked until after July 16, 2026 MVP |
