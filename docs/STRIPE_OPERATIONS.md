@@ -4,7 +4,7 @@
 |-------|-------|
 | **Document** | Stripe Operations Guide |
 | **Task** | S7-DOC-007 (as-built ops update) |
-| **Version** | v2.0 |
+| **Version** | v2.1 |
 | **Sprint** | Sprint 7 — Commercial Platform |
 | **Status** | **Operational** — application complete; Sandbox/Live validation pending |
 | **Created** | 2026-07-11 |
@@ -159,6 +159,79 @@ Operational steps only — not implementation code. Design detail: [STRIPE_SUBSC
 2. Confirm effective tier and capability map — capabilities are the access source of truth.
 3. Re-fetch account/subscription state in the app after sync.
 4. Do **not** grant premium by bypassing capabilities or editing plan without Stripe truth.
+
+---
+
+## Sandbox Validation Mode
+
+Development Subscription Mode is for **developer productivity** (local Free / Pro / Power switching without payment). It must be **temporarily disabled** when validating the complete Stripe Sandbox customer journey, so Pricing uses real Stripe Test Checkout instead of the Dev Mode activation path.
+
+This procedure is documented from Sprint 7 release execution (S7-REL-003 / S7-REL-003A) and matches [.env.example](../.env.example).
+
+### Purpose
+
+Execute a complete Stripe **Test Mode** validation using the real Stripe Checkout flow while remaining isolated from production.
+
+### Procedure
+
+1. **Update `.env.local`** (local only):
+
+   ```text
+   IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE=false
+   ```
+
+2. **Restart the development server:**
+
+   ```bash
+   npm run dig
+   ```
+
+3. **Verify the Pricing page** (`/pricing`):
+
+   | Expected | Not expected |
+   |----------|--------------|
+   | Monthly / Annual selectors visible | Development Subscription Mode banner |
+   | Stripe Checkout CTAs available for paid plans | “No payment is collected” Dev Mode copy |
+
+4. **Execute the complete Sandbox validation:**
+
+   ```text
+   Free User
+     ↓
+   Upgrade to Pro (Pricing)
+     ↓
+   Stripe Test Checkout
+     ↓
+   Signed Webhook
+     ↓
+   Supabase Synchronization
+     ↓
+   Capability Synchronization
+     ↓
+   Billing Center Validation
+     ↓
+   Dashboard Validation
+   ```
+
+5. **After Sandbox validation completes**, restore developer productivity:
+
+   ```text
+   IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE=true
+   ```
+
+   Restart the development server again (`npm run dig`).
+
+### Important notes
+
+| Rule | Detail |
+|------|--------|
+| **Local only** | Change `.env.local` on the engineer workstation only |
+| **Never touch Production for Sandbox** | Do not modify Cloudflare Production variables for Sandbox testing |
+| **Production hard-off** | Application code forces Development Subscription Mode **off** when `NODE_ENV === "production"` |
+| **No production deploy required** | Sandbox validation runs against local dig (+ tunnel/CLI webhook as configured) |
+| **Sandbox only** | This procedure is only for Stripe Test Mode end-to-end validation — not Live cutover |
+
+Cross-check Live cutover gates in [PRODUCTION_DEPLOYMENT_RUNBOOK.md](./PRODUCTION_DEPLOYMENT_RUNBOOK.md) and [V0_5_0_PRODUCTION_SIGNOFF.md](./V0_5_0_PRODUCTION_SIGNOFF.md). Live enablement still requires Sandbox E2E proof first.
 
 ---
 
@@ -332,6 +405,7 @@ Recommended scenarios: successful payment, declined card, 3D Secure, insufficien
 |------|--------|-------------|--------|-------|
 | 2026-07-11 | S7-SETUP-001 initiated — Test Mode setup procedure documented; catalog IDs pending PO Dashboard action | Test | Engineering | Catalog IDs TBD |
 | 2026-07-20 | S7-DOC-007 — Ops guide rewritten for as-built Sprint 7 (Billing Center primary; Portal deferred; Live pending) | Docs | Engineering | Application ops aligned with handoff |
+| 2026-07-20 | S7-DOC-013 — Documented Sandbox Validation Mode (disable Dev Subscription Mode for Test Checkout E2E) | Docs | Engineering | Local `.env.local` only; no Production changes |
 
 ---
 
@@ -385,3 +459,4 @@ Do **not** treat Portal as required for Sprint 7 plan operations. If Portal is l
 | v1.0 | 2026-07-11 | S7-DOC-002 | Initial Stripe Operations Runbook |
 | v1.1 | 2026-07-11 | S7-SETUP-001 | Test Mode setup procedure; pending PO Dashboard catalog |
 | v2.0 | 2026-07-20 | S7-DOC-007 | As-built production ops guide — workflows, monitoring, recovery, validation |
+| v2.1 | 2026-07-20 | S7-DOC-013 | Sandbox Validation Mode — temporary Dev Mode off for Stripe Test Checkout E2E |
