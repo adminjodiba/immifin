@@ -55,3 +55,7 @@ next-env.d.ts
 
 # supabase CLI local state
 supabase/.temp/
+
+# local backups / temporary investigation scripts (not release artifacts)
+*.bak
+scripts/compare-nav-*.mjs
