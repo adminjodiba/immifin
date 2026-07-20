@@ -145,6 +145,11 @@ export class ResendEmailProvider implements EmailProvider {
         html: request.html,
         text: request.text,
         tags: request.tags ? [...request.tags] : undefined,
+        attachments: request.attachments?.map((attachment) => ({
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType,
+        })),
       });
 
       if (error) {

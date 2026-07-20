@@ -1,405 +1,380 @@
-# IMMIFIN Stripe Operations Runbook
+# IMMIFIN Stripe Operations Guide
 
 | Field | Value |
 |-------|-------|
-| **Document** | Stripe Operations Runbook |
-| **Task** | S7-DOC-002 · S7-SETUP-001 (in progress) |
-| **Version** | v1.1 |
+| **Document** | Stripe Operations Guide |
+| **Task** | S7-DOC-007 (as-built ops update) |
+| **Version** | v2.0 |
 | **Sprint** | Sprint 7 — Commercial Platform |
-| **Status** | **Operational** — Test Mode catalog setup **pending Product Owner Dashboard action** |
+| **Status** | **Operational** — application complete; Sandbox/Live validation pending |
 | **Created** | 2026-07-11 |
-| **Last setup task** | S7-SETUP-001 — 2026-07-11 |
+| **Last Updated** | 2026-07-20 |
 | **Owner** | Engineering / Operations |
 
-> **Authority:** This document is the **operational handbook** for configuring, maintaining, validating, and operating Stripe for IMMIFIN. It does **not** define product architecture, pricing policy, or webhook lifecycle rules — those belong in [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md).
+> **Authority:** This document is the **operational handbook** for configuring, validating, monitoring, and maintaining Stripe for IMMIFIN. It does **not** define product architecture or commercial policy — those belong in [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md), [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md), and [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md).
 
-**Related:** [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PROJECT_GUIDE.md](./PROJECT_GUIDE.md)
-
----
-
-## 1. Purpose
-
-This runbook captures **operational information** for the IMMIFIN Stripe platform — account ownership, product and price identifiers, environment secrets placement, webhook and portal configuration, test procedures, production cutover checklists, and security rules.
-
-Use this document when:
-
-- Setting up or verifying Stripe Test and Live accounts
-- Recording Product and Price IDs after Dashboard configuration
-- Configuring webhook endpoints and signing secrets per environment
-- Onboarding engineers to Stripe operations
-- Performing production deployment or incident response involving billing
-
-**Do not use this document for:**
-
-- Architecture decisions (see [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md))
-- Application implementation details
-- Storing secret key values (secrets live in environment configuration only)
-
-Update this runbook whenever Stripe Dashboard configuration changes. Record each change in [§10 Operational Change Log](#10-operational-change-log).
+**Related:** [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ---
 
-## 2. Stripe Accounts
+## 1. Platform Status
 
-| Field | Test Account | Live Account |
-|-------|--------------|--------------|
-| **Stripe Dashboard URL** | [https://dashboard.stripe.com/test/dashboard](https://dashboard.stripe.com/test/dashboard) | [https://dashboard.stripe.com/dashboard](https://dashboard.stripe.com/dashboard) |
-| **Account ID** | TBD | TBD |
-| **Account Owner** | TBD | TBD |
-| **Business Name** | TBD | TBD |
-| **Business Information** | TBD | TBD |
-| **Support Contact (IMMIFIN)** | TBD | TBD |
-| **Status** | **Pending PO setup** — see [§13](#13-s7-setup-001-test-mode-setup-procedure) | Not configured |
+| Field | Status |
+|-------|--------|
+| **Current production product version** | **v0.4.2** + Notification Platform **v1.0** on `https://immifin.com` |
+| **Target commercial release** | **v0.5.0** (not signed off) |
+| **Development environment** | `localhost:3000` + tunnel `https://dev.immifin.com` |
+| **Stripe Test / Sandbox status** | Application supports Test Mode; **signed E2E webhook + payment validation pending** |
+| **Stripe Live status** | **Not activated** for commercial production |
+| **Production hosting status** | Active (Cloudflare Workers / OpenNext) — Live billing **not** cut over |
+| **Commercial readiness** | **Application-ready** for Sandbox validation; **not** Live-production-ready |
 
-### Notes
+**Do not overstate readiness.** Checkout, Billing Center, webhooks, and sync exist in application code. Live payments and production commercial cutover remain pending.
 
-- **S7-SETUP-001 (2026-07-11):** No `STRIPE_SECRET_KEY` in local environment; Stripe CLI not installed. Catalog creation requires Product Owner action in Stripe Dashboard (procedure below).
-- Create and validate the **Test account** first (task **S7-SETUP-001**).
-- Live account activation requires Product Owner approval and completion of the [§9 Production Checklist](#9-production-checklist).
-- Record account IDs here after setup; never store API keys in this document.
+Primary plan management UX: **IMMIFIN Billing Center** (`/account/billing`). Stripe Customer Portal sessions are **deferred**.
 
 ---
 
-## 3. Stripe Products
+## 2. Stripe Environments
 
-Approved paid products for Beta launch. Free tier has no Stripe Product.
+| Environment | Purpose | Stripe mode | Typical app URL | Status |
+|-------------|---------|-------------|-----------------|--------|
+| **Development (local)** | Day-to-day engineering | Test | `http://localhost:3000` | Active for coding; secrets per workstation |
+| **Development (tunnel)** | HTTPS webhooks / shared QA | Test | `https://dev.immifin.com` | Active when tunnel + `npm run dev` run |
+| **Sandbox / Test Mode** | Signed payment + webhook proof | Test | Local or tunnel | **Pending operational validation** |
+| **Production** | Public customers | Live | `https://immifin.com` | Hosting active; **Live Stripe pending** |
 
-| Product Name | IMMIFIN Plan | Stripe Product ID (Test) | Stripe Product ID (Live) | Status |
-|--------------|--------------|----------------------------|--------------------------|--------|
-| **IMMIFIN Pro** | `pro` | TBD | TBD | **Pending** — S7-SETUP-001 |
-| **IMMIFIN Power** | `power` | TBD | TBD | **Pending** — S7-SETUP-001 |
+### Isolation rules
 
-### Notes
+| Concern | Rule |
+|---------|------|
+| **Environment isolation** | Never mix Test and Live keys, Price IDs, or webhook secrets in the same runtime |
+| **Price ID isolation** | Test Price IDs only with Test secret key; Live Price IDs only with Live secret key |
+| **Customer isolation** | One Stripe Customer per IMMIFIN profile **per environment**; do not reuse Test customers in Live |
+| **Webhook isolation** | Separate webhook endpoints and signing secrets for Test vs Live |
+| **Dev Subscription Mode** | Engineering/QA override only; must be **hard-off** before Live commercial cutover |
 
-- Product names should be consistent between Test and Live modes.
-- Each product may have multiple Prices (monthly and annual).
-- Product access tier mapping is defined in [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md §2](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md#2-commercial-pricing).
+### Live migration strategy (high level)
 
----
-
-## 4. Stripe Prices
-
-Approved launch pricing (USD). Price IDs are recorded after Dashboard creation.
-
-| Price Label | Amount | Billing Interval | IMMIFIN Plan | Price ID (Test) | Price ID (Live) | Status |
-|-------------|--------|------------------|--------------|-----------------|-----------------|--------|
-| **Pro Monthly** | $9.99 | Monthly | `pro` | TBD | TBD | **Pending** — S7-SETUP-001 |
-| **Pro Annual** | $99.00 | Annual | `pro` | TBD | TBD | **Pending** — S7-SETUP-001 |
-| **Power Monthly** | $19.99 | Monthly | `power` | TBD | TBD | **Pending** — S7-SETUP-001 |
-| **Power Annual** | $199.00 | Annual | `power` | TBD | TBD | **Pending** — S7-SETUP-001 |
-
-### Notes
-
-- Beta launch excludes coupons, promotions, and free trials (see design doc).
-- Billing interval is a Stripe/billing concern; product access uses the tier (`pro` / `power`), not the interval.
-- Application code validates against an approved server-side price catalog — never trust browser-supplied Price IDs.
+1. Complete Sandbox/Test Mode signed E2E (Checkout → webhook → Supabase → capabilities).
+2. Create Live catalog (Products / Prices) and record IDs in §A.
+3. Configure Live webhook endpoint + secrets in Cloudflare Production.
+4. Apply production Supabase webhook-foundation migration if not already applied.
+5. Disable Development Subscription Mode in Production.
+6. Controlled Live smoke test + commercial signoff (v0.5.0).
 
 ---
 
-## 5. Environment Configuration
+## 3. Environment Variables
 
-Secrets are stored in environment configuration only. **Never commit actual key values to Git.**
+Document **names and responsibilities only**. Never commit or paste secret values here.
 
-### Secret inventory
+### Required for Stripe commercial paths
 
-| Variable | Purpose | Exposure |
-|----------|---------|----------|
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Stripe.js (if used) | Public — Test or Live per environment |
-| `STRIPE_SECRET_KEY` | Server-side Stripe API calls | **Server only** — never `NEXT_PUBLIC_` |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification | **Server only** |
-| `STRIPE_PRICE_PRO_MONTHLY_*` | Approved Pro monthly Price ID | **Server only** |
-| `STRIPE_PRICE_PRO_ANNUAL_*` | Approved Pro annual Price ID | **Server only** |
-| `STRIPE_PRICE_POWER_MONTHLY_*` | Approved Power monthly Price ID | **Server only** |
-| `STRIPE_PRICE_POWER_ANNUAL_*` | Approved Power annual Price ID | **Server only** |
+| Variable | Purpose | Environment | Required | Sensitive |
+|----------|---------|-------------|----------|-----------|
+| `STRIPE_SECRET_KEY` | Server Stripe API | Local / Tunnel / Production | Yes (for Checkout/webhooks) | **Yes** — server only |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client publishable key | Same as secret mode | Yes (if client Stripe.js used) | No (public) |
+| `STRIPE_WEBHOOK_SECRET` | Signature verification | Matching webhook endpoint | Yes (for webhooks) | **Yes** — server only |
+| `STRIPE_PRICE_PRO_MONTHLY` | Approved Pro monthly Price ID | Matching Test/Live | Yes | Semi-secret — server only |
+| `STRIPE_PRICE_PRO_ANNUAL` | Approved Pro annual Price ID | Matching Test/Live | Yes | Semi-secret — server only |
+| `STRIPE_PRICE_POWER_MONTHLY` | Approved Power monthly Price ID | Matching Test/Live | Yes | Semi-secret — server only |
+| `STRIPE_PRICE_POWER_ANNUAL` | Approved Power annual Price ID | Matching Test/Live | Yes | Semi-secret — server only |
 
-Suffix convention for Price ID variables: `_TEST` for Test mode, `_LIVE` for Live mode (exact names finalized during implementation).
+Names match [.env.example](../.env.example). Use Test values in local/tunnel; Live values only in Production cutover.
 
-### Environment matrix
+### Optional / related
 
-| Environment | Publishable Key | Secret Key | Webhook Secret | Price IDs | Status |
-|-------------|-----------------|------------|----------------|-----------|--------|
-| **Localhost** (`.env.local`) | TBD (Test) | TBD (Test) | TBD (Test — Stripe CLI or tunnel) | TBD (Test) | Not configured |
-| **Dev tunnel** (`dev.immifin.com`) | TBD (Test) | TBD (Test) | TBD (Test) | TBD (Test) | Not configured |
-| **Cloudflare Preview** | TBD (Test) | TBD (Test) | TBD (Test) | TBD (Test) | Not configured |
-| **Cloudflare Production** | TBD (Live) | TBD (Live) | TBD (Live) | TBD (Live) | Not configured |
+| Variable | Purpose | Notes |
+|----------|---------|-------|
+| `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` | Dev/beta tier override without Live Stripe | Must be unset/false for Live commercial production |
 
 ### Where secrets are stored
 
-| Location | Used for | Notes |
-|----------|----------|-------|
-| `.env.local` | Local development | Gitignored — see [.env.example](../.env.example) |
-| `.dev.vars` | Local Cloudflare Workers preview | Gitignored |
-| **Cloudflare Dashboard** → Workers → Settings → Variables | Preview and Production | Set per environment; never commit |
+| Location | Used for |
+|----------|----------|
+| `.env.local` | Local `npm run dev` (gitignored) |
+| `.dev.vars` | Local Workers preview (gitignored) |
+| Cloudflare Dashboard → Worker variables / secrets | Production (and Preview when used) |
 
-See [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) for local dev and tunnel workflow. See [DEPLOYMENT.md](./DEPLOYMENT.md) for Cloudflare deployment.
-
----
-
-## 6. Webhook Configuration
-
-IMMIFIN activates subscriptions **only** through signature-verified Stripe webhooks. See [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md §6–§10](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md).
-
-### Webhook endpoints (planned)
-
-| Environment | Endpoint URL | Signing Secret | Status |
-|-------------|----------------|----------------|--------|
-| **Local (Stripe CLI)** | Forward to `http://localhost:3000/api/webhooks/stripe` or tunnel URL | TBD (CLI-generated) | Not configured |
-| **Dev tunnel** | `https://dev.immifin.com/api/webhooks/stripe` | TBD (Test) | Not configured |
-| **Cloudflare Preview** | TBD | TBD (Test) | Not configured |
-| **Cloudflare Production** | TBD (e.g. `https://immifin.com/api/webhooks/stripe`) | TBD (Live) | Not configured |
-
-### Events to enable
-
-Minimum recommended events (see architecture review S7-ARCH-001):
-
-| Event | Purpose |
-|-------|---------|
-| `checkout.session.completed` | Link customer and subscription after Checkout |
-| `customer.subscription.created` | New paid subscription |
-| `customer.subscription.updated` | Plan changes, renewals, past_due, cancel-at-period-end |
-| `customer.subscription.deleted` | Subscription ended |
-| `invoice.paid` | Renewal confirmation (supplementary) |
-| `invoice.payment_failed` | Payment failure / past_due signal |
-
-### Local webhook testing
-
-1. Ensure Cloudflare dev tunnel is healthy (see [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md)).
-2. Use Stripe CLI to forward events to the local or tunnel webhook URL.
-3. Verify signature verification and idempotent processing in application logs.
-
-**Do not store webhook signing secrets in this document.**
+See [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) and [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ---
 
-## 7. Customer Portal Configuration
+## 4. Operational Workflows
 
-IMMIFIN uses **Stripe Customer Portal** for self-serve billing management. Architecture and rationale: [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md §8](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md#8-billing-portal).
+Operational steps only — not implementation code. Design detail: [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md).
 
-| Field | Test Mode | Live Mode |
-|-------|-----------|-----------|
-| **Status** | **Pending** — enable per [§13](#13-s7-setup-001-test-mode-setup-procedure) Step 11 | Not configured |
-| **Date configured** | TBD | TBD |
-| **Portal Settings** | Customer self-serve billing (Beta) | TBD |
-| **Allowed Operations** | Update payment method · View invoices · Download invoices · Cancel subscription | TBD |
-| **Disabled Operations** | Plan switching (Pro↔Power) · Interval switching (monthly↔annual) · Upgrade/downgrade | TBD |
-| **Return URL** | TBD — recommend `https://dev.immifin.com/account` after tunnel is live | TBD (e.g. `https://immifin.com/account`) |
+### New subscription
 
-### Notes
+1. User selects Pro/Power + interval on `/pricing`.
+2. App creates Checkout Session (server resolves Price ID + Stripe Customer).
+3. User completes payment on Stripe Checkout.
+4. User returns to Pricing (success UX only).
+5. Operator expectation: webhook arrives → subscription syncs in Supabase → capabilities unlock.
+6. If access does not appear, check webhook delivery and sync (see §5–§6) — do **not** manually set premium in the DB as a shortcut.
 
-- **S7-SETUP-001 intended Test Mode Portal policy:** Enable payment method updates, invoice view/download, and subscription cancellation. **Disable** plan and interval switching until Product Owner approves (Open Decision in design doc).
-- Portal return URLs are **UX only** — subscription changes are applied via webhooks, not portal redirects.
-- Record final Portal configuration and return URL here after Product Owner completes Dashboard setup.
+### Upgrade
+
+1. Authenticated user opens Billing Center (`/account/billing`).
+2. Selects higher tier / allowed upgrade path; confirms intent.
+3. App applies Stripe subscription change per policy (immediate upgrade / proration).
+4. Webhook updates billing state → capabilities refresh.
+
+### Downgrade
+
+1. User selects lower paid plan in Billing Center and confirms.
+2. Change is scheduled per policy (typically next period).
+3. User retains current paid access until effective date.
+4. Webhook at effective time syncs new plan → capabilities adjust.
+
+### Renewal
+
+1. Stripe renews the subscription automatically.
+2. IMMIFIN receives subscription lifecycle webhooks.
+3. Billing state stays current; capabilities continue if still paid.
+
+### Cancellation
+
+1. User cancels to Free in Billing Center (cancel at period end).
+2. Access remains until period end.
+3. On period end / deletion webhook, plan returns to Free → Free capabilities.
+
+### Webhook retry
+
+1. Stripe retries failed deliveries automatically.
+2. IMMIFIN event ledger is idempotent — duplicate deliveries must not double-apply.
+3. Operator: in Stripe Dashboard → Developers → Webhooks, inspect failed events; replay after fixing root cause (secret mismatch, downtime, DB error).
+
+### Customer recovery
+
+1. Confirm IMMIFIN profile identity (Clerk → Supabase profile).
+2. Locate Stripe Customer in the correct mode (Test vs Live).
+3. Prefer app mapping recovery (`getOrCreate` path / remapping) over creating a second Customer.
+4. Never “fix” access by attaching the wrong environment’s customer.
+
+### Capability recovery
+
+1. Verify webhook-synced billing state (`plan`, Stripe subscription status, period fields).
+2. Confirm effective tier and capability map — capabilities are the access source of truth.
+3. Re-fetch account/subscription state in the app after sync.
+4. Do **not** grant premium by bypassing capabilities or editing plan without Stripe truth.
 
 ---
 
-## 8. Test Cards
+## 5. Monitoring
 
-Use **official Stripe test cards** for all Test Mode payment validation. Do not copy card numbers into this repository.
+Operators should watch these signals during Sandbox validation and after Live cutover.
 
-| Resource | URL |
-|----------|-----|
-| **Stripe Testing documentation** | [https://docs.stripe.com/testing](https://docs.stripe.com/testing) |
-| **Test card numbers reference** | [https://docs.stripe.com/testing#cards](https://docs.stripe.com/testing#cards) |
+| Signal | Where to look | What “healthy” looks like |
+|--------|---------------|---------------------------|
+| **Webhook failures** | Stripe Dashboard → Webhooks → endpoint | High success rate; failures investigated quickly |
+| **Checkout failures** | App logs + Stripe Checkout / Payments | Sessions create; users can pay; no Price catalog misconfig |
+| **Subscription sync** | Supabase subscription billing fields vs Stripe subscription | Plan, customer ID, subscription ID, periods align |
+| **Capability sync** | User can access expected Pro/Power features after sync | No paid user stuck on Free UI after confirmed webhook |
+| **Stripe Dashboard** | Customers, Subscriptions, Events | Expected objects for each successful payment |
+| **Cloudflare logs** | Workers logs for Production | Checkout / webhook routes not erroring at scale |
+| **Application logs** | Dev terminal or Worker logs | Signature rejects logged; successful syncs without secret leakage |
+| **Database consistency** | `stripe_webhook_events` ledger + subscriptions | Events claimed/completed; no stuck failures without follow-up |
 
-### Recommended test scenarios
+### Supported application webhook events
 
-| Scenario | Reference |
-|----------|-----------|
-| Successful payment | Stripe docs — standard test Visa |
-| Declined payment | Stripe docs — card declined test number |
-| Authentication required (3D Secure) | Stripe docs — 3D Secure test cards |
-| Insufficient funds | Stripe docs — insufficient funds test number |
-
-Record any IMMIFIN-specific test procedures (Checkout flow, Portal cancel, past_due simulation) in the [§10 Operational Change Log](#10-operational-change-log) after validation.
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
 
 ---
 
-## 9. Production Checklist
+## 6. Failure Recovery
 
-Complete before enabling Live Mode billing for customers.
+| Failure | Recovery approach |
+|---------|-------------------|
+| **Webhook signature failure** | Confirm `STRIPE_WEBHOOK_SECRET` matches the endpoint’s signing secret; fix env; replay event from Stripe |
+| **Webhook endpoint down** | Restore app/Worker; Stripe will retry; verify ledger completes after recovery |
+| **Duplicate events** | Expected — ledger idempotency should no-op duplicates; do not delete history casually |
+| **Failed capability sync** | Fix billing-state sync first; then re-check effective tier / capabilities — never hardcode feature flags in UI |
+| **Customer mismatch** | Verify environment (Test vs Live), profile mapping, and single-customer rule; rematerialize mapping carefully |
+| **Partial subscription sync** | Compare Stripe subscription object to Supabase row; replay relevant subscription event; avoid manual field edits unless PO-approved incident procedure |
+| **Stripe outage** | Pause cutover actions; communicate; resume when Stripe status recovers; do not invent offline entitlement grants |
+| **Checkout create errors** | Check auth, Price env vars, secret key mode mismatch, and customer mapping errors in logs |
 
-### Stripe Dashboard (Live)
+### Retry philosophy
 
-- [ ] Live Stripe account verified and business information complete
-- [ ] **Products** — IMMIFIN Pro and IMMIFIN Power created in Live mode
-- [ ] **Prices** — Pro Monthly ($9.99), Pro Annual ($99), Power Monthly ($19.99), Power Annual ($199) created in Live mode
-- [ ] Product and Price IDs recorded in [§3](#3-stripe-products) and [§4](#4-stripe-prices) of this runbook
-- [ ] **Webhook** — Live endpoint registered; signing secret stored in Cloudflare Production variables
-- [ ] **Webhook events** — Minimum event set enabled (see [§6](#6-webhook-configuration))
-- [ ] **Customer Portal** — Live Portal configured; allowed operations approved by Product Owner
-- [ ] **Portal return URL** — Production account URL configured
+- Prefer **Stripe replay** + **idempotent handlers** over manual DB entitlement edits.
+- Browser success URLs are never recovery tools for access.
+- After recovery, verify: Stripe object → Supabase billing state → capabilities → UI access.
 
-### Application and infrastructure
+---
 
-- [ ] Live `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` set in Cloudflare Production (not committed)
-- [ ] Live Price ID environment variables set (server-only)
-- [ ] Live `STRIPE_WEBHOOK_SECRET` set in Cloudflare Production
-- [ ] `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` **unset or false** in Production
-- [ ] Development Subscription PATCH route blocked or inert for non-Stripe paths in Production
-- [ ] Database migration applied (Stripe customer/subscription fields, event ledger)
-- [ ] Application deployed to Cloudflare Production with Stripe integration enabled
+## 7. Production Validation Checklist
 
-### Validation
+### Implemented (application)
 
-- [ ] **Test Payment** — End-to-end Test Mode Checkout completed successfully (separate from Live)
-- [ ] **Live smoke test** — Single controlled Live Mode transaction with immediate refund (if approved)
-- [ ] **Production Verification** — Webhook received and subscription synced in Supabase
-- [ ] **Capability verification** — Paid plan unlocks expected Pro/Power features
-- [ ] **Portal verification** — Manage billing link opens Live Portal for test customer
-- [ ] **Notification check** — No unintended billing emails; product notifications wired separately if approved
+- [x] Checkout Session API + Pricing Checkout wiring
+- [x] Customer mapping (one customer per profile, env-aware)
+- [x] Webhook route + durable event ledger + billing-state sync
+- [x] Subscription change APIs (upgrade / downgrade / interval / cancel-to-free)
+- [x] Billing Center plan management UI
+- [x] Capability enforcement helpers + premium UI gates
+
+### Pending validation (operations / Live)
+
+- [ ] Stripe Sandbox/Test Mode: webhook endpoint registered + signed E2E payment proof
+- [ ] Live Products / Prices created and recorded (§A)
+- [ ] Live webhook endpoint + Live secrets in Cloudflare Production
+- [ ] Production Supabase webhook-foundation migration applied (target env)
+- [ ] `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` hard-off in Production
+- [ ] Controlled Live payment smoke test (PO-approved)
+- [ ] Production subscription change validation (Billing Center → Stripe → sync)
+- [ ] Commercial / v0.5.0 signoff
+
+### Deferred
+
+- [ ] Customer Portal sessions (payment method / invoices / receipts)
+- [ ] Portal as plan-management surface (**not** planned as primary UX)
 
 ### Sign-off
 
 | Role | Name | Date | Notes |
 |------|------|------|-------|
-| Product Owner | TBD | TBD | |
+| Product Owner | TBD | TBD | Required before Live commercial enablement |
 | Engineering | TBD | TBD | |
 
 ---
 
-## 10. Operational Change Log
+## 8. Operational Best Practices
 
-Record Stripe Dashboard, webhook, portal, and environment changes here.
+| Practice | Guidance |
+|----------|----------|
+| **Never edit Stripe customers casually** | Prefer app mapping + Stripe Dashboard only for approved support cases |
+| **Never grant premium without capabilities** | Fix sync → tier → capability path; do not bypass gates |
+| **Always trust verified webhook events** | Browser redirects and client claims are UX only |
+| **Never modify immutable Price IDs in place** | Create new Prices for commercial changes; update env catalog deliberately |
+| **Always validate in Test before Live** | Signed Sandbox E2E before Live secrets |
+| **Keep environments isolated** | Test keys/prices/webhooks never in Production runtime |
+| **Billing Center for plan changes** | Do not reintroduce Portal as the plan orchestrator |
+| **Least privilege in logs** | Event IDs / profile IDs OK; never card data or secrets |
+| **Record operational changes** | Update §B change log when Dashboard, webhooks, or env catalogs change |
+| **Rotate on compromise** | Roll keys/secrets; update Cloudflare/local stores; re-register webhooks; log the change |
+
+---
+
+## 9. Known Limitations
+
+| Limitation | Status |
+|------------|--------|
+| Customer Portal (payment method / invoices) | **Deferred** — Billing Center placeholders only |
+| Live Stripe commercial cutover | **Pending validation** |
+| Sandbox signed E2E operational proof | **Pending** |
+| Commercial / v0.5.0 production signoff | **Pending** |
+| Development Subscription Mode in non-Live envs | Still used for engineering/QA until Live gate |
+| Past-due grace / tax / failed-payment messaging | Operational product decisions still open (see design §15) |
+| Future operational automation | Monitoring alerts, automated reconciliation jobs not yet built |
+
+---
+
+## Appendix A — Catalog & Account Records
+
+Record IDs here after Dashboard configuration. **Never store API keys or webhook secrets in this document.**
+
+### Stripe accounts
+
+| Field | Test Account | Live Account |
+|-------|--------------|--------------|
+| **Stripe Dashboard URL** | [Test Dashboard](https://dashboard.stripe.com/test/dashboard) | [Live Dashboard](https://dashboard.stripe.com/dashboard) |
+| **Account ID** | TBD | TBD |
+| **Account Owner** | TBD | TBD |
+| **Status** | Pending / in progress (PO Dashboard) | Not configured for commercial Live |
+
+### Products
+
+| Product Name | IMMIFIN Plan | Product ID (Test) | Product ID (Live) | Status |
+|--------------|--------------|-------------------|-------------------|--------|
+| **IMMIFIN Pro** | `pro` | TBD | TBD | Record after setup |
+| **IMMIFIN Power** | `power` | TBD | TBD | Record after setup |
+
+### Prices (USD)
+
+| Price Label | Amount | Interval | Plan | Price ID (Test) | Price ID (Live) |
+|-------------|--------|----------|------|-----------------|-----------------|
+| **Pro Monthly** | $9.99 | Monthly | `pro` | TBD | TBD |
+| **Pro Annual** | $99.99 | Annual | `pro` | TBD | TBD |
+| **Power Monthly** | $19.99 | Monthly | `power` | TBD | TBD |
+| **Power Annual** | $199.99 | Annual | `power` | TBD | TBD |
+
+Beta excludes coupons, promotions, and free trials.
+
+### Webhook endpoints
+
+| Environment | Endpoint URL | Status |
+|-------------|--------------|--------|
+| **Local (Stripe CLI)** | Forward to `http://localhost:3000/api/webhooks/stripe` | Operator-configured |
+| **Dev tunnel** | `https://dev.immifin.com/api/webhooks/stripe` | Pending signed validation |
+| **Production** | `https://immifin.com/api/webhooks/stripe` | Pending Live cutover |
+
+### Test cards
+
+Use official Stripe test cards only — do not copy card numbers into this repository.
+
+| Resource | URL |
+|----------|-----|
+| Stripe Testing | [https://docs.stripe.com/testing](https://docs.stripe.com/testing) |
+| Test cards | [https://docs.stripe.com/testing#cards](https://docs.stripe.com/testing#cards) |
+
+Recommended scenarios: successful payment, declined card, 3D Secure, insufficient funds.
+
+---
+
+## Appendix B — Operational Change Log
 
 | Date | Change | Environment | Author | Notes |
 |------|--------|-------------|--------|-------|
-| 2026-07-11 | S7-SETUP-001 initiated — Test Mode setup procedure documented; catalog IDs pending PO Dashboard action | Test | Engineering | No Stripe API key in repo; Stripe CLI not installed |
+| 2026-07-11 | S7-SETUP-001 initiated — Test Mode setup procedure documented; catalog IDs pending PO Dashboard action | Test | Engineering | Catalog IDs TBD |
+| 2026-07-20 | S7-DOC-007 — Ops guide rewritten for as-built Sprint 7 (Billing Center primary; Portal deferred; Live pending) | Docs | Engineering | Application ops aligned with handoff |
 
 ---
 
-## 11. Security Rules
+## Appendix C — Test Mode Catalog Setup Procedure
 
-| Rule | Detail |
-|------|--------|
-| **Never commit Stripe secrets** | API keys, webhook signing secrets, and Price IDs for Live mode must not appear in Git, PRs, or this runbook |
-| **Never store webhook secrets in Git** | Use `.env.local`, `.dev.vars`, or Cloudflare Dashboard variables only |
-| **Never expose secret keys to browser code** | Only `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` may be client-accessible; `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are server-only |
-| **Rotate secrets if compromised** | Roll keys in Stripe Dashboard; update all environment stores; re-register webhook endpoints if needed; document in [§10](#10-operational-change-log) |
-| **Validate webhooks always** | Reject unsigned or invalid `Stripe-Signature` payloads |
-| **No browser-authoritative billing** | Checkout success URLs and Portal returns do not activate subscriptions — webhooks only |
-| **Least privilege in logs** | Log event IDs and profile IDs; do not log card numbers, full customer PII, or secret values |
-
-See also [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md §10](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md#10-security-principles).
-
----
-
-## 12. References
-
-| Document | Purpose |
-|----------|---------|
-| [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) | **Architecture source of truth** — pricing, checkout flow, webhooks, portal, capability integration |
-| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Tier definitions, capability map, commercial positioning |
-| [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure, Cloudflare Workers, Clerk, Supabase |
-| [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, Cloudflare tunnel, webhook testing workflow |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Cloudflare deployment and environment variables |
-| [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) | Master documentation index |
-| [Stripe Documentation](https://docs.stripe.com/) | Official Stripe API, Dashboard, and testing reference |
-
----
-
-## 13. S7-SETUP-001 Test Mode Setup Procedure
-
-**Task:** S7-SETUP-001 — Stripe Test Account Configuration and Product Catalog Setup  
-**Scope:** Stripe Dashboard only — Test Mode. No application code, env vars, or Live Mode.
-
-Complete this procedure in the [Stripe Test Dashboard](https://dashboard.stripe.com/test/dashboard). After each step, copy Product and Price IDs into [§3](#3-stripe-products) and [§4](#4-stripe-prices) above.
+**Scope:** Stripe Dashboard Test Mode catalog. Use when Products/Prices are not yet recorded in Appendix A.
 
 ### Prerequisites
 
-1. Stripe account exists ([sign up](https://dashboard.stripe.com/register) if needed).
-2. **Test Mode** toggle is ON (top-right of Dashboard — orange **Test mode** badge).
-3. Business profile reviewed: **Settings** → **Business** → confirm business name and support details.
+1. Stripe account exists.
+2. **Test Mode** toggle ON.
+3. Business profile reviewed under Settings → Business.
 
-### Step 1 — Verify account readiness
+### Steps
 
-| Check | Dashboard path |
-|-------|----------------|
-| Test Mode enabled | Toggle in top-right corner |
-| Account accessible | [https://dashboard.stripe.com/test/dashboard](https://dashboard.stripe.com/test/dashboard) |
-| Account ID | **Settings** → **Account** → copy Account ID → record in [§2](#2-stripe-accounts) |
+1. Record Account ID in Appendix A.
+2. Create products **IMMIFIN Pro** and **IMMIFIN Power**.
+3. Create four recurring USD prices: Pro Monthly $9.99, Pro Annual $99.99, Power Monthly $19.99, Power Annual $199.99.
+4. Copy Product/Price IDs into Appendix A (Test columns).
+5. Configure Test webhook endpoint to tunnel or CLI forward URL; store signing secret in `.env.local` only.
+6. Put Test Price IDs into local env vars (names in §3).
+7. Run signed Checkout → webhook → Supabase sync validation.
+8. Log completion in Appendix B.
 
-### Step 2 — Create product: IMMIFIN Pro
+### Customer Portal note
 
-1. **Product catalog** → **Products** → **Add product**
-2. Name: **IMMIFIN Pro**
-3. Description (optional): *Automation for your immigration journey.*
-4. Save product → copy **Product ID** (`prod_…`) → [§3](#3-stripe-products)
+Do **not** treat Portal as required for Sprint 7 plan operations. If Portal is later enabled for payment method / invoices only, record return URL and allowed operations here and keep plan changes in Billing Center.
 
-### Step 3 — Create prices for IMMIFIN Pro
+---
 
-On the IMMIFIN Pro product page, add two prices:
+## Appendix D — References
 
-| Price | Amount | Billing | Action |
-|-------|--------|---------|--------|
-| Pro Monthly | $9.99 USD | Recurring · Monthly | Add price → copy `price_…` |
-| Pro Annual | $99.00 USD | Recurring · Yearly | Add price → copy `price_…` |
-
-### Step 4 — Create product: IMMIFIN Power
-
-1. **Products** → **Add product**
-2. Name: **IMMIFIN Power**
-3. Description (optional): *Full intelligence for life in America.*
-4. Save → copy **Product ID** → [§3](#3-stripe-products)
-
-### Step 5 — Create prices for IMMIFIN Power
-
-| Price | Amount | Billing | Action |
-|-------|--------|---------|--------|
-| Power Monthly | $19.99 USD | Recurring · Monthly | Add price → copy `price_…` |
-| Power Annual | $199.00 USD | Recurring · Yearly | Add price → copy `price_…` |
-
-### Step 6 — Verify catalog
-
-Confirm exactly:
-
-- **2 products** — IMMIFIN Pro, IMMIFIN Power
-- **4 prices** — Pro Monthly, Pro Annual, Power Monthly, Power Annual
-- All prices in **USD**, **recurring**, correct amounts per [§4](#4-stripe-prices)
-
-### Step 7 — Enable Customer Portal (Test Mode)
-
-1. **Settings** → **Billing** → **Customer portal**
-2. **Activate** the portal for Test Mode (if not already active)
-3. Configure **Functionality**:
-
-| Setting | S7-SETUP-001 policy |
-|---------|---------------------|
-| Update payment methods | **Enable** |
-| View invoice history | **Enable** |
-| Download invoices | **Enable** |
-| Cancel subscriptions | **Enable** |
-| Switch plans (upgrade/downgrade) | **Disable** |
-| Switch products | **Disable** |
-| Update subscription quantities | **Disable** (single-seat SaaS) |
-
-4. **Return link** — set default return URL to `https://dev.immifin.com/account` (or `http://localhost:3000/account` until tunnel is used)
-5. Save configuration → update [§7](#7-customer-portal-configuration) status to **Configured**
-
-### Step 8 — Record IDs in this runbook
-
-Update these sections (IDs only — **never** API keys or webhook secrets):
-
-- [§2](#2-stripe-accounts) — Account ID, status → **Configured (Test)**
-- [§3](#3-stripe-products) — Both Product IDs (Test column)
-- [§4](#4-stripe-prices) — All four Price IDs (Test column)
-- [§7](#7-customer-portal-configuration) — Status, date configured, return URL
-- [§10](#10-operational-change-log) — Row noting catalog + portal configured
-
-### Step 9 — Post-setup verification
-
-- [ ] Test Mode badge visible in Dashboard
-- [ ] 2 products listed under **Products**
-- [ ] 4 recurring prices with correct USD amounts
-- [ ] Customer Portal active with cancellation enabled; plan switching disabled
-- [ ] All IDs recorded in this document
-- [ ] No API keys committed to Git
-
-### Configuration notes (S7-SETUP-001)
-
-- Approved pricing per [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md): Pro $9.99/mo · $99/yr; Power $19.99/mo · $199/yr.
-- Beta excludes coupons, promotions, and free trials.
-- Webhook endpoints and API keys are **out of scope** for S7-SETUP-001 — handled in **S7-SETUP-002**.
-- Optional: install [Stripe CLI](https://docs.stripe.com/stripe-cli) for later webhook forwarding during implementation.
+| Document | Purpose |
+|----------|---------|
+| [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) | As-built platform design |
+| [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) | IMMIFIN vs Stripe ownership |
+| [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | Upgrade / downgrade / cancel policy |
+| [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | System architecture + production status |
+| [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) | Sprint 7 as-built record |
+| [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Operational snapshot |
+| [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local / tunnel workflow |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Cloudflare deployment |
+| [Stripe Documentation](https://docs.stripe.com/) | Official Stripe reference |
 
 ---
 
@@ -408,4 +383,5 @@ Update these sections (IDs only — **never** API keys or webhook secrets):
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-11 | S7-DOC-002 | Initial Stripe Operations Runbook |
-| v1.1 | 2026-07-11 | S7-SETUP-001 | Test Mode setup procedure; pending PO Dashboard catalog configuration |
+| v1.1 | 2026-07-11 | S7-SETUP-001 | Test Mode setup procedure; pending PO Dashboard catalog |
+| v2.0 | 2026-07-20 | S7-DOC-007 | As-built production ops guide — workflows, monitoring, recovery, validation |

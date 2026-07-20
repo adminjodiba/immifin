@@ -25,6 +25,21 @@ export const SUBSCRIPTION_CAPABILITIES = [
 
 export type SubscriptionCapability = (typeof SUBSCRIPTION_CAPABILITIES)[number];
 
+/** Shared capability identifiers for server and client enforcement. */
+export const CAPABILITY = {
+  personalDashboard: "accessPersonalDashboard",
+  saveImmigrationProfile: "accessSaveImmigrationProfile",
+  priorityDateTracking: "accessPriorityDateTracking",
+  ai: "accessAI",
+  multipleProfiles: "accessMultipleProfiles",
+  emailAlerts: "accessEmailAlerts",
+  notifications: "accessNotifications",
+  visaHistory: "accessVisaHistory",
+  movementTracker: "accessMovementTracker",
+  autoCalculatorPopulation: "accessAutoCalculatorPopulation",
+  favorites: "accessFavorites",
+} as const satisfies Record<string, SubscriptionCapability>;
+
 export type TierCapabilities = Record<SubscriptionCapability, boolean>;
 
 /**

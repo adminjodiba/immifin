@@ -249,9 +249,20 @@ S5-007 documents both the **design approval** and the **production promotion** e
 
 ---
 
+## Related UX update (2026-07-14)
+
+A later sandbox iteration was approved and promoted. See:
+
+**[VISA_BULLETIN_MOVEMENT_TRACKER_UX_UPDATE_2026-07.md](./VISA_BULLETIN_MOVEMENT_TRACKER_UX_UPDATE_2026-07.md)**
+
+Key deltas: two-column layout, Record Type filter (Updates only / Show All), dynamic Jun-26/Jul-26 table headers, What Changed panels with 10-row scroll cap, FA/Filing tabs beside What Changed label.
+
+---
+
 ## Revision History
 
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-05 | S5-007 | Document Visa Bulletin Movement Tracker DS 2.0 approval and deliverables |
 | v1.1 | 2026-07-05 | S5-007 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin-movement` |
+| v1.2 | 2026-07-14 | S7 UX | Link sandbox UX update promotion (Record Type, layout, dynamic headers) |

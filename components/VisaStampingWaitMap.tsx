@@ -5,10 +5,10 @@
  */
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { jsonFetcher, visaStampingSwrOptions } from "@/lib/swr";
 import {
@@ -76,9 +76,6 @@ type VisaStampingApiResponse = {
 
 type DetailsTab = "overview" | "history" | "source";
 type HistoryRangeKey = "6m" | "12m" | "all";
-
-const calculatorCloseLinkClassName =
-  "flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30";
 
 const filterSelectClassName =
   "rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200";
@@ -1129,11 +1126,7 @@ export function VisaStampingWaitMap() {
               </svg>
               Reset Filters
             </button>
-            <Link href="/calculators" className={calculatorCloseLinkClassName} aria-label="Close and return to calculators">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Link>
+            <DashboardCloseAction />
           </div>
         </header>
 

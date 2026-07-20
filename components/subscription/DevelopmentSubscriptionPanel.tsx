@@ -5,7 +5,6 @@ import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscript
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { formatSubscriptionPlanLabel } from "@/lib/subscription/plan";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import { SUBSCRIPTION_TIERS, type SubscriptionTier } from "@/lib/subscription/tiers";
 
 export function DevelopmentSubscriptionPanel() {
@@ -15,7 +14,6 @@ export function DevelopmentSubscriptionPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const adminTestingOnly = canUse && !isDevSubscriptionModeEnabled();
 
   if (isLoading || !canUse || !subscriptionContext?.isSignedIn) {
     return null;
@@ -52,7 +50,6 @@ export function DevelopmentSubscriptionPanel() {
       <h2 className="heading-3 mt-2 text-slate-900">Subscription</h2>
       <p className="mt-2 text-sm text-slate-600">
         Beta testing controls for Free, Pro, and Power. No payment is collected.
-        {adminTestingOnly ? " Available on your admin account for product testing." : null}
       </p>
 
       <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
@@ -64,9 +61,7 @@ export function DevelopmentSubscriptionPanel() {
         </div>
         <div>
           <dt className="font-medium text-slate-500">Development Mode</dt>
-          <dd className="mt-1 text-base font-semibold text-brand-700">
-            {adminTestingOnly ? "Admin testing" : "Active"}
-          </dd>
+          <dd className="mt-1 text-base font-semibold text-brand-700">Active</dd>
         </div>
       </dl>
 

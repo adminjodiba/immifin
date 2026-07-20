@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import {
   calculateH1bLotteryOdds,
   parseWageLevelParam,
@@ -15,9 +16,6 @@ import {
 const PAGE_HREF = "/immigration/h1b-lottery-odds-calculator";
 const PAGE_TITLE = "H-1B Lottery Odds Calculator";
 const WAGE_ESTIMATOR_HREF = "/immigration/h1b-wage-level-estimator";
-
-const calculatorCloseLinkClassName =
-  "flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30";
 
 const inputClassName =
   "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
@@ -68,15 +66,7 @@ export function H1bLotteryOddsCalculator() {
             </p>
           </div>
         </div>
-        <Link
-          href="/calculators"
-          className={calculatorCloseLinkClassName}
-          aria-label="Close and return to calculators"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </Link>
+        <DashboardCloseAction />
       </header>
 
       <div className="mt-3 space-y-4">
@@ -138,7 +128,7 @@ export function H1bLotteryOddsCalculator() {
 
               <button
                 type="submit"
-                className="mt-4 flex min-h-[40px] w-full items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800"
+                className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm"
               >
                 Calculate Lottery Odds
               </button>
@@ -161,7 +151,7 @@ export function H1bLotteryOddsCalculator() {
                   </p>
                   <Link
                     href={WAGE_ESTIMATOR_HREF}
-                    className="mt-4 inline-flex min-h-[40px] items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800"
+                    className="btn-primary mt-4 min-h-[40px] rounded-lg px-4 py-2 shadow-sm"
                   >
                     Estimate my wage level
                   </Link>

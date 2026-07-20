@@ -1,5 +1,7 @@
 import { canAccessPersonalDashboard } from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
+import { BILLING_CENTER_PATH } from "@/lib/billing/billing-center";
+import type { PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
 
 /**
  * My Immifin personal workspace menu.
@@ -25,10 +27,13 @@ export type MyImmifinMenuItem = {
   capability: MyImmifinCapability;
   /** Product phase when this item ships. Only phase 1 is visible today. */
   phase: 1 | 2 | 3 | 4;
+  /** When set, Free users open a feature preview instead of navigating. */
+  premiumPreview?: PremiumNavPreviewKey;
 };
 
 export const MY_IMMIFIN_NAV_LABEL = "My Immifin";
 
+/** @deprecated Prefer PremiumNavPreviewDialog — retained for any legacy copy references. */
 export const DASHBOARD_PRO_LOCK_MESSAGE = "Dashboard is available in Pro.";
 
 export const PRICING_PATH = "/pricing";
@@ -40,6 +45,7 @@ const dashboardItem: MyImmifinMenuItem = {
   description: "Your personalized immigration journey and status.",
   capability: "dashboard",
   phase: 1,
+  premiumPreview: "dashboard",
 };
 
 const manageProfileItem: MyImmifinMenuItem = {
@@ -62,9 +68,18 @@ const upgradeToProItem: MyImmifinMenuItem = {
 
 const subscriptionItem: MyImmifinMenuItem = {
   id: "subscription",
-  href: PRICING_PATH,
-  label: "Subscription",
-  description: "View plans and upgrade options.",
+  href: BILLING_CENTER_PATH,
+  label: "Subscription & Billing",
+  description: "Manage your plan, renewals, and billing.",
+  capability: "subscription",
+  phase: 1,
+};
+
+const viewPlanItem: MyImmifinMenuItem = {
+  id: "view-plan",
+  href: `${PRICING_PATH}#plans`,
+  label: "View Plan",
+  description: "Compare Immifin plans and choose the right tier.",
   capability: "subscription",
   phase: 1,
 };
@@ -86,8 +101,8 @@ export type MyImmifinMenuOptions = {
 /**
  * Tier-aware My Immifin menu items.
  *
- * Free: Dashboard (locked), Manage Profile, Upgrade to Pro
- * Pro/Power: Dashboard, Manage Profile, Subscription
+ * Free: Dashboard (preview), Manage Profile, Upgrade to Pro
+ * Pro/Power: Dashboard, Manage Profile, Subscription & Billing, View Plan
  * Admin role: also Admin (appended last)
  */
 export function getVisibleMyImmifinMenuItems(
@@ -97,7 +112,7 @@ export function getVisibleMyImmifinMenuItems(
   const items: MyImmifinMenuItem[] = [dashboardItem, manageProfileItem];
 
   if (canAccessPersonalDashboard(tier)) {
-    items.push(subscriptionItem);
+    items.push(subscriptionItem, viewPlanItem);
   } else {
     items.push(upgradeToProItem);
   }
@@ -110,16 +125,25 @@ export function getVisibleMyImmifinMenuItems(
 }
 
 /**
- * Whether a menu item should appear greyed/locked for the current tier.
- * Uses capability helpers — not raw plan-name checks.
+ * Returns the premium preview key when Free users should open a popup instead of navigating.
+ */
+export function getMyImmifinPremiumPreview(
+  item: MyImmifinMenuItem,
+  tier: SubscriptionTier,
+): PremiumNavPreviewKey | null {
+  if (item.premiumPreview === "dashboard" && !canAccessPersonalDashboard(tier)) {
+    return "dashboard";
+  }
+
+  return null;
+}
+
+/**
+ * @deprecated Use getMyImmifinPremiumPreview — Dashboard is no longer greyed/disabled.
  */
 export function isMyImmifinItemLocked(
   item: MyImmifinMenuItem,
   tier: SubscriptionTier,
 ): boolean {
-  if (item.capability === "dashboard") {
-    return !canAccessPersonalDashboard(tier);
-  }
-
-  return false;
+  return getMyImmifinPremiumPreview(item, tier) !== null;
 }

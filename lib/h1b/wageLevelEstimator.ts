@@ -315,7 +315,7 @@ function resolveWageThresholds(
       : state.toUpperCase();
     return {
       thresholds: scaleThresholds(groupWages, multiplier),
-      locationLabel: `${cityLabel} (group demo wages)`,
+      locationLabel: cityLabel,
       usedStateFallback: !DEMO_WAGE_TABLES[cityKey],
     };
   }

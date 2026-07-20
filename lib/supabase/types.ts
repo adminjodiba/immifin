@@ -11,6 +11,21 @@ export type SubscriptionStatus =
   | "past_due"
   | "canceled";
 
+export type StripeWebhookEventStatus =
+  | "received"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export type StripeWebhookClaimOutcome =
+  | "claimed"
+  | "retry_claimed"
+  | "already_completed"
+  | "in_progress";
+
+/** Stripe recurring interval values stored on subscriptions.billing_interval */
+export type SubscriptionBillingInterval = "month" | "year";
+
 export type Profile = {
   id: string;
   clerk_user_id: string;
@@ -51,10 +66,36 @@ export type Subscription = {
   status: SubscriptionStatus;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  stripe_price_id: string | null;
+  billing_interval: SubscriptionBillingInterval | null;
+  stripe_status: string | null;
+  cancel_at_period_end: boolean;
+  canceled_at: string | null;
   current_period_start: string | null;
   current_period_end: string | null;
+  last_synchronized_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type StripeWebhookEvent = {
+  id: string;
+  stripe_event_id: string;
+  event_type: string;
+  status: StripeWebhookEventStatus;
+  error_message: string | null;
+  attempt_count: number;
+  received_at: string;
+  processing_started_at: string | null;
+  processed_at: string | null;
+  last_attempt_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StripeWebhookClaimResult = {
+  outcome: StripeWebhookClaimOutcome;
+  event: StripeWebhookEvent;
 };
 
 export type ProfileWithRelations = {

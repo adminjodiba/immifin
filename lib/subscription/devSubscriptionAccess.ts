@@ -1,17 +1,11 @@
-import { isAdminRole } from "@/lib/auth/roles";
-import type { AppUserRole } from "@/lib/supabase/types";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
+import { isDevelopmentSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 
 /**
- * Whether the user may activate Free / Pro / Power without Stripe.
+ * Whether development-only subscription plan mutations are permitted.
  *
- * Enabled globally via `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE`, or for admin
- * profiles so founders can test tier-gated product behavior.
+ * Controlled by `IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE` in development.
+ * Always false in production regardless of environment configuration.
  */
-export function canUseDevSubscriptionTools(role?: AppUserRole | null): boolean {
-  if (isDevSubscriptionModeEnabled()) {
-    return true;
-  }
-
-  return role != null && isAdminRole(role);
+export function canUseDevSubscriptionTools(): boolean {
+  return isDevelopmentSubscriptionModeEnabled();
 }

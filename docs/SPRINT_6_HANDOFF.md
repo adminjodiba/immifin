@@ -8,7 +8,7 @@
 | **Handoff / status date** | 2026-07-10 |
 | **Notification Platform** | ✅ **Completed — Production Validated** |
 | **Sprint 6 overall** | **Notification track closed**; remaining original items deferred |
-| **Next Sprint** | **Stripe Subscription Platform** |
+| **Next Sprint** | **Sprint 7 — Stripe Subscription Platform** (kicked off 2026-07-11) |
 | **Previous release** | v0.4.2 (Sprint 5 — Design System 2.0) |
 | **Production commit** | `6f1df7e` — Notification Platform v1.0 |
 
@@ -155,11 +155,12 @@ These were planned for Sprint 6 but are **not** part of the Notification Platfor
 
 ---
 
-## 5. Next Sprint — Stripe Subscription Platform
+## 5. Next Sprint — Stripe Subscription Platform → Sprint 7
 
 | Field | Value |
 |-------|-------|
-| **Next Sprint** | **Stripe Subscription Platform** |
+| **Next Sprint** | **Sprint 7 — Stripe Subscription Platform** |
+| **Handoff** | [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) |
 | **Purpose** | Replace Development Subscription Mode with real billing |
 | **Expected scope (high level)** | Checkout, webhooks, customer portal, plan enforcement |
 | **Does not include** | Rebuilding Notification Platform; Broadcast Platform |
@@ -220,4 +221,5 @@ For Stripe kickoff: also read subscription foundation docs / ADR-007 Development
 | v1.3 | 2026-07-09 | S6-DOC-001 — Notification Design source of truth |
 | v1.4 | 2026-07-10 | S6-DOC-002 — Broadcast Platform vision parked |
 | v1.5 | 2026-07-10 | S6-RELEASE-001 — Notification Platform Production Validated |
-| **v2.0** | **2026-07-10** | **Rewritten handoff — planned vs completed; Stripe = next sprint** |
+| v2.0 | 2026-07-10 | Rewritten handoff — planned vs completed; Stripe = next sprint |
+| v2.1 | 2026-07-11 | Sprint 7 kicked off — link [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) |

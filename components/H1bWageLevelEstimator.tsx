@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import {
   estimateH1bWageLevel,
   formatCurrency,
@@ -10,6 +11,7 @@ import {
   type EducationLevel,
   type EstimatorResult,
   type ExperienceRange,
+  type SalaryPosition,
 } from "@/lib/h1b/wageLevelEstimator";
 import {
   formatOccupationTitle,
@@ -26,14 +28,25 @@ import {
 const PAGE_HREF = "/immigration/h1b-wage-level-estimator";
 const PAGE_TITLE = "H-1B Wage Level Estimator";
 const LOTTERY_CALCULATOR_HREF = "/immigration/h1b-lottery-odds-calculator";
-
-const calculatorCloseLinkClassName =
-  "flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30";
-
 const inputClassName =
   "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
 
 const labelClassName = "block text-sm font-medium text-slate-900";
+
+function salaryPositionLabel(position: SalaryPosition): string {
+  return position === "Near" ? "In range" : position;
+}
+
+function salaryPositionClassName(position: SalaryPosition): string {
+  switch (position) {
+    case "Above":
+      return "font-semibold text-emerald-700";
+    case "Below":
+      return "font-semibold text-red-700";
+    case "Near":
+      return "font-semibold text-orange-600";
+  }
+}
 
 function confidenceBadgeClassName(confidence: MatchConfidence): string {
   switch (confidence) {
@@ -241,15 +254,7 @@ export function H1bWageLevelEstimator() {
             </p>
           </div>
         </div>
-        <Link
-          href="/calculators"
-          className={calculatorCloseLinkClassName}
-          aria-label="Close and return to calculators"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </Link>
+        <DashboardCloseAction />
       </header>
 
       <div className="mt-3 space-y-4">
@@ -430,7 +435,7 @@ export function H1bWageLevelEstimator() {
 
               <button
                 type="submit"
-                className="mt-4 flex min-h-[40px] w-full items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
               >
                 Estimate Wage Level
               </button>
@@ -462,13 +467,15 @@ export function H1bWageLevelEstimator() {
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
                       Estimated wage level
                     </p>
-                    <p className="mt-1 text-2xl font-bold text-slate-900">
-                      Likely Level {result.estimatedLevel}
-                    </p>
-                    <p className="mt-2 text-sm text-slate-600">
-                      Confidence:{" "}
-                      <span className="font-semibold text-slate-900">{result.confidence}</span>
-                    </p>
+                    <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <p className="text-2xl font-bold text-slate-900">
+                        Likely Level {result.estimatedLevel}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        Confidence:{" "}
+                        <span className="font-semibold text-slate-900">{result.confidence}</span>
+                      </p>
+                    </div>
                   </div>
 
                   <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
@@ -512,7 +519,9 @@ export function H1bWageLevelEstimator() {
                           <tr key={row.level} className="border-b border-slate-100 last:border-0">
                             <td className="px-3 py-2 font-medium text-slate-900">Level {row.level}</td>
                             <td className="px-3 py-2 text-slate-700">{formatCurrency(row.annualWage)}</td>
-                            <td className="px-3 py-2 text-slate-700">{row.position}</td>
+                            <td className={`px-3 py-2 ${salaryPositionClassName(row.position)}`}>
+                              {salaryPositionLabel(row.position)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

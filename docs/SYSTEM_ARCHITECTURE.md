@@ -5,39 +5,42 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
-| **Purpose** | This document describes the complete infrastructure architecture of the Immifin platform. |
-| **Last Updated** | 2026-07-05 |
+| **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
+| **Last Updated** | 2026-07-20 |
 | **Owner** | Technical Architecture (CTO) |
+| **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending |
 
-This document is the **single source of truth** for Immifin's infrastructure, environments, deployment flow, networking, external services, and operational architecture.
+This document is the **single source of truth** for Immifin's system architecture: infrastructure, environments, deployment, external services, and the major application platforms that sit on top of them.
 
 It documents:
 
-- Development environment
-- Preview environment
-- Production environment
-- Deployment flow
-- External services
-- Environment variables
-- Networking
+- Development, tunnel, and production environments
+- Deployment flow and networking
+- External services and environment variables
 - Disaster recovery
+- Platform layers (auth, profiles, immigration, notifications, Stripe billing, capabilities, presentation)
+- Capability and subscription access architecture
+- Billing ownership boundaries (IMMIFIN vs Stripe)
+
+Detailed commercial policy and billing ADR live in [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) and [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md). Sprint as-built status: [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
 
 ---
 
 ## 2. Source of Truth
 
-This document is the **authoritative infrastructure reference** for the Immifin platform.
+This document is the **authoritative system architecture reference** for the Immifin platform.
 
 When any of the following change, this file must be updated **before or as part of** the change:
 
 - Domains or DNS (`immifin.com`, `dev.immifin.com`)
 - Cloudflare Workers / OpenNext, Pages, or Tunnel configuration
 - Deployment flow or branch strategy
-- External service accounts (Clerk, Supabase, GitHub)
+- External service accounts (Clerk, Supabase, GitHub, Stripe, Resend)
 - Environment variable names or where they are stored
 - Disaster recovery procedures
+- Major platform boundaries (billing ownership, capability enforcement, notification pipeline)
 
-If infrastructure debugging exceeds 15 minutes, pause and update this document with findings (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md)). Other docs (e.g. `TECHNICAL_DECISIONS.md`) record application architecture; **this document owns infrastructure**.
+If infrastructure debugging exceeds 15 minutes, pause and update this document with findings (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md)). Coding conventions live in [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md); **this document owns system architecture**.
 
 ---
 
@@ -62,6 +65,8 @@ If infrastructure debugging exceeds 15 minutes, pause and update this document w
 
 ## 4. High-Level Architecture
 
+### 4.1 Infrastructure topology
+
 ```mermaid
 flowchart TD
 
@@ -85,6 +90,10 @@ Clerk["Clerk Authentication"]
 
 Supabase["Supabase Database"]
 
+Stripe["Stripe Billing"]
+
+Resend["Resend Email"]
+
 Developer --> Cursor
 
 Developer --> Local
@@ -101,12 +110,45 @@ CFWorkers --> Prod
 
 Dev --> Clerk
 Dev --> Supabase
+Dev --> Stripe
+Dev --> Resend
 
 Prod --> Clerk
 Prod --> Supabase
+Prod --> Stripe
+Prod --> Resend
 ```
 
-### Component overview
+### 4.2 Platform layers
+
+```text
+Presentation Layer (Next.js pages / UI)
+        ↓
+Capability Enforcement Layer
+        ↓
+┌───────────────────────────────────────────────┐
+│ Authentication (Clerk)                        │
+│ User Profile Layer (Supabase profiles)        │
+│ Immigration Services (bulletin / calculators) │
+│ Notification Platform (Resend)                │
+│ Stripe Billing Platform (Checkout / webhooks) │
+└───────────────────────────────────────────────┘
+        ↓
+External Integrations (Clerk · Supabase · Stripe · Resend · Google Sheets · Cloudflare)
+```
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Authentication Layer** | Clerk identity, sessions, webhook sync into application profiles |
+| **User Profile Layer** | Account profile, immigration profile, contact preferences, subscription billing fields |
+| **Immigration Services** | Visa Bulletin surfaces, calculators, journey-aware dashboards |
+| **Notification Platform** | Journey-aware email campaigns via Resend (production validated) |
+| **Stripe Billing Platform** | Checkout, customer mapping, webhooks, billing-state sync, Billing Center plan changes |
+| **Capability Enforcement Layer** | Tier → capability map; server helpers + premium UI gates |
+| **Presentation Layer** | Pricing, Billing Center, My Immifin, marketing/public pages |
+| **External Integrations** | Clerk, Supabase, Stripe, Resend, Google Sheets, Cloudflare |
+
+### 4.3 Infrastructure component overview
 
 | Component | Purpose |
 |-----------|---------|
@@ -119,7 +161,9 @@ Prod --> Supabase
 | **dev.immifin.com** | Public HTTPS URL routed through the tunnel to localhost |
 | **immifin.com** | Production domain served by Cloudflare Workers (OpenNext) |
 | **Clerk Authentication** | Identity provider — signup, login, sessions, webhooks |
-| **Supabase Database** | Application Postgres — profiles, subscriptions, audit data |
+| **Supabase Database** | Application Postgres — profiles, subscriptions, webhook ledger, audit data |
+| **Stripe** | Payments, customers, subscriptions, invoices (money plane) |
+| **Resend** | Transactional / campaign email delivery |
 
 ---
 
@@ -216,8 +260,11 @@ Production secrets are configured in the **Cloudflare Dashboard** or via **Wrang
 | **GitHub** | Source control and deploy trigger | Hosts `adminjodiba/immifin`; push to `main` deploys production | Active |
 | **Cloudflare Workers (OpenNext)** | Production hosting | Builds and serves `immifin.com` via Worker | Active |
 | **Cloudflare Tunnel** | Dev HTTPS access | Routes `dev.immifin.com` → localhost | Active |
-| **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase | Active |
-| **Supabase** | Application database | Profiles, immigration data, subscriptions, audit log | Active |
+| **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase | Active / Production Validated |
+| **Supabase** | Application database | Profiles, immigration data, subscriptions, Stripe webhook ledger | Active / Production Validated |
+| **Stripe** | Payments and subscription objects | Checkout, customers, subscriptions, invoices, webhooks | **Implemented in app** — Live validation pending |
+| **Resend** | Email delivery | Notification Platform provider | Active / Production Validated |
+| **Google Sheets** | Visa Bulletin source | Admin sync / archive source for bulletin datasets | Active |
 
 ---
 
@@ -246,12 +293,26 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
 | `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
 
+### Stripe (required for commercial Checkout / webhooks)
+
+| Variable | Purpose | Secret |
+|----------|---------|--------|
+| `STRIPE_SECRET_KEY` | Stripe server SDK | Yes |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe client publishable key | No |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification | Yes |
+| `STRIPE_PRICE_PRO_MONTHLY` / `_ANNUAL` | Approved Pro Price IDs | Semi-secret |
+| `STRIPE_PRICE_POWER_MONTHLY` / `_ANNUAL` | Approved Power Price IDs | Semi-secret |
+
+Operational setup: [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md). Live secrets and webhook registration are **pending validation** for production cutover.
+
 ### Optional
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Clerk sign-in path | `/login` |
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Clerk sign-up path | `/signup` |
+| `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` | Dev/beta tier override without Live Stripe | Off in Live cutover |
+| `RESEND_API_KEY` / `RESEND_FROM_*` | Notification Platform email | — |
 | `VISA_BULLETIN_PUBLISH_BASE` | CSV publish URL override | In `lib/visaBulletinConfig.ts` |
 | `VISA_BULLETIN_GID_*` | Sheet tab GID overrides | In `lib/visaBulletinConfig.ts` |
 | `VISA_BULLETIN_HISTORY_SHEET` | Archive tab name | `VisaBulletinHistory` |
@@ -362,8 +423,14 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 ### Supabase recovery
 
 - Use Supabase dashboard backups and point-in-time recovery for production data.
-- Re-apply migrations from `supabase/migrations/` when rebuilding a project.
+- Re-apply migrations from `supabase/migrations/` when rebuilding a project (includes Stripe webhook foundation migration when rebuilding commercial env).
 - Verify connection strings and service role key after recovery.
+
+### Stripe recovery
+
+- Payment objects remain in Stripe; IMMIFIN recovers by re-registering the webhook endpoint and re-syncing subscription billing state into Supabase.
+- Rotate `STRIPE_WEBHOOK_SECRET` and Price catalog env vars if compromised.
+- Do **not** grant entitlements from browser redirects — wait for durable webhook sync.
 
 ### Environment variable restoration
 
@@ -375,58 +442,56 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 
 ## 13. Known Issues
 
-- **Visa Bulletin Dashboard** shows Final Action Dates only. Movement Tracker supports both Final Action Dates and Dates for Filing; dashboard enhancement is Priority 1 for the next sprint.
 - **Preview deployments are planned** but not yet the primary workflow. Development testing currently relies on the Cloudflare Tunnel.
+- **Live Stripe / production commercial cutover** is not validated — see §18.
+- **Customer Portal** (payment method / invoices) is not implemented; Billing Center owns plan changes.
 - **Do not convert large Server Components to Client Components** for small UI changes — use small client children (see Movement Tracker pattern). Mixing server fetch code and client UI in one module caused dev instability.
 
 ---
 
-## 14. Application Access Layer (Subscription Capabilities)
+## 14. Capability Architecture
 
-Product feature access is **capability-based**, not plan-name checks in UI.
+Product feature access is **capability-based**, not plan-name or raw Stripe-status checks in UI.
 
-| Layer | Location | Role |
-|-------|----------|------|
-| **Tiers** | `lib/subscription/tiers.ts` | `free` / `pro` / `power` (+ future Business/Enterprise) |
-| **Capabilities** | `lib/subscription/capabilities.ts` | Tier→capability map; `hasCapability`, `canAccess*` |
-| **Dev override** | `lib/subscription/devTier.ts` | Local development only — disabled when Dev Subscription Mode on |
-| **Dev subscription mode** | `lib/subscription/devSubscriptionMode.ts` | Beta tier activation without Stripe |
-| **Subscription service** | `lib/subscription/service.ts` | Read tier from Supabase profile/subscription |
+### Model
 
-Billing will later assign a tier. Application code consumes capabilities. See [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
+| Concern | Role |
+|---------|------|
+| **Tiers** | `free` / `pro` / `power` (future Business/Enterprise reserved) |
+| **Capability map** | Tier → capabilities; shared helpers for access questions |
+| **Effective tier** | Resolved from subscription billing state (+ Development Subscription Mode overlays where enabled) |
+| **Server enforcement** | Capability helpers on selected APIs (`assertCapability` / `requireCapability`) |
+| **UI gating** | Premium Feature Discovery, dashboard gates, premium nav preview |
 
-### Premium feature gating components
+Billing-state sync updates the subscription/plan fields that feed the effective tier. **Webhooks synchronize billing state; they do not become ad-hoc feature checks** scattered through components.
 
-| Component | Path | Role |
-|-----------|------|------|
-| `PremiumFeaturePreview` | `components/common/PremiumFeaturePreview.tsx` | Full-page premium preview — live page + blur overlay + upgrade CTA; optional close-to-info |
-| `ProFeatureGate` | `components/subscription/ProFeatureGate.tsx` | Capability check; renders children or `ProFeatureLockedState` |
-| `ProFeatureLockedState` | `components/subscription/ProFeatureLockedState.tsx` | Shared locked messaging and upgrade CTAs |
-| `DashboardAccessGate` | `components/dashboard/DashboardAccessGate.tsx` | Dashboard-specific access control |
-| `useEffectiveSubscriptionTier` | `lib/hooks/useEffectiveSubscriptionTier.ts` | Effective tier for UI (includes dev override) |
+See [BUSINESS_MODEL.md §12](./BUSINESS_MODEL.md#12-subscription-capability-architecture).
 
-**Premium Feature Discovery** is the standard Free-user UX for premium pages. See [BUSINESS_MODEL.md §15](./BUSINESS_MODEL.md#15-premium-feature-discovery) and [PRODUCT_VISION.md §20](./PRODUCT_VISION.md#20-premium-feature-discovery).
+### Authorization surfaces
 
----
+| Surface | Role |
+|---------|------|
+| Capability helpers | Server-side authorization for protected account APIs |
+| Premium Feature Discovery | Free-user preview of premium pages with upgrade path |
+| Dashboard access gates | Journey/dashboard surfaces respect effective capabilities |
+| Premium nav preview | Locked Pro navigation opens a preview instead of a dead end |
 
-## 17. Subscription Architecture
+**Premium Feature Discovery** remains the standard Free-user UX for premium pages. See [BUSINESS_MODEL.md §15](./BUSINESS_MODEL.md#15-premium-feature-discovery).
 
-Subscription access flows through a single plan field to capability checks — no parallel gating systems.
+### Subscription access path
 
 ```
 User
   ↓
-Pricing Page / Account Panel
+Pricing / Billing Center / Dev Subscription Mode (non-Live)
   ↓
-Subscription Service (lib/subscription/service.ts)
+Subscription billing state (Supabase)
   ↓
-Supabase — profiles.plan + subscriptions.plan
+Effective tier → capability map
   ↓
-SubscriptionTierProvider / useEffectiveSubscriptionTier
+Server helpers + UI gates
   ↓
-Feature Gates (hasCapability / canAccess*)
-  ↓
-Application Features
+Application features
 ```
 
 ### Tiers
@@ -441,42 +506,160 @@ Application Features
 
 ### Development Subscription Mode
 
-Temporary beta flow until Stripe integration. Gated by `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true`.
+Temporary entitlement override for engineering/QA until Live Stripe cutover. Gated by `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE`.
 
-| Component | Path |
-|-----------|------|
-| Feature flag | `lib/subscription/devSubscriptionMode.ts` |
-| Plan mapping | `lib/subscription/plan.ts` |
-| Persistence | `lib/supabase/profiles.ts` → `updateSubscriptionPlan()` |
-| API | `app/api/account/subscription/route.ts` |
-| Client state | `lib/hooks/SubscriptionTierProvider.tsx` |
-| Pricing UI | `components/pricing/PricingPlans.tsx` |
-| Account UI | `components/subscription/DevelopmentSubscriptionPanel.tsx` |
-
-**Important:** The flag must be a Cloudflare **Build Variable** for production UI — see [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
-
-### Future Stripe integration
-
-Stripe webhooks will update the same `profiles.plan` and `subscriptions.plan` fields. Capability authorization remains unchanged. Development Subscription Mode UI is replaced by Stripe checkout.
+- Remains available until an explicit production gate turns it off.
+- Must be hard-off when Live billing is activated.
+- Does not replace webhook-authoritative billing state for real payments.
 
 See [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md).
 
 ---
 
-## 15. Design System 2.0 (next initiative)
+## 15. Stripe Billing Architecture
 
-v0.4.1 completes the platform foundation. **Design System 2.0** is the next major initiative — unified visual language, component library, and platform-wide UI consistency.
+**Golden rule:** Stripe manages money. IMMIFIN manages business policy.
 
-Architecture and capability models established in v0.4.1 are preserved; Design System 2.0 is a visual and component refresh.
+Detailed ADR: [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md). As-built sprint record: [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md).
 
-See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation) and [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md).
+### Ownership
+
+| Owner | Responsibilities |
+|-------|------------------|
+| **IMMIFIN** | Business rules, capabilities, authorization, subscription policy (upgrade / downgrade / interval / cancel-to-free), Pricing UX, Billing Center plan orchestration |
+| **Stripe** | Payments, Checkout payment collection, invoices, billing objects, customer records, payment methods, webhook delivery |
+
+Customer Portal sessions for payment method / invoices are **not implemented**. Plan changes are owned by the IMMIFIN Billing Center.
+
+### Implemented components
+
+| Component | Responsibility |
+|-----------|----------------|
+| **Pricing page** (`/pricing`) | Interval UX + Checkout CTAs for new paid subscriptions |
+| **Checkout Session API** | Browser sends tier + interval only; server resolves approved Price IDs and creates Checkout |
+| **Customer mapping** | One Stripe Customer per profile (environment-isolated); Checkout always uses an existing/created customer |
+| **Webhook processing** | Signed `POST /api/webhooks/stripe`; durable event ledger; focused handlers |
+| **Subscription synchronization** | Persist plan, Stripe IDs, intervals, periods, and Stripe status into Supabase |
+| **Subscription change API** | Policy-gated upgrade / downgrade / interval / cancel paths |
+| **Billing Center** (`/account/billing`) | IMMIFIN-owned plan management UI |
+| **Capability synchronization** | Effective tier / capabilities refresh from synchronized billing state (not from browser success redirects) |
+
+### Billing flow (as implemented)
+
+```text
+Pricing
+  ↓
+Checkout Session (server-authoritative)
+  ↓
+Stripe (payment / subscription objects)
+  ↓
+Webhook (signed, durable claim)
+  ↓
+Subscription Sync → Supabase billing state
+  ↓
+Capability Sync (effective tier → capability map)
+  ↓
+Application Access
+```
+
+**Not implemented (do not document as live):** Customer Portal-driven plan changes; Live production payment validation.
+
+Supported webhook events (application): `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`.
 
 ---
 
-## 16. Future Improvements
+## 16. Notification Platform
 
+Sprint 6 delivered a production-validated email platform. Architecture summary:
 
-- [ ] Design System 2.0 (unified visual language and component library)
+| Concern | Role |
+|---------|------|
+| **Provider** | Resend adapter behind a notification service abstraction |
+| **Email generation** | Dashboard-driven assembler / mapper — no duplicate immigration math |
+| **Journey engine** | Journey-aware Monthly Updates (e.g. employment GC waiting, green-card holder) |
+| **Campaign tracking** | Admin Control Center audience summary, preview, confirm, bulk campaign |
+| **Admin control center** | Operational UI for audience and send workflows |
+
+Status: **Production Validated**. See [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) and [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md).
+
+---
+
+## 17. Dashboard Architecture
+
+My Immifin dashboards compose existing platform layers; they are not a separate product backend.
+
+```text
+Authentication (Clerk)
+  ↓
+User Profile + Immigration Profile
+  ↓
+Journey Engine (journey dates / stage)
+  ↓
+Visa Bulletin data surfaces
+  ↓
+Subscription-aware capabilities (gates / personalization)
+  ↓
+Optional Notifications (campaign inputs from dashboard state)
+```
+
+| Input | Use in dashboards |
+|-------|-------------------|
+| **Authentication** | Protected workspace routes |
+| **Profile** | Personalization and saved immigration details |
+| **Journey Engine** | Stage-specific cards and timelines |
+| **Visa Bulletin** | Current / history / movement context |
+| **Capabilities** | Pro/Power gates and Premium Feature Discovery |
+| **Notifications** | Journey-aware email content sourced from the same dashboard model |
+
+Layout shell and DS 2.0 workspace patterns remain presentation concerns; entitlement decisions stay in the capability layer.
+
+---
+
+## 18. Production Architecture Status
+
+Production hosting for the core product is active. Commercial Stripe is **implemented in application code** but **not Live-validated**.
+
+### Implemented (application)
+
+- Stripe Checkout Session API and Pricing Checkout wiring
+- Customer mapping and Price catalog resolution
+- Webhook route, event ledger migration, billing-state synchronization
+- Subscription change APIs and Billing Center plan management
+- Capability enforcement helpers on selected APIs + premium UI gates
+- Notification Platform (separate track — production validated)
+
+### Production validated
+
+- Core immigration product on `https://immifin.com` (v0.4.2 baseline)
+- Notification Platform v1.0 (Resend / journey campaigns)
+- Clerk + Supabase production auth/data path for the current baseline
+
+### Pending validation
+
+- Stripe Sandbox webhook registration and signed end-to-end payment proof
+- Live Stripe products, prices, webhook, and secrets
+- Production Supabase migration apply for webhook foundation (target env)
+- Development Subscription Mode hard-off for Live
+- Production commercial deployment / v0.5.0 signoff
+- Customer Portal sessions (payment method / invoices) — **not built**
+
+**Do not claim Live Stripe or commercial production readiness until the pending validation items are complete.**
+
+---
+
+## 19. Design System 2.0
+
+Design System 2.0 is an established product-experience track (Sprint 5+), not a future-only initiative. Visa Bulletin surfaces, workspace shell, and Sprint 7 commercial UX polish follow DS 2.0 patterns. Landing / marketing redesign remains a forward focus (Sprint 8).
+
+Architecture and capability models established in v0.4.1 are preserved; DS 2.0 is a visual and component refresh.
+
+See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation) and [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md).
+
+---
+
+## 20. Future Improvements
+
+- [x] Design System 2.0 foundation (partial — continue polish / landing)
 - [ ] Separate Development Environment
 - [ ] Separate Preview Environment
 - [ ] Separate Production Environment
@@ -484,6 +667,8 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 - [ ] Separate Clerk Production Instance
 - [ ] Separate Supabase Development Project
 - [ ] Separate Supabase Production Project
+- [ ] Live Stripe commercial cutover (operational validation)
+- [ ] Customer Portal (payment method / invoices)
 - [ ] GitHub Actions
 - [ ] Automated Testing
 - [ ] Monitoring
@@ -493,7 +678,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 
 ---
 
-## 16. Revision History
+## 21. Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -502,6 +687,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.3 | 2026-07-03 | Application access layer — subscription tiers and capabilities (S4-005.3). |
 | v1.4 | 2026-07-04 | Premium feature gating components; Design System 2.0 reference (S4-005.15). |
 | v1.5 | 2026-07-05 | Subscription Architecture; Development Subscription Mode; deployment docs (S5-ENG-004). |
+| v1.6 | 2026-07-20 | Sprint 7 as-built — Stripe billing platform, capabilities, notifications, dashboards, production status (S7-DOC-005). |
 
 ---
 
@@ -509,14 +695,18 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 
 | Document | Contents |
 |----------|----------|
+| [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Operational snapshot |
+| [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) | Sprint 7 as-built commercial platform |
+| [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) | IMMIFIN vs Stripe ownership ADR |
+| [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | Commercial subscription rules |
+| [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md) | Stripe operational setup |
+| [ROADMAP_v2.md](./ROADMAP_v2.md) | Forward sprint sequencing |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands, secrets, deployment workflow (summary) |
 | [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Full Cloudflare deployment guide |
-| [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) | Build variable incident |
 | [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md) | Development Subscription Mode ADR |
+| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | Notification Platform production validation |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Engineering workflow and release gates |
-| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation milestone release notes |
 | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription tiers, capabilities, Premium Feature Discovery |
-| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision and Design System 2.0 scope |
 | [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) | Architecture and coding conventions |
 | [auth/PHASE1.md](./auth/PHASE1.md) | Clerk, Supabase, middleware, webhooks |
 | [.env.example](../.env.example) | Local environment variable template |

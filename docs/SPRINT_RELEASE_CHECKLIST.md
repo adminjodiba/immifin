@@ -106,6 +106,8 @@ See also: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [ENGINEERING_PLAYBOOK.md
 - [ ] Missing phone triggers onboarding
 - [ ] Saving phone exits onboarding
 - [ ] Complete Profile shown only once
+- [ ] After first successful contact-status check, navigating to `/` (e.g. Close) does **not** flash “Loading profile…” again
+- [ ] Logout then login as another user re-runs the contact-status check
 
 ---
 

@@ -137,7 +137,7 @@ export function ProfileSectionResetButton({
               </button>
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-danger-solid disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => void handleConfirm()}
                 disabled={isResetting}
               >

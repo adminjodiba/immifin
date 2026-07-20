@@ -72,8 +72,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Contact</h2>
             <p className="mt-3 leading-relaxed text-slate-600">
               Questions about these terms? Reach us at{" "}
-              <a href="mailto:hello@immifin.com" className="text-brand-700 hover:text-brand-800">
-                hello@immifin.com
+              <a href="mailto:info@immifin.com" className="text-brand-700 hover:text-brand-800">
+                info@immifin.com
               </a>
               .
             </p>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { AuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
 import { requireUser } from "@/lib/auth/requireUser";
+import { getEffectivePlan } from "@/lib/account/plan";
 import { canUseDevSubscriptionTools } from "@/lib/subscription/devSubscriptionAccess";
 import { subscriptionTierToAppPlan } from "@/lib/subscription/plan";
 import { getStoredSubscriptionTier } from "@/lib/subscription/service";
@@ -17,15 +18,32 @@ type PatchBody = {
 export async function GET() {
   try {
     const profileWithRelations = await requireUser();
+    const subscription = profileWithRelations.subscription;
     const tier = getStoredSubscriptionTier({
       profile: profileWithRelations.profile,
-      subscription: profileWithRelations.subscription,
+      subscription,
     });
+
+    const effectivePlan = getEffectivePlan(
+      profileWithRelations.profile,
+      subscription,
+    );
 
     return NextResponse.json({
       tier,
-      plan: profileWithRelations.subscription?.plan ?? profileWithRelations.profile.plan,
-      devSubscriptionMode: canUseDevSubscriptionTools(profileWithRelations.profile.role),
+      plan: effectivePlan,
+      devSubscriptionMode: canUseDevSubscriptionTools(),
+      billing: {
+        status: subscription?.status ?? "inactive",
+        stripeStatus: subscription?.stripe_status ?? null,
+        billingInterval: subscription?.billing_interval ?? null,
+        currentPeriodStart: subscription?.current_period_start ?? null,
+        currentPeriodEnd: subscription?.current_period_end ?? null,
+        cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
+        canceledAt: subscription?.canceled_at ?? null,
+        lastSynchronizedAt: subscription?.last_synchronized_at ?? null,
+        hasPaidStripeSubscription: Boolean(subscription?.stripe_subscription_id?.trim()),
+      },
     });
   } catch (error: unknown) {
     return authErrorResponse(error);
@@ -36,7 +54,7 @@ export async function PATCH(request: Request) {
   try {
     const profileWithRelations = await requireUser();
 
-    if (!canUseDevSubscriptionTools(profileWithRelations.profile.role)) {
+    if (!canUseDevSubscriptionTools()) {
       throw new AuthError("Development subscription mode is not enabled.", 403);
     }
     const body = (await request.json()) as PatchBody;
@@ -64,7 +82,7 @@ export async function PATCH(request: Request) {
       plan: subscription.plan,
       profile,
       subscription,
-      devSubscriptionMode: canUseDevSubscriptionTools(profile.role),
+      devSubscriptionMode: canUseDevSubscriptionTools(),
     });
   } catch (error: unknown) {
     return authErrorResponse(error);

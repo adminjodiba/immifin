@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 
-const DASHBOARD_CLOSE_HREF = "/";
+type DashboardCloseActionProps = {
+  href?: string;
+};
 
-export function DashboardCloseAction() {
+export function DashboardCloseAction({ href = "/" }: DashboardCloseActionProps) {
   return (
-    <Link href={DASHBOARD_CLOSE_HREF} className="btn-secondary shrink-0">
+    <Link href={href} className="btn-secondary shrink-0">
       Close
     </Link>
   );

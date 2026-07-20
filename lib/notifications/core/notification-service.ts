@@ -43,6 +43,7 @@ export type EmailNotificationRequest = {
   /** Explicit Reply-To override; omit to use config default. */
   replyTo?: string | readonly string[];
   tags?: EmailProviderSendRequest["tags"];
+  attachments?: EmailProviderSendRequest["attachments"];
   /** Only `email` is supported in this phase. Defaults to email. */
   channel?: NotificationChannel;
 };
@@ -132,6 +133,7 @@ export class NotificationService {
       html,
       text,
       tags: request.tags,
+      attachments: request.attachments,
     };
 
     return provider.send(providerRequest);

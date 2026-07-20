@@ -17,6 +17,11 @@ export type EmailProviderSendRequest = {
     name: string;
     value: string;
   }>;
+  attachments?: ReadonlyArray<{
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }>;
 };
 
 /** Normalized result returned by every email provider adapter. */

@@ -1,17 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { DevSubscriptionActivationDialog } from "@/components/pricing/DevSubscriptionActivationDialog";
 import { buildSignInUrl } from "@/lib/auth/signInRedirect";
 import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscriptionTools";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
+import {
+  getCheckoutPlanButtonConfig,
+  isPricingCurrentPlanCard,
+} from "@/lib/pricing/checkout-plan-actions";
+import {
+  formatCurrentSubscriptionPriceLine,
+  formatPriceAmount,
+  getPaidPlanPricePresentation,
+} from "@/lib/pricing/pricing-display-catalog";
+import {
+  startStripeCheckout,
+  type CheckoutBillingInterval,
+} from "@/lib/stripe/client-checkout";
 import { formatSubscriptionPlanLabel } from "@/lib/subscription/plan";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
+import { formatBillingIntervalLabel, formatPlanLabel } from "@/lib/billing/billing-center";
 
 type PlanConfig = {
   id: SubscriptionTier;
@@ -95,11 +108,9 @@ type DevModeButtonConfig = {
 function getCurrentPlanButtonClass(plan: PlanConfig): string {
   const base = plan.ctaStyle === "btn-primary" ? "btn-primary" : "btn-secondary";
   const hoverReset =
-    plan.ctaStyle === "btn-primary"
-      ? "hover:bg-brand-700 hover:shadow-brand-700/20"
-      : "hover:border-slate-200 hover:bg-white hover:shadow-sm";
+    "hover:[background-color:var(--immifin-button-default-cyan)] hover:text-white hover:shadow-[0_10px_15px_-3px_color-mix(in_srgb,var(--immifin-button-default-cyan)_28%,transparent)]";
 
-  return `${base} w-full cursor-not-allowed opacity-75 transition-none active:scale-100 ${hoverReset}`;
+  return `${base} btn-no-sweep w-full cursor-not-allowed opacity-75 transition-none active:scale-100 ${hoverReset}`;
 }
 
 function getDevModeButtonConfig(plan: PlanConfig, currentTier: SubscriptionTier): DevModeButtonConfig {
@@ -131,17 +142,86 @@ function getDevModeButtonConfig(plan: PlanConfig, currentTier: SubscriptionTier)
   };
 }
 
-export function PricingPlans() {
+function BillingIntervalToggle({
+  value,
+  onChange,
+}: {
+  value: CheckoutBillingInterval;
+  onChange: (interval: CheckoutBillingInterval) => void;
+}) {
+  return (
+    <div className="mx-auto mb-8 flex justify-center">
+      <div
+        role="group"
+        aria-label="Billing interval"
+        className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+      >
+        {(["monthly", "annual"] as const).map((interval) => {
+          const selected = value === interval;
+          return (
+            <button
+              key={interval}
+              type="button"
+              onClick={() => onChange(interval)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+                selected
+                  ? "bg-brand-700 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+              aria-pressed={selected}
+            >
+              {interval}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function PricingPlans({
+  developmentSubscriptionModeEnabled = false,
+}: {
+  developmentSubscriptionModeEnabled?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isSignedIn } = useAuth();
-  const { canUse: devMode } = useCanUseDevSubscriptionTools();
+  const { canUse: contextDevMode, isLoading: subscriptionLoading } = useCanUseDevSubscriptionTools();
+  const devMode = isSignedIn
+    ? contextDevMode && !subscriptionLoading
+    : developmentSubscriptionModeEnabled;
   const subscriptionContext = useSubscriptionTierContext();
   const { tier: currentTier } = useEffectiveSubscriptionTier();
+  const currentBillingInterval = subscriptionContext?.billingInterval ?? null;
+  const [billingInterval, setBillingInterval] = useState<CheckoutBillingInterval>("monthly");
   const [pendingPlan, setPendingPlan] = useState<SubscriptionTier | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutLoadingTier, setCheckoutLoadingTier] = useState<SubscriptionTier | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [returnMessage, setReturnMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkoutState = searchParams.get("checkout");
+
+    if (checkoutState === "cancelled") {
+      setReturnMessage("Checkout was canceled. You can try again whenever you are ready.");
+      setSuccessMessage(null);
+      setErrorMessage(null);
+    } else if (checkoutState === "success") {
+      setReturnMessage(
+        "Payment received. Your subscription will activate after Stripe confirms billing — usually within a minute.",
+      );
+      setSuccessMessage(null);
+      setErrorMessage(null);
+    } else {
+      return;
+    }
+
+    router.replace(pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   async function handleActivate() {
     if (!pendingPlan || !subscriptionContext) {
@@ -169,6 +249,7 @@ export function PricingPlans() {
   function handlePlanClick(planId: SubscriptionTier) {
     setSuccessMessage(null);
     setErrorMessage(null);
+    setReturnMessage(null);
 
     if (!devMode) {
       return;
@@ -186,8 +267,50 @@ export function PricingPlans() {
     setPendingPlan(planId);
   }
 
+  async function handleCheckoutClick(planId: SubscriptionTier) {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    setReturnMessage(null);
+
+    if (planId !== "pro" && planId !== "power") {
+      return;
+    }
+
+    if (!isSignedIn) {
+      router.push(buildSignInUrl(pathname));
+      return;
+    }
+
+    if (currentTier !== "free") {
+      return;
+    }
+
+    setCheckoutLoadingTier(planId);
+
+    try {
+      const { url } = await startStripeCheckout({
+        tier: planId,
+        interval: billingInterval,
+      });
+      window.location.assign(url);
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to start checkout. Please try again.",
+      );
+      setCheckoutLoadingTier(null);
+    }
+  }
+
   return (
     <>
+      {returnMessage ? (
+        <div className="container-main mb-6">
+          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
+            {returnMessage}
+          </p>
+        </div>
+      ) : null}
+
       {successMessage ? (
         <div className="container-main mb-6">
           <p className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
@@ -208,17 +331,46 @@ export function PricingPlans() {
         <div className="container-main">
           {devMode ? (
             <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-              {isDevSubscriptionModeEnabled()
-                ? "Development Subscription Mode is active. Select a plan to test Free, Pro, or Power — no payment is collected."
-                : "Admin testing mode is active. Select a plan to test Free, Pro, or Power — no payment is collected."}
+              Development Subscription Mode is active. Select a plan to test Free, Pro, or Power —
+              no payment is collected.
             </p>
-          ) : null}
+          ) : (
+            <>
+              <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
+              {isSignedIn && currentTier !== "free" && currentBillingInterval ? (
+                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-slate-600">
+                  Current subscription:{" "}
+                  <span className="font-semibold text-slate-900">
+                    {formatPlanLabel(currentTier)}{" "}
+                    {formatBillingIntervalLabel(currentBillingInterval)} —{" "}
+                    {formatCurrentSubscriptionPriceLine(currentTier, currentBillingInterval)}
+                  </span>
+                </p>
+              ) : null}
+            </>
+          )}
 
           <div className="grid w-full gap-6 lg:grid-cols-3">
             {plans.map((plan) => {
-              const isCurrentPlan = devMode && isSignedIn && currentTier === plan.id;
+              const isCurrentPlanCard = isPricingCurrentPlanCard({
+                planId: plan.id,
+                currentTier,
+                isSignedIn: Boolean(isSignedIn),
+                currentBillingInterval,
+                displayedBillingInterval: billingInterval,
+              });
               const devButton =
                 devMode && isSignedIn ? getDevModeButtonConfig(plan, currentTier) : null;
+              const checkoutButton = !devMode
+                ? getCheckoutPlanButtonConfig(
+                    plan,
+                    currentTier,
+                    Boolean(isSignedIn),
+                    currentBillingInterval,
+                    billingInterval,
+                  )
+                : null;
+              const isCheckoutLoading = checkoutLoadingTier === plan.id;
 
               return (
                 <article
@@ -235,7 +387,41 @@ export function PricingPlans() {
                   <h2 className="heading-3 mt-1 text-slate-900">{plan.name}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">{plan.description}</p>
 
-                  {isCurrentPlan ? (
+                  {plan.id === "free" ? (
+                    <div className="mt-5">
+                      <p className="text-3xl font-bold tracking-tight text-slate-900">
+                        {formatPriceAmount(0)}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-slate-600">Free</p>
+                    </div>
+                  ) : plan.id === "pro" || plan.id === "power" ? (
+                    (() => {
+                      const price = getPaidPlanPricePresentation(plan.id, billingInterval);
+                      return (
+                        <div className="mt-5">
+                          <p className="text-3xl font-bold tracking-tight text-slate-900">
+                            {price.amountLabel}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-slate-600">
+                            {price.periodLabel}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">{price.billingLabel}</p>
+                          {price.equivalentMonthlyLabel ? (
+                            <p className="mt-2 text-sm text-slate-600">
+                              {price.equivalentMonthlyLabel}
+                            </p>
+                          ) : null}
+                          {price.savingsLabel ? (
+                            <p className="mt-1 text-sm font-medium text-brand-700">
+                              {price.savingsLabel}
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    })()
+                  ) : null}
+
+                  {isCurrentPlanCard ? (
                     <div className="mt-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
                         Current plan
@@ -285,22 +471,44 @@ export function PricingPlans() {
                           </p>
                         ) : null}
                       </>
-                    ) : plan.id === "free" ? (
+                    ) : plan.id === "free" && !isSignedIn ? (
                       <Link href="/signup" className={`${plan.ctaStyle} w-full`}>
                         {plan.cta}
                       </Link>
+                    ) : checkoutButton?.href ? (
+                      <>
+                        <Link href={checkoutButton.href} className={checkoutButton.className}>
+                          {checkoutButton.label}
+                        </Link>
+                        {checkoutButton.helperText ? (
+                          <p className="mt-2 text-center text-xs text-slate-500">
+                            {checkoutButton.helperText}
+                          </p>
+                        ) : null}
+                      </>
                     ) : (
                       <>
                         <button
                           type="button"
-                          className={`${plan.ctaStyle} w-full cursor-not-allowed opacity-80`}
-                          disabled
+                          className={checkoutButton?.className ?? `${plan.ctaStyle} w-full`}
+                          onClick={() => {
+                            if (plan.id === "pro" || plan.id === "power") {
+                              void handleCheckoutClick(plan.id);
+                            }
+                          }}
+                          disabled={
+                            checkoutButton?.disabled ||
+                            isCheckoutLoading ||
+                            (plan.id !== "pro" && plan.id !== "power")
+                          }
                         >
-                          Coming Soon
+                          {isCheckoutLoading ? "Redirecting..." : (checkoutButton?.label ?? plan.cta)}
                         </button>
-                        <p className="mt-2 text-center text-xs text-slate-500">
-                          Billing is not enabled yet. Join the waitlist when payments launch.
-                        </p>
+                        {checkoutButton?.helperText ? (
+                          <p className="mt-2 text-center text-xs text-slate-500">
+                            {checkoutButton.helperText}
+                          </p>
+                        ) : null}
                       </>
                     )}
                   </div>
@@ -310,9 +518,9 @@ export function PricingPlans() {
           </div>
 
           <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-slate-500">
-            Free users can enter profile data anytime. Pro unlocks automation — dashboard, alerts,
-            and tracking. Power adds AI and advanced intelligence. Stripe checkout will connect
-            here later.
+            Free includes manual tools and profile entry. Pro adds automation — dashboard, alerts,
+            and tracking. Power adds AI and advanced intelligence. Paid plans are billed through
+            Stripe; your access updates after billing is confirmed.
           </p>
         </div>
       </section>

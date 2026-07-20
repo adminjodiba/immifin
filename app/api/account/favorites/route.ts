@@ -7,32 +7,22 @@ import {
   removeFavoritePage,
   validateFavoriteInput,
 } from "@/lib/account/favorites";
-import { AuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
-import { requireUser } from "@/lib/auth/requireUser";
-import { canAccessFavorites } from "@/lib/subscription/capabilities";
+import { CAPABILITY, canAccessFavorites } from "@/lib/subscription/capabilities";
+import { assertCapability } from "@/lib/subscription/requireCapability";
 import { getStoredSubscriptionTier } from "@/lib/subscription/service";
+import { requireUser } from "@/lib/auth/requireUser";
 import { updateImmigrationProfilePreferences } from "@/lib/supabase/profiles";
 
 export const runtime = "nodejs";
 
-function getTier(profileWithRelations: Awaited<ReturnType<typeof requireUser>>) {
-  return getStoredSubscriptionTier({
-    profile: profileWithRelations.profile,
-    subscription: profileWithRelations.subscription,
-  });
-}
-
-function assertFavoritesManageAccess(profileWithRelations: Awaited<ReturnType<typeof requireUser>>) {
-  if (!canAccessFavorites(getTier(profileWithRelations))) {
-    throw new AuthError("Favorites are available in Pro.", 403);
-  }
-}
-
 export async function GET() {
   try {
     const profileWithRelations = await requireUser();
-    const tier = getTier(profileWithRelations);
+    const tier = getStoredSubscriptionTier({
+      profile: profileWithRelations.profile,
+      subscription: profileWithRelations.subscription,
+    });
     const preferences = profileWithRelations.immigrationProfile?.preferences ?? {};
     const favorites = readFavorites(preferences);
     const accessLocked = !canAccessFavorites(tier);
@@ -46,7 +36,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const profileWithRelations = await requireUser();
-    assertFavoritesManageAccess(profileWithRelations);
+    assertCapability(profileWithRelations, CAPABILITY.favorites);
 
     const body = (await request.json()) as unknown;
     const input = validateFavoriteInput(body);
@@ -80,7 +70,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const profileWithRelations = await requireUser();
-    assertFavoritesManageAccess(profileWithRelations);
+    assertCapability(profileWithRelations, CAPABILITY.favorites);
 
     const body = (await request.json()) as unknown;
     const input = validateFavoriteInput(body);

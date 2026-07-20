@@ -1,5 +1,4 @@
 import { CitizenshipLockedAiCard } from "@/components/dashboard/greenCard/CitizenshipLockedAiCard";
-import { CitizenshipQuickStatusCard } from "@/components/dashboard/greenCard/CitizenshipQuickStatusCard";
 import { GreenCardCongratulationsBanner } from "@/components/dashboard/greenCard/GreenCardCongratulationsBanner";
 import { JourneyProgressCard } from "@/components/dashboard/greenCard/JourneyProgressCard";
 import { DashboardActionCenterCard } from "@/components/dashboard/DashboardActionCenterCard";
@@ -16,9 +15,6 @@ function ImmigrationJourneySectionTitle() {
   return (
     <header>
       <h2 className="heading-3 text-slate-900">Immigration Journey</h2>
-      <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-600">
-        Track your progress from Green Card to naturalization eligibility.
-      </p>
     </header>
   );
 }
@@ -31,7 +27,6 @@ export function GreenCardHolderDashboard({ journey }: GreenCardHolderDashboardPr
         <>
           <GreenCardCongratulationsBanner />
           <JourneyProgressCard journey={journey} />
-          <CitizenshipQuickStatusCard journey={journey} />
           <CitizenshipLockedAiCard />
           <DashboardActionCenterCard
             journeyStage="green_card"

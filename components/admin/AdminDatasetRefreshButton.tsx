@@ -56,7 +56,7 @@ export function AdminDatasetRefreshButton({ label, endpoint }: AdminDatasetRefre
         type="button"
         onClick={handleRefresh}
         disabled={status === "loading"}
-        className="inline-flex min-h-[40px] items-center justify-center rounded-xl bg-brand-700 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="btn-primary min-h-[40px] px-3.5 py-2 text-xs"
       >
         {status === "loading" ? "Refreshing…" : label}
       </button>

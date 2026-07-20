@@ -6,18 +6,18 @@ export const siteConfig = {
   url: "https://immifin.com",
   ogImage: "/og-image.png",
   links: {
-    email: "hello@immifin.com",
+    email: "info@immifin.com",
   },
 };
 
 export const navLinks = [
   { href: "/", label: "Home" },
   { href: "/immigration", label: "Immigration", hasDropdown: true },
+  { href: "/calculators", label: "Calculators", hasDropdown: true },
   { href: "/finance", label: "Finance" },
-  { href: "/calculators", label: "Calculator", hasDropdown: true },
   { href: "/insurance", label: "Insurance" },
   { href: "/dashboard", label: "My Immifin", hasDropdown: true, isMyImmifin: true },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "About", hasDropdown: true },
 ] as const;
 
 export const footerLinks = [

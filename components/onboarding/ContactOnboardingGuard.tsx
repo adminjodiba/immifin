@@ -4,6 +4,11 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
+import {
+  clearContactStatusCache,
+  getContactStatusCache,
+  setContactStatusCache,
+} from "@/lib/onboarding/contactStatusCache";
 import { ONBOARDING_CONTACT_PATH } from "@/lib/onboarding/routes";
 
 type ContactOnboardingGuardProps = {
@@ -18,7 +23,17 @@ export function ContactOnboardingGuard({
 }: ContactOnboardingGuardProps) {
   const { isLoaded, userId } = useAuth();
   const router = useRouter();
-  const [checkingPhone, setCheckingPhone] = useState(!publicLanding);
+  const [checkingPhone, setCheckingPhone] = useState(() => {
+    if (publicLanding) {
+      return false;
+    }
+
+    if (userId && getContactStatusCache(userId) === "ok") {
+      return false;
+    }
+
+    return true;
+  });
 
   useEffect(() => {
     if (!isLoaded) {
@@ -26,12 +41,29 @@ export function ContactOnboardingGuard({
     }
 
     if (!userId) {
+      clearContactStatusCache();
       setCheckingPhone(false);
       return;
     }
 
+    const cached = getContactStatusCache(userId);
+    if (cached === "ok") {
+      setCheckingPhone(false);
+      return;
+    }
+
+    if (cached === "needs_phone") {
+      router.replace(ONBOARDING_CONTACT_PATH);
+      return;
+    }
+
     let cancelled = false;
-    setCheckingPhone(true);
+
+    // Public landing: keep the page visible and check once in the background.
+    // Protected pages: block briefly until the one-time check completes.
+    if (!publicLanding) {
+      setCheckingPhone(true);
+    }
 
     async function checkContactStatus() {
       try {
@@ -43,10 +75,12 @@ export function ContactOnboardingGuard({
         }
 
         if (!result.ok || result.data.hasPhone !== false) {
+          setContactStatusCache(userId!, "ok");
           setCheckingPhone(false);
           return;
         }
 
+        setContactStatusCache(userId!, "needs_phone");
         router.replace(ONBOARDING_CONTACT_PATH);
       } catch {
         if (!cancelled) {
@@ -60,7 +94,7 @@ export function ContactOnboardingGuard({
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, userId, router]);
+  }, [isLoaded, userId, router, publicLanding]);
 
   if (publicLanding && (!isLoaded || !userId)) {
     return <>{children}</>;

@@ -1,11 +1,22 @@
 /**
- * Development Subscription Mode — temporary until Stripe integration.
+ * Development Subscription Mode — temporary until Stripe checkout is wired in the UI.
  *
- * When enabled, users can activate Free / Pro / Power without payment.
- * Both the Pricing page and Account panels update the same subscription plan
- * field that future Stripe webhooks will write to.
+ * Server-authoritative only. Do not import from client components; use
+ * `/api/account/subscription` `devSubscriptionMode` or a server-passed prop instead.
+ *
+ * Production hard stop: always disabled when `NODE_ENV === "production"`.
+ * Development: enabled only when `IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE === "true"`.
  */
 
+export function isDevelopmentSubscriptionModeEnabled(): boolean {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  return process.env.IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE === "true";
+}
+
+/** @deprecated Prefer `isDevelopmentSubscriptionModeEnabled` */
 export function isDevSubscriptionModeEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE === "true";
+  return isDevelopmentSubscriptionModeEnabled();
 }

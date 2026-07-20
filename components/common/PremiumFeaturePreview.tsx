@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { buildSignInUrl } from "@/lib/auth/signInRedirect";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { hasCapability, type SubscriptionCapability } from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
 
 const TIER_RANK: Record<SubscriptionTier, number> = {
@@ -18,6 +19,24 @@ function meetsRequiredTier(
   requiredTier: SubscriptionTier,
 ): boolean {
   return TIER_RANK[userTier] >= TIER_RANK[requiredTier];
+}
+
+function hasFeatureAccess(
+  tier: SubscriptionTier,
+  options: {
+    capability?: SubscriptionCapability;
+    requiredTier?: SubscriptionTier;
+  },
+): boolean {
+  if (options.capability) {
+    return hasCapability(tier, options.capability);
+  }
+
+  if (options.requiredTier) {
+    return meetsRequiredTier(tier, options.requiredTier);
+  }
+
+  return false;
 }
 
 export type PremiumFeatureInfoLink = {
@@ -40,6 +59,9 @@ export type PremiumFeaturePreviewProps = {
   featureList: string[];
   upgradeButtonText?: string;
   comparePlansButtonText?: string;
+  /** Preferred — checks the central capability map. */
+  capability?: SubscriptionCapability;
+  /** @deprecated Use `capability` instead. */
   requiredTier?: SubscriptionTier;
   icon?: ReactNode;
   /** Prevent scrolling the blurred page underneath. Defaults to true. */
@@ -130,6 +152,7 @@ export function PremiumFeaturePreview({
   featureList,
   upgradeButtonText = "Upgrade to Pro",
   comparePlansButtonText = "Compare Plans",
+  capability,
   requiredTier = "pro",
   icon,
   lockScroll = true,
@@ -140,7 +163,7 @@ export function PremiumFeaturePreview({
 }: PremiumFeaturePreviewProps) {
   const pathname = usePathname();
   const { tier } = useEffectiveSubscriptionTier();
-  const hasAccess = meetsRequiredTier(tier, requiredTier);
+  const hasAccess = hasFeatureAccess(tier, { capability, requiredTier });
   const [dismissed, setDismissed] = useState(false);
 
   const overlayVisible = !dismissed;

@@ -2,12 +2,11 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
-import { FavoritesProGateDialog } from "@/components/favorites/FavoritesDialog";
-import { FAVORITES_PRO_LOCK_MESSAGE } from "@/lib/account/favorites";
 import { useFavorites } from "@/lib/hooks/useFavorites";
+import type { PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
 
 const navLinkClassName =
-  "rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700";
+  "nav-menu-trigger rounded-xl px-4 py-2 text-sm font-medium text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
 
 function RemoveFavoriteButton({
   label,
@@ -19,7 +18,7 @@ function RemoveFavoriteButton({
   return (
     <button
       type="button"
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+      className="relative z-[1] inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
       aria-label={`Remove ${label} from favorites`}
       onClick={(event) => {
         event.preventDefault();
@@ -34,10 +33,14 @@ function RemoveFavoriteButton({
   );
 }
 
-export function FavoritesNavDropdown({ className }: { className?: string }) {
+type FavoritesNavDropdownProps = {
+  className?: string;
+  onOpenPreview: (key: PremiumNavPreviewKey) => void;
+};
+
+export function FavoritesNavDropdown({ className, onOpenPreview }: FavoritesNavDropdownProps) {
   const { favorites, canManageFavorites, accessLocked, removeFavorite, isLoading } = useFavorites();
   const [isOpen, setIsOpen] = useState(false);
-  const [showProGate, setShowProGate] = useState(false);
   const [removingHref, setRemovingHref] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -71,7 +74,8 @@ export function FavoritesNavDropdown({ className }: { className?: string }) {
 
   function handleTriggerClick() {
     if (!canUseFavorites) {
-      setShowProGate(true);
+      setIsOpen(false);
+      onOpenPreview("favorites");
       return;
     }
 
@@ -88,93 +92,89 @@ export function FavoritesNavDropdown({ className }: { className?: string }) {
   }
 
   return (
-    <>
-      <div className={`relative ${className ?? ""}`} ref={containerRef}>
-        <button
-          type="button"
-          className={`${navLinkClassName} inline-flex items-center gap-1`}
-          aria-haspopup="menu"
-          aria-expanded={isOpen}
-          aria-controls={menuId}
-          onClick={handleTriggerClick}
+    <div className={`relative ${className ?? ""}`} ref={containerRef}>
+      <button
+        type="button"
+        className={`${navLinkClassName} inline-flex items-center gap-1`}
+        aria-haspopup={canUseFavorites ? "menu" : undefined}
+        aria-expanded={canUseFavorites ? isOpen : undefined}
+        aria-controls={canUseFavorites ? menuId : undefined}
+        onClick={handleTriggerClick}
+      >
+        Favorites
+        <svg
+          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          aria-hidden="true"
         >
-          Favorites
-          <svg
-            className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
 
-        {isOpen && canUseFavorites ? (
-          <div id={menuId} role="menu" className="absolute left-1/2 top-full z-50 w-80 max-w-[calc(100vw-2rem)] -translate-x-1/2 pt-3 sm:w-96">
-            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
-              {isLoading ? (
-                <p className="px-4 py-3 text-sm text-slate-500">Loading favorites…</p>
-              ) : favorites.length === 0 ? (
-                <p className="px-4 py-3 text-sm leading-relaxed text-slate-500">
-                  No favorites yet. Use the star next to a page title to save it here.
-                </p>
-              ) : (
-                favorites.map((item) => (
-                  <div
-                    key={item.href}
-                    className="flex items-start gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-brand-50"
+      {isOpen && canUseFavorites ? (
+        <div id={menuId} role="menu" className="absolute left-1/2 top-full z-50 w-80 max-w-[calc(100vw-2rem)] -translate-x-1/2 pt-3 sm:w-96">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
+            {isLoading ? (
+              <p className="px-4 py-3 text-sm text-slate-500">Loading favorites…</p>
+            ) : favorites.length === 0 ? (
+              <p className="px-4 py-3 text-sm leading-relaxed text-slate-500">
+                No favorites yet. Use the star next to a page title to save it here.
+              </p>
+            ) : (
+              favorites.map((item) => (
+                <div
+                  key={item.href}
+                  className="nav-menu-item flex items-start gap-2 rounded-xl px-2 py-1"
+                >
+                  <ProtectedLink
+                    href={item.href}
+                    role="menuitem"
+                    className="relative z-[1] min-w-0 flex-1 rounded-lg px-2 py-2 text-sm font-semibold leading-snug text-slate-900"
+                    onClick={() => setIsOpen(false)}
                   >
-                    <ProtectedLink
-                      href={item.href}
-                      role="menuitem"
-                      className="min-w-0 flex-1 rounded-lg px-2 py-2 text-sm font-semibold leading-snug text-slate-900"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <span className="block whitespace-normal break-words">{item.label}</span>
-                    </ProtectedLink>
-                    <RemoveFavoriteButton
-                      label={item.label}
-                      onRemove={() => void handleRemove(item.href)}
-                    />
-                    {removingHref === item.href ? (
-                      <span className="sr-only">Removing…</span>
-                    ) : null}
-                  </div>
-                ))
-              )}
-            </div>
+                    <span className="block whitespace-normal break-words">{item.label}</span>
+                  </ProtectedLink>
+                  <RemoveFavoriteButton
+                    label={item.label}
+                    onRemove={() => void handleRemove(item.href)}
+                  />
+                  {removingHref === item.href ? (
+                    <span className="sr-only">Removing…</span>
+                  ) : null}
+                </div>
+              ))
+            )}
           </div>
-        ) : null}
-      </div>
-
-      <FavoritesProGateDialog isOpen={showProGate} onClose={() => setShowProGate(false)} />
-    </>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
+type FavoritesMobileSectionProps = {
+  onNavigate?: () => void;
+  onOpenPreview: (key: PremiumNavPreviewKey) => void;
+};
+
 export function FavoritesMobileSection({
   onNavigate,
-}: {
-  onNavigate?: () => void;
-}) {
+  onOpenPreview,
+}: FavoritesMobileSectionProps) {
   const { favorites, canManageFavorites, accessLocked, removeFavorite } = useFavorites();
-  const [showProGate, setShowProGate] = useState(false);
   const canUseFavorites = canManageFavorites && !accessLocked;
 
   if (!canUseFavorites) {
     return (
-      <>
-        <button
-          type="button"
-          className="w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
-          onClick={() => setShowProGate(true)}
-        >
-          Favorites
-        </button>
-        <FavoritesProGateDialog isOpen={showProGate} onClose={() => setShowProGate(false)} />
-      </>
+      <button
+        type="button"
+        className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+        onClick={() => onOpenPreview("favorites")}
+      >
+        Favorites
+      </button>
     );
   }
 
@@ -190,11 +190,11 @@ export function FavoritesMobileSection({
           favorites.map((item) => (
             <div
               key={item.href}
-              className="flex items-start gap-1 rounded-lg px-2 py-1 hover:bg-white"
+              className="nav-menu-item flex items-start gap-1 rounded-lg px-2 py-1"
             >
               <ProtectedLink
                 href={item.href}
-                className="min-w-0 flex-1 px-2 py-2 text-center text-sm leading-snug text-slate-600 transition-colors hover:text-brand-700"
+                className="relative z-[1] min-w-0 flex-1 px-2 py-2 text-center text-sm leading-snug text-slate-600"
                 onClick={onNavigate}
               >
                 <span className="block whitespace-normal break-words">{item.label}</span>
@@ -210,5 +210,3 @@ export function FavoritesMobileSection({
     </div>
   );
 }
-
-export { FAVORITES_PRO_LOCK_MESSAGE };

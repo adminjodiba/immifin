@@ -1,16 +1,18 @@
 "use client";
 
 /**
- * Visa Bulletin Movement Tracker — Design System 2.0 (S5-007).
- * Visual language aligned with Visa Bulletin History (Sprint 5).
+ * Visa Bulletin Movement Tracker — production UI (promoted from sandbox 2026-07-14).
+ * See docs/design-system/VISA_BULLETIN_MOVEMENT_TRACKER_UX_UPDATE_2026-07.md
  */
 
 import Link from "next/link";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
+import { bulletinDateTypeTabClassName } from "@/lib/visa/bulletinDateTypeTabs";
 import {
   formatBulletinDate,
   parseBulletinCutoffDate,
@@ -24,6 +26,7 @@ import type {
 type TabKey = MovementComparisonType;
 type CategoryKey = "EB1" | "EB2" | "EB3" | "EB4" | "EB5" | "OTHER";
 type TableMovementFilter = "all" | "forward" | "retrogression" | "no-change" | "current";
+type RecordTypeFilter = "updates-only" | "show-all";
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "final-action", label: "Final Action Dates" },
@@ -109,7 +112,7 @@ const kpiAccent = {
 } as const;
 
 const filterSelectClassName =
-  "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
+  "w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
 
 const relatedTools = [
   {
@@ -243,8 +246,10 @@ function filterTableRows(
   movementFilter: TableMovementFilter,
   categoryFilter: string,
   countryFilter: string,
+  recordTypeFilter: RecordTypeFilter,
 ): VisaBulletinMovementRow[] {
   return rows.filter((row) => {
+    if (recordTypeFilter === "updates-only" && row.movementType === "no-change") return false;
     if (movementFilter !== "all" && row.movementType !== movementFilter) return false;
     if (categoryFilter !== "all" && normalizeCategoryKey(row.category) !== categoryFilter) return false;
     if (countryFilter !== "all" && row.country !== countryFilter) return false;
@@ -306,12 +311,10 @@ function getWhatChangedSectionTitle(bulletinMonthLabel: string | null): string {
   return `What changed in ${bulletinMonthLabel} Visa Bulletin ?`;
 }
 
-/** Max glance rows per column before scrolling; sorted by magnitude (advances/retro) or country. */
-const WHAT_CHANGED_MAX_VISIBLE = 5;
-/** Fixed scroll height for each What Changed column (~5 compact rows). */
-const WHAT_CHANGED_LIST_MAX_HEIGHT = 260;
-/** Fixed height for the 3-column glance grid so KPI + table stay on screen. */
-const WHAT_CHANGED_GRID_HEIGHT = 300;
+/** Cap visible glance rows before the panel list scrolls; panels grow with fewer records. */
+const WHAT_CHANGED_SCROLL_AFTER = 10;
+/** Approximate rendered height of one What Changed item (padding + two text lines + gap). */
+const WHAT_CHANGED_ROW_APPROX_HEIGHT_PX = 64;
 
 function formatChangeHeadline(row: VisaBulletinMovementRow, panelKey: ChangePanelKey): string {
   const label = formatCategoryCountry(row);
@@ -346,26 +349,26 @@ function ChangePanelList({
   rows: VisaBulletinMovementRow[];
 }) {
   const styles = changePanelStyles[panelKey];
-  const hasOverflow = rows.length > WHAT_CHANGED_MAX_VISIBLE;
+  const needsScroll = rows.length > WHAT_CHANGED_SCROLL_AFTER;
+  const listMaxHeight = needsScroll
+    ? WHAT_CHANGED_SCROLL_AFTER * WHAT_CHANGED_ROW_APPROX_HEIGHT_PX
+    : undefined;
 
   return (
-    <div className={`flex h-full min-h-0 flex-col rounded-xl border p-3 ${styles.border} ${styles.bg}`}>
+    <div className={`flex min-h-0 flex-col rounded-xl border p-3 ${styles.border} ${styles.bg}`}>
       <div className="shrink-0">
         <h3 className={`text-[10px] font-bold uppercase tracking-wide ${styles.header}`}>
           {styles.title} ({rows.length})
         </h3>
-        {hasOverflow ? (
-          <p className="mt-0.5 text-[9px] font-medium text-slate-500">
-            Top {WHAT_CHANGED_MAX_VISIBLE} shown — scroll for more
-          </p>
-        ) : null}
       </div>
       <ul
-        className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-0.5"
-        style={{ maxHeight: WHAT_CHANGED_LIST_MAX_HEIGHT }}
-        tabIndex={hasOverflow ? 0 : undefined}
+        className={`mt-2 min-h-0 flex-1 pr-0.5 ${
+          needsScroll ? "overflow-y-auto overscroll-y-contain" : "overflow-visible"
+        }`}
+        style={listMaxHeight ? { maxHeight: listMaxHeight } : undefined}
+        tabIndex={needsScroll ? 0 : undefined}
         aria-label={
-          hasOverflow
+          needsScroll
             ? `${styles.title} changes, scroll for more`
             : `${styles.title} changes`
         }
@@ -395,9 +398,11 @@ function ChangePanelList({
 function WhatChangedThisMonthSection2({
   rows,
   bulletinMonthLabel,
+  showTitle = true,
 }: {
   rows: VisaBulletinMovementRow[];
   bulletinMonthLabel: string | null;
+  showTitle?: boolean;
 }) {
   const panels = useMemo(() => buildChangePanels(rows), [rows]);
   const sectionTitle = getWhatChangedSectionTitle(bulletinMonthLabel);
@@ -406,20 +411,22 @@ function WhatChangedThisMonthSection2({
 
   return (
     <section
-      aria-labelledby="what-changed-heading"
+      aria-labelledby={showTitle ? "what-changed-heading" : undefined}
+      aria-label={showTitle ? undefined : sectionTitle}
       className="rounded-[1.25rem] border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5"
     >
-      <h2 id="what-changed-heading" className="text-sm font-semibold text-slate-900">
-        {sectionTitle}
-      </h2>
+      {showTitle ? (
+        <h2 id="what-changed-heading" className="text-base font-semibold text-slate-900">
+          {sectionTitle}
+        </h2>
+      ) : null}
 
       {!hasChanges ? (
-        <p className="mt-3 text-xs text-slate-500">No movement changes for this comparison.</p>
+        <p className={showTitle ? "mt-3 text-xs text-slate-500" : "text-xs text-slate-500"}>
+          No movement changes for this comparison.
+        </p>
       ) : (
-        <div
-          className="mt-3 grid grid-cols-3 gap-2 sm:gap-3"
-          style={{ height: WHAT_CHANGED_GRID_HEIGHT }}
-        >
+        <div className={`${showTitle ? "mt-3 " : ""}flex flex-col gap-2 sm:gap-3`}>
           <ChangePanelList panelKey="forward" rows={panels.forward} />
           <ChangePanelList panelKey="retrogression" rows={panels.retrogression} />
           <ChangePanelList panelKey="current" rows={panels.current} />
@@ -606,7 +613,15 @@ function CategoryBadge2({ categoryKey, compact = false }: { categoryKey: Categor
   );
 }
 
-function MovementTable2({ rows }: { rows: VisaBulletinMovementRow[] }) {
+function MovementTable2({
+  rows,
+  previousBulletinLabel,
+  currentBulletinLabel,
+}: {
+  rows: VisaBulletinMovementRow[];
+  previousBulletinLabel: string;
+  currentBulletinLabel: string;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-[1.25rem] border border-slate-200/80 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
@@ -629,8 +644,8 @@ function MovementTable2({ rows }: { rows: VisaBulletinMovementRow[] }) {
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80">
               <th className={`${tableHeadCellClass} text-left`}>Country</th>
-              <th className={`${tableHeadCellClass} text-left`}>Previous</th>
-              <th className={`${tableHeadCellClass} text-left`}>Current</th>
+              <th className={`${tableHeadCellClass} text-left`}>{previousBulletinLabel}</th>
+              <th className={`${tableHeadCellClass} text-left`}>{currentBulletinLabel}</th>
               <th className={`${tableHeadCellClass} text-center`}>Movement</th>
               <th className={`${tableHeadCellClass} text-right`}>
                 <span className="inline-flex items-center justify-end gap-1">
@@ -689,60 +704,20 @@ function MovementTable2({ rows }: { rows: VisaBulletinMovementRow[] }) {
   );
 }
 
-const filterChipConfig: Array<{
-  key: TableMovementFilter;
-  label: string;
-  icon?: ReactNode;
-  inactiveClass?: string;
-}> = [
-  { key: "all", label: "Show All" },
-  {
-    key: "forward",
-    label: "Advanced",
-    inactiveClass: "text-emerald-700",
-    icon: (
-      <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" aria-hidden="true">
-        <path d="M6 9V3M4 5l2-2 2 2" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    key: "retrogression",
-    label: "Retrogressed",
-    inactiveClass: "text-red-700",
-    icon: (
-      <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" aria-hidden="true">
-        <path d="M6 3v6M4 7l2 2 2-2" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    key: "no-change",
-    label: "No Change",
-    inactiveClass: "text-slate-600",
-    icon: (
-      <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" aria-hidden="true">
-        <path d="M2 6h8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    key: "current",
-    label: "Current",
-    inactiveClass: "text-blue-700",
-    icon: <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />,
-  },
-];
-
 export function VisaBulletinMovementTracker2({
   bulletinMonthLabel = null,
+  previousBulletinColumnLabel = "Previous Bulletin",
+  currentBulletinColumnLabel = "Current Bulletin",
 }: {
   bulletinMonthLabel?: string | null;
+  previousBulletinColumnLabel?: string;
+  currentBulletinColumnLabel?: string;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("final-action");
   const [movementFilter, setMovementFilter] = useState<TableMovementFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
+  const [recordTypeFilter, setRecordTypeFilter] = useState<RecordTypeFilter>("updates-only");
 
   const key = `/api/visa-bulletin-movement?type=${activeTab}`;
   const { data, error: swrError, isLoading } = useSWR<VisaBulletinMovementRow[]>(
@@ -759,17 +734,6 @@ export function VisaBulletinMovementTracker2({
       : swrError
         ? "Failed to load visa bulletin movement data."
         : null;
-
-  const counts = useMemo(
-    () => ({
-      all: rows.length,
-      forward: rows.filter((row) => row.movementType === "forward").length,
-      retrogression: rows.filter((row) => row.movementType === "retrogression").length,
-      "no-change": rows.filter((row) => row.movementType === "no-change").length,
-      current: rows.filter((row) => row.movementType === "current").length,
-    }),
-    [rows],
-  );
 
   const categoryOptions = useMemo(() => {
     const keys = new Set(rows.map((row) => normalizeCategoryKey(row.category)));
@@ -789,20 +753,22 @@ export function VisaBulletinMovementTracker2({
   }, [rows]);
 
   const filteredRows = useMemo(
-    () => filterTableRows(rows, movementFilter, categoryFilter, countryFilter),
-    [rows, movementFilter, categoryFilter, countryFilter],
+    () =>
+      filterTableRows(rows, movementFilter, categoryFilter, countryFilter, recordTypeFilter),
+    [rows, movementFilter, categoryFilter, countryFilter, recordTypeFilter],
   );
 
   const resetFilters = () => {
     setMovementFilter("all");
     setCategoryFilter("all");
     setCountryFilter("all");
+    setRecordTypeFilter("updates-only");
   };
 
   return (
     <WorkspacePageShell>
       <div className="container-main py-5 sm:py-6 lg:py-7">
-        <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-start gap-3">
               <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
@@ -832,36 +798,7 @@ export function VisaBulletinMovementTracker2({
               </div>
             </div>
           </div>
-
-          <div
-            className="flex flex-wrap items-center gap-2 xl:justify-end"
-            aria-label="Visa bulletin date type"
-          >
-            <div
-              className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
-              role="tablist"
-            >
-              {tabs.map((tab, index) => {
-                const isActive = activeTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={`px-3 py-2 text-xs font-semibold transition sm:text-sm ${
-                      isActive
-                        ? "bg-brand-700 text-white"
-                        : "bg-white text-slate-700 hover:bg-slate-50"
-                    } ${index > 0 ? "border-l border-slate-200" : ""}`}
-                    onClick={() => setActiveTab(tab.key)}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <DashboardCloseAction />
         </header>
 
         <div className="mt-4 space-y-4 sm:mt-5">
@@ -878,46 +815,44 @@ export function VisaBulletinMovementTracker2({
             </div>
           ) : (
             <>
-              <KpiCardsRow2
-                rows={rows}
-                movementFilter={movementFilter}
-                onSelect={setMovementFilter}
-              />
-
-              <WhatChangedThisMonthSection2 rows={rows} bulletinMonthLabel={bulletinMonthLabel} />
-
-              <section aria-labelledby="all-changes-heading">
-                <h2
-                  id="all-changes-heading"
-                  className="mb-3 text-base font-semibold text-slate-900"
+              <div>
+                <p
+                  id="what-changed-heading"
+                  className="mb-3 text-sm font-semibold text-slate-900 sm:text-base"
                 >
-                  All Changes This Month
-                </h2>
+                  {getWhatChangedSectionTitle(bulletinMonthLabel)}
+                </p>
+                <div
+                  className="mb-3 flex flex-wrap items-center gap-3"
+                  role="tablist"
+                  aria-label="Visa bulletin date type"
+                >
+                  {tabs.map((tab) => {
+                    const isActive = activeTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={bulletinDateTypeTabClassName(tab.key, { compact: true })}
+                        onClick={() => setActiveTab(tab.key)}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <KpiCardsRow2
+                  rows={rows}
+                  movementFilter={movementFilter}
+                  onSelect={setMovementFilter}
+                />
+              </div>
 
-                <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex flex-wrap gap-2">
-                    {filterChipConfig.map((chip) => {
-                      const isActive = movementFilter === chip.key;
-                      const count = counts[chip.key];
-                      return (
-                        <button
-                          key={chip.key}
-                          type="button"
-                          onClick={() => setMovementFilter(chip.key)}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                            isActive
-                              ? "bg-brand-700 text-white shadow-sm"
-                              : `bg-white ring-1 ring-slate-200 hover:bg-slate-50 ${chip.inactiveClass ?? "text-slate-700"}`
-                          }`}
-                        >
-                          {chip.icon}
-                          {chip.label} ({count})
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:items-start xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+                <section className="min-w-0" aria-label="All changes this month">
+                  <div className="mb-3 grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(13.5rem,1.35fr)_auto] xl:items-center">
                     <select
                       value={categoryFilter}
                       onChange={(event) => setCategoryFilter(event.target.value)}
@@ -942,10 +877,26 @@ export function VisaBulletinMovementTracker2({
                         </option>
                       ))}
                     </select>
+                    <label className="flex min-w-0 items-center gap-2">
+                      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">
+                        Record Type
+                      </span>
+                      <select
+                        value={recordTypeFilter}
+                        onChange={(event) =>
+                          setRecordTypeFilter(event.target.value as RecordTypeFilter)
+                        }
+                        className={`${filterSelectClassName} min-w-[9.5rem]`}
+                        aria-label="Record Type"
+                      >
+                        <option value="updates-only">Updates only</option>
+                        <option value="show-all">Show All</option>
+                      </select>
+                    </label>
                     <button
                       type="button"
                       onClick={resetFilters}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:text-sm"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:col-span-2 sm:justify-self-end xl:col-span-1 xl:justify-self-stretch sm:text-sm"
                     >
                       <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
                         <path
@@ -959,10 +910,25 @@ export function VisaBulletinMovementTracker2({
                       Reset Filters
                     </button>
                   </div>
-                </div>
 
-                <MovementTable2 rows={filteredRows} />
-              </section>
+                  <MovementTable2
+                    rows={filteredRows}
+                    previousBulletinLabel={previousBulletinColumnLabel}
+                    currentBulletinLabel={currentBulletinColumnLabel}
+                  />
+                </section>
+
+                <aside
+                  className="min-w-0 lg:sticky lg:top-24"
+                  aria-label={getWhatChangedSectionTitle(bulletinMonthLabel)}
+                >
+                  <WhatChangedThisMonthSection2
+                    rows={rows}
+                    bulletinMonthLabel={bulletinMonthLabel}
+                    showTitle={false}
+                  />
+                </aside>
+              </div>
             </>
           )}
 

@@ -4,7 +4,6 @@ import { AdminMonthlyImmigrationReportPreview } from "@/components/admin/AdminMo
 import { AdminMonthlyUpdateControlCenter } from "@/components/admin/AdminMonthlyUpdateControlCenter";
 import { AdminNotificationTestForm } from "@/components/admin/AdminNotificationTestForm";
 import { AdminSendMonthlyImmigrationUpdateForm } from "@/components/admin/AdminSendMonthlyImmigrationUpdateForm";
-import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { PageHeader } from "@/components/PageHeader";
 import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { isAuthError } from "@/lib/auth/errors";
@@ -182,7 +181,6 @@ export default async function AdminDashboardPage() {
       title="IMMIFIN Admin Dashboard"
       description="Monitor dataset freshness and maintenance reminders."
       showFavorite={false}
-      actions={<DashboardCloseAction />}
     >
       <WorkspaceSection>
         <div className="space-y-6">

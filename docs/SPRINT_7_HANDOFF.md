@@ -1,157 +1,251 @@
-# IMMIFIN Sprint 7 Handoff — Stripe Subscription Platform
+# IMMIFIN Sprint 7 Handoff — As-Built Record
 
 | Field | Value |
 |-------|-------|
 | **Sprint** | Sprint 7 |
-| **Theme** | Stripe Subscription Platform |
-| **Kickoff Date** | 2026-07-11 |
-| **Status** | **In progress** — kicked off |
-| **Previous sprint** | Sprint 6 — Notification Platform **Production Validated** |
+| **Theme** | Commercial Platform — Stripe Subscription Platform |
+| **Kickoff** | 2026-07-11 |
+| **As-built record** | 2026-07-20 (S7-DOC-002) |
+| **Status** | **Implementation substantially complete** — production cutover and Live Stripe validation remain |
+| **Previous sprint** | Sprint 6 — Notification Platform (production validated) |
 | **Previous handoff** | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
-| **Production baseline** | Notification Platform v1.0 (`6f1df7e`) on https://immifin.com |
 
-**Related:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [ROADMAP_v2.md](./ROADMAP_v2.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md) · [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md)
+**Related:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [ROADMAP_v2.md](./ROADMAP_v2.md) · [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) · [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) · [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md) · [ENGINEERING_NOTES/EN-001_Stripe_Payment_Lifecycle.md](./ENGINEERING_NOTES/EN-001_Stripe_Payment_Lifecycle.md)
 
-> **This document is the first thing a new AI assistant or engineer must read for Sprint 7.**
-
----
-
-## 1. Read This First
-
-Sprint 6 closed the **Notification Platform**. Sprint 7 replaces **Development Subscription Mode** with real **Stripe billing**.
-
-IMMIFIN already has:
-
-- Free / Pro / Power **capability model** (`lib/subscription/capabilities.ts`)
-- Persisted `profiles.plan` + `subscriptions.plan`
-- Pricing UI + Dev Subscription Mode (ADR-007)
-- Pro/Power feature gates throughout the product
-
-Sprint 7 wires **payment → same plan field → same capabilities**. Do **not** redesign the tier/capability model.
+> This document is the **authoritative historical record** of Sprint 7 as implemented. Prefer the codebase and `scripts/verify-s7-*.mjs` over earlier planning percentages.
 
 ---
 
-## 2. Why Sprint 7 is Stripe (roadmap revision)
+# Sprint 7 Overview
 
-Roadmap v2 originally placed Stripe in **Sprint 10** (Commercial Launch Readiness) and Finance in Sprint 7.
+## Sprint objective
 
-After Sprint 6 Notification closeout, product priority is:
+Replace Development Subscription Mode as the sole commercial path with a **Stripe-backed subscription platform**, while keeping IMMIFIN’s Free / Pro / Power **capability model** as the authorization layer.
 
-> **Monetize the platform that already delivers Pro/Power value** (dashboard + Monthly Immigration Updates).
+## Sprint duration
 
-| Previous (Roadmap v2) | Revised (2026-07-11) |
-|-----------------------|----------------------|
-| Sprint 7 — Finance Platform | **Sprint 7 — Stripe Subscription Platform** |
-| Sprint 10 — Stripe / Commercial Launch | Shifted later (post-Stripe polish / launch readiness) |
-| Finance / Insurance / AI | Remain planned; deferred after Stripe foundation |
+- Kickoff: **2026-07-11**
+- As-built handoff: **2026-07-20**
 
-See [ROADMAP_v2.md](./ROADMAP_v2.md).
+## Overall outcome
 
----
+Sprint 7 delivered an end-to-end commercial stack in the application:
 
-## 3. Sprint goal
+- Server-authoritative Stripe Checkout
+- Durable webhook processing and billing-state synchronization
+- In-app Pricing and Billing Center (plan change / cancel)
+- Capability enforcement helpers wired into account APIs
+- Navigation, design-system, and contact UX polish supporting the commercial surface
 
-**Ship Stripe-backed Free → Pro / Power subscriptions** so real customers can pay, and Development Subscription Mode can be retired (or admin-only) in production.
+Production Live Stripe cutover, full Sandbox/Live operational validation, and Customer Portal payment-method/invoice sessions were **not** finished in this sprint.
 
-High-level outcomes:
+## Final completion status
 
-| Outcome | Description |
-|---------|-------------|
-| Checkout | Stripe Checkout (or equivalent) for Pro and Power |
-| Webhooks | Reliable plan updates from Stripe → Supabase |
-| Customer portal | Manage / cancel / update payment method |
-| Plan enforcement | Paid plan drives `profiles.plan` / capabilities |
-| Dev mode sunset path | Clear rule for when `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` is off in production |
-
----
-
-## 4. Mandatory reading (before implementation)
-
-1. This handoff  
-2. [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) — what just shipped  
-3. [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) — Free / Pro / Power capabilities & pricing intent  
-4. [architecture/ADR-007-Development-Subscription-Mode.md](./architecture/ADR-007-Development-Subscription-Mode.md) — current plan persistence  
-5. [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)  
-6. Existing code: `lib/subscription/**`, `app/api/account/subscription/route.ts`, `components/pricing/PricingPlans.tsx`
-
-**Documentation-first:** Write / approve a Stripe design note (S7-DOC-001) before Checkout/webhook code.
-
----
-
-## 5. Suggested Sprint 7 order
-
-| Order | Task | Intent |
-|-------|------|--------|
-| 1 | **S7-DOC-001** | Stripe architecture design — Checkout, webhooks, portal, plan mapping, secrets, Cloudflare constraints |
-| 2 | **S7-DB-001** | Schema for Stripe customer / subscription IDs (minimal; keep `plan` as source of product access) |
-| 3 | **S7-API-001** | Checkout session + webhook handlers (server-only secrets) |
-| 4 | **S7-UI-001** | Pricing CTAs → Checkout; success/cancel return URLs |
-| 5 | **S7-UI-002** | Billing portal entry (Account / Manage Profile) |
-| 6 | **S7-SEC-001** | Webhook signature verification, idempotency, audit |
-| 7 | **S7-OPS-001** | Env vars (local + Cloudflare), test mode → live checklist |
-| 8 | **S7-REL-001** | Localhost + production smoke; disable or gate Dev Mode in production |
-
-Exact task IDs may be refined in S7-DOC-001.
-
----
-
-## 6. Architecture constraints (locked)
-
-| Rule | Detail |
+| Area | Status |
 |------|--------|
-| **Reuse capability model** | Stripe sets `plan`; `hasCapability` / `canAccess*` stay the gate |
-| **No duplicate authorization** | Do not invent a second “paid” flag that bypasses capabilities |
-| **Server-only secrets** | `STRIPE_SECRET_KEY`, webhook secret — never `NEXT_PUBLIC_` |
-| **Cloudflare Workers** | Prefer Stripe APIs that work on Workers; avoid Node-only SDK patterns that break OpenNext |
-| **Clerk remains auth** | Stripe does not replace Clerk; link by email / `clerk_user_id` / customer metadata |
-| **Notification Platform untouched** | Do not redesign email/notification for Sprint 7 unless billing emails are explicitly scoped |
-| **Data retention** | Tier changes must not delete immigration profile data ([dataRetention](../lib/subscription/dataRetention.ts)) |
-
-### Target flow (draft — finalize in S7-DOC-001)
-
-```text
-User → Pricing → Stripe Checkout
-  → Stripe webhook (checkout.session.completed / subscription.*)
-  → updateSubscriptionPlan() → profiles.plan + subscriptions.plan
-  → SubscriptionTierProvider → capabilities → product features
-```
+| Stripe platform (Checkout, customers, webhooks, sync, plan change) | **Complete in code** |
+| Billing Experience (Pricing + Billing Center) | **Complete in code** |
+| Capability enforcement helpers | **Complete in code** |
+| Dedicated entitlement cutover from Dev Mode → Stripe-only | **Pending production gate** |
+| Customer Portal (payment method / invoices) | **Not built** (placeholders only) |
+| Sandbox / Live operational validation | **Pending** |
+| Sprint 7 documentation suite (beyond this handoff) | **Pending** (see S7-DOC-001 audit) |
+| Production deploy + signoff | **Pending** |
 
 ---
 
-## 7. What not to do
+# Original Sprint Goals
 
-- Do **not** start Checkout UI before S7-DOC-001 design is written  
-- Do **not** remove Dev Subscription Mode until Stripe webhook path is verified  
-- Do **not** store card numbers in Supabase  
-- Do **not** call Stripe from client with secret keys  
-- Do **not** expand into Finance / Insurance / AI feature work in this sprint  
-- Do **not** rebuild Notification Platform  
+At kickoff (2026-07-11), Sprint 7 aimed to:
 
----
+1. Design and implement a Stripe subscription platform for Free → Pro / Power
+2. Provide secure Checkout (tier + interval only from the browser)
+3. Map one Stripe Customer per IMMIFIN profile
+4. Process Stripe webhooks with durable idempotency and billing-state sync
+5. Preserve capability-first authorization (no ad-hoc Stripe status checks in UI)
+6. Integrate Pricing UI and a billing management experience
+7. Keep Development Subscription Mode until a controlled production cutover
+8. Leave Notification Platform and core immigration product behavior untouched
 
-## 8. Carry-forward from Sprint 6 (deferred — not Sprint 7)
-
-| Item | Notes |
-|------|-------|
-| Admin Force Sync / archive UI polish | S6-ADM-001 |
-| AI & Personalization | S6-AI-xxx |
-| Notification Queues / auto-send / SMS | Post Notification v1.0 |
-| Immigration Broadcast Platform | Parked |
+Early mid-sprint status (~88%) reflected **backend foundation only**. That percentage is obsolete; this document records what was actually built afterward.
 
 ---
 
-## 9. Kickoff checklist
+# Completed Deliverables
 
-- [x] Sprint 6 Notification track closed and documented  
-- [x] Sprint 7 theme = Stripe Subscription Platform  
-- [x] Roadmap revised (Stripe pulled forward to Sprint 7)  
-- [ ] S7-DOC-001 Stripe design written and approved  
-- [ ] First implementation task started after design  
+## Stripe Platform
+
+- **Stripe server foundation** — official SDK, lazy server client, env-validated Price catalog (`lib/stripe/*`)
+- **Checkout Session API** — `POST /api/stripe/checkout`; browser sends `tier` + `interval` only; server resolves Price IDs and redirects
+- **Client Checkout helper** — `lib/stripe/client-checkout.ts` used by Pricing actions
+- **Customer mapping** — `getOrCreateStripeCustomer()`; one customer per profile; environment isolation; Checkout always uses `customer: cus_...`
+- **Webhook database foundation** — migration `supabase/migrations/20260712120000_018_stripe_webhook_foundation.sql` (`stripe_webhook_events`, claim/complete RPCs, extended `subscriptions` columns)
+- **Webhook endpoint** — `POST /api/webhooks/stripe` with signature verification, durable claim, dispatcher, focused handlers
+- **Billing-state synchronization** — `synchronizeStripeSubscription` / subscription billing helpers persist plan, Stripe IDs, intervals, periods, and Stripe status into Supabase
+- **Subscription change API** — `POST /api/stripe/subscription/change` with policy, request validation, period/schedule helpers (upgrade, downgrade, interval change, cancel-to-free paths)
+- **Supported webhook events** — `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+
+## Billing Experience
+
+- **Pricing page** — monthly/annual interval UX, plan display catalog, Checkout CTAs for new paid subscriptions (`app/pricing/page.tsx`, `components/pricing/PricingPlans.tsx`, `lib/pricing/*`)
+- **Billing Center** — `/account/billing` (`components/billing/BillingCenter.tsx`, `lib/billing/billing-center.ts`)
+- **Upgrade / downgrade / interval change** — in-app flows calling subscription-change APIs (not Portal-driven)
+- **Downgrade to Free** — supported via Billing Center + change policy
+- **Plan-change confirmation UX** — confirmation dialog / intent helpers
+- **My Immifin navigation entry** — Billing Center reachable from account navigation
+- **Customer Portal** — **not implemented**; Billing Center shows placeholders for payment method / invoices (“later”)
+
+## Capability Platform
+
+- **Capability map retained** — Free / Pro / Power definitions in `lib/subscription/capabilities.ts`
+- **Server helpers** — `assertCapability` / `requireCapability` for API enforcement
+- **API gating** — applied on selected account routes (e.g. favorites, immigration profile, related account APIs)
+- **Premium UI gating** — `PremiumFeaturePreview`, `DashboardAccessGate`, premium nav preview dialog + Pro badge
+- **Effective tier hook** — `useEffectiveSubscriptionTier` (includes Development Subscription Mode overlays in non-production)
+- **Billing vs entitlements boundary** — webhooks sync **billing state**; they do not become ad-hoc feature checks scattered through UI
+- **Production cutover of entitlement source** — Development Subscription Mode remains available until explicitly gated off for Live; treat full “Stripe-only entitlements in production” as a release gate, not a finished cutover
+
+## User Experience
+
+- **Navigation grouping** — Immigration / Calculators / About / My Immifin structured menus (`lib/immigration-menu.ts`, `lib/calculator-menu.ts`, `lib/about-menu.ts`, `lib/my-immifin-menu.ts`, `Header.tsx`)
+- **Premium nav preview** — locked Pro items open a preview dialog instead of dead ends
+- **Favorites premium modal** — premium handling in favorites dropdown
+- **Context labels / Visa History menu** — navigation labeling consistency
+- **Contact page + form** — contact UI, API route, email template path
+- **Contact attachments** — multi-file upload with validation and Resend attachment support
+- **Design system — CTA buttons** — Electric Cyan rest + gold L→R hover sweep
+- **Design system — menu sweep** — light cyan L→R hover for triggers and submenu rows (including fill-layer correction so sweep remains visible)
+- **Landing ribbon** — shore-to-shore slogan motion, animated water surface across the blue ribbon
+- **Visa Bulletin date-type tabs** — shared Final Action / Dates for Filing tab styling
+- **Page close patterns** — consistent close actions on gated/workspace surfaces where applied
+
+## Verification & Engineering Support
+
+- **~26 `scripts/verify-s7-*.mjs` checks** covering Stripe, DB, capabilities, billing UI, nav, contact, and design-system polish
+- **Engineering note** — [EN-001 Stripe Payment Lifecycle](./ENGINEERING_NOTES/EN-001_Stripe_Payment_Lifecycle.md)
+- **Documentation audit** — S7-DOC-001 identified remaining doc updates (out of scope for this file)
+
+---
+
+# Architecture Decisions
+
+| Decision | Why |
+|----------|-----|
+| **Stripe manages money; IMMIFIN manages policy** | Keeps commercial rules (who may buy, upgrade/downgrade timing, Free rules) in IMMIFIN code and docs, not only in Stripe Dashboard configuration. See [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md). |
+| **Webhook-only billing truth** | Browser success redirects must never grant entitlements. Durable webhook processing is the authority for subscription state. |
+| **Billing Center owns plan changes** | Product needs IMMIFIN-controlled upgrade/downgrade/interval/cancel UX and policy. Stripe Customer Portal is reserved for payment method / invoices (not built yet), not plan orchestration. |
+| **Immutable Stripe Price IDs via environment catalog** | Avoids inventing prices in the client; server resolves approved Price IDs from configuration. |
+| **Capability-first authorization** | Feature access continues to use the capability map rather than raw `stripe_status` checks in components. |
+| **One Stripe Customer per profile (env-isolated)** | Prevents duplicate customers and cross-environment collisions between Test and Live. |
+| **Billing-state sync before entitlement cutover** | Persist Stripe subscription fields first; cut over production entitlement source only after Sandbox/Live validation and an explicit Dev Mode gate. |
+| **Development Subscription Mode retained until cutover** | Preserves engineering/QA velocity; must be hard-off in production when Live billing is activated. |
+
+---
+
+# Production Readiness
+
+## Completed (in application code)
+
+- Checkout API and Pricing Checkout wiring
+- Webhook route, event ledger migration, billing-state sync
+- Subscription change APIs and Billing Center plan management
+- Capability enforcement helpers on selected APIs
+- Commercial UX and navigation polish listed above
+- Local/verify-script coverage for major Sprint 7 surfaces
+
+## Ready for production only after operational gates
+
+These are **implemented** but not **production-validated**:
+
+- Signed webhook delivery against a registered endpoint
+- End-to-end Sandbox payment → Supabase sync proof
+- Live Stripe products/prices/webhook/secrets configuration
+- Explicit disable of Development Subscription Mode in production
+- Deployed migrations for webhook foundation on production Supabase
+
+## Remaining / pending
+
+| Item | Status |
+|------|--------|
+| Stripe Sandbox webhook registration + signed E2E | Pending |
+| Live Stripe catalog + Live webhook | Pending |
+| Production environment secrets & Price IDs | Pending |
+| Customer Portal session API (payment method / invoices) | Not built |
+| Full entitlement cutover (Dev Mode gated off in Live) | Pending |
+| Production deployment runbook / v0.5.0 signoff / release notes | Pending (docs) |
+| Broader documentation refresh (CURRENT, ROADMAP, Stripe design Status) | Pending (S7-DOC-001) |
+
+## Blocked
+
+None identified in engineering. Remaining work is **operational validation**, **documentation**, and **release gating**, not missing core application architecture for Checkout / webhooks / Billing Center.
+
+---
+
+# Deferred to Sprint 8
+
+Genuine follow-on work (not claimed as Sprint 7 complete):
+
+- Stripe Customer Portal sessions for payment method and invoices (or equivalent)
+- Production Live cutover execution and monitoring beyond initial deploy
+- Public marketing / landing redesign beyond the Sprint 7 ribbon polish
+- Additional UX polish not required for commercial launch
+- Broader Finance / Insurance platform features (pre-existing roadmap items shifted later)
+- Documentation suite completion identified in S7-DOC-001 (CURRENT, ROADMAP, ops, signoff, release notes)
+
+---
+
+# Lessons Learned
+
+1. **Separate billing state from entitlements early** — syncing Stripe fields into Supabase is not the same as cutting over who receives Pro/Power access in production.
+2. **Prefer an IMMIFIN Billing Center for plan changes** — Portal-centric management conflicts with product policy and upgrade/downgrade rules; Portal is better scoped to payment instruments and invoices.
+3. **Server-authoritative Checkout is non-negotiable** — clients must never choose Price IDs or trust redirect success alone.
+4. **Durable webhook idempotency is part of the product** — claim/complete ledgers prevent double-processing and make Sandbox/Live debugging tractable.
+5. **Commercial UI and design-system polish ship with billing** — Pricing, Billing Center, nav gating, and shared hover/sweep patterns are part of making the commercial path usable, not optional cosmetics.
+6. **Status docs drift faster than code** — mid-sprint “~88% / UI not started” became inaccurate; as-built handoffs must be rewritten from verify scripts and paths, not earlier EOD notes.
+
+---
+
+# Sprint Metrics
+
+| Metric | Summary |
+|--------|---------|
+| **Major features** | Checkout, webhooks + billing sync, subscription change, Pricing, Billing Center, capability enforcement helpers, commercial UX polish |
+| **Architecture** | Billing vs capability boundary preserved; Billing Center ownership decision recorded in ADR |
+| **Commercial readiness** | Application path ready for Sandbox validation; Live cutover not complete |
+| **Documentation readiness** | This as-built handoff updated; remaining docs still require S7-DOC-001 follow-up |
+| **Production readiness** | Not signed off — operational Stripe validation and release artifacts remain |
+| **Verify coverage** | ~26 `verify-s7-*` scripts across Stripe, DB, caps, billing UI, nav, contact, DS |
+
+---
+
+# Next Sprint
+
+**Sprint 8** should focus on **production commercial activation and follow-on product work**: Live Stripe cutover, remaining billing conveniences (e.g. Customer Portal for payment methods/invoices), documentation/signoff completion, and then the next product platform priorities already parked on the roadmap (not designed here).
+
+---
+
+## Mandatory reading for a new engineer
+
+1. This handoff (as-built)
+2. [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md)
+3. [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md)
+4. [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md)
+5. [ENGINEERING_NOTES/EN-001_Stripe_Payment_Lifecycle.md](./ENGINEERING_NOTES/EN-001_Stripe_Payment_Lifecycle.md)
+6. Key paths: `app/api/stripe/*`, `app/api/webhooks/stripe`, `app/account/billing`, `app/pricing`, `lib/stripe/*`, `lib/billing/*`, `lib/subscription/*`
+
+## What must not be regressed
+
+- Notification Platform behavior
+- Capability map semantics without an explicit product decision
+- Webhook-only activation of paid billing state
+- Server-only Stripe secrets (never `NEXT_PUBLIC_` for secret keys)
 
 ---
 
 ## Revision History
 
-| Version | Date | Description |
-|---------|------|-------------|
-| v1.0 | 2026-07-11 | Sprint 7 kicked off — Stripe Subscription Platform |
+| Version | Date | Task | Description |
+|---------|------|------|-------------|
+| v1.0 | 2026-07-11 | Sprint 7 kickoff | Initial planning handoff |
+| v2.0 | 2026-07-12 | DOC-EOD-S7-001 | Mid-sprint EOD (~88% backend) |
+| v3.0 | 2026-07-20 | S7-DOC-002 | **As-built rewrite** — full Sprint 7 implementation record |

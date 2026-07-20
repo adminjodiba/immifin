@@ -1,34 +1,22 @@
 "use client";
 
-import { useIsAdminRole } from "@/lib/hooks/useIsAdminRole";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 
 /**
- * Client gate for Development Subscription Mode UI (pricing, profile tab, panel).
+ * Client gate for Development Subscription Mode UI.
+ *
+ * Reads the server-authoritative `devSubscriptionMode` flag from subscription context
+ * (populated by GET `/api/account/subscription`). Unsigned pages that need the flag
+ * before sign-in should pass a server-derived prop into their client components.
  */
 export function useCanUseDevSubscriptionTools(): {
   canUse: boolean;
   isLoading: boolean;
 } {
   const subscriptionContext = useSubscriptionTierContext();
-  const { isAdmin, isLoading: adminLoading } = useIsAdminRole();
 
-  if (isDevSubscriptionModeEnabled()) {
-    return { canUse: true, isLoading: false };
-  }
-
-  if (subscriptionContext?.devSubscriptionMode) {
-    return { canUse: true, isLoading: false };
-  }
-
-  if (!adminLoading && isAdmin) {
-    return { canUse: true, isLoading: false };
-  }
-
-  if (adminLoading || (subscriptionContext?.isLoading ?? false)) {
-    return { canUse: false, isLoading: true };
-  }
-
-  return { canUse: false, isLoading: false };
+  return {
+    canUse: subscriptionContext?.devSubscriptionMode ?? false,
+    isLoading: subscriptionContext?.isLoading ?? false,
+  };
 }

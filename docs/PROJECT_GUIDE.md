@@ -3,367 +3,222 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Project Guide |
-| **Version** | v1.1 |
-| **Task ID** | S4-005.18 |
-| **Last Updated** | 2026-07-07 |
+| **Version** | v1.4 |
+| **Task ID** | S7-DOC-008 |
+| **Last Updated** | 2026-07-20 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | Official — **master entry point for all contributors** |
 
-> **Read this document first.** Every developer, AI assistant, and contributor must read this guide before making recommendations, writing code, or modifying architecture.
+> **Read this document first.** Every developer, AI assistant, and contributor should read this guide before making recommendations, writing code, or modifying architecture.
 
-This document replaces the need to manually explain project context in every new conversation.
+This document orients contributors quickly. It does **not** replace architecture, design, or operations documents — it tells you where to go next.
 
 ---
 
 ## 1. Project Overview
 
-**IMMIFIN** is a commercial SaaS platform focused on **Immigration**, **Finance**, and **Insurance** — a Life Operating System for Immigrants.
+**IMMIFIN** is a commercial SaaS platform focused on immigration tools first, with finance and insurance as longer-term modules. It helps immigrants make clearer immigration and life decisions through dashboards, calculators, automation, and paid personalization.
 
-### Mission
+| Field | Value |
+|-------|-------|
+| **Current production version** | **v0.4.2** + Notification Platform **v1.0** (`https://immifin.com`) |
+| **Platform maturity** | Core product stable; commercial Stripe path implemented in application code |
+| **Commercial readiness** | Application-ready for Sandbox validation; **not** Live-production-ready |
+| **Target next release** | **v0.5.0** commercial Stripe platform (signoff pending) |
+| **Tech stack** | Next.js 15 · React 19 · Tailwind · Clerk · Supabase · Stripe · Resend · Cloudflare Workers (OpenNext) |
 
-Help immigrants make better financial and immigration decisions through intelligent tools, automation, dashboards, and AI.
-
-### Current Production Version
-
-**v0.4.1 Foundation Release** (tag `v0.4.1`, production at `https://immifin.com`)
-
-### Current Sprint
-
-**Sprint 5 — Design System 2.0 & Product Experience**
-
-Sprint 5 is **not a feature sprint**. It is a product experience sprint to make IMMIFIN look and feel like a polished commercial SaaS product while preserving the v0.4.1 platform architecture.
+Authoritative status: [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
 
 ---
 
-## Current Stable Baseline
+## 2. Current Platform
 
-**Current Stable Release:**
+| Area | Summary |
+|------|---------|
+| **Authentication** | Clerk sign-in/up, protected routes, session handling |
+| **User profiles** | Account profile, immigration profile, contact preferences / onboarding |
+| **Visa Bulletin** | Current bulletin, history, movement tracker, stamping wait map |
+| **Dashboards** | My Immifin personalization, journey surfaces, Pro gates |
+| **Calculators** | Green Card wait, citizenship, H-1B tools |
+| **Notifications** | Resend email platform — **production validated** (Sprint 6) |
+| **Stripe platform** | Checkout, customer mapping, webhooks, billing-state sync, subscription change APIs |
+| **Billing Center** | `/account/billing` — IMMIFIN-owned upgrade / downgrade / interval / cancel |
+| **Capability enforcement** | Capability map + server helpers + premium UI gates |
+| **Design system / UX** | DS 2.0 surfaces, nav polish, commercial CTA/menu patterns, landing ribbon polish |
 
-**v0.4.1 Foundation Release**
+**Business model (brief):** Free / Pro / Power. Access is **capability-based**, not plan-name checks in UI. Source of truth: [BUSINESS_MODEL.md](./BUSINESS_MODEL.md).
 
-**Git Tag:**
-
-**v0.4.1**
-
-**Purpose:**
-
-This release represents the official architectural baseline of IMMIFIN.
-
-All future development should build upon this foundation.
-
-Design System 2.0 begins immediately after this release.
-
-Any architectural change that affects the platform foundation should first be documented and approved before implementation.
-
-See [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md).
+**Billing ownership (brief):** Stripe owns money; IMMIFIN owns policy, capabilities, and Billing Center plan changes. Customer Portal (payment method / invoices) is deferred.
 
 ---
 
-## 2. Current Project Status
+## 3. Project Documentation Map
 
-| Area | Status |
-|------|--------|
-| **Platform foundation** | ✅ Complete (v0.4.1) |
-| **Architecture** | ✅ Stabilized — capability-based, documented |
-| **Documentation** | ✅ Complete for v0.4.1; Sprint 5 handoff ready |
-| **Premium subscription model** | ✅ Free / Pro / Power established |
-| **Billing / Stripe** | ⏳ Not connected — pricing page shows Coming Soon |
-| **Design System 2.0** | 🟡 Next — Sprint 5 current priority |
+### Recommended reading order
 
-**Summary:** Platform foundation is complete. Architecture is stabilized. Documentation is current. Premium subscription model is established. The project is **ready for Design System 2.0**.
+| Order | Document | Purpose |
+|-------|----------|---------|
+| 1 | [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) | Master onboarding entry point (this file) |
+| 2 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Where the project is today — start for status |
+| 3 | [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) | As-built Sprint 7 commercial platform record |
+| 4 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | System / infrastructure / platform architecture |
+| 5 | [ROADMAP_v2.md](./ROADMAP_v2.md) | Forward sprint sequencing (Sprint 8 active focus) |
+| 6 | Feature design docs | Deep dives for the surface you are changing |
+| 7 | Operations docs | How to run, validate, and support production systems |
 
-See [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) and [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md).
-
----
-
-## Project Governance
-
-IMMIFIN follows a **documentation-first development model**.
-
-| Document | Governs |
-|----------|---------|
-| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Subscription behavior and feature gating |
-| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Product direction and long-term vision |
-| [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Technical design and infrastructure |
-| [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Implementation workflow and release gates |
-| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | Permanent AI Engineering Framework — task templates for agents |
-| [ROADMAP_v2.md](./ROADMAP_v2.md) | Sprint sequencing *(may evolve through documented revisions)* |
-
-**Principles:**
-
-- Major architectural decisions must be **documented before implementation**.
-- **Documentation is the source of truth.** Implementation follows documentation.
-- **Completed sprint history should never be rewritten.**
-- Roadmap revisions must explain:
-  - What changed
-  - Why it changed
-  - Which future work shifted
-
-See [ENGINEERING_PLAYBOOK.md §19](./ENGINEERING_PLAYBOOK.md#19-roadmap-revision-procedure).
-
----
-
-## 3. Current Product Architecture
-
-Major completed modules and patterns:
-
-| Module / Pattern | Route / Location | Status |
-|------------------|------------------|--------|
-| **Home** | `/` | Public landing; Login Required UX for protected links |
-| **Immigration** | `/immigration/*` | Visa Bulletin tools, history, movement |
-| **Finance** | `/finance` | Placeholder / early content |
-| **Insurance** | `/insurance` | Placeholder / early content |
-| **Current Visa Bulletin** | `/immigration/visa-bulletin` | Free — live bulletin dashboard |
-| **Visa Bulletin History** | `/immigration/visa-bulletin-history` | Pro — Premium Feature Discovery |
-| **Movement Tracker** | `/immigration/visa-bulletin-movement` | Pro — Premium Feature Discovery |
-| **Calculators** | `/calculators/*`, `/immigration/h1b-*` | Free manual input; Pro auto-population — see [CALCULATORS.md](./CALCULATORS.md) |
-| **Admin Dashboard** | `/admin` | Admin role only — Data Refresh Center — [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) |
-| **My Immifin** | Top nav dropdown | Personal workspace — Dashboard, Manage Profile |
-| **Dashboard** | `/dashboard` | Pro/Power — journey layout, EB/GC timelines |
-| **Pricing** | `/pricing` | Free / Pro / Power plan cards |
-| **Profile** | `/user-profile` | Manage Profile hub — tier-gated sections |
-| **Subscription** | `lib/subscription/` | Tiers, capabilities, dev tier testing |
-| **Premium Feature Discovery** | UX pattern | Real page + blur overlay + upgrade CTA |
-| **PremiumFeaturePreview** | `components/common/PremiumFeaturePreview.tsx` | Reusable premium gating component |
-| **Authentication** | Clerk | App-wide gate; `/` public |
-| **Database** | Supabase | Profiles, immigration fields, contact, notifications |
-
-**Tech stack:** Next.js 15 · React 19 · Tailwind CSS · Clerk · Supabase · Cloudflare Workers (OpenNext)
-
-See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) for infrastructure detail.
-
----
-
-## 4. Business Model
-
-Three subscription tiers. One platform account.
-
-| Tier | Focus | Examples |
-|------|-------|----------|
-| **Free** | Manual tools | Current Visa Bulletin, manual calculators, contact profile |
-| **Pro** | Personalization & automation | Dashboard, saved profile, history, movement, notifications, auto-populated calculators |
-| **Power** | AI & advanced intelligence | Everything in Pro + AI assistant, multiple profiles *(planned)* |
-
-**Core principle:**
-
-| Layer | Tier |
-|-------|------|
-| Manual Tools | Free |
-| Personalization & Automation | Pro |
-| AI & Advanced Intelligence | Power |
-
-> **[BUSINESS_MODEL.md](./BUSINESS_MODEL.md) is the source of truth** for all subscription tiers, capability mappings, feature gating, and upgrade philosophy. Read it before implementing any tier-gated feature.
-
-Engineering must use **capability-based authorization** (`hasCapability`, `canAccess*`) — not scattered `tier === "pro"` checks.
-
----
-
-## 5. Project Documentation Map
+### Feature / commercial design docs (as needed)
 
 | Document | Purpose |
 |----------|---------|
-| [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) | **Master entry point** — read first |
-| [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 context, goals, constraints, first task |
-| [CALCULATORS.md](./CALCULATORS.md) | Live calculators, H-1B pair, navigation rules |
-| [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin MVP, role access, subscription testing |
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 — admin force sync, AI & Personalization |
-| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 context — admin force sync (manual archive), AI & Personalization |
-| [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Authoritative project state, capabilities, ADRs |
-| [ROADMAP_v2.md](./ROADMAP_v2.md) | Revised sprint roadmap — Design System 2.0 as Sprint 5 |
-| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision — Life OS for Immigrants |
-| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | **Source of truth** — tiers, capabilities, premium UX |
-| [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure, deployment, environments, gating components |
-| [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow v2.0, release gates, engineering rules |
-| [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md) | AI governance — roles, standards, task classification |
-| [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md) | Standard Cursor prompt format for all tasks |
-| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 Foundation Release summary |
-| [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | Formal sign-off — frozen architecture decisions |
+| [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) | IMMIFIN vs Stripe ownership ADR |
+| [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) | As-built Stripe platform design |
+| [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | Upgrade / downgrade / cancel commercial rules |
+| [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) | Tiers, capabilities, Premium Feature Discovery |
+| [NOTIFICATION_DESIGN.md](./NOTIFICATION_DESIGN.md) | Notification Platform design |
+| [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) | Notification Platform production validation |
+| [CALCULATORS.md](./CALCULATORS.md) | Calculator inventory and rules |
+| [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Admin Data Refresh Center |
 
-**Supporting docs:** [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md) · [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md)
+### Operations & engineering process
 
----
+| Document | Purpose |
+|----------|---------|
+| [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md) | Stripe ops — envs, workflows, monitoring, recovery, validation |
+| [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Implementation workflow and release gates |
+| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | AI task templates and agent guidelines |
+| [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Localhost + tunnel setup |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Cloudflare deployment summary |
+| [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md) | AI governance and task classification |
+| [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md) | Standard Cursor prompt format |
 
-## 6. Mandatory Reading Order
+### Historical / release references
 
-Every new AI assistant or engineer **must read these documents in order** before making recommendations or code changes:
-
-1. [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) *(this document)*
-2. [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md)
-3. [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)
-4. [ROADMAP_v2.md](./ROADMAP_v2.md)
-5. [PRODUCT_VISION.md](./PRODUCT_VISION.md)
-6. [BUSINESS_MODEL.md](./BUSINESS_MODEL.md)
-7. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
-8. [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md)
-9. [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md)
-10. [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md)
-11. [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md)
-12. [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md)
+| Document | Purpose |
+|----------|---------|
+| [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) | Sprint 6 planned vs completed |
+| [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 historical context |
+| [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md) | v0.4.2 release notes |
+| [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) | v0.4.1 foundation release notes |
+| [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) | Frozen foundation architectural decisions |
+| [PRODUCT_VISION.md](./PRODUCT_VISION.md) | Long-term product vision |
+| [COMMERCIAL_PLATFORM_VISION.md](./COMMERCIAL_PLATFORM_VISION.md) | Post-beta commercial management vision (deferred) |
 
 ---
 
-## 7. Product Principles
-
-Key principles governing all IMMIFIN work:
+## 4. Engineering Principles
 
 | Principle | Meaning |
 |-----------|---------|
-| **Documentation First** | Architecture and business decisions are documented before or alongside implementation |
-| **Architecture Before Features** | Inspect and explain architecture before writing code |
-| **Capability-Based Authorization** | Use `hasCapability` / `canAccess*` — never scattered plan-name checks |
-| **Premium Feature Discovery** | Show real premium pages with blur overlay — never screenshots or duplicate layouts |
-| **Localhost First** | Verify on `http://localhost:3000` before commit or deploy |
-| **Cloudflare After Git Verification** | Push to GitHub; verify Cloudflare deploy completes; then production smoke test |
-| **Business Model Before Implementation** | Read [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) before any tier-gated feature |
+| **Architecture first** | Inspect architecture and docs before writing code |
+| **Documentation first** | Document major decisions before or with implementation |
+| **Code follows design** | Prefer approved design/ADR/policy over inventing behavior |
+| **Capability-first authorization** | Use the capability map and helpers — not scattered plan or Stripe-status checks |
+| **Webhook-authoritative billing** | Browser success redirects never grant paid access |
+| **Localhost before production** | Verify on `http://localhost:3000` (and tunnel when webhooks matter) before ship |
+| **Small iterative changes** | Stay in task scope; avoid drive-by refactors |
+| **No undocumented architectural changes** | Platform boundary changes require docs + approval |
 
-**v0.4.1 product principles:**
-
-1. Public information should educate. Premium features should personalize.
-2. Premium features should demonstrate value before asking users to upgrade.
-3. Never create duplicate versions of premium pages.
-4. Render the real feature whenever possible.
-5. Every premium page should answer: *"What will I gain by upgrading?"*
-
-See [PRODUCT_VISION.md §21](./PRODUCT_VISION.md#21-product-principles-v041) and [BUSINESS_MODEL.md §17](./BUSINESS_MODEL.md#17-product-principles-v041).
+Governance docs: [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md).
 
 ---
 
-## 8. Standard Development Workflow
-
-Every implementation task follows this sequence:
+## 5. Development Workflow
 
 | Step | Action |
 |------|--------|
-| 1 | **Read documentation** — mandatory reading order above |
-| 2 | **Understand architecture** — inspect relevant code and docs before changing anything |
-| 3 | **Implement** — stay within approved task scope; use [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md) |
-| 4 | **Verify localhost** — test on `http://localhost:3000`; restart dev server after changes |
-| 5 | **Run TypeScript** — `npx tsc --noEmit` |
-| 6 | **Run ESLint** — `npm run lint` |
-| 7 | **Commit** — only when user explicitly requests; small logical commits |
-| 8 | **Push GitHub** — `git push origin main` triggers Cloudflare deploy |
-| 9 | **Verify Cloudflare** — confirm deploy completes at `immifin.com` |
-| 10 | **Update documentation** — applicable docs reflect the change |
+| 1 | **Understand** — read this guide, current state, and relevant design/ops docs |
+| 2 | **Design** — confirm architecture/policy before coding when behavior changes |
+| 3 | **Implement** — stay within approved task scope; reuse existing patterns |
+| 4 | **Localhost** — verify on `localhost:3000`; use tunnel for webhook/auth work |
+| 5 | **Review** — TypeScript / lint / focused verification as required by the task |
+| 6 | **Documentation** — update the owning docs when behavior or ops change |
+| 7 | **Git** — commit / push only when the user explicitly requests |
+| 8 | **Production** — Cloudflare deploys from `main`; smoke-test only after explicit deploy intent |
 
-**Auth/webhook work:** Also start Cloudflare dev tunnel (`npm run dev:local`) and verify Clerk webhooks return **200**.
-
-See [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) and [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
+Details: [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
 ---
 
-## 9. Current Roadmap
+## 6. Current Sprint Status
 
-Official roadmap: **[ROADMAP_v2.md](./ROADMAP_v2.md)**
+| Item | Status |
+|------|--------|
+| **Sprint 7 — Commercial Platform** | **Completed in application code** |
+| **Live Stripe / Sandbox E2E / v0.5.0 signoff** | **Production validation pending** |
+| **Customer Portal (payment method / invoices)** | Deferred |
+| **Active roadmap focus** | **Sprint 8** — public experience, landing redesign, commercial polish |
 
-| Sprint | Theme | Status |
-|--------|-------|--------|
-| Sprint 1 | Foundation | Complete |
-| Sprint 2 | Data / Visa Bulletin Foundation | Complete |
-| Sprint 3 | Authentication / Personalization | Complete |
-| Sprint 4 | Platform Foundation (v0.4.1) | Complete |
-| **Sprint 5** | **Design System 2.0 & Product Experience** | **Current** |
-| Sprint 6 | AI & Personalization | Planned |
-| Sprint 7 | Finance Platform | Planned |
-| Sprint 8 | Insurance Platform | Planned |
-| Sprint 9 | Notifications & Automation | Planned |
-| Sprint 10 | Commercial Launch Readiness | Planned |
-
-> The roadmap is a living product strategy, not a fixed contract.
-
-**Sprint 5 is Design System 2.0** — unified visual language, component library, and platform-wide UI consistency. Document Design System 2.0 before major page redesigns.
-
-First recommended task: **S5-000 — Create IMMIFIN Design System 2.0 Document**
+Do not duplicate the full roadmap here. See [ROADMAP_v2.md](./ROADMAP_v2.md) and [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md).
 
 ---
 
-## 10. What Must Not Change Casually
+## 7. Contribution Guidelines
 
-The following v0.4.1 decisions require **explicit product approval** before modification:
+- Read architecture and current state before proposing changes.
+- Keep documents synchronized with behavior changes you ship.
+- Do not bypass capabilities for “temporary” premium access.
+- Do not authorize features from raw Stripe status in UI or APIs.
+- Do not duplicate immigration math, billing policy, or entitlement logic.
+- Document architectural or billing-boundary changes in the owning docs.
+- Preserve completed sprint history — update as-built/status docs; do not rewrite old handoffs casually.
+- Do not commit, push, or deploy unless the user explicitly asks.
+
+### What must not change casually
+
+These require explicit product approval before modification:
 
 | Decision | Why protected |
 |----------|---------------|
-| **Free / Pro / Power architecture** | Business model source of truth established |
-| **Capability helpers** | Central map in `lib/subscription/capabilities.ts` |
-| **Premium Feature Discovery** | Standard UX for all premium features |
-| **My Immifin workspace** | Personal hub distinct from product modules |
-| **Business model** | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) governs all gating |
-| **Dashboard architecture** | Stable layout — main content + right sidebar; content dynamic |
-| **Production tier default = Free** | Unenrolled users are Free, not Pro |
-| **Middleware = Clerk auth only** | No Supabase lookups (Cloudflare 1102 incident) |
-| **No duplicate premium layouts** | Real page renders underneath `PremiumFeaturePreview` |
+| Free / Pro / Power + capability model | Business model source of truth |
+| Premium Feature Discovery pattern | Standard premium UX |
+| My Immifin workspace model | Personal hub distinct from product modules |
+| Webhook-authoritative billing | Commercial integrity |
+| Billing Center as plan-management UX | Portal is not the primary plan orchestrator |
+| Middleware = Clerk auth only | Cloudflare reliability constraint |
+| Production unpaid default = Free | Entitlement safety |
 
-See [V0_4_1_FOUNDATION_SIGNOFF.md §11](./V0_4_1_FOUNDATION_SIGNOFF.md#11-what-must-not-be-reopened-without-approval).
-
-Design System 2.0 may change **visual language and components** — not these architectural decisions.
+See [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) and [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md).
 
 ---
 
-## 11. Next Major Initiative
+## 8. Quick Links
 
-**Sprint 5 — Design System 2.0 & Product Experience** is the current initiative. See [§9 Current Roadmap](#9-current-roadmap), [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md), and [Project North Star](#project-north-star).
-
-Design System 2.0 is **not yet implemented** — documentation and approval precede major page redesigns.
-
----
-
-## 12. For Future AI Assistants
-
-Before making recommendations:
-
-1. **Read the documentation** — start with this guide, then the mandatory reading order.
-2. **Do not assume** — verify current state in docs and code; project context changes between sprints.
-3. **Treat documentation as the source of truth** — especially [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) for gating and [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) for project state.
-4. **Preserve architectural consistency** — build on v0.4.1 foundation; do not casually redesign subscription architecture or premium UX patterns.
-5. **Recommend improvements that align with the business model and product vision** — every feature should reduce uncertainty, save time, or help immigrants make better decisions.
-6. **Use the standard prompt format** — [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md) and [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md).
-7. **Do not commit, push, or deploy** unless the user explicitly requests it.
-8. **Stop and restart localhost** when the user needs to test changes.
-
-> v0.4.1 is the stable platform foundation. Future work should build on this architecture unless a documented product decision explicitly supersedes it.
+| Topic | Document |
+|-------|----------|
+| **Current state** | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) |
+| **Sprint 7 handoff** | [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) |
+| **Architecture** | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) |
+| **Roadmap** | [ROADMAP_v2.md](./ROADMAP_v2.md) |
+| **Billing design** | [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) |
+| **Billing ADR** | [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) |
+| **Stripe operations** | [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md) |
+| **Business model** | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) |
+| **Release notes** | [RELEASE_NOTES_v0.4.2.md](./RELEASE_NOTES_v0.4.2.md) · [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) |
+| **Production runbook** | Planned — not yet published (see pending commercial validation in current state) |
+| **Engineering framework** | [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) |
 
 ---
 
-## 13. Version Evolution
+## For AI Assistants
 
-| Version | Theme | Status |
-|---------|-------|--------|
-| v0.1 | MVP Foundation | Complete |
-| v0.2 | Automation | Complete |
-| v0.3 | Authentication & Personalization | Complete |
-| v0.4.1 | Platform Foundation | **Current Stable Baseline** |
-| v0.5 | Design System 2.0 & Product Experience | Next Initiative |
-| v0.6 | AI & Personalization | Planned |
-| v0.7 | Finance Platform | Planned |
-| v0.8 | Insurance Platform | Planned |
-| v0.9 | Notifications & Automation | Planned |
-| v1.0 | Commercial Launch | Vision |
+Before recommending or coding:
 
-Production tag: `v0.4.1` · Next target: `v0.5.0` after Design System 2.0 ships.
-
-Version themes align with [ROADMAP_v2.md](./ROADMAP_v2.md) (Sprints 5–10). See [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md).
+1. Start with this guide, then [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
+2. Prefer as-built handoff + code over outdated mid-sprint planning language.
+3. Treat [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) as gating truth and billing docs as commercial truth.
+4. Preserve architectural consistency; do not casually redesign subscription or premium UX patterns.
+5. Use [PROMPT_TEMPLATE.md](./PROMPT_TEMPLATE.md) / [ENGINEERING_FRAMEWORK](./ENGINEERING_FRAMEWORK/README.md) task templates when provided.
+6. Do not commit, push, or deploy unless explicitly requested.
 
 ---
 
 ## Project North Star
 
-### Mission
+Help immigrants make better immigration and life decisions with trustworthy tools, personalization, and automation.
 
-Build the most trusted AI-powered SaaS platform helping immigrants make better immigration, finance, and insurance decisions.
+A first-time visitor should believe IMMIFIN is a polished commercial product quickly. Every feature should improve trust, quality, personalization, automation, intelligence, or commercial readiness.
 
-### Success Metric
-
-A first-time visitor should believe IMMIFIN is a **polished commercial SaaS product** within 10 seconds of arriving.
-
-### Every future feature should improve one or more of:
-
-- **User Trust**
-- **Product Quality**
-- **Personalization**
-- **Automation**
-- **Intelligence**
-- **Commercial Readiness**
-
-See [PRODUCT_VISION.md](./PRODUCT_VISION.md) and [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-initiative) for Design System 2.0 scope.
+See [PRODUCT_VISION.md](./PRODUCT_VISION.md).
 
 ---
 
@@ -371,5 +226,8 @@ See [PRODUCT_VISION.md](./PRODUCT_VISION.md) and [PRODUCT_VISION.md §22](./PROD
 
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
-| v1.0 | 2026-07-04 | S4-005.17 | Master project guide — official entry point for all contributors |
-| v1.1 | 2026-07-04 | S4-005.18 | Stable baseline, project governance, version evolution, north star |
+| v1.0 | 2026-07-04 | S4-005.17 | Master project guide — official entry point |
+| v1.1 | 2026-07-04 | S4-005.18 | Stable baseline, governance, version evolution, north star |
+| v1.2 | 2026-07-11 | S7-DOC-001 | Stripe design added to documentation index; Sprint 7 Planning |
+| v1.3 | 2026-07-11 | S7-DOC-002 | Stripe Operations added to documentation index |
+| v1.4 | 2026-07-20 | S7-DOC-008 | Post–Sprint 7 onboarding — reading order, platform status, Sprint 8 focus |

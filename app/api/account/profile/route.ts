@@ -7,6 +7,8 @@ import {
 import { AuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
 import { requireUser } from "@/lib/auth/requireUser";
+import { CAPABILITY } from "@/lib/subscription/capabilities";
+import { assertCapability } from "@/lib/subscription/requireCapability";
 import {
   updateImmigrationProfilePreferences,
   updateProfileContact,
@@ -57,6 +59,8 @@ export async function PATCH(request: Request) {
     }
 
     if (savingNotifications) {
+      assertCapability(profileWithRelations, CAPABILITY.notifications);
+
       let notificationPreferences: NotificationPreferences;
       try {
         notificationPreferences = validateNotificationPreferences(body.notificationPreferences);

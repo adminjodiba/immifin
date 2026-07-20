@@ -3,6 +3,7 @@ import {
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
 import { VisaBulletinHistoricalTrends } from "@/components/VisaBulletinHistoricalTrends";
+import { CAPABILITY } from "@/lib/subscription/capabilities";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -43,7 +44,7 @@ const VISA_HISTORY_INFO_STATE = {
 export default function VisaBulletinHistoryPage() {
   return (
     <PremiumFeaturePreview
-      requiredTier="pro"
+      capability={CAPABILITY.visaHistory}
       featureGroupTitle="Historical Intelligence"
       featureList={[...VISA_HISTORY_FEATURES]}
       showCloseButton

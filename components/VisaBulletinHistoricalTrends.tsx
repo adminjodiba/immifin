@@ -5,9 +5,10 @@
  */
 
 import Link from "next/link";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
 import {
@@ -31,6 +32,8 @@ import {
   useHistoryScrollToTop,
 } from "@/components/VisaBulletinHistoryTimelineScroll";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
+import { canAccessVisaHistory } from "@/lib/subscription/capabilities";
 
 const categoryOptions = [
   { value: "EB1", label: "EB-1" },
@@ -50,6 +53,49 @@ const typeOptions: { value: BulletinHistoryType; label: string }[] = [
   { value: "FinalAction", label: "Final Action" },
   { value: "Filing", label: "Dates for Filing" },
 ];
+
+/** Profile chargeability codes → History country filter values. */
+const CHARGEABILITY_TO_HISTORY_COUNTRY: Record<string, string> = {
+  india: "India",
+  china: "China",
+  mexico: "Mexico",
+  philippines: "Philippines",
+  all: "Rest of the World",
+};
+
+/** Profile bulletin type → History type filter values. */
+const PROFILE_BULLETIN_TYPE_TO_HISTORY: Record<string, BulletinHistoryType> = {
+  final_action: "FinalAction",
+  dates_for_filing: "Filing",
+};
+
+function mapProfileCategoryToHistory(category: string | null): string | null {
+  if (!category) {
+    return null;
+  }
+
+  return categoryOptions.some((option) => option.value === category) ? category : null;
+}
+
+function mapProfileCountryToHistory(countryChargeability: string | null): string | null {
+  if (!countryChargeability) {
+    return null;
+  }
+
+  const mapped = CHARGEABILITY_TO_HISTORY_COUNTRY[countryChargeability];
+  return mapped && countryOptions.some((option) => option.value === mapped) ? mapped : null;
+}
+
+function mapProfileBulletinTypeToHistory(
+  bulletinType: string | null,
+): BulletinHistoryType | null {
+  if (!bulletinType) {
+    return null;
+  }
+
+  const mapped = PROFILE_BULLETIN_TYPE_TO_HISTORY[bulletinType];
+  return mapped && typeOptions.some((option) => option.value === mapped) ? mapped : null;
+}
 
 const dateRangeOptions = [
   { value: "6", label: "6 Months" },
@@ -421,11 +467,36 @@ const filterSelectClassName =
   "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
 
 export function VisaBulletinHistoricalTrends() {
+  const { defaults, loaded, autoPopulationEnabled } = useImmigrationProfileDefaults();
+  const profileDefaultsApplied = useRef(false);
   const [category, setCategory] = useState("EB2");
   const [country, setCountry] = useState("India");
   const [type, setType] = useState<BulletinHistoryType>("FinalAction");
   const [dateRange, setDateRange] = useState<DateRangeKey>("6");
   const { tier } = useEffectiveSubscriptionTier();
+
+  useEffect(() => {
+    if (!loaded || !autoPopulationEnabled || !defaults || profileDefaultsApplied.current) {
+      return;
+    }
+
+    // Apply saved profile filters once; user may change them freely afterward.
+    profileDefaultsApplied.current = true;
+
+    const profileCategory = mapProfileCategoryToHistory(defaults.category);
+    const profileCountry = mapProfileCountryToHistory(defaults.countryChargeability);
+    const profileType = mapProfileBulletinTypeToHistory(defaults.bulletinType);
+
+    if (profileCategory) {
+      setCategory(profileCategory);
+    }
+    if (profileCountry) {
+      setCountry(profileCountry);
+    }
+    if (profileType) {
+      setType(profileType);
+    }
+  }, [loaded, autoPopulationEnabled, defaults]);
 
   const params = new URLSearchParams({ category, country, type });
   const key = `/api/visa-bulletin-history?${params.toString()}`;
@@ -443,18 +514,21 @@ export function VisaBulletinHistoricalTrends() {
   return (
     <WorkspacePageShell>
       <div className="container-main py-5 sm:py-6 lg:py-7">
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Visa Bulletin History</h1>
-              <FavoriteStar
-                pageLabel="Visa Bulletin History"
-                pageHref="/immigration/visa-bulletin-history"
-              />
+        <header className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Visa Bulletin History</h1>
+                <FavoriteStar
+                  pageLabel="Visa Bulletin History"
+                  pageHref="/immigration/visa-bulletin-history"
+                />
+              </div>
+              <p className="mt-1 max-w-xl text-sm text-slate-600">
+                Track historical cutoff dates and identify trends for your immigration journey.
+              </p>
             </div>
-            <p className="mt-1 max-w-xl text-sm text-slate-600">
-              Track historical cutoff dates and identify trends for your immigration journey.
-            </p>
+            <DashboardCloseAction />
           </div>
 
           <div className="flex flex-col gap-2 lg:items-end" aria-label="Filters">
@@ -552,7 +626,7 @@ export function VisaBulletinHistoricalTrends() {
             </div>
           </section>
 
-          {tier === "free" ? (
+          {!canAccessVisaHistory(tier) ? (
             <section className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-brand-200/60 bg-gradient-to-r from-brand-50 to-white px-5 py-4 shadow-sm sm:flex-row sm:items-center">
               <div>
                 <p className="text-sm font-bold text-slate-900">Unlock More with Pro</p>

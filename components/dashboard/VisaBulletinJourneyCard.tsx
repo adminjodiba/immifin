@@ -17,6 +17,10 @@ type TimelineSegment = {
 
 type MarkerKind = "cutoff" | "priority" | "today";
 
+/** Snap long marker labels to card edges so they are not clipped by overflow-hidden. */
+const LABEL_EDGE_INSET_PERCENT = 12;
+
+/** Precise placement for track dots and connectors. */
 function markerPositionStyle(percent: number): CSSProperties {
   if (percent <= 0) {
     return { left: "0%" };
@@ -29,12 +33,25 @@ function markerPositionStyle(percent: number): CSSProperties {
   return { left: `${percent}%`, transform: "translateX(-50%)" };
 }
 
-function markerAlignClass(percent: number): string {
-  if (percent <= 0) {
+/** Edge-safe placement for labels (avoids clipping near card borders). */
+function labelPositionStyle(percent: number): CSSProperties {
+  if (percent <= LABEL_EDGE_INSET_PERCENT) {
+    return { left: "0%" };
+  }
+
+  if (percent >= 100 - LABEL_EDGE_INSET_PERCENT) {
+    return { right: "0%", left: "auto" };
+  }
+
+  return { left: `${percent}%`, transform: "translateX(-50%)" };
+}
+
+function labelAlignClass(percent: number): string {
+  if (percent <= LABEL_EDGE_INSET_PERCENT) {
     return "text-left";
   }
 
-  if (percent >= 100) {
+  if (percent >= 100 - LABEL_EDGE_INSET_PERCENT) {
     return "text-right";
   }
 
@@ -194,8 +211,8 @@ function PositionedBlock({
 }) {
   return (
     <div
-      className={`absolute max-w-[9.5rem] px-0.5 sm:max-w-[10.5rem] ${markerAlignClass(percent)} ${className}`}
-      style={markerPositionStyle(percent)}
+      className={`absolute max-w-[9.5rem] px-0.5 sm:max-w-[10.5rem] ${labelAlignClass(percent)} ${className}`}
+      style={labelPositionStyle(percent)}
     >
       {children}
     </div>

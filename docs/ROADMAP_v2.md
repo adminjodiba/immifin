@@ -3,14 +3,14 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Roadmap v2 |
-| **Version** | v2.0 |
-| **Task ID** | S4-005.16 |
-| **Last Updated** | 2026-07-05 |
+| **Version** | v2.11 |
+| **Task ID** | S7-DOC-004 |
+| **Last Updated** | 2026-07-20 |
 | **Owner** | Product Strategy / Technical Architecture |
-| **Status** | Official — Sprint 5 in progress; first DS 2.0 page approved |
+| **Status** | Official — Sprint 7 commercial platform implemented (Live validation pending); **Sprint 8 is the active focus** |
 | **Supersedes** | Informal sprint sequencing prior to v0.4.1 Foundation Release |
 
-**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [V0_4_1_FOUNDATION_SIGNOFF.md](./V0_4_1_FOUNDATION_SIGNOFF.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md)
+**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md)
 
 ---
 
@@ -39,12 +39,12 @@ When strategic sequencing changes, create a new roadmap version, explain why, pr
 | Sprint 2 | Data / Visa Bulletin Foundation | Data / Visa Bulletin Foundation | Complete |
 | Sprint 3 | Authentication / Personalization | Authentication / Personalization | Complete |
 | Sprint 4 | Platform Foundation | Platform Foundation (v0.4.1) | Complete |
-| Sprint 5 | Previously planned feature sprint | **Design System 2.0 & Product Experience** | **In Progress** |
-| Sprint 6 | Previously planned Sprint 5 | AI & Personalization | Planned |
-| Sprint 7 | Previously planned Sprint 6 | Finance Platform | Planned |
-| Sprint 8 | Previously planned Sprint 7 | Insurance Platform | Planned |
-| Sprint 9 | Previously planned Sprint 8 | Notifications & Automation | Planned |
-| Sprint 10 | Previously planned Sprint 9 | Commercial Launch Readiness | Planned |
+| Sprint 5 | Previously planned feature sprint | **Design System 2.0 & Product Experience** | Complete (v0.4.2) |
+| Sprint 6 | Previously planned Sprint 5 | AI & Personalization *(Notifications delivered; AI deferred)* | Partial — Notifications complete |
+| Sprint 7 | Previously planned Sprint 6 | **Commercial Platform (Stripe)** *(Finance shifted later)* | **Implemented in code** — Live validation pending |
+| Sprint 8 | Previously planned Sprint 7 | **Public Experience & Commercial Polish** *(active focus)* | **Active** |
+| Sprint 9 | Previously planned Sprint 8 | Insurance Platform | Planned |
+| Sprint 10 | Previously planned Sprint 9 | Commercial Launch Readiness / residual polish | Planned |
 
 ### Sprint 4.5–4.6 carry-forward
 
@@ -68,7 +68,7 @@ Original Sprint details for Sprints 6–10 should be reconciled from [PRODUCT_RO
 | Phase 1 — Auth & Admin | Sprints 1–3 (Complete) |
 | Phase 2 — Immigration Profiles | Sprint 4 (Complete — integrated into v0.4.1) |
 | Phase 3 — Saved Calculations | Sprint 6+ (Planned) |
-| Phase 4 — Stripe Subscription | Sprint 10 (Planned) |
+| Phase 4 — Stripe Subscription | **Sprint 7** (implemented; Live validation pending) → residual launch polish later |
 | Phase 5 — AI Assistant | Sprint 6 (Planned) |
 | Phase 6 — Finance Tools | Sprint 7 (Planned) |
 | Phase 7 — Mobile App | Post Sprint 10 (Future) |
@@ -135,7 +135,7 @@ The Visa Bulletin History mockup (`/immigration/visa-bulletin/tracker-2`) has be
 
 **Status:** Notification Platform track **Completed (Production Validated)**. Remaining AI / full Admin ops **deferred**.
 
-**Next Sprint:** **Stripe Subscription Platform**.
+**Follow-on:** Sprint 7 (Stripe commercial platform) is recorded as-built in [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Active roadmap focus is now **Sprint 8**.
 
 See **[SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md)** for planned vs completed detail.
 
@@ -168,16 +168,92 @@ When USCIS publishes a new bulletin:
 
 ---
 
-## Sprint 7–10 (Planned Summary)
+## Sprint 7 — Commercial Platform (Stripe Subscription Platform)
+
+**Status:** **Implementation complete in application code** — Live Stripe / production commercial cutover **not** complete.
+
+**Theme:** Commercial Platform — real Stripe billing for Free / Pro / Power.
+
+**Authoritative as-built record:** [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md)  
+**Operational snapshot:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md)
+
+### Completed
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| Stripe architecture, policy, ADR | ✅ Completed | Design + [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) |
+| Stripe SDK, Checkout API, customer mapping | ✅ Completed | Server-authoritative Checkout |
+| Webhook ledger + billing-state sync | ✅ Completed | `POST /api/webhooks/stripe` |
+| Subscription change (upgrade / downgrade / interval / cancel) | ✅ Completed | Policy + API |
+| Pricing page (monthly / annual) + Checkout CTAs | ✅ Completed | Wired to Checkout |
+| Billing Center (`/account/billing`) | ✅ Completed | IMMIFIN-owned plan management |
+| Capability enforcement helpers | ✅ Completed | `assertCapability` / `requireCapability` + premium UI gates |
+| Commercial UX polish (nav, contact, design-system sweeps, ribbon) | ✅ Completed | See Sprint 7 handoff |
+
+### Production validation pending
+
+| Item | Status |
+|------|--------|
+| Stripe Sandbox webhook registration + signed E2E payment | ⏳ Pending Validation |
+| Live Stripe catalog, webhook, and secrets | ⏳ Pending Validation |
+| Development Subscription Mode hard-off for Live | ⏳ Pending Validation |
+| Production deploy / v0.5.0 signoff / release notes | ⏳ Pending Validation |
+
+**Do not treat Live Stripe or commercial production cutover as complete.**
+
+### Deferred from Sprint 7
+
+| Item | Status |
+|------|--------|
+| Customer Portal (payment method / invoices) | ⏳ Deferred — placeholders only in Billing Center |
+| Full entitlement cutover narrative as a separate Live gate | ⏳ Tied to production validation above |
+| Broader doc suite refresh beyond handoff + CURRENT | ⏳ Follow-up documentation tasks |
+
+**Approved Beta pricing:** Free $0 · Pro $9.99/mo or $99.99/yr · Power $19.99/mo or $199.99/yr — no coupons, promotions, or trials.
+
+---
+
+## Sprint 8 — Public Experience & Commercial Polish *(active focus)*
+
+**Status:** **Active roadmap focus** (planning direction — not a detailed implementation plan).
+
+**Theme:** Public marketing experience and commercial polish after the Sprint 7 billing platform.
+
+### Emphasis
+
+- Landing page redesign
+- Public marketing experience
+- Customer Portal enhancements (payment method / invoices), if still required
+- Commercial polish around Pricing / Billing Center
+- UX refinements
+- Mobile responsiveness
+
+Finance Platform work previously listed here remains **later** (see summary below). Sprint 8 is not a Finance feature sprint.
+
+---
+
+## Sprint 8+ (Planned Summary)
 
 | Sprint | Theme | Primary focus |
 |--------|-------|---------------|
-| **Sprint 7** | Finance Platform | Finance guides, calculators, dashboard widgets |
-| **Sprint 8** | Insurance Platform | Insurance education, planning tools, dashboard integration |
-| **Sprint 9** | Notifications & Automation | Notification delivery engine, email/SMS alerts, automated tracking |
-| **Sprint 10** | Commercial Launch Readiness | Stripe billing, subscription enforcement, launch polish |
+| **Sprint 8** | Public Experience & Commercial Polish | Landing redesign, marketing, Portal enhancements, UX / mobile *(active focus — see above)* |
+| **Sprint 9** | Insurance Platform | Insurance education, planning tools, dashboard integration |
+| **Sprint 10** | AI & Personalization / Automation | Deferred Sprint 6 AI + notification automation |
+| **Sprint 11** | Commercial Launch Readiness | Residual Live launch polish after Stripe validation |
 
-Detailed AI task breakdowns for Sprint 6 will be created at Sprint 6 kickoff. See [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md).
+**Finance Platform** (guides, calculators, dashboard widgets) remains planned **after** Sprint 8 public experience work; exact slot may be refined without changing the themes above.
+
+*(Stripe was pulled forward to Sprint 7; Sprint 8 is public/commercial polish rather than Finance.)*
+
+### Commercial Management Platform *(deferred)*
+
+| Field | Value |
+|-------|-------|
+| **Initiative** | Commercial Management Platform |
+| **Vision** | [COMMERCIAL_PLATFORM_VISION.md](./COMMERCIAL_PLATFORM_VISION.md) |
+| **Status** | **Vision Approved — Implementation Deferred Until After Beta** |
+
+Covers product/price catalog, versioned publishing to Stripe, grandfathering, and customer migration campaigns. Does **not** change Sprint 7 Beta pricing or current Checkout behavior. Do not start implementation in Sprint 8 or Sprint 9.
 
 ---
 
@@ -199,4 +275,9 @@ Do **not** add Broadcast Platform engineering to Sprint 6 deliverables. Revisit 
 | v2.3 | 2026-07-06 | S6-ADM-001 | Sprint 6 handoff — admin force sync + manual archive parked from Sprint 5 |
 | v2.4 | 2026-07-10 | S6-DOC-002 | Parked Immigration Broadcast Platform vision (post–July 16, 2026 MVP) |
 | v2.5 | 2026-07-10 | S6-RELEASE-001 | Notification Platform moved to Completed (Production Validated) |
-| v2.6 | 2026-07-10 | Sprint 6 handoff | Planned vs completed; **next sprint = Stripe** (AI/Admin deferred) |
+| v2.6 | 2026-07-10 | Sprint 6 handoff | Planned vs completed; next sprint = Stripe |
+| v2.7 | 2026-07-11 | Sprint 7 kickoff | Sprint 7 = Stripe Subscription Platform; Finance shifted later |
+| v2.8 | 2026-07-11 | S7-DOC-001 | Commercial Platform design complete; Sprint 7 Status = Planning |
+| v2.9 | 2026-07-12 | DOC-EOD-S7-001 | Sprint 7 ~88% — Stripe backend complete; Sandbox validation next |
+| v2.10 | 2026-07-13 | DOC-COMM-001 | Commercial Management Platform vision approved; implementation deferred until after Beta |
+| v2.11 | 2026-07-20 | S7-DOC-004 | Sprint 7 as-built completion; Sprint 8 = public experience & commercial polish (active focus) |

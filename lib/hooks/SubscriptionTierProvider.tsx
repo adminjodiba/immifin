@@ -11,8 +11,8 @@ import {
 } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
-import { isDevSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
+import type { SubscriptionBillingInterval } from "@/lib/supabase/types";
 
 const SUBSCRIPTION_TIER_EVENT = "immifin:subscriptionTier";
 
@@ -20,15 +20,20 @@ type SubscriptionApiResponse = {
   tier: SubscriptionTier;
   plan: string;
   devSubscriptionMode: boolean;
+  billing?: {
+    billingInterval?: SubscriptionBillingInterval | null;
+  } | null;
 };
 
 type SubscriptionState = {
   tier: SubscriptionTier | null;
+  billingInterval: SubscriptionBillingInterval | null;
   devSubscriptionMode: boolean;
 };
 
 type SubscriptionTierContextValue = {
   storedTier: SubscriptionTier | null;
+  billingInterval: SubscriptionBillingInterval | null;
   isLoading: boolean;
   isSignedIn: boolean;
   devSubscriptionMode: boolean;
@@ -45,7 +50,7 @@ async function fetchSubscriptionState(): Promise<SubscriptionState> {
   });
 
   if (response.status === 401) {
-    return { tier: null, devSubscriptionMode: isDevSubscriptionModeEnabled() };
+    return { tier: null, billingInterval: null, devSubscriptionMode: false };
   }
 
   if (!response.ok) {
@@ -57,8 +62,11 @@ async function fetchSubscriptionState(): Promise<SubscriptionState> {
     throw new Error(body.error);
   }
 
+  const billingInterval = body.data.billing?.billingInterval ?? null;
+
   return {
     tier: body.data.tier,
+    billingInterval: billingInterval === "month" || billingInterval === "year" ? billingInterval : null,
     devSubscriptionMode: body.data.devSubscriptionMode,
   };
 }
@@ -66,15 +74,15 @@ async function fetchSubscriptionState(): Promise<SubscriptionState> {
 export function SubscriptionTierProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [storedTier, setStoredTier] = useState<SubscriptionTier | null>(null);
-  const [devSubscriptionMode, setDevSubscriptionMode] = useState(() =>
-    isDevSubscriptionModeEnabled(),
-  );
+  const [billingInterval, setBillingInterval] = useState<SubscriptionBillingInterval | null>(null);
+  const [devSubscriptionMode, setDevSubscriptionMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshStoredTier = useCallback(async (): Promise<SubscriptionTier | null> => {
     if (!isSignedIn) {
       setStoredTier(null);
-      setDevSubscriptionMode(isDevSubscriptionModeEnabled());
+      setBillingInterval(null);
+      setDevSubscriptionMode(false);
       setIsLoading(false);
       return null;
     }
@@ -84,11 +92,13 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
     try {
       const state = await fetchSubscriptionState();
       setStoredTier(state.tier);
+      setBillingInterval(state.billingInterval);
       setDevSubscriptionMode(state.devSubscriptionMode);
       return state.tier;
     } catch {
       setStoredTier(null);
-      setDevSubscriptionMode(isDevSubscriptionModeEnabled());
+      setBillingInterval(null);
+      setDevSubscriptionMode(false);
       return null;
     } finally {
       setIsLoading(false);
@@ -133,6 +143,7 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
       }
 
       setStoredTier(body.data.tier);
+      setBillingInterval(body.data.billing?.billingInterval ?? null);
       setDevSubscriptionMode(body.data.devSubscriptionMode);
       window.dispatchEvent(new Event(SUBSCRIPTION_TIER_EVENT));
       return body.data.tier;
@@ -143,13 +154,22 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
   const value = useMemo<SubscriptionTierContextValue>(
     () => ({
       storedTier,
+      billingInterval,
       isLoading,
       isSignedIn: Boolean(isSignedIn),
       devSubscriptionMode,
       refreshStoredTier,
       updateSubscriptionPlan,
     }),
-    [storedTier, isLoading, isSignedIn, devSubscriptionMode, refreshStoredTier, updateSubscriptionPlan],
+    [
+      storedTier,
+      billingInterval,
+      isLoading,
+      isSignedIn,
+      devSubscriptionMode,
+      refreshStoredTier,
+      updateSubscriptionPlan,
+    ],
   );
 
   return (

@@ -6,6 +6,11 @@
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
   "/pricing",
+  "/about(.*)",
+  "/contact(.*)",
+  "/api/contact(.*)",
+  "/privacy(.*)",
+  "/terms(.*)",
   "/calculators(.*)",
   "/immigration/h1b-wage-level-estimator(.*)",
   "/immigration/h1b-lottery-odds-calculator(.*)",
@@ -42,6 +47,10 @@ export function isPublicLandingPath(path: string): boolean {
     pathname === "/" ||
     pathname === "" ||
     pathname === "/pricing" ||
+    pathname === "/about" ||
+    pathname === "/contact" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     isPublicCalculatorPath(pathname)
   );
 }

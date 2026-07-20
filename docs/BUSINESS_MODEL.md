@@ -3,82 +3,67 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Business Model |
-| **Version** | v2.0 |
-| **Sprint** | Sprint 4 |
-| **Task ID** | S4-005.15 |
-| **Last Updated** | 2026-07-04 |
+| **Version** | v2.2 |
+| **Sprint** | Sprint 7 (commercial platform as-built) |
+| **Task ID** | S7-DOC-009 |
+| **Last Updated** | 2026-07-20 |
 | **Owner** | Product Strategy / Technical Architecture |
-| **Status** | Official — single source of truth for subscription tiers and monetization |
+| **Status** | Official — single source of truth for subscription tiers, capabilities, and monetization philosophy |
 
 Engineering decisions **must reference this document** before implementing subscription-based functionality.
 
-**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) · [RELEASE_NOTES_v0.4.1.md](./RELEASE_NOTES_v0.4.1.md) · [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md)
+**Related documentation:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) · [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) · [PRODUCT_VISION.md](./PRODUCT_VISION.md) · [ROADMAP_v2.md](./ROADMAP_v2.md)
 
 ---
 
-## 1. Product Vision
+## 1. Business Overview
 
-IMMIFIN is **not selling calculators**.
+IMMIFIN helps immigrants make clearer immigration and life decisions through trusted tools, personalization, and automation. The product is **not** selling raw Visa Bulletin data or calculators alone — it sells reduced uncertainty, saved time, and journey-aware guidance.
 
-IMMIFIN provides **peace of mind** for employment-based immigrants by reducing manual work, uncertainty, and repetitive monthly tracking.
+| Field | Detail |
+|-------|--------|
+| **Mission** | Reduce manual immigration monitoring and decision friction for immigrants |
+| **Target users** | Employment-based and related immigration journeys (individual consumers first) |
+| **Current commercial maturity** | Subscription platform implemented in application code; Live Stripe / commercial cutover pending validation |
+| **Vision** | A trusted Life Operating System for immigrants — immigration first; finance and insurance later |
 
-Every paid feature must remove friction, save time, or provide valuable immigration intelligence.
+Production today remains the pre–Live-Stripe baseline (v0.4.2 + Notification Platform v1.0). See [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
 
 ---
 
-## 2. Subscription Philosophy
+## 2. Subscription Model
 
-Three subscription tiers:
+Three tiers. One account. Clear commercial ladder:
 
-| Tier | Name |
-|------|------|
-| **Free** | Free |
-| **Pro** | Pro |
-| **Power** | Power |
+| Tier | Commercial role | Value proposition |
+|------|-----------------|-------------------|
+| **Free** | Exploration | Public tools and manual calculators — learn without commitment |
+| **Pro** | Core paid product | Personalization and automation — manage *your* immigration journey |
+| **Power** | Premium paid product | Intelligence on top of Pro — AI and advanced management (roadmap-gated features) |
 
-### IMMIFIN Subscription Philosophy
+**Positioning:**
 
-Free users have access to public immigration tools using **manual inputs only**.
+| Tier | Customer outcome |
+|------|------------------|
+| **Free** | “I can check today’s Visa Bulletin.” |
+| **Pro** | “I don’t have to monitor my immigration case every month.” |
+| **Power** | “IMMIFIN becomes my personal immigration assistant.” |
 
-Personalized immigration management, historical tracking, saved profiles, automation, notifications, and intelligent recommendations begin with **Pro**.
-
-Power builds upon Pro by adding AI, multiple profiles, advanced planning, and premium support.
-
-**Core Principle:**
-
-| Layer | Tier |
-|-------|------|
-| **Manual Tools** | **Free** |
-| **Personalization & Automation** | **Pro** |
-| **AI & Advanced Intelligence** | **Power** |
-
-Equivalent framing for engineering and product discussions:
+**Core commercial layering:**
 
 | Layer | Tier |
 |-------|------|
-| **Data Entry** (saved immigration profile) | **Pro** |
-| **Automation** | **Pro** |
-| **Intelligence** | **Power** |
+| **Manual tools** | Free |
+| **Personalization & automation** | Pro |
+| **AI & advanced intelligence** | Power |
 
-- **Free** is intended for exploration.
-- **Pro** is intended for managing your own immigration journey.
-- **Power** is intended for intelligent immigration planning.
+- Free is for exploration.
+- Pro is for managing your own immigration journey.
+- Power is for intelligent immigration planning.
 
-> **This document is the source of truth** for all future feature gating decisions. When adding a new premium feature, define its capability in [§12](#12-subscription-capability-architecture) and its Free-user UX in [§15](#15-premium-feature-discovery) before implementation.
+> **This document is the source of truth** for feature gating decisions. When adding a premium feature, define its capability in [§12](#12-subscription-capability-architecture) and Free-user UX in [§15](#15-premium-feature-discovery) before implementation.
 
-### Purpose of each tier
-
-#### Free
-
-Current information with manual interaction.
-
-#### Pro
-
-Automation, tracking, personalization, and convenience.
-
-#### Power
-
-Complete immigration intelligence platform with AI assistance and advanced management capabilities.
+Detailed feature access: [§3 Feature Matrix](#3-feature-matrix).
 
 ---
 
@@ -124,55 +109,126 @@ Allow free users to understand the additional value available through upgrading 
 
 ---
 
-## 5. Product Positioning
+## 5. Customer Journey
 
-| Tier | Positioning statement |
-|------|----------------------|
-| **Free** | "I can check today's Visa Bulletin." |
-| **Pro** | "I don't have to monitor my immigration case every month." |
-| **Power** | "IMMIFIN becomes my personal immigration assistant." |
+High-level commercial journey:
 
----
+```text
+Visitor
+  ↓
+Free (explore public tools)
+  ↓
+Profile / account (identity + contact)
+  ↓
+Value discovery (dashboard previews, Premium Feature Discovery)
+  ↓
+Upgrade (Pricing → Checkout)
+  ↓
+Billing Center (manage plan over time)
+  ↓
+Long-term retention (automation, notifications, journey continuity)
+```
 
-## 6. Engineering Principles
-
-Subscription logic should **never** be implemented by checking plan names throughout the application.
-
-Instead, the application should be designed around **permissions / capabilities**.
-
-**Good:** `hasCapability(tier, "accessPersonalDashboard")` or `canAccessPersonalDashboard(tier)`
-
-**Avoid:** scattered `tier === "pro"` checks in UI components.
-
-Future subscription changes should only modify **capability mappings** in the central map — not application logic.
-
-See [§12 Subscription Capability Architecture](#12-subscription-capability-architecture).
+Paid access is activated through verified billing sync into the capability model — not by landing on a success page alone. Plan changes after purchase are managed in the **Billing Center**, not by treating Stripe Customer Portal as the primary subscription UX.
 
 ---
 
-## 7. Future Roadmap
+## 6. Capability-Based Business Model
 
-*Reserved for future additions.*
+IMMIFIN monetizes **capabilities**, not ad-hoc feature flags or raw payment-provider status.
 
-Possible future features:
+```text
+Subscription (billing state)
+  ↓
+Capabilities (what the customer is entitled to)
+  ↓
+Authorization (product enforces capabilities)
+  ↓
+Features (customer experiences value)
+```
 
-- Team accounts
-- Family plans
-- Immigration attorney workspace
-- Recruiter dashboard
-- HR dashboard
-- API access
-- Enterprise plan
+**Why capabilities are the commercial source of truth**
+
+- Pricing and packaging can evolve without rewriting every screen.
+- Stripe owns payment objects; IMMIFIN owns what those payments unlock.
+- Upgrades, downgrades, and cancellations change entitlements through a single model.
+- Free users can see premium value without breaking the free experience.
+
+Engineering must not scatter plan-name or Stripe-status checks across the product. See [§12](#12-subscription-capability-architecture) for the capability map.
 
 ---
 
-## 8. Business Principles
+## 7. Revenue Strategy
 
-- **Free users are future customers.**
-- **Paid users pay for automation, intelligence, and convenience.**
-- **Never artificially reduce the accuracy of free tools.**
-- **Paid features should save time rather than restrict correctness.**
-- **Every premium feature should clearly communicate its value.**
+### Current approved model
+
+| Element | Strategy |
+|---------|----------|
+| **Revenue type** | Recurring subscriptions (SaaS) |
+| **Paid tiers** | Pro and Power |
+| **Intervals** | Monthly and annual (USD for Beta) |
+| **Checkout** | Stripe Checkout for new paid subscriptions |
+| **Plan management** | IMMIFIN Billing Center (upgrade / downgrade / interval / cancel-to-free) |
+| **Beta constraints** | No coupons, promotions, or free trials |
+
+### Approved Beta pricing
+
+| Tier | Monthly | Annual |
+|------|---------|--------|
+| **Free** | $0 | — |
+| **Pro** | $9.99 / month | $99.99 / year |
+| **Power** | $19.99 / month | $199.99 / year |
+
+Annual plans exist for lower effective monthly cost, cash-flow predictability, and customer choice. Commercial design detail: [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md). Billing behavior: [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md).
+
+### Approved future expansion directions
+
+Documented roadmap / vision directions only (not committed Beta scope):
+
+- Finance and Insurance platform modules ([ROADMAP_v2.md](./ROADMAP_v2.md))
+- AI expansion within Power
+- Post-beta commercial management (catalog versioning / grandfathering) — [COMMERCIAL_PLATFORM_VISION.md](./COMMERCIAL_PLATFORM_VISION.md)
+- Future Business / Enterprise / HR-oriented offerings (reserved; not Beta)
+
+---
+
+## 8. Commercial Principles
+
+- **Value before monetization** — demonstrate premium value before asking for payment.
+- **Transparent pricing** — published Free / Pro / Power amounts; no hidden fees.
+- **Capability-based access** — entitlements, not opaque paywalls or degraded free accuracy.
+- **Customer-first upgrades** — upgrades should feel immediate and fair; downgrades should not punish prepaid time.
+- **Predictable billing** — clear monthly/annual intervals; cancel at period end.
+- **Free users are future customers** — exploration must remain useful and trustworthy.
+- **Paid users pay for automation, intelligence, and convenience** — not for “correctness” withheld from Free.
+
+---
+
+## 8A. Current Commercial Status
+
+| Bucket | Items |
+|--------|-------|
+| **Implemented** | Subscription platform (Checkout, webhooks, billing-state sync); Pricing (monthly/annual); Billing Center; capability enforcement; Premium Feature Discovery |
+| **Pending** | Live Stripe launch; Sandbox/Live commercial validation; Development Subscription Mode hard-off for Live; v0.5.0 commercial signoff |
+| **Future / deferred** | Customer Portal for payment method / invoices; landing/marketing redesign; HR / Business / Enterprise tiers; Finance & Insurance expansion; broader AI expansion |
+
+Do not treat Live commercial billing as production-ready until pending validation is complete. See [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) and [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md).
+
+---
+
+## 8B. Business Metrics
+
+Track meaningful commercial health after Live validation — **do not invent targets here**.
+
+| Metric class | Examples (operational) |
+|--------------|------------------------|
+| **Acquisition** | Free signups; Pricing → Checkout starts |
+| **Conversion** | Checkout completions; Free → Pro / Power |
+| **Revenue** | MRR / ARR once Live billing is active |
+| **Retention** | Renewals, cancellations at period end, downgrades |
+| **Product value** | Engagement with Pro surfaces (dashboard, notifications, history) |
+
+Exact KPIs and targets are set by Product Owner during commercial launch — not in this document until approved.
 
 ---
 
@@ -259,15 +315,15 @@ In development and production, users without an enrolled tier default to **Free*
 
 ### Dev-only tier testing
 
-Until billing ships, developers may override the effective tier **only in development** via:
+Development Subscription Mode / dev tier overrides may be used for engineering and QA **until Live commercial cutover**. They are **not** real billing authorization and **must be hard-off** in Live production.
+
+Typical local tools (development only):
 
 - Query param: `?devTier=free` / `?devTier=pro` / `?devTier=power`
 - localStorage key: `immifin:devTier`
-- On-page **DEV ONLY - TIER** switcher
+- On-page **DEV ONLY - TIER** switcher / Development Subscription panel where enabled
 
-This override is **not** billing, **not** real authorization, and **must not** run in production.
-
-Phase 1 menu items: **Dashboard**, **Manage Profile**. Later phases (Notifications, Subscription, Saved Profiles, AI Assistant) are prepared in the menu architecture but not visible until shipped.
+My Immifin includes **Dashboard**, **Manage Profile**, and **Billing** (Billing Center) for plan management. AI Assistant and additional workspace items remain roadmap-gated.
 
 See [PRODUCT_VISION.md §18](./PRODUCT_VISION.md#18-my-immifin-vision) for the full My Immifin vision and roadmap.
 
@@ -275,7 +331,7 @@ See [PRODUCT_VISION.md §18](./PRODUCT_VISION.md#18-my-immifin-vision) for the f
 
 ## 12. Subscription Capability Architecture
 
-Internal product access model. **Billing is not implemented** — this foundation is what future billing will assign tiers into.
+Internal product access model. After Sprint 7, verified Stripe billing sync updates subscription / plan state; **capabilities remain the product authorization layer**. Design: [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md).
 
 ### Tiers
 
@@ -321,13 +377,13 @@ Internal product access model. **Billing is not implemented** — this foundatio
 
 | Rule | Behavior |
 |------|----------|
-| **Billing assigns tier** | Future billing sets the user's tier |
-| **Product consumes capabilities** | UI and features call `hasCapability(tier, key)` / `canAccess*(tier)` |
-| **Central map only** | Tier→capability mapping lives in `lib/subscription/capabilities.ts` |
-| **Dev override** | Local development only — not real authorization or billing |
-| **Production default** | Until billing storage exists, effective tier defaults to **Free** (no Pro/Power without enrollment) |
+| **Billing syncs tier** | Verified Stripe webhooks update billing state / plan; browser redirects never grant paid access |
+| **Product consumes capabilities** | UI and features authorize via capabilities — not raw Stripe status |
+| **Central map only** | Tier→capability mapping lives in one capability map |
+| **Dev override** | Non-Live engineering/QA only — not real customer billing |
+| **Production unpaid default** | Users without a paid enrollment remain **Free** |
 
-Helpers: `getCapabilitiesForTier`, `hasCapability`, `canAccessPersonalDashboard`, `canAccessAI`, `canAccessNotifications`.
+Helpers include capability lookups and server enforcement helpers used by selected account APIs. See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) §14 (Capability Architecture).
 
 ---
 
@@ -376,19 +432,30 @@ Locked premium features should guide users to the upgrade path.
 | **Data entry / automation / intelligence paid** | Free users cannot save immigration profiles or use Pro/Power features |
 | **Clear upgrade path** | Locked Pro/Power features provide a clear upgrade CTA |
 | **Primary location** | **My Immifin** is the primary upgrade location |
-| **Destination** | All upgrade CTAs point to **`/pricing`** |
-| **Billing later** | Stripe/billing will be implemented later |
-| **Until billing** | Pricing CTAs show **Coming Soon** / waitlist behavior — no checkout |
+| **Destination** | New-paid upgrade CTAs point to **`/pricing`** (Checkout) |
+| **Plan management** | Existing subscribers manage plans in **Billing Center** (`/account/billing`) |
+| **Billing platform** | Stripe Subscription Platform — [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) |
+| **Live cutover** | Development Subscription Mode may appear in non-Live environments until Live gate |
+
+### Approved launch pricing (Beta)
+
+Canonical amounts are listed in [§7 Revenue Strategy](#7-revenue-strategy). Commercial design: [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md).
+
+### Beta launch — not included
+
+During Beta, IMMIFIN does **not** offer coupons, promotions / discount codes, or free trials.
+
+Any future coupon, promotion, or trial requires Product Owner approval and updates to the Stripe design document and [§7](#7-revenue-strategy).
 
 ### My Immifin menu by tier
 
 | Tier | Menu items |
 |------|------------|
 | **Free** | Dashboard (locked PRO), Manage Profile, **Upgrade to Pro** → `/pricing` |
-| **Pro** | Dashboard, Manage Profile, **Subscription** → `/pricing` |
-| **Power** | Dashboard, Manage Profile, **Subscription** → `/pricing` |
+| **Pro** | Dashboard, Manage Profile, **Billing** → `/account/billing` |
+| **Power** | Dashboard, Manage Profile, **Billing** → `/account/billing` |
 
-Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on the Dashboard item for Free users.
+Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on the Dashboard item for Free users. Customer Portal for payment methods / invoices remains deferred.
 
 ---
 
@@ -465,7 +532,7 @@ Reusable platform component: **`PremiumFeaturePreview`** (`components/common/Pre
 | `ProFeatureLockedState` | Compact locked messaging without live preview |
 | `DashboardAccessGate` | Dashboard-specific access control |
 
-See [SYSTEM_ARCHITECTURE.md §14](./SYSTEM_ARCHITECTURE.md#14-application-access-layer-subscription-capabilities).
+See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) §14 (Capability Architecture).
 
 ---
 
@@ -496,3 +563,5 @@ These principles apply to all subscription-gated surfaces. See also [PRODUCT_VIS
 | v1.8 | 2026-07-04 | S4-005.7 | Production default tier Free; restore Calculator navigation |
 | v1.9 | 2026-07-04 | S4-005.12 | Official subscription matrix; enforce Free tier feature gates |
 | v2.0 | 2026-07-04 | S4-005.15 | v0.4.1 foundation — Premium Feature Discovery, preview framework, product principles |
+| v2.1 | 2026-07-11 | S7-DOC-001 | Approved Beta launch pricing (Pro/Power monthly + annual); no coupons/trials; link Stripe design |
+| v2.2 | 2026-07-20 | S7-DOC-009 | Post–Sprint 7 commercial strategy — journey, revenue, capabilities, commercial status; Billing Center |

@@ -55,7 +55,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Your Rights</h2>
             <p className="mt-3 leading-relaxed text-slate-600">
               Depending on your location, you may have rights to access, correct, or delete your
-              personal data. Contact us at hello@immifin.com to exercise these rights.
+              personal data. Contact us at info@immifin.com to exercise these rights.
             </p>
           </div>
 
@@ -63,8 +63,8 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Contact</h2>
             <p className="mt-3 leading-relaxed text-slate-600">
               If you have questions about this privacy policy, please contact us at{" "}
-              <a href="mailto:hello@immifin.com" className="text-brand-700 hover:text-brand-800">
-                hello@immifin.com
+              <a href="mailto:info@immifin.com" className="text-brand-700 hover:text-brand-800">
+                info@immifin.com
               </a>
               .
             </p>

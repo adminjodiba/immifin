@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { WorkspacePageHeader } from "@/components/layout/WorkspacePageHeader";
 import { workspaceContainerClass, WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 
@@ -8,6 +9,8 @@ type PageHeaderProps = {
   wide?: boolean;
   pageHref?: string;
   showFavorite?: boolean;
+  /** When true (default), shows Close → home. Home landing does not use PageHeader. */
+  showClose?: boolean;
   icon?: ReactNode;
   actions?: ReactNode;
   titleClassName?: string;
@@ -21,6 +24,7 @@ export function PageHeader({
   wide = false,
   pageHref,
   showFavorite = true,
+  showClose = true,
   icon,
   actions,
   titleClassName,
@@ -28,6 +32,14 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   const containerClass = workspaceContainerClass(wide);
+  const resolvedActions = showClose ? (
+    <>
+      {actions}
+      <DashboardCloseAction />
+    </>
+  ) : (
+    actions
+  );
 
   return (
     <WorkspacePageShell wide={wide}>
@@ -38,7 +50,7 @@ export function PageHeader({
           pageHref={pageHref}
           showFavorite={showFavorite}
           icon={icon}
-          actions={actions}
+          actions={resolvedActions}
           titleClassName={titleClassName}
           descriptionClassName={descriptionClassName}
         />

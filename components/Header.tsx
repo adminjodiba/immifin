@@ -1,25 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 import { useAuth, useUser, UserButton } from "@clerk/nextjs";
-import { useEffect, useId, useRef, useState } from "react";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
+import { PremiumNavPreviewDialog } from "@/components/common/PremiumNavPreviewDialog";
+import { ProBadge } from "@/components/common/ProBadge";
 import {
   FavoritesMobileSection,
   FavoritesNavDropdown,
 } from "@/components/favorites/FavoritesNavDropdown";
 import { navLinks } from "@/lib/site";
-import { calculatorMenuLinks } from "@/lib/calculator-menu";
-import { immigrationMenuLinks } from "@/lib/immigration-menu";
+import { aboutMenuSections } from "@/lib/about-menu";
+import { calculatorMenuSections } from "@/lib/calculator-menu";
+import { immigrationMenuSections } from "@/lib/immigration-menu";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
 import { useIsAdminRole } from "@/lib/hooks/useIsAdminRole";
 import {
-  DASHBOARD_PRO_LOCK_MESSAGE,
+  getMyImmifinPremiumPreview,
   getVisibleMyImmifinMenuItems,
-  isMyImmifinItemLocked,
   MY_IMMIFIN_NAV_LABEL,
 } from "@/lib/my-immifin-menu";
+import {
+  getPremiumNavPreviewContent,
+  type PremiumNavPreviewKey,
+} from "@/lib/premium-nav-preview";
+import { hasCapability } from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
 import { Logo } from "./Logo";
 import { clerkAppearance } from "@/lib/clerk/appearance";
@@ -36,7 +42,6 @@ const headerUserButtonAppearance = {
     avatarImage: "h-11 w-11 rounded-xl",
     userButtonAvatarBox: "h-11 w-11 rounded-xl border border-slate-200 overflow-hidden",
     userButtonAvatarImage: "h-11 w-11 rounded-xl",
-    // Manage Profile lives under My Immifin — hide avatar account-profile entry.
     userButtonPopoverActionButton__manageAccount: "hidden",
   },
 };
@@ -50,11 +55,48 @@ type MyImmifinNavItem = {
   href: string;
   label: string;
   description: string;
-  locked: boolean;
+  premiumPreview: PremiumNavPreviewKey | null;
+};
+
+type NavMenuItem = {
+  href: string;
+  label: string;
+  description: string;
+  premiumPreview?: PremiumNavPreviewKey | null;
+};
+
+type NavMenuSection = {
+  id: string;
+  label: string;
+  items: NavMenuItem[];
 };
 
 const navLinkClassName =
-  "rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700";
+  "nav-menu-trigger whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+
+const navMenuItemClassName =
+  "nav-menu-item block w-full rounded-xl px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+
+const navMenuItemMobileClassName =
+  "nav-menu-item flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+
+const navMenuItemMobilePremiumClassName =
+  "nav-menu-item w-full rounded-lg px-4 py-2.5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+
+const dropdownPanelClassName =
+  "invisible absolute left-1/2 top-full z-50 w-max min-w-[16rem] max-w-[min(26rem,calc(100vw-1.5rem))] -translate-x-1/2 pt-3 opacity-0 transition-[opacity,visibility] duration-200 group-hover:visible group-hover:opacity-100";
+
+const dropdownMenuSurfaceClassName =
+  "overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg";
+
+const menuItemLabelClassName =
+  "relative z-[1] flex items-center whitespace-nowrap text-sm font-semibold text-slate-900";
+
+const menuItemDescriptionClassName =
+  "relative z-[1] mt-0.5 block text-xs leading-snug text-slate-500";
+
+const menuSectionHeadingClassName =
+  "nav-submenu-group px-4 pb-1 pt-2 first:pt-1";
 
 function getTimeGreeting(): string {
   const hour = new Date().getHours();
@@ -73,51 +115,109 @@ function getGreetingLine(
   return name ? `${timeGreeting} ${name}` : timeGreeting;
 }
 
-function ProBadge() {
-  return (
-    <span className="ml-1.5 inline-flex items-center rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700">
-      Pro
-    </span>
-  );
-}
-
-function LockedMenuItem({
+function PremiumMenuButton({
   label,
   description,
+  previewKey,
+  onOpenPreview,
   className,
+  align = "left",
 }: {
   label: string;
   description: string;
+  previewKey: PremiumNavPreviewKey;
+  onOpenPreview: (key: PremiumNavPreviewKey) => void;
   className?: string;
+  align?: "left" | "center";
 }) {
+  const textAlign = align === "center" ? "text-center" : "text-left";
+
   return (
     <button
       type="button"
-      className={
-        className ??
-        "block w-full rounded-xl px-4 py-3 text-left opacity-60 transition-colors hover:bg-slate-50"
-      }
-      onClick={() => {
-        window.alert(DASHBOARD_PRO_LOCK_MESSAGE);
-      }}
+      className={className ?? navMenuItemClassName}
+      onClick={() => onOpenPreview(previewKey)}
     >
-      <span className="flex items-center text-sm font-semibold text-slate-500">
+      <span
+        className={`${menuItemLabelClassName} ${
+          align === "center" ? "justify-center" : ""
+        }`}
+      >
         {label}
         <ProBadge />
       </span>
-      <span className="mt-0.5 block text-xs text-slate-400">{description}</span>
+      <span className={menuItemDescriptionClassName}>{description}</span>
     </button>
+  );
+}
+
+function resolvePremiumPreview(
+  previewKey: PremiumNavPreviewKey | undefined,
+  tier: SubscriptionTier,
+): PremiumNavPreviewKey | null {
+  if (!previewKey) {
+    return null;
+  }
+
+  return hasCapability(tier, getPremiumNavPreviewContent(previewKey).capability)
+    ? null
+    : previewKey;
+}
+
+function renderNavMenuItem(
+  item: NavMenuItem,
+  onOpenPreview: (key: PremiumNavPreviewKey) => void,
+  options?: { onNavigate?: () => void; mobile?: boolean },
+) {
+  if (item.premiumPreview) {
+    return (
+      <PremiumMenuButton
+        key={`${item.href}-${item.label}`}
+        label={item.label}
+        description={item.description}
+        previewKey={item.premiumPreview}
+        onOpenPreview={onOpenPreview}
+        align={options?.mobile ? "center" : "left"}
+        className={options?.mobile ? navMenuItemMobilePremiumClassName : undefined}
+      />
+    );
+  }
+
+  if (options?.mobile) {
+    return (
+      <ProtectedLink
+        key={`${item.href}-${item.label}`}
+        href={item.href}
+        className={navMenuItemMobileClassName}
+        onClick={options.onNavigate}
+      >
+        {item.label}
+      </ProtectedLink>
+    );
+  }
+
+  return (
+    <ProtectedLink
+      key={`${item.href}-${item.label}`}
+      href={item.href}
+      className={navMenuItemClassName}
+    >
+      <span className={menuItemLabelClassName}>{item.label}</span>
+      <span className={menuItemDescriptionClassName}>{item.description}</span>
+    </ProtectedLink>
   );
 }
 
 function NavDropdown({
   href,
   label,
-  items,
+  sections,
+  onOpenPreview,
 }: {
   href: string;
   label: string;
-  items: readonly { href: string; label: string; description: string; locked?: boolean }[];
+  sections: readonly NavMenuSection[];
+  onOpenPreview: (key: PremiumNavPreviewKey) => void;
 }) {
   return (
     <div className="group relative">
@@ -135,40 +235,62 @@ function NavDropdown({
         </svg>
       </ProtectedLink>
 
-      <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
-          {items.map((item) =>
-            item.locked ? (
-              <LockedMenuItem
-                key={item.label}
-                label={item.label}
-                description={item.description}
-              />
-            ) : (
-              <ProtectedLink
-                key={item.label}
-                href={item.href}
-                className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
-              >
-                <span className="flex items-center text-sm font-semibold text-slate-900">
-                  {item.label}
-                </span>
-                <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
-              </ProtectedLink>
-            ),
-          )}
+      <div className={dropdownPanelClassName}>
+        <div className={dropdownMenuSurfaceClassName}>
+          {sections.map((section, sectionIndex) => (
+            <div
+              key={section.id}
+              className={sectionIndex > 0 ? "mt-1 border-t border-slate-100 pt-1" : undefined}
+              role="group"
+              aria-label={section.label || label}
+            >
+              {section.label ? <p className={menuSectionHeadingClassName}>{section.label}</p> : null}
+              {section.items.map((item) => renderNavMenuItem(item, onOpenPreview))}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function ImmigrationDropdown() {
-  return <NavDropdown href="/immigration" label="Immigration" items={immigrationMenuLinks} />;
+function buildImmigrationSections(tier: SubscriptionTier): NavMenuSection[] {
+  return immigrationMenuSections.map((section) => ({
+    id: section.id,
+    label: section.label,
+    items: section.items.map((item) => ({
+      href: item.href,
+      label: item.label,
+      description: item.description,
+      premiumPreview: resolvePremiumPreview(item.premiumPreview, tier),
+    })),
+  }));
 }
 
-function CalculatorDropdown() {
-  return <NavDropdown href="/calculators" label="Calculator" items={calculatorMenuLinks} />;
+function buildCalculatorSections(): NavMenuSection[] {
+  return calculatorMenuSections.map((section) => ({
+    id: section.id,
+    label: section.label,
+    items: section.items.map((item) => ({
+      href: item.href,
+      label: item.label,
+      description: item.description,
+      premiumPreview: null,
+    })),
+  }));
+}
+
+function buildAboutSections(): NavMenuSection[] {
+  return aboutMenuSections.map((section) => ({
+    id: section.id,
+    label: section.label,
+    items: section.items.map((item) => ({
+      href: item.href,
+      label: item.label,
+      description: item.description,
+      premiumPreview: null,
+    })),
+  }));
 }
 
 function buildMyImmifinItems(tier: SubscriptionTier, isAdmin: boolean): MyImmifinNavItem[] {
@@ -176,14 +298,15 @@ function buildMyImmifinItems(tier: SubscriptionTier, isAdmin: boolean): MyImmifi
     href: item.href,
     label: item.label,
     description: item.description,
-    locked: isMyImmifinItemLocked(item, tier),
+    premiumPreview: getMyImmifinPremiumPreview(item, tier),
   }));
 }
 
-/**
- * Pure navigation menu trigger — opens dropdown only, never navigates.
- */
-function MyImmifinDropdown() {
+function MyImmifinDropdown({
+  onOpenPreview,
+}: {
+  onOpenPreview: (key: PremiumNavPreviewKey) => void;
+}) {
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const items = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
@@ -217,6 +340,11 @@ function MyImmifinDropdown() {
     };
   }, [isOpen]);
 
+  function openPreview(key: PremiumNavPreviewKey) {
+    setIsOpen(false);
+    onOpenPreview(key);
+  }
+
   return (
     <div className="relative" ref={containerRef}>
       <button
@@ -241,27 +369,31 @@ function MyImmifinDropdown() {
       </button>
 
       {isOpen ? (
-        <div id={menuId} role="menu" className="absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 backdrop-blur-lg">
+        <div
+          id={menuId}
+          role="menu"
+          className="absolute left-1/2 top-full z-50 w-max min-w-[16rem] max-w-[min(26rem,calc(100vw-1.5rem))] -translate-x-1/2 pt-3"
+        >
+          <div className={dropdownMenuSurfaceClassName}>
             {items.map((item) =>
-              item.locked ? (
-                <LockedMenuItem
+              item.premiumPreview ? (
+                <PremiumMenuButton
                   key={item.label}
                   label={item.label}
                   description={item.description}
+                  previewKey={item.premiumPreview}
+                  onOpenPreview={openPreview}
                 />
               ) : (
                 <ProtectedLink
                   key={item.href}
                   href={item.href}
                   role="menuitem"
-                  className="block rounded-xl px-4 py-3 transition-colors hover:bg-brand-50"
+                  className={navMenuItemClassName}
                   onClick={() => setIsOpen(false)}
                 >
-                  <span className="flex items-center text-sm font-semibold text-slate-900">
-                    {item.label}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
+                  <span className={menuItemLabelClassName}>{item.label}</span>
+                  <span className={menuItemDescriptionClassName}>{item.description}</span>
                 </ProtectedLink>
               ),
             )}
@@ -277,6 +409,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { user } = useUser();
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
+  const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
   const showSignedOutAuth = isLoaded && !isSignedIn;
   const showSignedInAuth = isLoaded && isSignedIn;
   const greetingLine = user
@@ -284,9 +417,26 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
     : getTimeGreeting();
 
   const myImmifinItems = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
+  const immigrationSections = buildImmigrationSections(tier);
+  const calculatorSections = buildCalculatorSections();
+  const aboutSections = buildAboutSections();
+
+  const openPreview = useCallback((key: PremiumNavPreviewKey) => {
+    setPreviewKey(key);
+  }, []);
+
+  const closePreview = useCallback(() => {
+    setPreviewKey(null);
+  }, []);
+
+  function openPreviewFromMobile(key: PremiumNavPreviewKey) {
+    onToggleMenu();
+    setPreviewKey(key);
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
+    <>
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
       <div className="container-main">
         <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center sm:h-[4.5rem]">
           <div className="justify-self-start">
@@ -302,16 +452,43 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 if ("isMyImmifin" in link && link.isMyImmifin) {
                   return (
                     <Fragment key={link.href}>
-                      <MyImmifinDropdown />
-                      <FavoritesNavDropdown />
+                      <MyImmifinDropdown onOpenPreview={openPreview} />
+                      <FavoritesNavDropdown onOpenPreview={openPreview} />
                     </Fragment>
                   );
                 }
                 if (link.href === "/immigration") {
-                  return <ImmigrationDropdown key={link.href} />;
+                  return (
+                    <NavDropdown
+                      key={link.href}
+                      href="/immigration"
+                      label="Immigration"
+                      sections={immigrationSections}
+                      onOpenPreview={openPreview}
+                    />
+                  );
                 }
                 if (link.href === "/calculators") {
-                  return <CalculatorDropdown key={link.href} />;
+                  return (
+                    <NavDropdown
+                      key={link.href}
+                      href="/calculators"
+                      label="Calculators"
+                      sections={calculatorSections}
+                      onOpenPreview={openPreview}
+                    />
+                  );
+                }
+                if (link.href === "/about") {
+                  return (
+                    <NavDropdown
+                      key={link.href}
+                      href="/about"
+                      label="About"
+                      sections={aboutSections}
+                      onOpenPreview={openPreview}
+                    />
+                  );
                 }
               }
 
@@ -338,7 +515,6 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
               <div className="flex flex-col items-center justify-center">
                 <UserButton appearance={headerUserButtonAppearance}>
                   <UserButton.MenuItems>
-                    {/* Account-level actions only. Dashboard and Manage Profile live under My Immifin. */}
                     <UserButton.Action label="signOut" />
                   </UserButton.MenuItems>
                 </UserButton>
@@ -382,18 +558,21 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                         </div>
                         <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
                           {myImmifinItems.map((item) =>
-                            item.locked ? (
-                              <LockedMenuItem
+                            item.premiumPreview ? (
+                              <PremiumMenuButton
                                 key={item.label}
                                 label={item.label}
                                 description={item.description}
-                                className="w-full rounded-lg px-4 py-2.5 text-center opacity-60"
+                                previewKey={item.premiumPreview}
+                                onOpenPreview={openPreviewFromMobile}
+                                align="center"
+                                className={navMenuItemMobilePremiumClassName}
                               />
                             ) : (
                               <ProtectedLink
                                 key={item.href}
                                 href={item.href}
-                                className="flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
+                                className={navMenuItemMobileClassName}
                                 onClick={onToggleMenu}
                               >
                                 {item.label}
@@ -402,34 +581,48 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                           )}
                         </div>
                         <div className="mt-2 border-t border-slate-200/80 pt-2">
-                          <FavoritesMobileSection onNavigate={onToggleMenu} />
+                          <FavoritesMobileSection
+                            onNavigate={onToggleMenu}
+                            onOpenPreview={openPreviewFromMobile}
+                          />
                         </div>
                       </div>
                     );
                   }
 
-                  const submenu =
-                    link.href === "/calculators" ? calculatorMenuLinks : immigrationMenuLinks;
+                  const submenuSections =
+                    link.href === "/calculators"
+                      ? calculatorSections
+                      : link.href === "/about"
+                        ? aboutSections
+                        : immigrationSections;
 
                   return (
                     <div key={link.href} className="w-full">
                       <ProtectedLink
                         href={link.href}
-                        className="flex w-full items-center justify-center gap-1 rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                        className="nav-menu-trigger flex w-full items-center justify-center gap-1 rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
                         onClick={onToggleMenu}
                       >
                         {link.label}
                       </ProtectedLink>
-                      <div className="mt-1 space-y-0.5 border-t border-slate-200/80 pt-1">
-                        {submenu.map((item) => (
-                          <ProtectedLink
-                            key={item.label}
-                            href={item.href}
-                            className="flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2.5 text-center text-sm text-slate-600 transition-colors hover:bg-white hover:text-brand-700"
-                            onClick={onToggleMenu}
-                          >
-                            {item.label}
-                          </ProtectedLink>
+                      <div className="mt-1 space-y-2 border-t border-slate-200/80 pt-1">
+                        {submenuSections.map((section) => (
+                          <div key={section.id} role="group" aria-label={section.label || link.label}>
+                            {section.label ? (
+                              <p className="nav-submenu-group px-4 py-1 text-center">
+                                {section.label}
+                              </p>
+                            ) : null}
+                            <div className="space-y-0.5">
+                              {section.items.map((item) =>
+                                renderNavMenuItem(item, openPreviewFromMobile, {
+                                  mobile: true,
+                                  onNavigate: onToggleMenu,
+                                }),
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -440,7 +633,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                   <ProtectedLink
                     key={link.href}
                     href={link.href}
-                    className="w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                    className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
                     onClick={onToggleMenu}
                   >
                     {link.label}
@@ -451,7 +644,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 <div className="mt-2 w-full space-y-1 border-t border-slate-200/80 pt-2">
                   <Link
                     href="/login"
-                    className="block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 transition-colors hover:bg-white hover:text-brand-700"
+                    className="nav-menu-item block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
                     onClick={onToggleMenu}
                   >
                     Login
@@ -465,6 +658,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
           </nav>
         )}
       </div>
-    </header>
+      </header>
+
+      <PremiumNavPreviewDialog previewKey={previewKey} onClose={closePreview} />
+    </>
   );
 }

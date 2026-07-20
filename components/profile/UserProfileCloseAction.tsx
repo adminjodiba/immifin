@@ -3,7 +3,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfileDirtyState } from "@/components/profile/ProfileDirtyStateProvider";
-import { PROFILE_HUB_EXIT_PATH } from "@/lib/onboarding/routes";
+
+/** Close on Manage Profile always returns to the home page. */
+const MANAGE_PROFILE_CLOSE_PATH = "/";
 
 export function UserProfileCloseAction() {
   const router = useRouter();
@@ -40,7 +42,7 @@ export function UserProfileCloseAction() {
   }, [isOpen, isSaving]);
 
   function navigateAway() {
-    router.push(PROFILE_HUB_EXIT_PATH);
+    router.push(MANAGE_PROFILE_CLOSE_PATH);
   }
 
   function handleCloseClick() {
@@ -143,7 +145,7 @@ export function UserProfileCloseAction() {
               </button>
               <button
                 type="button"
-                className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-danger-solid w-full disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={handleLeaveWithoutSaving}
                 disabled={isSaving}
               >

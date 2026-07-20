@@ -3,6 +3,7 @@ import {
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
 import { VisaBulletinMovementTracker2 } from "@/components/VisaBulletinMovementTracker2";
+import { CAPABILITY } from "@/lib/subscription/capabilities";
 import { createMetadata } from "@/lib/metadata";
 import {
   formatVisaBulletinMonthShort,
@@ -44,19 +45,50 @@ const MOVEMENT_TRACKER_INFO_STATE = {
   freeToolsLinks: FREE_TOOL_LINKS,
 } as const;
 
+/** Shift YYYY-MM back one calendar month. */
+function getPreviousMonthKey(month: string): string | null {
+  const [yearText, monthText] = month.split("-");
+  const year = Number(yearText);
+  const monthNumber = Number(monthText);
+
+  if (!Number.isInteger(year) || !Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return null;
+  }
+
+  const previous = new Date(year, monthNumber - 2, 1);
+  const previousMonth = String(previous.getMonth() + 1).padStart(2, "0");
+  return `${previous.getFullYear()}-${previousMonth}`;
+}
+
+function formatBulletinColumnLabel(month: string | null): string | null {
+  if (!month) {
+    return null;
+  }
+
+  return `${formatVisaBulletinMonthShort(month)} Bulletin`;
+}
+
 export default async function VisaBulletinMovementPage() {
   const latestMonth = await getLatestVisaBulletinMonth();
+  const previousMonth = latestMonth ? getPreviousMonthKey(latestMonth) : null;
   const bulletinMonthLabel = latestMonth ? formatVisaBulletinMonthShort(latestMonth) : null;
+  const currentBulletinColumnLabel = formatBulletinColumnLabel(latestMonth) ?? "Current Bulletin";
+  const previousBulletinColumnLabel =
+    formatBulletinColumnLabel(previousMonth) ?? "Previous Bulletin";
 
   return (
     <PremiumFeaturePreview
-      requiredTier="pro"
+      capability={CAPABILITY.movementTracker}
       featureGroupTitle="Movement Intelligence"
       featureList={[...MOVEMENT_TRACKER_FEATURES]}
       showCloseButton
       infoState={MOVEMENT_TRACKER_INFO_STATE}
     >
-      <VisaBulletinMovementTracker2 bulletinMonthLabel={bulletinMonthLabel} />
+      <VisaBulletinMovementTracker2
+        bulletinMonthLabel={bulletinMonthLabel}
+        previousBulletinColumnLabel={previousBulletinColumnLabel}
+        currentBulletinColumnLabel={currentBulletinColumnLabel}
+      />
     </PremiumFeaturePreview>
   );
 }

@@ -5,6 +5,7 @@ import {
   PremiumFeaturePreview,
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
+import { CAPABILITY } from "@/lib/subscription/capabilities";
 
 const DASHBOARD_FEATURES = [
   "Personalized immigration journey timeline",
@@ -46,7 +47,7 @@ type DashboardAccessGateProps = {
 export function DashboardAccessGate({ children }: DashboardAccessGateProps) {
   return (
     <PremiumFeaturePreview
-      requiredTier="pro"
+      capability={CAPABILITY.personalDashboard}
       title="Unlock Your Personal Dashboard"
       description="Track your immigration journey with personalized timelines, Visa Bulletin comparisons, and clear next steps."
       featureGroupTitle="Personal Dashboard"

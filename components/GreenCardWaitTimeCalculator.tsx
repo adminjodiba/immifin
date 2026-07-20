@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import Link from "next/link";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import {
   chargeabilityOptions,
   employmentCategoryOptions,
@@ -198,15 +198,7 @@ export function GreenCardWaitTimeCalculator() {
             </p>
           </div>
         </div>
-        <Link
-          href="/calculators"
-          className="flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
-          aria-label="Close and return to calculators"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </Link>
+        <DashboardCloseAction />
       </header>
 
       <div className="mt-3 space-y-5">
@@ -303,7 +295,7 @@ export function GreenCardWaitTimeCalculator() {
 
               <button
                 type="submit"
-                className="mt-4 flex min-h-[40px] w-full items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
                 disabled={!canCalculate || loading}
               >
                 {loading ? "Checking…" : "Calculate"}

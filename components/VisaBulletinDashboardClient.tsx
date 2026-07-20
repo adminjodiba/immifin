@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
+import { bulletinDateTypeTabClassName } from "@/lib/visa/bulletinDateTypeTabs";
 import {
   formatBulletinDate,
   parseBulletinCutoffDate,
@@ -301,11 +302,7 @@ export function VisaBulletinDashboardClient() {
                   type="button"
                   role="tab"
                   aria-selected={isActive}
-                  className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive
-                      ? "bg-brand-700 text-white shadow-sm"
-                      : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-                  }`}
+                  className={bulletinDateTypeTabClassName(tab.key)}
                   onClick={() => setActiveTab(tab.key)}
                 >
                   {tab.label}

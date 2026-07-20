@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
 import { createMetadata } from "@/lib/metadata";
+import { isDevelopmentSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
 
 export const metadata = createMetadata({
   title: "Pricing",
@@ -11,12 +12,17 @@ export const metadata = createMetadata({
 });
 
 export default function PricingPage() {
+  const developmentSubscriptionModeEnabled = isDevelopmentSubscriptionModeEnabled();
+
   return (
     <PageHeader
       title="Choose Your Immifin Plan"
       description="Start free. Upgrade when you are ready for automation and intelligence."
+      pageHref="/pricing"
     >
-      <PricingPlans />
+      <Suspense fallback={null}>
+        <PricingPlans developmentSubscriptionModeEnabled={developmentSubscriptionModeEnabled} />
+      </Suspense>
     </PageHeader>
   );
 }

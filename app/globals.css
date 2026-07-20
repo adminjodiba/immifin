@@ -6,6 +6,36 @@
   /* Do not set scroll-behavior: smooth on html — it fights Next.js
      App Router scroll-to-top and can leave navigations mid-page. */
 
+  :root {
+    /* IMMIFIN CTA defaults — Electric Cyan rest + Golden Amber hover (S7-DS-001) */
+    --immifin-button-default-cyan: #00c2d7;
+    --immifin-button-hover-gold: #e3b636;
+    --immifin-button-hover-gold-text: #0f172a;
+    --immifin-button-sweep-duration: 320ms;
+    /* Navigation — light cyan sweep derived from Electric Cyan (S7-DS-002) */
+    --immifin-menu-hover-cyan: color-mix(in srgb, var(--immifin-button-default-cyan) 28%, white);
+    --immifin-menu-hover-cyan-soft: color-mix(in srgb, var(--immifin-button-default-cyan) 14%, white);
+    --immifin-menu-accent-cyan: var(--immifin-button-default-cyan);
+    --immifin-menu-sweep-duration: 300ms;
+    /* Landing ribbon shore-to-shore title travel (S7-UI-013 / bounce) */
+    --immifin-hero-ribbon-duration: 12s;
+    --immifin-hero-ribbon-travel-factor: 1;
+    --immifin-hero-ribbon-bounce: 10px;
+    /* Landing ribbon water surface (S7-UI-013A) */
+    --immifin-ribbon-wave-cyan: rgb(0 194 215 / 0.22);
+    --immifin-ribbon-wave-blue: rgb(147 197 253 / 0.2);
+    --immifin-ribbon-wave-highlight: rgb(255 255 255 / 0.1);
+    --immifin-ribbon-wave-duration-1: 14s;
+    --immifin-ribbon-wave-duration-2: 22s;
+    --immifin-ribbon-wave-duration-3: 30s;
+    --immifin-ribbon-wave-amplitude: 1;
+    --immifin-ribbon-float-duration: 4.5s;
+    --immifin-ribbon-float-distance: 3px;
+    /* Visa Bulletin date-type tabs — distinct resting colors (gold sweep shared) */
+    --immifin-bulletin-final-action: #4f46e5;
+    --immifin-bulletin-filing: #0f766e;
+  }
+
   body {
     @apply bg-slate-50 text-slate-800 antialiased;
     background-image:
@@ -59,20 +89,155 @@
     @apply text-base leading-relaxed text-slate-600 sm:text-lg;
   }
 
-  .btn-primary {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-700/20 transition-all hover:bg-brand-800 hover:shadow-brand-700/30 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+  /**
+   * Shared IMMIFIN CTA system (Design System 2.0).
+   * Resting: Electric Cyan + white label.
+   * Hover/focus-visible: gold left→right sweep.
+   */
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost-light,
+  .btn-white,
+  .btn-bulletin-tab {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
   }
 
-  .btn-secondary {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-sm transition-all hover:border-brand-200 hover:bg-brand-50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700;
+  .btn-primary::before,
+  .btn-secondary::before,
+  .btn-ghost-light::before,
+  .btn-white::before,
+  .btn-bulletin-tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--immifin-button-hover-gold);
+    transform: translateX(-101%);
+    transition: transform var(--immifin-button-sweep-duration) ease-in-out;
+    pointer-events: none;
   }
 
-  .btn-ghost-light {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition-all hover:bg-white/20 active:scale-[0.98];
+  .btn-primary:hover::before,
+  .btn-primary:focus-visible::before,
+  .btn-secondary:hover::before,
+  .btn-secondary:focus-visible::before,
+  .btn-ghost-light:hover::before,
+  .btn-ghost-light:focus-visible::before,
+  .btn-white:hover::before,
+  .btn-white:focus-visible::before,
+  .btn-bulletin-tab:hover::before,
+  .btn-bulletin-tab:focus-visible::before {
+    transform: translateX(0);
   }
 
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost-light,
   .btn-white {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-800 shadow-lg shadow-brand-900/10 transition-all hover:bg-blue-50 active:scale-[0.98];
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold text-white transition-[color,box-shadow,border-color,transform] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+    background-color: var(--immifin-button-default-cyan);
+    border: 1px solid color-mix(in srgb, var(--immifin-button-default-cyan) 85%, black);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--immifin-button-default-cyan) 28%, transparent);
+    outline-color: var(--immifin-button-default-cyan);
+  }
+
+  .btn-primary:hover,
+  .btn-primary:focus-visible,
+  .btn-secondary:hover,
+  .btn-secondary:focus-visible,
+  .btn-ghost-light:hover,
+  .btn-ghost-light:focus-visible,
+  .btn-white:hover,
+  .btn-white:focus-visible {
+    color: var(--immifin-button-hover-gold-text);
+    border-color: var(--immifin-button-hover-gold);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--immifin-button-hover-gold) 30%, transparent);
+  }
+
+  /**
+   * Destructive actions — red safety language; no gold sweep.
+   */
+  .btn-danger {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-red-200 bg-white px-6 py-3 text-sm font-semibold text-red-700 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-800 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
+  }
+
+  .btn-danger-solid {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
+  }
+
+  /* Opt out of sweep (non-interactive Current Plan, etc.) */
+  .btn-no-sweep::before {
+    content: none !important;
+  }
+
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-ghost-light:disabled,
+  .btn-white:disabled,
+  .btn-danger:disabled,
+  .btn-danger-solid:disabled,
+  .btn-primary[aria-disabled="true"],
+  .btn-secondary[aria-disabled="true"],
+  .btn-ghost-light[aria-disabled="true"],
+  .btn-white[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .btn-primary:disabled::before,
+  .btn-secondary:disabled::before,
+  .btn-ghost-light:disabled::before,
+  .btn-white:disabled::before,
+  .btn-primary[aria-disabled="true"]::before,
+  .btn-secondary[aria-disabled="true"]::before,
+  .btn-ghost-light[aria-disabled="true"]::before,
+  .btn-white[aria-disabled="true"]::before,
+  .btn-primary:disabled:hover::before,
+  .btn-secondary:disabled:hover::before,
+  .btn-ghost-light:disabled:hover::before,
+  .btn-white:disabled:hover::before,
+  .btn-primary[aria-disabled="true"]:hover::before,
+  .btn-secondary[aria-disabled="true"]:hover::before,
+  .btn-ghost-light[aria-disabled="true"]:hover::before,
+  .btn-white[aria-disabled="true"]:hover::before,
+  .btn-primary:disabled:focus-visible::before,
+  .btn-secondary:disabled:focus-visible::before,
+  .btn-ghost-light:disabled:focus-visible::before,
+  .btn-white:disabled:focus-visible::before {
+    transform: translateX(-101%);
+    transition: none;
+  }
+
+  .btn-primary:disabled:hover,
+  .btn-primary:disabled:focus-visible,
+  .btn-primary[aria-disabled="true"]:hover,
+  .btn-primary[aria-disabled="true"]:focus-visible,
+  .btn-secondary:disabled:hover,
+  .btn-secondary:disabled:focus-visible,
+  .btn-secondary[aria-disabled="true"]:hover,
+  .btn-secondary[aria-disabled="true"]:focus-visible,
+  .btn-ghost-light:disabled:hover,
+  .btn-ghost-light:disabled:focus-visible,
+  .btn-ghost-light[aria-disabled="true"]:hover,
+  .btn-ghost-light[aria-disabled="true"]:focus-visible,
+  .btn-white:disabled:hover,
+  .btn-white:disabled:focus-visible,
+  .btn-white[aria-disabled="true"]:hover,
+  .btn-white[aria-disabled="true"]:focus-visible {
+    color: #fff;
+    border-color: color-mix(in srgb, var(--immifin-button-default-cyan) 85%, black);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--immifin-button-default-cyan) 28%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary::before,
+    .btn-secondary::before,
+    .btn-ghost-light::before,
+    .btn-white::before,
+    .btn-bulletin-tab::before {
+      transition: none;
+    }
   }
 
   .card {
@@ -93,6 +258,259 @@
 
   .link-arrow {
     @apply inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800;
+  }
+
+  /**
+   * Submenu category labels (desktop dropdown + mobile nav).
+   * Use for section headings like "Visa Bulletin", "H-1B Tools", "Immigration".
+   * Non-interactive — must not receive nav-menu-item / sweep styles.
+   */
+  .nav-submenu-group {
+    @apply text-[11px] font-bold uppercase tracking-wide text-brand-700;
+  }
+
+  /**
+   * Landing compact-hero ribbon title — gentle shore-to-shore travel (S7-UI-013).
+   * Travel distance is container-relative so mobile can reduce or stop motion when
+   * there is little spare width.
+   */
+  .hero-ribbon-title-rail {
+    container-type: inline-size;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero-ribbon-title-shuttle {
+    --hero-ribbon-travel: max(
+      0px,
+      calc((100cqi - 100%) * var(--immifin-hero-ribbon-travel-factor))
+    );
+    /* No travel room → no bounce (avoids clipping when text fills the rail) */
+    --hero-ribbon-bounce: min(var(--immifin-hero-ribbon-bounce), var(--hero-ribbon-travel));
+    display: inline-block;
+    white-space: nowrap;
+    animation: hero-ribbon-shore var(--immifin-hero-ribbon-duration) linear infinite;
+  }
+
+  .hero-ribbon-title-float {
+    display: inline-block;
+    animation: hero-ribbon-float var(--immifin-ribbon-float-duration) ease-in-out infinite alternate;
+  }
+
+  /**
+   * Even-speed shore travel with a soft turnaround bounce at each end.
+   * Keep timing linear through the bounce — ease-out was causing a brief pause
+   * at the apex before the next leg began.
+   */
+  @keyframes hero-ribbon-shore {
+    /* Just after left bounce — cruise right at constant speed */
+    0% {
+      transform: translateX(var(--hero-ribbon-bounce));
+    }
+
+    /* Touch right end */
+    48% {
+      transform: translateX(var(--hero-ribbon-travel));
+    }
+
+    /* Soft bounce = turnaround apex, then continue left immediately */
+    50% {
+      transform: translateX(calc(var(--hero-ribbon-travel) - var(--hero-ribbon-bounce)));
+    }
+
+    /* Touch left end (same cruise share as the rightward leg) */
+    98% {
+      transform: translateX(0);
+    }
+
+    /* Soft bounce = turnaround apex, then continue right into the next loop */
+    100% {
+      transform: translateX(var(--hero-ribbon-bounce));
+    }
+  }
+
+  @keyframes hero-ribbon-float {
+    from {
+      transform: translateY(calc(var(--immifin-ribbon-float-distance) * -1));
+    }
+
+    to {
+      transform: translateY(var(--immifin-ribbon-float-distance));
+    }
+  }
+
+  @media (max-width: 1024px) {
+    :root {
+      --immifin-hero-ribbon-travel-factor: 1;
+      --immifin-ribbon-wave-amplitude: 0.85;
+    }
+  }
+
+  @media (max-width: 640px) {
+    :root {
+      --immifin-hero-ribbon-travel-factor: 1;
+      --immifin-hero-ribbon-duration: 14s;
+      --immifin-hero-ribbon-bounce: 8px;
+      --immifin-ribbon-wave-amplitude: 0.65;
+      --immifin-ribbon-float-distance: 2px;
+      --immifin-ribbon-wave-duration-1: 18s;
+      --immifin-ribbon-wave-duration-2: 26s;
+      --immifin-ribbon-wave-duration-3: 34s;
+    }
+
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-ribbon-title-rail {
+      display: flex;
+      justify-content: center;
+    }
+
+    .hero-ribbon-title-shuttle,
+    .hero-ribbon-title-float,
+    .hero-ribbon-wave--1,
+    .hero-ribbon-wave--2,
+    .hero-ribbon-wave--3 {
+      animation: none;
+      transform: none;
+    }
+  }
+
+  /**
+   * Top-level nav triggers (Immigration, Calculators, My Immifin, Favorites, About).
+   * S7-UI-014: ::before owns the full hover fill (no base/open solid wash).
+   * Linear transform keeps the L→R edge visible across wide rows (~300ms).
+   */
+  .nav-menu-trigger {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background-color: transparent;
+    background-image: none;
+    transition: color var(--immifin-menu-sweep-duration) ease-in-out;
+  }
+
+  .nav-menu-trigger::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--immifin-menu-hover-cyan-soft);
+    transform: translateX(-101%);
+    transition: transform var(--immifin-menu-sweep-duration) linear;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .nav-menu-trigger::after {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.35rem;
+    height: 2px;
+    border-radius: 999px;
+    background-color: var(--immifin-menu-accent-cyan);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--immifin-menu-sweep-duration) linear;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .nav-menu-trigger:hover::before,
+  .nav-menu-trigger:focus-visible::before {
+    transform: translateX(0);
+  }
+
+  .nav-menu-trigger:hover::after,
+  .nav-menu-trigger:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  .nav-menu-trigger:hover,
+  .nav-menu-trigger:focus-visible {
+    color: var(--immifin-button-hover-gold-text);
+    background-color: transparent;
+    background-image: none;
+  }
+
+  /**
+   * Clickable submenu / mobile nav rows — light cyan L→R sweep.
+   * S7-UI-014: transparent base; ::before is the only hover fill layer.
+   */
+  .nav-menu-item {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background-color: transparent;
+    background-image: none;
+    transition: color var(--immifin-menu-sweep-duration) ease-in-out;
+  }
+
+  .nav-menu-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--immifin-menu-hover-cyan);
+    transform: translateX(-101%);
+    transition: transform var(--immifin-menu-sweep-duration) linear;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .nav-menu-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 18%;
+    bottom: 18%;
+    width: 3px;
+    border-radius: 0 999px 999px 0;
+    background-color: var(--immifin-menu-accent-cyan);
+    opacity: 0;
+    transform: translateX(-100%);
+    transition:
+      transform var(--immifin-menu-sweep-duration) linear,
+      opacity calc(var(--immifin-menu-sweep-duration) * 0.6) linear;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .nav-menu-item:hover::before,
+  .nav-menu-item:focus-visible::before {
+    transform: translateX(0);
+  }
+
+  .nav-menu-item:hover::after,
+  .nav-menu-item:focus-visible::after {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .nav-menu-item:hover,
+  .nav-menu-item:focus-visible {
+    color: var(--immifin-button-hover-gold-text);
+    background-color: transparent;
+    background-image: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-menu-trigger,
+    .nav-menu-item {
+      transition: none;
+    }
+
+    .nav-menu-trigger::before,
+    .nav-menu-trigger::after,
+    .nav-menu-item::before,
+    .nav-menu-item::after {
+      transition: none;
+    }
   }
 
   /* Clerk UserProfile: keep all custom IMMIFIN tabs visible when navbar overflows */
@@ -156,4 +574,155 @@
   border-radius: 50%;
   border: 1.5px solid #fff;
   flex-shrink: 0;
+}
+
+/**
+ * Visa Bulletin Final Action / Dates for Filing tabs.
+ * Outside @layer so Tailwind cannot drop these as unused (was stripping from @layer components).
+ */
+.btn-bulletin-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  font-weight: 600;
+  color: #ffffff;
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+  transition:
+    color var(--immifin-button-sweep-duration) ease-in-out,
+    border-color var(--immifin-button-sweep-duration) ease-in-out,
+    box-shadow var(--immifin-button-sweep-duration) ease-in-out,
+    opacity var(--immifin-button-sweep-duration) ease-in-out;
+}
+
+.btn-bulletin-tab--compact {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .btn-bulletin-tab--compact {
+    font-size: 0.875rem;
+  }
+}
+
+.btn-bulletin-tab--comfortable {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  border-radius: 0.75rem;
+}
+
+.btn-bulletin-final-action {
+  background-color: #4f46e5;
+  border-color: #3730a3;
+  box-shadow: 0 6px 12px -4px rgb(79 70 229 / 0.35);
+}
+
+.btn-bulletin-filing {
+  background-color: #0f766e;
+  border-color: #115e59;
+  box-shadow: 0 6px 12px -4px rgb(15 118 110 / 0.35);
+}
+
+.btn-bulletin-tab[aria-selected="false"] {
+  opacity: 0.78;
+}
+
+.btn-bulletin-tab[aria-selected="true"] {
+  opacity: 1;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 8px 14px -4px rgb(15 23 42 / 0.28);
+}
+
+.btn-bulletin-tab:hover,
+.btn-bulletin-tab:focus-visible {
+  color: var(--immifin-button-hover-gold-text);
+  border-color: var(--immifin-button-hover-gold);
+}
+
+.btn-bulletin-tab:focus-visible {
+  outline: 2px solid var(--immifin-button-hover-gold);
+  outline-offset: 2px;
+}
+
+/**
+ * Landing compact-hero water surface (S7-UI-013A / S7-UI-013B).
+ * Full-ribbon layered SVG bands (not bottom-only). Outside @layer so
+ * utilities are not tree-shaken. CSS-only — no JS, no media files.
+ */
+.hero-ribbon-waves {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-ribbon-wave {
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  height: 100%;
+  background-repeat: repeat-x;
+  background-position: left center;
+  background-size: 50% 100%;
+  opacity: calc(0.55 + 0.45 * var(--immifin-ribbon-wave-amplitude));
+  will-change: transform;
+}
+
+/* Full-height cyan bands — soft, multi-row undulation */
+.hero-ribbon-wave--1 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' preserveAspectRatio='none'%3E%3Cpath fill='%2300c2d7' fill-opacity='0.2' d='M0 28C200 8 400 52 600 28s400 20 600 0v52C1000 100 800 56 600 80S200 100 0 80Z'/%3E%3Cpath fill='%2300c2d7' fill-opacity='0.16' d='M0 110C180 86 420 138 600 110s420 24 600 0v56C1020 190 780 138 600 162S180 190 0 166Z'/%3E%3Cpath fill='%2300c2d7' fill-opacity='0.14' d='M0 200C220 172 380 232 600 200s380 28 600 0v58C1000 282 800 228 600 252S200 282 0 258Z'/%3E%3C/svg%3E");
+  animation: hero-ribbon-wave-ltr var(--immifin-ribbon-wave-duration-1) linear infinite;
+}
+
+/* Full-height soft blue bands — opposite drift */
+.hero-ribbon-wave--2 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' preserveAspectRatio='none'%3E%3Cpath fill='%2393c5fd' fill-opacity='0.18' d='M0 48C240 24 360 76 600 48s360 28 600 0v50C960 118 840 66 600 94S240 118 0 98Z'/%3E%3Cpath fill='%2393c5fd' fill-opacity='0.15' d='M0 140C200 112 400 172 600 140s400 28 600 0v54C1000 218 800 160 600 188S200 218 0 194Z'/%3E%3Cpath fill='%2393c5fd' fill-opacity='0.12' d='M0 230C180 204 420 260 600 230s420 26 600 0v50C1020 300 780 246 600 270S180 300 0 280Z'/%3E%3C/svg%3E");
+  animation: hero-ribbon-wave-rtl var(--immifin-ribbon-wave-duration-2) linear infinite;
+}
+
+/* Full-height highlight sheen — slowest */
+.hero-ribbon-wave--3 {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' fill-opacity='0.08' d='M0 36C220 12 380 64 600 36s380 24 600 0v44C980 100 820 48 600 76S220 100 0 80Z'/%3E%3Cpath fill='%23ffffff' fill-opacity='0.07' d='M0 125C190 98 410 156 600 125s410 28 600 0v46C1010 195 790 140 600 168S190 195 0 171Z'/%3E%3Cpath fill='%23ffffff' fill-opacity='0.06' d='M0 215C210 188 390 248 600 215s390 28 600 0v48C1000 285 800 230 600 258S210 285 0 263Z'/%3E%3C/svg%3E");
+  animation: hero-ribbon-wave-ltr var(--immifin-ribbon-wave-duration-3) linear infinite;
+}
+
+@keyframes hero-ribbon-wave-ltr {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes hero-ribbon-wave-rtl {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ribbon-wave--1,
+  .hero-ribbon-wave--2,
+  .hero-ribbon-wave--3 {
+    animation: none;
+    transform: none;
+    width: 100%;
+    background-size: 100% 100%;
+  }
 }

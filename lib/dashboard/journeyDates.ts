@@ -130,9 +130,10 @@ export function calculateYearsMonthsDaysSince(
   return parts.join(", ");
 }
 
-const MARKER_MIN_PERCENT = 10;
-const MARKER_MAX_PERCENT = 90;
+const MARKER_MIN_PERCENT = 0;
+const MARKER_MAX_PERCENT = 100;
 
+/** Keep markers on the true timeline; label edge-clipping is handled in the UI. */
 export function clampTimelineMarkerPercent(percent: number): number {
   return Math.min(MARKER_MAX_PERCENT, Math.max(MARKER_MIN_PERCENT, percent));
 }

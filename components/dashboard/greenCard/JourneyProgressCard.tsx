@@ -5,82 +5,98 @@ type JourneyProgressCardProps = {
   journey: GreenCardJourneyData;
 };
 
-function EndpointMarker({ className }: { className: string }) {
-  return (
-    <span
-      className={`absolute top-1/2 z-10 h-3 w-3 -translate-y-1/2 rounded-full ring-4 ${className}`}
-      aria-hidden="true"
-    />
-  );
+const LABEL_EDGE_INSET_PERCENT = 12;
+
+function labelPositionStyle(percent: number): CSSProperties {
+  if (percent <= LABEL_EDGE_INSET_PERCENT) {
+    return { left: "0%" };
+  }
+
+  if (percent >= 100 - LABEL_EDGE_INSET_PERCENT) {
+    return { right: "0%", left: "auto" };
+  }
+
+  return { left: `${percent}%`, transform: "translateX(-50%)" };
 }
 
-function TodayMarker() {
-  return (
-    <span
-      className="h-3 w-3 rounded-full bg-brand-600 ring-4 ring-brand-100"
-      aria-hidden="true"
-    />
-  );
+function labelAlignClass(percent: number): string {
+  if (percent <= LABEL_EDGE_INSET_PERCENT) {
+    return "text-left";
+  }
+
+  if (percent >= 100 - LABEL_EDGE_INSET_PERCENT) {
+    return "text-right";
+  }
+
+  return "-translate-x-1/2 text-center";
 }
 
-function VerticalConnector({ className }: { className?: string }) {
-  return (
-    <span
-      className={`mx-auto block w-px border-l border-dashed border-slate-300 ${className ?? "h-5"}`}
-      aria-hidden="true"
-    />
-  );
+function markerDotStyle(percent: number): CSSProperties {
+  if (percent <= 0) {
+    return { left: "0%" };
+  }
+
+  if (percent >= 100) {
+    return { right: "0%", left: "auto" };
+  }
+
+  return { left: `${percent}%`, transform: "translateX(-50%)" };
 }
 
-type EndpointLabelProps = {
+function MarkerLabel({
+  title,
+  date,
+  detail,
+  titleClassName,
+}: {
   title: string;
   date: string;
-  detail: string;
-  align: "left" | "right";
-};
-
-function EndpointLabel({ title, date, detail, align }: EndpointLabelProps) {
-  const alignmentClass = align === "left" ? "text-left" : "text-right";
-  const connectorClass = align === "left" ? "mr-auto ml-[5px]" : "ml-auto mr-[5px]";
-
+  detail?: string;
+  titleClassName: string;
+}) {
   return (
-    <div className={alignmentClass}>
-      <span
-        className={`mb-2 block h-4 w-px border-l border-dashed border-slate-300 ${connectorClass}`}
-        aria-hidden="true"
-      />
-      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{title}</p>
-      <p className="mt-0.5 text-xs font-medium text-slate-700">{date}</p>
-      <p className="mt-1 text-xs text-slate-500">{detail}</p>
-    </div>
+    <p className="text-[0.625rem] leading-tight sm:text-[0.6875rem]">
+      <span className={`font-bold uppercase tracking-wide ${titleClassName}`}>{title}</span>
+      <span className="mx-1 text-slate-300" aria-hidden="true">
+        ·
+      </span>
+      <span className="font-medium text-slate-700">{date}</span>
+      {detail ? (
+        <>
+          <br />
+          <span className="text-slate-500">{detail}</span>
+        </>
+      ) : null}
+    </p>
   );
 }
 
-function TodayLabelBlock({
-  journey,
-  showMarker = true,
+function TrackDot({
+  className,
+  style,
+  edge,
 }: {
-  journey: GreenCardJourneyData;
-  showMarker?: boolean;
+  className: string;
+  style?: CSSProperties;
+  edge?: "start" | "end";
 }) {
-  const daysLabel = `${journey.summary.daysCompleted.toLocaleString()} day${
-    journey.summary.daysCompleted === 1 ? "" : "s"
-  } completed`;
+  const edgeClass =
+    edge === "start"
+      ? "left-0"
+      : edge === "end"
+        ? "right-0"
+        : style?.left === "0%" || style?.left === 0
+          ? "left-0"
+          : style?.right === "0%"
+            ? "right-0"
+            : "-translate-x-1/2";
 
   return (
-    <div className="text-center">
-      <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Today</p>
-      <p className="mt-0.5 text-xs font-medium text-slate-700">{journey.todayFormatted}</p>
-      <p className="mt-1 text-xs text-slate-500">{daysLabel}</p>
-      {showMarker ? (
-        <>
-          <VerticalConnector className="mt-2 h-5" />
-          <div className="flex justify-center">
-            <TodayMarker />
-          </div>
-        </>
-      ) : null}
-    </div>
+    <span
+      className={`absolute top-1/2 z-20 h-2.5 w-2.5 -translate-y-1/2 rounded-full ring-[3px] ${edgeClass} ${className}`}
+      style={edge ? undefined : style}
+      aria-hidden="true"
+    />
   );
 }
 
@@ -94,21 +110,25 @@ function SummaryMetric({
   detail?: string;
 }) {
   return (
-    <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-bold text-slate-900">{value}</p>
-      {detail ? <p className="mt-1 text-xs leading-relaxed text-slate-600">{detail}</p> : null}
+    <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-2.5 py-2">
+      <p className="text-[0.625rem] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-0.5 text-sm font-bold text-slate-900 sm:text-base">{value}</p>
+      {detail ? <p className="mt-0.5 text-[0.6875rem] leading-snug text-slate-600">{detail}</p> : null}
     </div>
   );
 }
 
 export function JourneyProgressCard({ journey }: JourneyProgressCardProps) {
-  const { progress, summary, waitingPeriodDescription } = journey;
-  const todayMarkerStyle: CSSProperties = { left: `${progress.todayMarkerPercent}%` };
+  const { progress, summary, eligibilityStatusLabel } = journey;
+  const todayPercent = progress.todayMarkerPercent;
+  const todayAtEnd = todayPercent >= 100 - LABEL_EDGE_INSET_PERCENT;
 
   const totalDaysLabel = `${summary.totalRequiredDays.toLocaleString()} day${
     summary.totalRequiredDays === 1 ? "" : "s"
   }`;
+  const daysCompletedLabel = `${summary.daysCompleted.toLocaleString()} day${
+    summary.daysCompleted === 1 ? "" : "s"
+  } completed`;
   const daysRemainingLabel =
     summary.daysRemaining === 0
       ? "You can file now"
@@ -116,63 +136,126 @@ export function JourneyProgressCard({ journey }: JourneyProgressCardProps) {
           summary.daysRemaining === 1 ? "" : "s"
         }`;
 
+  const canFile = summary.daysRemaining === 0;
+  const statusBadgeClass = canFile
+    ? "bg-emerald-100 text-emerald-800"
+    : "bg-brand-100 text-brand-800";
+  const statusDotClass = canFile ? "bg-emerald-500" : "bg-brand-500";
+
   return (
-    <section className="card-static overflow-hidden">
-      <h2 className="heading-3 text-slate-900">Your Citizenship Journey</h2>
-      <p className="mt-2 text-sm text-slate-600">
-        Track your path from Green Card to your earliest N-400 filing window.
+    <section className="card-static overflow-hidden border border-emerald-200 !py-3 sm:!py-4">
+      <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <h2 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg sm:justify-self-start">
+          Your Citizenship Journey
+        </h2>
+
+        <div className="text-center">
+          <p className="text-[0.625rem] font-bold uppercase tracking-wide text-slate-500 sm:text-[0.6875rem]">
+            Journey Progress
+          </p>
+          <p className="mt-0.5 text-base font-bold leading-none text-emerald-700 sm:text-lg">
+            {summary.progressPercent}%
+          </p>
+        </div>
+
+        <span
+          className={`inline-flex w-fit items-center gap-1.5 justify-self-start rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold sm:justify-self-end sm:px-3 sm:py-1 sm:text-xs ${statusBadgeClass}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 ${statusDotClass}`} aria-hidden="true" />
+          {eligibilityStatusLabel}
+        </span>
+      </div>
+
+      <p className="mt-1 text-xs leading-snug text-slate-600 sm:text-sm">
+        From Green Card to your earliest N-400 filing window.
       </p>
 
-      <div className="mt-8 hidden sm:block">
-        <div className="relative pb-2 pt-20">
+      <div className="mt-2.5 hidden sm:block">
+        <div className="relative h-7">
           <div
-            className="absolute top-0 max-w-[11rem] -translate-x-1/2 px-2"
-            style={todayMarkerStyle}
+            className={`absolute top-0 z-40 max-w-[10.5rem] px-0.5 ${labelAlignClass(todayPercent)}`}
+            style={labelPositionStyle(todayPercent)}
           >
-            <TodayLabelBlock journey={journey} />
+            <MarkerLabel
+              title="Today"
+              date={journey.todayFormatted}
+              detail={daysCompletedLabel}
+              titleClassName="text-brand-700"
+            />
+          </div>
+        </div>
+
+        <div className="relative mb-1 h-3">
+          <span
+            className={`absolute bottom-0 top-0 z-30 w-px border-l border-dashed border-slate-300 ${
+              todayAtEnd ? "right-0" : todayPercent <= LABEL_EDGE_INSET_PERCENT ? "left-0" : "-translate-x-1/2"
+            }`}
+            style={
+              todayAtEnd || todayPercent <= LABEL_EDGE_INSET_PERCENT
+                ? undefined
+                : markerDotStyle(todayPercent)
+            }
+            aria-hidden="true"
+          />
+        </div>
+
+        <div className="relative z-0 h-1.5">
+          <div className="relative z-0 h-1.5 overflow-hidden rounded-full bg-emerald-100">
+            <div
+              className="absolute inset-y-0 left-0 z-0 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
+              style={{ width: `${progress.fillPercent}%` }}
+              role="progressbar"
+              aria-valuenow={summary.progressPercent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progress toward earliest N-400 filing date"
+            />
           </div>
 
-          <div className="relative">
-            <div className="relative h-3 overflow-hidden rounded-full bg-emerald-100">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
-                style={{ width: `${progress.fillPercent}%` }}
-                role="progressbar"
-                aria-valuenow={summary.progressPercent}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Progress toward earliest N-400 filing date"
-              />
-            </div>
+          <TrackDot edge="start" className="z-20 bg-emerald-600 ring-emerald-100" />
+          {todayAtEnd ? (
+            <TrackDot edge="end" className="z-30 bg-brand-600 ring-brand-100" />
+          ) : (
+            <TrackDot className="z-30 bg-brand-600 ring-brand-100" style={markerDotStyle(todayPercent)} />
+          )}
+          {!todayAtEnd ? (
+            <TrackDot edge="end" className="z-20 bg-emerald-600 ring-emerald-100" />
+          ) : null}
+        </div>
 
-            <EndpointMarker className="left-0 bg-emerald-600 ring-emerald-100" />
-            <EndpointMarker className="right-0 bg-emerald-600 ring-emerald-100" />
+        <div className="relative mt-1 h-3">
+          <span
+            className="absolute bottom-0 left-0 top-0 z-20 w-px border-l border-dashed border-slate-300"
+            aria-hidden="true"
+          />
+          <span
+            className="absolute bottom-0 right-0 top-0 z-20 w-px border-l border-dashed border-slate-300"
+            aria-hidden="true"
+          />
+        </div>
+
+        <div className="relative z-40 grid grid-cols-2 gap-3 pt-0.5">
+          <div className="min-w-0 text-left">
+            <MarkerLabel
+              title="Green Card Granted"
+              date={journey.greenCardIssueDateFormatted}
+              detail="Day 0"
+              titleClassName="text-emerald-700"
+            />
           </div>
-
-          <div className="relative mt-1 min-h-[5.5rem]">
-            <div className="absolute left-0 top-0 max-w-[44%] pr-3">
-              <EndpointLabel
-                align="left"
-                title="Green Card Granted"
-                date={journey.greenCardIssueDateFormatted}
-                detail="Day 0"
-              />
-            </div>
-
-            <div className="absolute right-0 top-0 max-w-[44%] pl-3">
-              <EndpointLabel
-                align="right"
-                title="Earliest N-400 Filing Date"
-                date={journey.earliestFilingDateFormatted}
-                detail={`${totalDaysLabel}\n(${waitingPeriodDescription})`}
-              />
-            </div>
+          <div className="min-w-0 text-right">
+            <MarkerLabel
+              title="Earliest N-400 Filing Date"
+              date={journey.earliestFilingDateFormatted}
+              detail={totalDaysLabel}
+              titleClassName="text-emerald-700"
+            />
           </div>
         </div>
       </div>
 
-      <div className="mt-8 sm:hidden">
-        <div className="relative h-3 overflow-hidden rounded-full bg-emerald-100">
+      <div className="mt-2.5 sm:hidden">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-emerald-100">
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
             style={{ width: `${progress.fillPercent}%` }}
@@ -184,40 +267,45 @@ export function JourneyProgressCard({ journey }: JourneyProgressCardProps) {
           />
         </div>
 
-        <div className="mt-6 space-y-5">
-          <EndpointLabel
-            align="left"
+        <div className="mt-3 space-y-2.5">
+          <MarkerLabel
             title="Green Card Granted"
             date={journey.greenCardIssueDateFormatted}
             detail="Day 0"
+            titleClassName="text-emerald-700"
           />
-          <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-left">
-            <TodayLabelBlock journey={journey} showMarker={false} />
+          <div className="rounded-lg border border-brand-100 bg-brand-50/40 px-3 py-2 text-left">
+            <MarkerLabel
+              title="Today"
+              date={journey.todayFormatted}
+              detail={daysCompletedLabel}
+              titleClassName="text-brand-700"
+            />
           </div>
-          <EndpointLabel
-            align="left"
+          <MarkerLabel
             title="Earliest N-400 Filing Date"
             date={journey.earliestFilingDateFormatted}
-            detail={`${totalDaysLabel} (${waitingPeriodDescription})`}
+            detail={totalDaysLabel}
+            titleClassName="text-emerald-700"
           />
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-2.5 grid grid-cols-3 gap-2">
         <SummaryMetric
           label="Days Completed"
           value={summary.daysCompleted.toLocaleString()}
           detail={`(${summary.daysCompletedDuration})`}
         />
         <SummaryMetric
-          label="Journey Progress"
+          label="Progress"
           value={`${summary.progressPercent}%`}
-          detail="of the way to eligibility"
+          detail="to eligibility"
         />
         <SummaryMetric
-          label="Days Remaining"
+          label="Remaining"
           value={daysRemainingLabel}
-          detail="until earliest filing date"
+          detail="until filing date"
         />
       </div>
     </section>

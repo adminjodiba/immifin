@@ -6,11 +6,13 @@
  */
 
 import Link from "next/link";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
+import { bulletinDateTypeTabClassName } from "@/lib/visa/bulletinDateTypeTabs";
 import { parseBulletinCutoffDate, type VisaBulletinDataType, type VisaBulletinRow } from "@/lib/visaBulletinData";
 
 type TabKey = VisaBulletinDataType;
@@ -423,7 +425,7 @@ export function VisaBulletinDashboard2({
   return (
     <WorkspacePageShell>
       <div className="container-main py-4 sm:py-5">
-        <header>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-2.5">
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
@@ -444,6 +446,7 @@ export function VisaBulletinDashboard2({
                 </div>
               </div>
             </div>
+          <DashboardCloseAction />
         </header>
 
         <div className="mt-3 space-y-3">
@@ -536,11 +539,11 @@ export function VisaBulletinDashboard2({
 
               <div className="xl:hidden">
                 <div
-                  className="mb-3 inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+                  className="mb-3 flex flex-wrap items-center gap-3"
                   role="tablist"
                   aria-label="Visa bulletin date type"
                 >
-                  {tabs.map((tab, index) => {
+                  {tabs.map((tab) => {
                     const isActive = mobileTab === tab.key;
                     return (
                       <button
@@ -548,11 +551,7 @@ export function VisaBulletinDashboard2({
                         type="button"
                         role="tab"
                         aria-selected={isActive}
-                        className={`px-3 py-2 text-xs font-semibold transition sm:text-sm ${
-                          isActive
-                            ? "bg-brand-700 text-white"
-                            : "bg-white text-slate-700 hover:bg-slate-50"
-                        } ${index > 0 ? "border-l border-slate-200" : ""}`}
+                        className={bulletinDateTypeTabClassName(tab.key, { compact: true })}
                         onClick={() => setMobileTab(tab.key)}
                       >
                         {tab.label}

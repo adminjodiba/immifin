@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { AuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
 import { requireUser } from "@/lib/auth/requireUser";
+import { CAPABILITY } from "@/lib/subscription/capabilities";
+import { assertCapability } from "@/lib/subscription/requireCapability";
 import { updateImmigrationProfile } from "@/lib/supabase/profiles";
 
 export const runtime = "nodejs";
@@ -137,6 +139,7 @@ function validateMarriedToUsCitizen(value: unknown): boolean | null {
 export async function PATCH(request: Request) {
   try {
     const profileWithRelations = await requireUser();
+    assertCapability(profileWithRelations, CAPABILITY.saveImmigrationProfile);
     const body = (await request.json()) as PatchBody;
 
     const immigrationProfile = await updateImmigrationProfile(profileWithRelations.profile.id, {
