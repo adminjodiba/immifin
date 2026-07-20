@@ -53,6 +53,21 @@ function main() {
   );
 
   const freeItems = getVisibleMyImmifinMenuItems("free");
+  const proItems = getVisibleMyImmifinMenuItems("pro");
+  const freeIds = freeItems.map((item) => item.id).join(",");
+  const proIds = proItems.map((item) => item.id).join(",");
+  assert(
+    "Free and Pro My Immifin menus share the same item ids",
+    freeIds === proIds,
+  );
+  assert(
+    "Shared My Immifin menu includes Dashboard, Profile, Billing, View Plan",
+    freeIds === "dashboard,manage-profile,subscription,view-plan",
+  );
+  assert(
+    "Free menu does not use Upgrade to Pro row",
+    !freeItems.some((item) => item.id === "upgrade-to-pro"),
+  );
   const dashboard = freeItems.find((item) => item.id === "dashboard");
   assert("Free My Immifin includes Dashboard", Boolean(dashboard));
   assert("Dashboard preview key is dashboard", dashboard?.premiumPreview === "dashboard");
@@ -67,6 +82,14 @@ function main() {
   assert(
     "Power Dashboard navigates normally",
     getMyImmifinPremiumPreview(dashboard, "power") === null,
+  );
+  assert(
+    "Free can see Subscription & Billing",
+    freeItems.some((item) => item.id === "subscription" && item.label === "Subscription & Billing"),
+  );
+  assert(
+    "Free can see View Plan",
+    freeItems.some((item) => item.id === "view-plan" && item.label === "View Plan"),
   );
 
   const movementContent = getPremiumNavPreviewContent("movementTracker");

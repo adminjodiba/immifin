@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-07-20 (S7-DOC-003)  
+**Last Updated:** 2026-07-20 (S7-DOC-003; UX follow-up)  
 **Document role:** Operational single source of truth — where the project is today  
 **Sprint history:** [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) (as-built)
 
@@ -40,16 +40,16 @@ IMMIFIN is a production immigration/finance web application on Cloudflare Worker
 
 | Area | Summary |
 |------|---------|
-| **Authentication** | Clerk sign-in/up, protected routes, session handling |
+| **Authentication** | Clerk sign-in/up, protected routes, session handling; guest menu clicks open Login Required modal over Home |
 | **User profiles** | Account profile, immigration profile, contact preferences / onboarding |
 | **Visa Bulletin platform** | Current bulletin, history, movement tracker, stamping wait map |
-| **Dashboards** | My Immifin personalization, Pro gates, journey surfaces |
+| **Dashboards** | My Immifin personalization, Pro gates, journey surfaces; shared My Immifin menu across tiers |
 | **Calculators** | Green Card wait, citizenship, H-1B tools |
 | **Notifications** | Resend email platform — **production validated** (Sprint 6) |
 | **Stripe platform** | Checkout API, customer mapping, webhooks, billing-state sync, subscription change APIs |
 | **Billing experience** | Pricing (monthly/annual) + Billing Center (`/account/billing`) for upgrade/downgrade/cancel |
 | **Capability enforcement** | Capability map + `assertCapability` / `requireCapability` on selected APIs; premium UI gates |
-| **Design system / UX** | CTA/menu sweeps, nav grouping, premium nav preview, contact form + attachments, landing ribbon water |
+| **Design system / UX** | CTA/menu sweeps (top-level label stays visible), nav grouping, premium nav preview, guest login modal, contact form + attachments, landing ribbon water |
 
 For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md).
 

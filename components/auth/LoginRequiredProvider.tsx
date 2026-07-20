@@ -1,22 +1,25 @@
 "use client";
 
+import { SignIn, useAuth } from "@clerk/nextjs";
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
-  useRef,
+  useId,
   useState,
   type ReactNode,
 } from "react";
+import { sanitizeReturnPath } from "@/lib/auth/signInRedirect";
+import { clerkSignInProps } from "@/lib/clerk/signIn";
 
 const LOGIN_REQUIRED_MESSAGE =
   "Please sign in or create a free IMMIFIN account to use calculators, track your immigration progress, save your profile, receive alerts, and access personalized features.";
 
-const REDIRECT_DELAY_MS = 600;
-
 type LoginRequiredContextValue = {
-  showLoginRequired: (onRedirect: () => void) => void;
+  showLoginRequired: (returnPath?: string) => void;
+  closeLoginRequired: () => void;
 };
 
 const LoginRequiredContext = createContext<LoginRequiredContextValue | null>(null);
@@ -34,69 +37,107 @@ type LoginRequiredProviderProps = {
 };
 
 export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) {
-  const [visible, setVisible] = useState(false);
-  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onRedirectRef = useRef<(() => void) | null>(null);
+  const { isSignedIn } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const titleId = useId();
+  const [open, setOpen] = useState(false);
+  const [returnPath, setReturnPath] = useState("/");
 
-  const clearRedirectTimer = useCallback(() => {
-    if (redirectTimerRef.current) {
-      clearTimeout(redirectTimerRef.current);
-      redirectTimerRef.current = null;
-    }
+  const closeLoginRequired = useCallback(() => {
+    setOpen(false);
   }, []);
 
   const showLoginRequired = useCallback(
-    (onRedirect: () => void) => {
-      clearRedirectTimer();
-      onRedirectRef.current = onRedirect;
-      setVisible(true);
+    (path = "/") => {
+      const safePath = sanitizeReturnPath(path);
+      setReturnPath(safePath);
+      setOpen(true);
 
-      redirectTimerRef.current = setTimeout(() => {
-        onRedirectRef.current?.();
-        onRedirectRef.current = null;
-        setVisible(false);
-      }, REDIRECT_DELAY_MS);
+      if (pathname !== "/") {
+        router.push("/");
+      }
     },
-    [clearRedirectTimer],
+    [pathname, router],
   );
 
   useEffect(() => {
+    if (isSignedIn && open) {
+      setOpen(false);
+    }
+  }, [isSignedIn, open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      clearRedirectTimer();
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [clearRedirectTimer]);
+  }, [open]);
 
   return (
-    <LoginRequiredContext.Provider value={{ showLoginRequired }}>
+    <LoginRequiredContext.Provider value={{ showLoginRequired, closeLoginRequired }}>
       {children}
 
-      {visible && (
-        <div
-          className="pointer-events-none fixed inset-x-0 top-20 z-[100] flex justify-center px-4 sm:top-24"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="pointer-events-auto w-full max-w-lg rounded-2xl border border-brand-200 bg-white p-5 shadow-xl shadow-slate-200/60 ring-1 ring-slate-200/80">
-            <div className="flex gap-3">
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg"
-                aria-hidden="true"
-              >
-                🔒
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900">Login Required</p>
+      {open ? (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto px-4 py-10 sm:items-center sm:py-12">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"
+            aria-label="Close login dialog"
+            onClick={closeLoginRequired}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className="relative z-[1] w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xl shadow-slate-900/20 ring-1 ring-slate-200/80 sm:p-6"
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p id={titleId} className="text-base font-semibold text-slate-900">
+                  Login Required
+                </p>
                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
                   {LOGIN_REQUIRED_MESSAGE}
                 </p>
-                <p className="mt-3 text-xs font-medium text-brand-700">
-                  Redirecting to sign in…
-                </p>
               </div>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close"
+                onClick={closeLoginRequired}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex justify-center">
+              <SignIn
+                {...clerkSignInProps}
+                routing="hash"
+                forceRedirectUrl={returnPath}
+                fallbackRedirectUrl={returnPath}
+              />
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </LoginRequiredContext.Provider>
   );
 }

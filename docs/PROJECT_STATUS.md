@@ -1,14 +1,14 @@
 # Immifin — Project Status
 
-**Last updated:** 2026-07-11  
-**Version:** v0.4.2 + Notification Platform v1.0 (`main`)  
+**Last updated:** 2026-07-20  
+**Version:** v0.4.2 + Notification Platform v1.0 on production; Sprint 7 commercial + UX polish in repo  
 **Latest production commit:** `6f1df7e` — Notification Platform v1.0  
 **Development workflow:** v2.1 (see [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md))
 
 > **Authoritative status:** [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) supersedes this document for current production state.  
 > **Sprint 5 sign-off:** [SPRINT_5_SIGNOFF.md](./SPRINT_5_SIGNOFF.md)  
 > **Sprint 6 handoff:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) — planned vs completed  
-> **Sprint 7 handoff:** [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) — **Stripe Subscription Platform (current)**  
+> **Sprint 7 handoff:** [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) — **Stripe Subscription Platform (current)** — includes shared My Immifin menu, guest login modal over Home, menu-sweep label fix  
 > **Notification Platform v1.0:** [NOTIFICATION_PLATFORM_SIGNOFF.md](./NOTIFICATION_PLATFORM_SIGNOFF.md) — **Production Validated**
 
 ---

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 import { useAuth, useUser, UserButton } from "@clerk/nextjs";
+import { useLoginRequired } from "@/components/auth/LoginRequiredProvider";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { PremiumNavPreviewDialog } from "@/components/common/PremiumNavPreviewDialog";
 import { ProBadge } from "@/components/common/ProBadge";
@@ -167,9 +168,10 @@ function resolvePremiumPreview(
 function renderNavMenuItem(
   item: NavMenuItem,
   onOpenPreview: (key: PremiumNavPreviewKey) => void,
-  options?: { onNavigate?: () => void; mobile?: boolean },
+  options?: { onNavigate?: () => void; mobile?: boolean; isSignedIn?: boolean },
 ) {
-  if (item.premiumPreview) {
+  // Guests always get login-required; Pro preview is for signed-in Free users only.
+  if (item.premiumPreview && options?.isSignedIn) {
     return (
       <PremiumMenuButton
         key={`${item.href}-${item.label}`}
@@ -213,11 +215,13 @@ function NavDropdown({
   label,
   sections,
   onOpenPreview,
+  isSignedIn,
 }: {
   href: string;
   label: string;
   sections: readonly NavMenuSection[];
   onOpenPreview: (key: PremiumNavPreviewKey) => void;
+  isSignedIn: boolean;
 }) {
   return (
     <div className="group relative">
@@ -245,7 +249,9 @@ function NavDropdown({
               aria-label={section.label || label}
             >
               {section.label ? <p className={menuSectionHeadingClassName}>{section.label}</p> : null}
-              {section.items.map((item) => renderNavMenuItem(item, onOpenPreview))}
+              {section.items.map((item) =>
+                renderNavMenuItem(item, onOpenPreview, { isSignedIn }),
+              )}
             </div>
           ))}
         </div>
@@ -307,6 +313,8 @@ function MyImmifinDropdown({
 }: {
   onOpenPreview: (key: PremiumNavPreviewKey) => void;
 }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { showLoginRequired } = useLoginRequired();
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const items = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
@@ -345,15 +353,29 @@ function MyImmifinDropdown({
     onOpenPreview(key);
   }
 
+  function handleTriggerClick() {
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      setIsOpen(false);
+      showLoginRequired("/dashboard");
+      return;
+    }
+
+    setIsOpen((open) => !open);
+  }
+
   return (
     <div className="relative" ref={containerRef}>
       <button
         type="button"
         className={`${navLinkClassName} inline-flex items-center gap-1`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-controls={menuId}
-        onClick={() => setIsOpen((open) => !open)}
+        aria-haspopup={isSignedIn ? "menu" : undefined}
+        aria-expanded={isSignedIn ? isOpen : undefined}
+        aria-controls={isSignedIn ? menuId : undefined}
+        onClick={handleTriggerClick}
       >
         {MY_IMMIFIN_NAV_LABEL}
         <svg
@@ -368,7 +390,7 @@ function MyImmifinDropdown({
         </svg>
       </button>
 
-      {isOpen ? (
+      {isOpen && isSignedIn ? (
         <div
           id={menuId}
           role="menu"
@@ -407,11 +429,13 @@ function MyImmifinDropdown({
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const { showLoginRequired } = useLoginRequired();
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
   const showSignedOutAuth = isLoaded && !isSignedIn;
   const showSignedInAuth = isLoaded && isSignedIn;
+  const signedIn = Boolean(isSignedIn);
   const greetingLine = user
     ? getGreetingLine(user.firstName, user.fullName, user.username)
     : getTimeGreeting();
@@ -432,6 +456,13 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   function openPreviewFromMobile(key: PremiumNavPreviewKey) {
     onToggleMenu();
     setPreviewKey(key);
+  }
+
+  function openLoginFromChrome() {
+    if (mobileMenuOpen) {
+      onToggleMenu();
+    }
+    showLoginRequired("/");
   }
 
   return (
@@ -465,6 +496,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                       label="Immigration"
                       sections={immigrationSections}
                       onOpenPreview={openPreview}
+                      isSignedIn={signedIn}
                     />
                   );
                 }
@@ -476,6 +508,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                       label="Calculators"
                       sections={calculatorSections}
                       onOpenPreview={openPreview}
+                      isSignedIn={signedIn}
                     />
                   );
                 }
@@ -487,6 +520,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                       label="About"
                       sections={aboutSections}
                       onOpenPreview={openPreview}
+                      isSignedIn={signedIn}
                     />
                   );
                 }
@@ -503,9 +537,9 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
           <div className="flex items-center justify-end gap-2 justify-self-end">
             {showSignedOutAuth && (
               <div className="hidden items-center gap-1 md:flex">
-                <Link href="/login" className={navLinkClassName}>
+                <button type="button" className={navLinkClassName} onClick={openLoginFromChrome}>
                   Login
-                </Link>
+                </button>
                 <Link href="/signup" className="btn-primary px-4 py-2">
                   Sign Up
                 </Link>
@@ -551,6 +585,27 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                   const isMyImmifin = "isMyImmifin" in link && link.isMyImmifin;
 
                   if (isMyImmifin) {
+                    if (!signedIn) {
+                      return (
+                        <div key={link.href} className="w-full space-y-0.5">
+                          <button
+                            type="button"
+                            className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                            onClick={openLoginFromChrome}
+                          >
+                            {MY_IMMIFIN_NAV_LABEL}
+                          </button>
+                          <button
+                            type="button"
+                            className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                            onClick={openLoginFromChrome}
+                          >
+                            Favorites
+                          </button>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div key={link.href} className="w-full">
                         <div className="px-4 py-3 text-center text-base font-medium text-slate-700">
@@ -619,6 +674,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                                 renderNavMenuItem(item, openPreviewFromMobile, {
                                   mobile: true,
                                   onNavigate: onToggleMenu,
+                                  isSignedIn: signedIn,
                                 }),
                               )}
                             </div>
@@ -642,13 +698,13 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
               })}
               {showSignedOutAuth && (
                 <div className="mt-2 w-full space-y-1 border-t border-slate-200/80 pt-2">
-                  <Link
-                    href="/login"
+                  <button
+                    type="button"
                     className="nav-menu-item block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
-                    onClick={onToggleMenu}
+                    onClick={openLoginFromChrome}
                   >
                     Login
-                  </Link>
+                  </button>
                   <Link href="/signup" className="btn-primary w-full" onClick={onToggleMenu}>
                     Sign Up
                   </Link>

@@ -449,13 +449,26 @@ Any future coupon, promotion, or trial requires Product Owner approval and updat
 
 ### My Immifin menu by tier
 
+Free, Pro, and Power see the **same** My Immifin menu labels. Access is enforced by lock / Premium Feature Discovery — not by hiding items.
+
 | Tier | Menu items |
 |------|------------|
-| **Free** | Dashboard (locked PRO), Manage Profile, **Upgrade to Pro** → `/pricing` |
-| **Pro** | Dashboard, Manage Profile, **Billing** → `/account/billing` |
-| **Power** | Dashboard, Manage Profile, **Billing** → `/account/billing` |
+| **Free** | Dashboard (locked PRO preview), Manage Profile, **Subscription & Billing** → `/account/billing`, **View Plan** → `/pricing#plans` |
+| **Pro** | Dashboard, Manage Profile, **Subscription & Billing** → `/account/billing`, **View Plan** → `/pricing#plans` |
+| **Power** | Dashboard, Manage Profile, **Subscription & Billing** → `/account/billing`, **View Plan** → `/pricing#plans` |
 
-Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on the Dashboard item for Free users. Customer Portal for payment methods / invoices remains deferred.
+Top-level **My Immifin** never shows a PRO badge. Dashboard lock appears only on the Dashboard item for Free users. There is no Free-only **Upgrade to Pro** menu row. Customer Portal for payment methods / invoices remains deferred.
+
+### Guest (signed-out) navigation
+
+| Surface | Behavior |
+|---------|----------|
+| **Home**, **About** (and About submenu such as Contact) | Public — no login gate |
+| **All other top-level menus and their submenus** | Login required for signed-out visitors |
+| **Login UX** | Home landing stays (or becomes) the background; a **Login Required** modal with Clerk Sign In opens on top (not a full-page `/login` leave-the-site experience for menu clicks) |
+| **Signed-in users** | Unchanged — normal menus; Free users still get Pro preview locks where applicable |
+
+Chrome gating uses `requiresAuthForNavigation` / `isPublicLandingPath` with `ProtectedLink` and `LoginRequiredProvider`. Middleware may still allow broader direct-URL exploration for selected public routes (e.g. Pricing, some calculators); menu chrome follows the stricter guest rule above.
 
 ---
 
@@ -565,3 +578,4 @@ These principles apply to all subscription-gated surfaces. See also [PRODUCT_VIS
 | v2.0 | 2026-07-04 | S4-005.15 | v0.4.1 foundation — Premium Feature Discovery, preview framework, product principles |
 | v2.1 | 2026-07-11 | S7-DOC-001 | Approved Beta launch pricing (Pro/Power monthly + annual); no coupons/trials; link Stripe design |
 | v2.2 | 2026-07-20 | S7-DOC-009 | Post–Sprint 7 commercial strategy — journey, revenue, capabilities, commercial status; Billing Center |
+| v2.3 | 2026-07-20 | S7-UI follow-up | Shared My Immifin menu across tiers; guest Login Required modal over Home; nav chrome gating |

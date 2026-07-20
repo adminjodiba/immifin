@@ -47,8 +47,8 @@
 
 - [x] Middleware public-route allowlist — only `/` landing public (+ Clerk auth, webhooks, sitemap/robots)
 - [x] Clerk `auth.protect()` on all application routes and APIs (except webhooks)
-- [x] `ProtectedLink` — Login Required toast for signed-out landing-page feature clicks
-- [x] Sign-in return URL via `/login?redirect_url=`
+- [x] `ProtectedLink` — Login Required UX for signed-out feature clicks (evolved in Sprint 7 to Home-background login modal; see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md))
+- [x] Sign-in return path preserved after authentication (modal `forceRedirectUrl` / legacy `/login?redirect_url=`)
 - [x] Preserved contact onboarding (`ContactOnboardingGuard`) and admin API authorization
 - [x] Localhost verified; build passing
 

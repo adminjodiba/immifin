@@ -88,11 +88,13 @@ Navigation, premium discovery, Pricing, Billing Center, contact, and visual poli
 ## UI / UX Improvements
 
 - Structured navigation for Immigration, Calculators, About, and My Immifin
-- Premium navigation preview for locked Pro items (guided upgrade path instead of dead ends)
+- Shared My Immifin menu for Free / Pro / Power (Dashboard, Manage Profile, Subscription & Billing, View Plan) with Free Dashboard locked via Pro preview
+- Guest Login Required modal over the Home landing for protected menus and submenus (Home / About remain public)
+- Premium navigation preview for locked Pro items for signed-in Free users (guided upgrade path instead of dead ends)
 - Pricing page with monthly / annual selection and Checkout handoff
 - Billing Center plan-change and confirmation experience
 - Contact page and form improvements, including attachment support
-- Design-system polish on CTAs and menus
+- Design-system polish on CTAs and menus (top-level nav sweep keeps menu labels readable)
 - Landing ribbon motion polish
 - Consistent Visa Bulletin date-type tab styling and workspace close patterns
 

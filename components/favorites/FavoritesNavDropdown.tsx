@@ -1,6 +1,8 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useId, useRef, useState } from "react";
+import { useLoginRequired } from "@/components/auth/LoginRequiredProvider";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import type { PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
@@ -39,6 +41,8 @@ type FavoritesNavDropdownProps = {
 };
 
 export function FavoritesNavDropdown({ className, onOpenPreview }: FavoritesNavDropdownProps) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { showLoginRequired } = useLoginRequired();
   const { favorites, canManageFavorites, accessLocked, removeFavorite, isLoading } = useFavorites();
   const [isOpen, setIsOpen] = useState(false);
   const [removingHref, setRemovingHref] = useState<string | null>(null);
@@ -73,6 +77,16 @@ export function FavoritesNavDropdown({ className, onOpenPreview }: FavoritesNavD
   }, [isOpen]);
 
   function handleTriggerClick() {
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      setIsOpen(false);
+      showLoginRequired("/dashboard");
+      return;
+    }
+
     if (!canUseFavorites) {
       setIsOpen(false);
       onOpenPreview("favorites");
@@ -163,8 +177,25 @@ export function FavoritesMobileSection({
   onNavigate,
   onOpenPreview,
 }: FavoritesMobileSectionProps) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { showLoginRequired } = useLoginRequired();
   const { favorites, canManageFavorites, accessLocked, removeFavorite } = useFavorites();
   const canUseFavorites = canManageFavorites && !accessLocked;
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <button
+        type="button"
+        className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+        onClick={() => {
+          onNavigate?.();
+          showLoginRequired("/dashboard");
+        }}
+      >
+        Favorites
+      </button>
+    );
+  }
 
   if (!canUseFavorites) {
     return (

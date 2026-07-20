@@ -5,7 +5,7 @@
 | **Sprint** | Sprint 7 |
 | **Theme** | Commercial Platform — Stripe Subscription Platform |
 | **Kickoff** | 2026-07-11 |
-| **As-built record** | 2026-07-20 (S7-DOC-002) |
+| **As-built record** | 2026-07-20 (S7-DOC-002; UX follow-up same day) |
 | **Status** | **Implementation substantially complete** — production cutover and Live Stripe validation remain |
 | **Previous sprint** | Sprint 6 — Notification Platform (production validated) |
 | **Previous handoff** | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
@@ -108,13 +108,15 @@ Early mid-sprint status (~88%) reflected **backend foundation only**. That perce
 ## User Experience
 
 - **Navigation grouping** — Immigration / Calculators / About / My Immifin structured menus (`lib/immigration-menu.ts`, `lib/calculator-menu.ts`, `lib/about-menu.ts`, `lib/my-immifin-menu.ts`, `Header.tsx`)
-- **Premium nav preview** — locked Pro items open a preview dialog instead of dead ends
-- **Favorites premium modal** — premium handling in favorites dropdown
+- **Shared My Immifin menu** — Free / Pro / Power see the same items (Dashboard, Manage Profile, Subscription & Billing, View Plan); Free Dashboard uses Pro preview lock instead of a Free-only “Upgrade to Pro” row (`lib/my-immifin-menu.ts`)
+- **Premium nav preview** — locked Pro items open a preview dialog instead of dead ends (signed-in Free users only)
+- **Guest Login Required modal** — signed-out clicks on protected top-level menus **and** submenus (everything except Home / About family) keep or return to the Home landing and open a Login Required + Clerk `<SignIn />` modal (`LoginRequiredProvider`, `ProtectedLink`, `lib/auth/publicRoutes.ts` nav gating)
+- **Favorites premium modal** — premium handling in favorites dropdown for signed-in Free; signed-out Favorites / My Immifin triggers use the login modal
 - **Context labels / Visa History menu** — navigation labeling consistency
 - **Contact page + form** — contact UI, API route, email template path
 - **Contact attachments** — multi-file upload with validation and Resend attachment support
 - **Design system — CTA buttons** — Electric Cyan rest + gold L→R hover sweep
-- **Design system — menu sweep** — light cyan L→R hover for triggers and submenu rows (including fill-layer correction so sweep remains visible)
+- **Design system — menu sweep** — light cyan L→R hover for triggers and submenu rows; top-level trigger fill sits behind the label so the menu name stays visible during the sweep (`app/globals.css` `.nav-menu-trigger`)
 - **Landing ribbon** — shore-to-shore slogan motion, animated water surface across the blue ribbon
 - **Visa Bulletin date-type tabs** — shared Final Action / Dates for Filing tab styling
 - **Page close patterns** — consistent close actions on gated/workspace surfaces where applied

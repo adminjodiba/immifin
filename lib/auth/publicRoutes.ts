@@ -40,18 +40,23 @@ export function isPublicCalculatorPath(path: string): boolean {
   );
 }
 
-/** Paths safe to navigate without sign-in. */
+/**
+ * Paths safe to navigate without sign-in from site chrome (header/footer).
+ * Protected menus/submenus (everything except Home / About family) prompt login.
+ * Middleware may still allow broader public exploration via PUBLIC_ROUTE_PATTERNS.
+ */
 export function isPublicLandingPath(path: string): boolean {
   const pathname = normalizePathname(path);
   return (
     pathname === "/" ||
     pathname === "" ||
-    pathname === "/pricing" ||
     pathname === "/about" ||
+    pathname.startsWith("/about/") ||
     pathname === "/contact" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
-    isPublicCalculatorPath(pathname)
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup")
   );
 }
 

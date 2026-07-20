@@ -399,14 +399,14 @@ See [BUSINESS_MODEL.md §13](./BUSINESS_MODEL.md#13-profile-access-philosophy).
 
 ### Upgrade Path Strategy
 
-Locked premium features guide Free users to **`/pricing`**. My Immifin is the primary upgrade location:
+Locked premium features guide Free users to **`/pricing`**. My Immifin is the primary upgrade location. All signed-in tiers see the **same** My Immifin menu; Free access is gated by lock / preview (not by hiding Billing or View Plan):
 
 | Tier | My Immifin menu |
 |------|-----------------|
-| **Free** | Dashboard (locked), Manage Profile, Upgrade to Pro |
-| **Pro / Power** | Dashboard, Manage Profile, Subscription |
+| **Free** | Dashboard (locked Pro preview), Manage Profile, Subscription & Billing, View Plan |
+| **Pro / Power** | Dashboard, Manage Profile, Subscription & Billing, View Plan |
 
-Until Stripe exists, pricing CTAs show Coming Soon. See [BUSINESS_MODEL.md §14](./BUSINESS_MODEL.md#14-upgrade-path-strategy).
+Signed-out visitors may use **Home** and **About** freely; other menus/submenus open a **Login Required** modal over the Home landing. See [BUSINESS_MODEL.md §14](./BUSINESS_MODEL.md#14-upgrade-path-strategy).
 
 ---
 
@@ -458,12 +458,12 @@ Primary navigation:
 
 | Phase | Items |
 |-------|--------|
-| **Phase 1** | Dashboard, Manage Profile |
-| **Future** | Notifications, Subscription, AI Assistant, Saved Profiles |
+| **Phase 1 (current)** | Dashboard, Manage Profile, Subscription & Billing, View Plan |
+| **Future** | Notifications, AI Assistant, Saved Profiles |
 
-Dashboard (`/dashboard`) and Manage Profile (`/user-profile`) are entered from **My Immifin**. The dashboard route remains `/dashboard`.
+Dashboard (`/dashboard`) and Manage Profile (`/user-profile`) are entered from **My Immifin**. The dashboard route remains `/dashboard`. Menu **visibility** is shared across Free / Pro / Power; premium **access** uses lock / preview.
 
-See [BUSINESS_MODEL.md §11](./BUSINESS_MODEL.md#11-my-immifin-access) for tier access rules.
+See [BUSINESS_MODEL.md §11](./BUSINESS_MODEL.md#11-my-immifin-access) for tier access rules and guest navigation.
 
 ### My Immifin Navigation Rule
 
@@ -734,3 +734,4 @@ See [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md), [ROADMAP_v2.md](./ROADMAP_v2.m
 | v1.16 | 2026-07-04 | S4-005.15 | Premium Feature Discovery, product principles, Design System 2.0 preparation |
 | v1.17 | 2026-07-04 | S4-005.16 | Design System 2.0 Initiative — official Sprint 5 priority |
 | v1.18 | 2026-07-10 | S6-DOC-002 | Parked Immigration Broadcast Platform vision (post–July 16, 2026 MVP) |
+| v1.19 | 2026-07-20 | S7-UI follow-up | Shared My Immifin menu; guest Login Required modal over Home |

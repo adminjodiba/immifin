@@ -14,7 +14,6 @@ export type MyImmifinCapability =
   | "manageProfile"
   | "notifications"
   | "subscription"
-  | "upgrade"
   | "savedProfiles"
   | "aiAssistant"
   | "admin";
@@ -57,15 +56,6 @@ const manageProfileItem: MyImmifinMenuItem = {
   phase: 1,
 };
 
-const upgradeToProItem: MyImmifinMenuItem = {
-  id: "upgrade-to-pro",
-  href: PRICING_PATH,
-  label: "Upgrade to Pro",
-  description: "Unlock dashboard, alerts, and automation.",
-  capability: "upgrade",
-  phase: 1,
-};
-
 const subscriptionItem: MyImmifinMenuItem = {
   id: "subscription",
   href: BILLING_CENTER_PATH,
@@ -99,23 +89,25 @@ export type MyImmifinMenuOptions = {
 };
 
 /**
- * Tier-aware My Immifin menu items.
+ * Shared My Immifin menu items for all tiers.
  *
- * Free: Dashboard (preview), Manage Profile, Upgrade to Pro
- * Pro/Power: Dashboard, Manage Profile, Subscription & Billing, View Plan
- * Admin role: also Admin (appended last)
+ * Free / Pro / Power see the same labels. Premium access is enforced by
+ * lock/preview (e.g. Free Dashboard opens Pro preview) — not by hiding items.
+ * Admin role: also Admin (appended last).
  */
 export function getVisibleMyImmifinMenuItems(
   tier: SubscriptionTier,
   options: MyImmifinMenuOptions = {},
 ): MyImmifinMenuItem[] {
-  const items: MyImmifinMenuItem[] = [dashboardItem, manageProfileItem];
+  // `tier` reserved for future per-item visibility; menu set is shared today.
+  void tier;
 
-  if (canAccessPersonalDashboard(tier)) {
-    items.push(subscriptionItem, viewPlanItem);
-  } else {
-    items.push(upgradeToProItem);
-  }
+  const items: MyImmifinMenuItem[] = [
+    dashboardItem,
+    manageProfileItem,
+    subscriptionItem,
+    viewPlanItem,
+  ];
 
   if (options.isAdmin) {
     items.push(adminItem);

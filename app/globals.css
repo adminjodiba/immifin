@@ -397,7 +397,8 @@
     content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    /* Behind label text (bare text nodes can't take z-index). */
+    z-index: -1;
     background-color: var(--immifin-menu-hover-cyan-soft);
     transform: translateX(-101%);
     transition: transform var(--immifin-menu-sweep-duration) linear;
@@ -418,6 +419,11 @@
     transform-origin: left center;
     transition: transform var(--immifin-menu-sweep-duration) linear;
     pointer-events: none;
+    z-index: 0;
+  }
+
+  .nav-menu-trigger > * {
+    position: relative;
     z-index: 1;
   }
 
