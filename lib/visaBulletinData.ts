@@ -1,3 +1,4 @@
+import { toCivilIsoDate } from "@/lib/dates/civilDate";
 import {
   getCurrentDatesForFiling,
   getCurrentFinalActionDates,
@@ -300,9 +301,9 @@ export function parseBulletinCutoffDate(value: string): BulletinDate | "U" {
     return trimmed;
   }
 
-  const parsed = new Date(trimmed);
-  if (!Number.isNaN(parsed.getTime())) {
-    return parsed.toISOString().slice(0, 10);
+  const iso = toCivilIsoDate(trimmed);
+  if (iso) {
+    return iso;
   }
 
   return trimmed;

@@ -1,4 +1,5 @@
 import { unstable_cache, revalidateTag } from "next/cache";
+import { parseCivilDateToUtcNoon, toCivilIsoDate } from "@/lib/dates/civilDate";
 import { parseWaitTimeToDays } from "@/lib/visa/parseWaitTimeToDays";
 import {
   getCurrentStampingWaitTimes,
@@ -106,33 +107,11 @@ function parseCoordinate(value: string): number | null {
 }
 
 function parseSheetDate(value: string): Date | null {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const iso = new Date(`${trimmed}T12:00:00Z`);
-  if (!Number.isNaN(iso.getTime())) {
-    return iso;
-  }
-
-  const slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (slash) {
-    const [, month, day, year] = slash;
-    const parsed = new Date(`${year}-${month!.padStart(2, "0")}-${day!.padStart(2, "0")}T12:00:00Z`);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  return null;
+  return parseCivilDateToUtcNoon(value);
 }
 
 function toIsoDate(value: string): string {
-  const parsed = parseSheetDate(value);
-  if (!parsed) {
-    return value.trim();
-  }
-
-  return parsed.toISOString().slice(0, 10);
+  return toCivilIsoDate(value) ?? value.trim();
 }
 
 function compareSheetDates(left: string, right: string): number {
