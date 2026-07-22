@@ -18,6 +18,8 @@ export type ApprovedStripePriceCatalogEntry = {
   tier: StripePaidTier;
   interval: BillingInterval;
   priceId: string;
+  /** IMMIFIN Beta catalog is USD-only (no multi-currency Prices). */
+  currency: "usd";
 };
 
 export type ApprovedStripePriceCatalog = {

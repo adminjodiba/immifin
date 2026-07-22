@@ -110,6 +110,11 @@ export async function createNewSubscriptionCheckoutSession(
       requested_interval: input.request.interval,
     },
     allow_promotion_codes: false,
+    // Beta is USD-only. Override Dashboard Adaptive Pricing so Checkout
+    // never presents localized currencies (e.g. INR) or conversion fees.
+    adaptive_pricing: {
+      enabled: false,
+    },
   };
 
   const session = await stripe.checkout.sessions.create(sessionParams);

@@ -77,6 +77,7 @@ function buildCatalog(): ApprovedStripePriceCatalog {
       tier: definition.tier,
       interval: definition.interval,
       priceId,
+      currency: "usd",
     });
   }
 
