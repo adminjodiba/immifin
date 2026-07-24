@@ -1,6 +1,7 @@
 import "server-only";
 
 import type Stripe from "stripe";
+import { resolvePlanForStripeBillingSync } from "@/lib/account/plan";
 import { assertApprovedStripePriceId } from "@/lib/stripe/catalog";
 import { StripeCatalogError } from "@/lib/stripe/errors";
 import { StripeWebhookProcessingError } from "@/lib/stripe/errors";
@@ -106,6 +107,10 @@ export async function synchronizeStripeSubscription(
   const normalizedStatus = normalizeStripeSubscriptionStatus(stripeStatus);
   const synchronizedAt = new Date().toISOString();
   const { currentPeriodStart, currentPeriodEnd } = getSubscriptionPeriodBounds(subscription);
+  const plan = resolvePlanForStripeBillingSync({
+    stripeStatus,
+    catalogTier: catalogEntry.tier,
+  });
 
   await syncSubscriptionBillingState({
     profileId: profileWithRelations.profile.id,
@@ -114,7 +119,7 @@ export async function synchronizeStripeSubscription(
     stripePriceId: catalogEntry.priceId,
     billingInterval: catalogEntry.interval,
     stripeStatus,
-    plan: catalogEntry.tier,
+    plan,
     status: normalizedStatus,
     currentPeriodStart,
     currentPeriodEnd,
