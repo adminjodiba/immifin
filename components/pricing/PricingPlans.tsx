@@ -2,13 +2,26 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { DevSubscriptionActivationDialog } from "@/components/pricing/DevSubscriptionActivationDialog";
 import { buildSignInUrl } from "@/lib/auth/signInRedirect";
 import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscriptionTools";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import {
+  ACTIVATING_COPY,
+  CANCELLED_COPY,
+  CHECKOUT_ACTIVATION_POLL_MS,
+  CHECKOUT_ACTIVATION_SUCCESS_DISMISS_MS,
+  CHECKOUT_ACTIVATION_TIMEOUT_MS,
+  TIMEOUT_COPY,
+  activationSuccessCopy,
+  checkoutExperienceFromQuery,
+  INITIAL_CHECKOUT_EXPERIENCE,
+  isPaidCheckoutActivationTier,
+  type CheckoutExperienceState,
+} from "@/lib/pricing/checkout-activation";
 import {
   getCheckoutPlanButtonConfig,
   isPricingCurrentPlanCard,
@@ -201,27 +214,138 @@ export function PricingPlans({
   const [checkoutLoadingTier, setCheckoutLoadingTier] = useState<SubscriptionTier | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [returnMessage, setReturnMessage] = useState<string | null>(null);
+  const [checkoutExperience, setCheckoutExperience] =
+    useState<CheckoutExperienceState>(INITIAL_CHECKOUT_EXPERIENCE);
+
+  const currentPlanCardRef = useRef<HTMLElement | null>(null);
+  const pollInFlightRef = useRef(false);
+  const activationHandledQueryRef = useRef<string | null>(null);
+
+  const resetCheckoutExperience = useCallback(() => {
+    setCheckoutExperience(INITIAL_CHECKOUT_EXPERIENCE);
+  }, []);
+
+  const markActivated = useCallback((tier: "pro" | "power") => {
+    setCheckoutExperience({ phase: "activated", activatedTier: tier });
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  }, []);
 
   useEffect(() => {
     const checkoutState = searchParams.get("checkout");
-
-    if (checkoutState === "cancelled") {
-      setReturnMessage("Checkout was canceled. You can try again whenever you are ready.");
-      setSuccessMessage(null);
-      setErrorMessage(null);
-    } else if (checkoutState === "success") {
-      setReturnMessage(
-        "Payment received. Your subscription will activate after Stripe confirms billing — usually within a minute.",
-      );
-      setSuccessMessage(null);
-      setErrorMessage(null);
-    } else {
+    if (!checkoutState) {
       return;
     }
 
+    const queryKey = `${checkoutState}|${searchParams.get("session_id") ?? ""}`;
+    if (activationHandledQueryRef.current === queryKey) {
+      return;
+    }
+
+    const next = checkoutExperienceFromQuery(checkoutState);
+    if (!next) {
+      return;
+    }
+
+    activationHandledQueryRef.current = queryKey;
+    setCheckoutExperience(next);
+    setSuccessMessage(null);
+    setErrorMessage(null);
     router.replace(pathname, { scroll: false });
   }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (checkoutExperience.phase !== "activating") {
+      return;
+    }
+
+    const refresh = subscriptionContext?.refreshStoredTier;
+    if (!refresh) {
+      return;
+    }
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const stopTimers = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const pollOnce = async () => {
+      if (cancelled || pollInFlightRef.current) {
+        return;
+      }
+
+      pollInFlightRef.current = true;
+      try {
+        const tier = await refresh();
+        if (cancelled) {
+          return;
+        }
+        if (isPaidCheckoutActivationTier(tier)) {
+          stopTimers();
+          markActivated(tier);
+        }
+      } catch {
+        // Keep polling until timeout; transient errors should not alarm.
+      } finally {
+        pollInFlightRef.current = false;
+      }
+    };
+
+    void pollOnce();
+    intervalId = setInterval(() => {
+      void pollOnce();
+    }, CHECKOUT_ACTIVATION_POLL_MS);
+
+    timeoutId = setTimeout(() => {
+      if (cancelled) {
+        return;
+      }
+      stopTimers();
+      setCheckoutExperience((current) =>
+        current.phase === "activating"
+          ? { phase: "timeout", activatedTier: null }
+          : current,
+      );
+    }, CHECKOUT_ACTIVATION_TIMEOUT_MS);
+
+    return () => {
+      cancelled = true;
+      stopTimers();
+      pollInFlightRef.current = false;
+    };
+  }, [checkoutExperience.phase, markActivated, subscriptionContext?.refreshStoredTier]);
+
+  useEffect(() => {
+    if (checkoutExperience.phase !== "activated" || !checkoutExperience.activatedTier) {
+      return;
+    }
+
+    const scrollId = window.setTimeout(() => {
+      currentPlanCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
+
+    const dismissId = window.setTimeout(() => {
+      setCheckoutExperience(INITIAL_CHECKOUT_EXPERIENCE);
+    }, CHECKOUT_ACTIVATION_SUCCESS_DISMISS_MS);
+
+    return () => {
+      window.clearTimeout(scrollId);
+      window.clearTimeout(dismissId);
+    };
+  }, [checkoutExperience.phase, checkoutExperience.activatedTier]);
 
   async function handleActivate() {
     if (!pendingPlan || !subscriptionContext) {
@@ -249,7 +373,7 @@ export function PricingPlans({
   function handlePlanClick(planId: SubscriptionTier) {
     setSuccessMessage(null);
     setErrorMessage(null);
-    setReturnMessage(null);
+    resetCheckoutExperience();
 
     if (!devMode) {
       return;
@@ -270,7 +394,7 @@ export function PricingPlans({
   async function handleCheckoutClick(planId: SubscriptionTier) {
     setSuccessMessage(null);
     setErrorMessage(null);
-    setReturnMessage(null);
+    resetCheckoutExperience();
 
     if (planId !== "pro" && planId !== "power") {
       return;
@@ -301,13 +425,52 @@ export function PricingPlans({
     }
   }
 
+  const activatedCopy =
+    checkoutExperience.phase === "activated" && checkoutExperience.activatedTier
+      ? activationSuccessCopy(checkoutExperience.activatedTier)
+      : null;
+
   return (
     <>
-      {returnMessage ? (
-        <div className="container-main mb-6">
-          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
-            {returnMessage}
-          </p>
+      {checkoutExperience.phase === "activating" ? (
+        <div className="container-main mb-6" role="status" aria-live="polite">
+          <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
+            <span
+              className="mt-0.5 inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-300 border-t-brand-700"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="font-semibold text-slate-900">{ACTIVATING_COPY.title}</p>
+              <p className="mt-1 text-slate-700">{ACTIVATING_COPY.message}</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {checkoutExperience.phase === "activated" && activatedCopy ? (
+        <div className="container-main mb-6" role="status" aria-live="polite">
+          <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+            <p className="font-semibold">{activatedCopy.title}</p>
+            <p className="mt-1 text-brand-900/90">{activatedCopy.message}</p>
+          </div>
+        </div>
+      ) : null}
+
+      {checkoutExperience.phase === "timeout" ? (
+        <div className="container-main mb-6" role="status" aria-live="polite">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">{TIMEOUT_COPY.title}</p>
+            <p className="mt-1 text-amber-900/90">{TIMEOUT_COPY.message}</p>
+          </div>
+        </div>
+      ) : null}
+
+      {checkoutExperience.phase === "cancelled" ? (
+        <div className="container-main mb-6" role="status" aria-live="polite">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
+            <p className="font-semibold text-slate-900">{CANCELLED_COPY.title}</p>
+            <p className="mt-1 text-slate-700">{CANCELLED_COPY.message}</p>
+          </div>
         </div>
       ) : null}
 
@@ -375,6 +538,7 @@ export function PricingPlans({
               return (
                 <article
                   key={plan.id}
+                  ref={isCurrentPlanCard ? currentPlanCardRef : undefined}
                   className={`card-static flex flex-col ${
                     plan.highlighted ? "border-brand-300 ring-2 ring-brand-100" : ""
                   }`}
