@@ -4,7 +4,11 @@ import { getEffectivePlan, isExecutivePlan } from "@/lib/account/plan";
 import { StripeCheckoutError } from "@/lib/stripe/errors";
 import { resolveApprovedStripePriceId } from "@/lib/stripe/catalog";
 import type { ParsedCheckoutRequest } from "@/lib/stripe/checkout-request";
-import { getOrCreateStripeCustomer } from "@/lib/stripe/customer";
+import {
+  getOrCreateStripeCustomer,
+  logStripeCheckoutDiag,
+  type StripeCheckoutDiag,
+} from "@/lib/stripe/customer";
 import { getStripeClient } from "@/lib/stripe/server";
 import { siteConfig } from "@/lib/site";
 import type { Profile, Subscription } from "@/lib/supabase/types";
@@ -34,6 +38,8 @@ export type CreateNewSubscriptionCheckoutInput = {
   profile: Profile;
   subscription: Subscription | null;
   request: ParsedCheckoutRequest;
+  /** Temporary S7-OPS-DIAG-010 — optional hang instrumentation only. */
+  diag?: StripeCheckoutDiag;
 };
 
 export type CreateNewSubscriptionCheckoutResult = {
@@ -72,10 +78,13 @@ export function assertFreeUserForNewSubscriptionCheckout(input: {
 export async function createNewSubscriptionCheckoutSession(
   input: CreateNewSubscriptionCheckoutInput,
 ): Promise<CreateNewSubscriptionCheckoutResult> {
+  const diag = input.diag;
+
   assertFreeUserForNewSubscriptionCheckout({
     profile: input.profile,
     subscription: input.subscription,
   });
+  logStripeCheckoutDiag("CHECKOUT_ELIGIBILITY_PASSED", diag);
 
   const priceId = resolveApprovedStripePriceId(
     input.request.tier,
@@ -85,10 +94,12 @@ export async function createNewSubscriptionCheckoutSession(
   const origin = getCheckoutAppOrigin();
   const { successUrl, cancelUrl } = buildCheckoutUrls(origin);
   const stripe = getStripeClient();
+  logStripeCheckoutDiag("STRIPE_CLIENT_READY", diag);
 
   const stripeCustomerId = await getOrCreateStripeCustomer({
     profile: input.profile,
     subscription: input.subscription,
+    diag,
   });
 
   const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
@@ -117,7 +128,9 @@ export async function createNewSubscriptionCheckoutSession(
     },
   };
 
+  logStripeCheckoutDiag("CHECKOUT_SESSION_CREATE_START", diag);
   const session = await stripe.checkout.sessions.create(sessionParams);
+  logStripeCheckoutDiag("CHECKOUT_SESSION_CREATE_COMPLETE", diag);
 
   if (!session.url) {
     throw new StripeCheckoutError("Stripe Checkout session did not return a URL.", 502);

@@ -13,9 +13,35 @@ const PROFILE_METADATA_KEY = "immifin_profile_id";
 const CLERK_METADATA_KEY = "clerk_user_id";
 const ENVIRONMENT_METADATA_KEY = "environment";
 
+/**
+ * Temporary S7-OPS-DIAG-010 checkout hang instrumentation.
+ * Logs checkpoint name + correlation + elapsed ms only — never secrets or Stripe IDs.
+ */
+export type StripeCheckoutDiag = {
+  correlationId: string;
+  startedAtMs: number;
+};
+
+export function logStripeCheckoutDiag(
+  checkpoint: string,
+  diag: StripeCheckoutDiag | undefined,
+): void {
+  if (!diag) {
+    return;
+  }
+
+  console.log("[stripe-checkout-diag]", {
+    checkpoint,
+    correlationId: diag.correlationId,
+    elapsedMs: Date.now() - diag.startedAtMs,
+  });
+}
+
 export type GetOrCreateStripeCustomerInput = {
   profile: Profile;
   subscription: Subscription | null;
+  /** Temporary S7-OPS-DIAG-010 — optional hang instrumentation only. */
+  diag?: StripeCheckoutDiag;
 };
 
 function assertTrustedProfile(profile: Profile): void {
@@ -94,7 +120,9 @@ async function searchStripeCustomerByProfileId(
   stripe: Stripe,
   profileId: string,
   currentEnvironment: string,
+  diag?: StripeCheckoutDiag,
 ): Promise<string | null> {
+  logStripeCheckoutDiag("CUSTOMER_SEARCH_PROFILE_START", diag);
   const result = await stripe.customers.search({
     query: `metadata['${PROFILE_METADATA_KEY}']:'${escapeStripeSearchValue(profileId)}'`,
     limit: 5,
@@ -110,6 +138,7 @@ async function searchStripeCustomerByProfileId(
     console.error("[stripe-customer] multiple reusable customers found for profile mapping lookup");
   }
 
+  logStripeCheckoutDiag("CUSTOMER_SEARCH_PROFILE_COMPLETE", diag);
   return matches[0]?.id ?? null;
 }
 
@@ -118,7 +147,9 @@ async function searchStripeCustomerByEmail(
   email: string,
   profileId: string,
   currentEnvironment: string,
+  diag?: StripeCheckoutDiag,
 ): Promise<string | null> {
+  logStripeCheckoutDiag("CUSTOMER_SEARCH_EMAIL_START", diag);
   const result = await stripe.customers.search({
     query: `email:'${escapeStripeSearchValue(email)}'`,
     limit: 10,
@@ -130,10 +161,12 @@ async function searchStripeCustomerByEmail(
         allowUnmappedProfile: true,
       })
     ) {
+      logStripeCheckoutDiag("CUSTOMER_SEARCH_EMAIL_COMPLETE", diag);
       return customer.id;
     }
   }
 
+  logStripeCheckoutDiag("CUSTOMER_SEARCH_EMAIL_COMPLETE", diag);
   return null;
 }
 
@@ -145,7 +178,11 @@ function buildCustomerMetadata(profile: Profile): Record<string, string> {
   };
 }
 
-async function createStripeCustomer(profile: Profile): Promise<string> {
+async function createStripeCustomer(
+  profile: Profile,
+  diag?: StripeCheckoutDiag,
+): Promise<string> {
+  logStripeCheckoutDiag("CUSTOMER_CREATE_START", diag);
   const stripe = getStripeClient();
 
   const customer = await stripe.customers.create(
@@ -159,6 +196,7 @@ async function createStripeCustomer(profile: Profile): Promise<string> {
     },
   );
 
+  logStripeCheckoutDiag("CUSTOMER_CREATE_COMPLETE", diag);
   return customer.id;
 }
 
@@ -171,9 +209,12 @@ async function resolvePersistedStripeCustomerId(profileId: string): Promise<stri
 async function persistStripeCustomerMapping(
   profileId: string,
   customerId: string,
+  diag?: StripeCheckoutDiag,
 ): Promise<string> {
+  logStripeCheckoutDiag("CUSTOMER_MAPPING_PERSIST_START", diag);
   try {
     await persistSubscriptionStripeCustomerId(profileId, customerId);
+    logStripeCheckoutDiag("CUSTOMER_MAPPING_PERSIST_COMPLETE", diag);
     return customerId;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Database persistence failed.";
@@ -181,6 +222,7 @@ async function persistStripeCustomerMapping(
     const recoveredCustomerId = await resolvePersistedStripeCustomerId(profileId);
 
     if (recoveredCustomerId) {
+      logStripeCheckoutDiag("CUSTOMER_MAPPING_PERSIST_COMPLETE", diag);
       return recoveredCustomerId;
     }
 
@@ -203,11 +245,14 @@ async function persistStripeCustomerMapping(
 export async function getOrCreateStripeCustomer(
   input: GetOrCreateStripeCustomerInput,
 ): Promise<string> {
+  const diag = input.diag;
+  logStripeCheckoutDiag("CUSTOMER_RESOLUTION_START", diag);
   assertTrustedProfile(input.profile);
 
   const existingCustomerId = input.subscription?.stripe_customer_id?.trim();
 
   if (existingCustomerId) {
+    logStripeCheckoutDiag("CUSTOMER_RESOLUTION_COMPLETE", diag);
     return existingCustomerId;
   }
 
@@ -217,12 +262,14 @@ export async function getOrCreateStripeCustomer(
   const stripe = getStripeClient();
 
   let customerId =
-    (await searchStripeCustomerByProfileId(stripe, profileId, currentEnvironment)) ??
-    (await searchStripeCustomerByEmail(stripe, email, profileId, currentEnvironment));
+    (await searchStripeCustomerByProfileId(stripe, profileId, currentEnvironment, diag)) ??
+    (await searchStripeCustomerByEmail(stripe, email, profileId, currentEnvironment, diag));
 
   if (!customerId) {
-    customerId = await createStripeCustomer(input.profile);
+    customerId = await createStripeCustomer(input.profile, diag);
   }
 
-  return persistStripeCustomerMapping(profileId, customerId);
+  const persisted = await persistStripeCustomerMapping(profileId, customerId, diag);
+  logStripeCheckoutDiag("CUSTOMER_RESOLUTION_COMPLETE", diag);
+  return persisted;
 }
