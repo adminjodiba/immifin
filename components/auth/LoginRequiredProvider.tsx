@@ -67,6 +67,19 @@ export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) 
     }
   }, [isSignedIn, open]);
 
+  // Clerk SignIn "Sign up" / related auth links navigate to /signup or /login while
+  // this modal is local-state-driven. Dismiss on those routes only — do not close on
+  // every pathname change, because showLoginRequired intentionally router.push("/")
+  // while keeping the dialog open.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    if (pathname.startsWith("/signup") || pathname.startsWith("/login")) {
+      setOpen(false);
+    }
+  }, [pathname, open]);
+
   useEffect(() => {
     if (!open) {
       return;
