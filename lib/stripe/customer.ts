@@ -116,7 +116,12 @@ function canReuseStripeCustomer(
   return mappedProfileId === profileId;
 }
 
-async function searchStripeCustomerByProfileId(
+/**
+ * Optional Stripe Customer Search by IMMIFIN profile metadata.
+ * Not used on the synchronous Checkout critical path (Workers hang on Search).
+ * Preserved for future legacy reconciliation / repair outside Checkout.
+ */
+export async function searchReusableStripeCustomerByProfileId(
   stripe: Stripe,
   profileId: string,
   currentEnvironment: string,
@@ -142,7 +147,12 @@ async function searchStripeCustomerByProfileId(
   return matches[0]?.id ?? null;
 }
 
-async function searchStripeCustomerByEmail(
+/**
+ * Optional Stripe Customer Search by email.
+ * Not used on the synchronous Checkout critical path (Workers hang on Search).
+ * Preserved for future legacy reconciliation / repair outside Checkout.
+ */
+export async function searchReusableStripeCustomerByEmail(
   stripe: Stripe,
   email: string,
   profileId: string,
@@ -241,6 +251,13 @@ async function persistStripeCustomerMapping(
 /**
  * Returns the trusted Stripe Customer ID for an IMMIFIN profile.
  * Creates at most one Stripe Customer per profile per environment.
+ *
+ * First-time Checkout path (S7-OPS-STRIPE-026):
+ *   trusted stripe_customer_id → reuse
+ *   else → idempotent customers.create → persist mapping
+ *
+ * Does NOT call Stripe Customer Search on the Checkout critical path —
+ * Search hangs indefinitely on Cloudflare Workers.
  */
 export async function getOrCreateStripeCustomer(
   input: GetOrCreateStripeCustomerInput,
@@ -257,18 +274,7 @@ export async function getOrCreateStripeCustomer(
   }
 
   const profileId = input.profile.id;
-  const currentEnvironment = getStripeEnvironmentLabel();
-  const email = input.profile.email.trim().toLowerCase();
-  const stripe = getStripeClient();
-
-  let customerId =
-    (await searchStripeCustomerByProfileId(stripe, profileId, currentEnvironment, diag)) ??
-    (await searchStripeCustomerByEmail(stripe, email, profileId, currentEnvironment, diag));
-
-  if (!customerId) {
-    customerId = await createStripeCustomer(input.profile, diag);
-  }
-
+  const customerId = await createStripeCustomer(input.profile, diag);
   const persisted = await persistStripeCustomerMapping(profileId, customerId, diag);
   logStripeCheckoutDiag("CUSTOMER_RESOLUTION_COMPLETE", diag);
   return persisted;
