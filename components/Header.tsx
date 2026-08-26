@@ -185,6 +185,28 @@ function renderNavMenuItem(
     );
   }
 
+  if (item.href === "/pricing") {
+    if (options?.mobile) {
+      return (
+        <Link
+          key={`${item.href}-${item.label}`}
+          href={item.href}
+          className={navMenuItemMobileClassName}
+          onClick={options.onNavigate}
+        >
+          {item.label}
+        </Link>
+      );
+    }
+
+    return (
+      <Link key={`${item.href}-${item.label}`} href={item.href} className={navMenuItemClassName}>
+        <span className={menuItemLabelClassName}>{item.label}</span>
+        <span className={menuItemDescriptionClassName}>{item.description}</span>
+      </Link>
+    );
+  }
+
   if (options?.mobile) {
     return (
       <ProtectedLink
@@ -426,6 +448,47 @@ function MyImmifinDropdown({
   );
 }
 
+const JOIN_IMMIFIN_NAV_LABEL = "Join IMMIFIN";
+
+function JoinImmifinDropdown({ onSignIn }: { onSignIn: () => void }) {
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        className={`${navLinkClassName} inline-flex items-center gap-1`}
+        aria-haspopup="menu"
+      >
+        {JOIN_IMMIFIN_NAV_LABEL}
+        <svg
+          className="h-4 w-4 transition-transform group-hover:rotate-180"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      <div className={dropdownPanelClassName}>
+        <div className={dropdownMenuSurfaceClassName} role="menu">
+          <Link href="/signup" className={navMenuItemClassName} role="menuitem">
+            <span className={menuItemLabelClassName}>Create Free Account</span>
+            <span className={menuItemDescriptionClassName}>
+              Free · $0 · No credit card required
+            </span>
+          </Link>
+          <button type="button" className={navMenuItemClassName} role="menuitem" onClick={onSignIn}>
+            <span className={menuItemLabelClassName}>Sign In</span>
+            <span className={menuItemDescriptionClassName}>Already have an IMMIFIN account?</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -433,8 +496,10 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
-  const showSignedOutAuth = isLoaded && !isSignedIn;
-  const showSignedInAuth = isLoaded && isSignedIn;
+  // Visitor account entry must render even if Clerk has not finished loading.
+  // Waiting on isLoaded leaves the header empty on localhost when Clerk hangs.
+  const showSignedOutAuth = !isSignedIn;
+  const showSignedInAuth = Boolean(isLoaded && isSignedIn);
   const signedIn = Boolean(isSignedIn);
   const greetingLine = user
     ? getGreetingLine(user.firstName, user.fullName, user.username)
@@ -469,13 +534,13 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
     <>
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70">
       <div className="container-main">
-        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center sm:h-[4.5rem]">
-          <div className="justify-self-start">
+        <div className="flex h-16 items-center gap-0.5 sm:h-[4.5rem]">
+          <div className="shrink-0">
             <Logo />
           </div>
 
           <nav
-            className="hidden items-center justify-center gap-0.5 md:flex"
+            className="hidden min-w-0 items-center gap-0.5 md:flex"
             aria-label="Main navigation"
           >
             {navLinks.map((link) => {
@@ -532,19 +597,10 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 </ProtectedLink>
               );
             })}
+            {showSignedOutAuth ? <JoinImmifinDropdown onSignIn={openLoginFromChrome} /> : null}
           </nav>
 
-          <div className="flex items-center justify-end gap-2 justify-self-end">
-            {showSignedOutAuth && (
-              <div className="hidden items-center gap-1 md:flex">
-                <button type="button" className={navLinkClassName} onClick={openLoginFromChrome}>
-                  Login
-                </button>
-                <Link href="/signup" className="btn-primary px-4 py-2">
-                  Sign Up
-                </Link>
-              </div>
-            )}
+          <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
             {showSignedInAuth && (
               <div className="flex flex-col items-center justify-center">
                 <UserButton appearance={headerUserButtonAppearance}>
@@ -698,16 +754,25 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
               })}
               {showSignedOutAuth && (
                 <div className="mt-2 w-full space-y-1 border-t border-slate-200/80 pt-2">
+                  <div className="px-4 py-3 text-center text-base font-medium text-slate-700">
+                    {JOIN_IMMIFIN_NAV_LABEL}
+                  </div>
+                  <Link href="/signup" className="btn-primary w-full" onClick={onToggleMenu}>
+                    Create Free Account
+                  </Link>
+                  <p className="px-4 pb-1 text-center text-xs text-slate-500">
+                    Free · $0 · No credit card required
+                  </p>
                   <button
                     type="button"
                     className="nav-menu-item block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
                     onClick={openLoginFromChrome}
                   >
-                    Login
+                    Sign In
                   </button>
-                  <Link href="/signup" className="btn-primary w-full" onClick={onToggleMenu}>
-                    Sign Up
-                  </Link>
+                  <p className="px-4 pb-1 text-center text-xs text-slate-500">
+                    Already have an IMMIFIN account?
+                  </p>
                 </div>
               )}
             </div>

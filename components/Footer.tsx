@@ -32,6 +32,14 @@ export function Footer() {
                   </ProtectedLink>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/pricing"
+                  className="text-sm text-slate-600 transition-colors hover:text-brand-700"
+                >
+                  Pricing
+                </Link>
+              </li>
             </ul>
           </div>
 

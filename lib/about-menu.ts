@@ -25,6 +25,11 @@ export const aboutMenuSections: readonly AboutMenuSection[] = [
         description: "Our mission, values, and the story behind Immifin",
       },
       {
+        href: "/pricing",
+        label: "Pricing",
+        description: "Compare Free, Pro, and Power plans",
+      },
+      {
         href: "/contact",
         label: "Contact Us",
         description: "Support, partnerships, bug reports, and feedback",
