@@ -38,6 +38,8 @@ export type EmploymentMonthlyImmigrationReportDashboardSource =
   MonthlyUpdateSourceBase & {
     journeyType: "employment_gc_waiting";
     journey: EmploymentJourneyData;
+    /** Campaign / subject month — latest Visa Bulletin month, not calendar month. */
+    updateMonthLabel: string;
     /** MoM Final Action movement for the user's category/country (dashboard engine). */
     finalActionMovement: VisaBulletinMovementSnapshot | null;
     /** MoM Dates for Filing movement for the user's category/country (dashboard engine). */
@@ -51,7 +53,7 @@ export type GreenCardMonthlyImmigrationReportDashboardSource =
   MonthlyUpdateSourceBase & {
     journeyType: "green_card_holder";
     journey: GreenCardJourneyData;
-    /** Display month for subject / hero, e.g. "July 2026". */
+    /** Campaign / subject month — latest Visa Bulletin month, not calendar month. */
     updateMonthLabel: string;
   };
 
@@ -179,7 +181,7 @@ function mapEmploymentMonthlyImmigrationReportEmailProps(
     journeyType: "employment_gc_waiting",
     firstName: source.firstName.trim() || "there",
     dashboardUrl: source.dashboardUrl,
-    updateMonthLabel: journey.bulletinMonthLabel,
+    updateMonthLabel: source.updateMonthLabel,
     monthlyHighlight: mapMonthlyHighlight(journey, source.finalActionMovement),
     immigrationCategory: journey.categoryLabel?.trim() || "Unavailable",
     chargeabilityCountry: journey.countryLabel?.trim() || "Unavailable",

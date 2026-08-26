@@ -83,6 +83,7 @@ const SAMPLE_DASHBOARD_SOURCE: MonthlyImmigrationReportDashboardSource = {
   firstName: "Samar",
   dashboardUrl: "http://localhost:3000/dashboard",
   journey: SAMPLE_EMPLOYMENT_JOURNEY,
+  updateMonthLabel: "July 2026",
   comparisonMonthLabel: "June 2026",
   finalActionMovement: {
     movementType: "forward",

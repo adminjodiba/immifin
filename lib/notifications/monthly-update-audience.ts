@@ -123,6 +123,8 @@ function skipReasonFromAssemblyError(
     case MONTHLY_UPDATE_ASSEMBLY_ERROR.UNSUPPORTED_JOURNEY:
     case MONTHLY_UPDATE_ASSEMBLY_ERROR.PROFILE_INACTIVE:
       return "unsupported_profile";
+    case MONTHLY_UPDATE_ASSEMBLY_ERROR.BULLETIN_MONTH_UNAVAILABLE:
+      return "assembly_failed";
     default:
       return "unsupported_profile";
   }

@@ -9,7 +9,7 @@
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
 | **Status** | Approved design — implementation not started |
-| **Last updated** | 2026-07-10 |
+| **Last updated** | 2026-08-26 |
 | **Owner** | Technical Architecture (CTO) |
 
 **Related:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
@@ -443,6 +443,18 @@ The Monthly Immigration Update remains **one template** and **one Notification S
 3. **What This Means for You** — concise advisory summary from dashboard citizenship metrics
 
 Green Card holders are **eligible recipients** (not Unsupported Profile) when Pro/Power prefs and assembly succeed.
+
+### Campaign month (`updateMonthLabel`) — S7-PROD-NOTIFY-FIX-001
+
+**Rule:** Every Monthly Immigration Update in a campaign uses the **same** `updateMonthLabel`: the **latest Visa Bulletin history month** (`getLatestVisaBulletinMonth` → `formatVisaBulletinMonthLong`). This applies to Green Card holder and employment journeys.
+
+**Not used for campaign month:** server calendar (`new Date()`), Green Card issue date, previous campaign row.
+
+**Fallback:** if no bulletin month can be resolved, do **not** invent a month — assembly fails with `MONTHLY_UPDATE_BULLETIN_MONTH_UNAVAILABLE`.
+
+Personalized body content remains journey-specific. Preview Sample and bulk send both go through `prepareMonthlyImmigrationUpdateForUser()`.
+
+**Local code:** 2026-08-26. **Production deploy of this fix:** not in this story.
 
 ### Channel
 
@@ -1955,3 +1967,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.13 | 2026-07-10 | S6-EMAIL-004.1 | Single-user Monthly Immigration Update preview + controlled Resend send |
 | v1.14 | 2026-07-10 | S6-EMAIL-004.2 | Admin Monthly Update Control Center — Pro/Power audience summary + batched bulk send |
 | v1.15 | 2026-07-10 | S6-EMAIL-005.1 | Journey-aware Monthly Update — Green Card holder / citizenship journey support |
+| v1.16 | 2026-08-26 | S7-PROD-NOTIFY-FIX-001 | Campaign `updateMonthLabel` = latest Visa Bulletin month for all journeys (not calendar month); not Production-deployed |

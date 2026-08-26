@@ -54,6 +54,7 @@ export {
 export {
   prepareMonthlyImmigrationUpdateForUser,
   findVisaBulletinMovementForProfile,
+  campaignUpdateMonthLabelFromKey,
   isMonthlyUpdateAssemblyError,
   MonthlyUpdateAssemblyError,
   MONTHLY_UPDATE_ASSEMBLY_ERROR,

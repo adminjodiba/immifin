@@ -42,6 +42,7 @@ export const MONTHLY_UPDATE_ASSEMBLY_ERROR = {
   IMMIGRATION_PROFILE_MISSING: "MONTHLY_UPDATE_IMMIGRATION_PROFILE_MISSING",
   IMMIGRATION_PROFILE_INCOMPLETE: "MONTHLY_UPDATE_IMMIGRATION_PROFILE_INCOMPLETE",
   UNSUPPORTED_JOURNEY: "MONTHLY_UPDATE_UNSUPPORTED_JOURNEY",
+  BULLETIN_MONTH_UNAVAILABLE: "MONTHLY_UPDATE_BULLETIN_MONTH_UNAVAILABLE",
 } as const;
 
 export type MonthlyUpdateAssemblyErrorCode =
@@ -154,20 +155,35 @@ export function previousVisaBulletinMonthKey(monthKey: string): string | null {
   return `${previous.getFullYear()}-${previousMonth}`;
 }
 
-function resolveCalendarUpdateMonthLabel(): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
-}
-
-async function resolveComparisonMonthLabel(): Promise<string> {
-  const latest = await getLatestVisaBulletinMonth();
-  if (!latest) {
-    return "Previous month";
+/**
+ * Campaign / subject month for every Monthly Immigration Update journey.
+ * Authoritative source: latest Visa Bulletin history month — never calendar `new Date()`.
+ */
+export function campaignUpdateMonthLabelFromKey(
+  monthKey: string | null | undefined
+): string {
+  const key = monthKey?.trim() ?? "";
+  if (!key) {
+    throw new MonthlyUpdateAssemblyError(
+      MONTHLY_UPDATE_ASSEMBLY_ERROR.BULLETIN_MONTH_UNAVAILABLE,
+      "Visa Bulletin month is unavailable. Monthly Immigration Update cannot be assembled."
+    );
   }
 
-  const previousKey = previousVisaBulletinMonthKey(latest);
+  return formatVisaBulletinMonthLong(key);
+}
+
+async function resolveCampaignUpdateMonth(): Promise<{
+  key: string;
+  label: string;
+}> {
+  const key = (await getLatestVisaBulletinMonth())?.trim() ?? "";
+  const label = campaignUpdateMonthLabelFromKey(key);
+  return { key, label };
+}
+
+function resolveComparisonMonthLabel(latestKey: string): string {
+  const previousKey = previousVisaBulletinMonthKey(latestKey);
   if (!previousKey) {
     return "Previous month";
   }
@@ -242,19 +258,19 @@ async function assembleEmploymentSource(
     );
   }
 
-  const [journey, finalActionRows, filingRows, comparisonMonthLabel] =
-    await Promise.all([
-      buildEmploymentJourneyData(immigrationProfile),
-      getVisaBulletinMovement("final-action"),
-      getVisaBulletinMovement("filing"),
-      resolveComparisonMonthLabel(),
-    ]);
+  const campaignMonth = await resolveCampaignUpdateMonth();
+  const [journey, finalActionRows, filingRows] = await Promise.all([
+    buildEmploymentJourneyData(immigrationProfile),
+    getVisaBulletinMovement("final-action"),
+    getVisaBulletinMovement("filing"),
+  ]);
 
   return {
     journeyType: "employment_gc_waiting",
     firstName: getDashboardWelcomeName(null, profileWithRelations.profile),
     dashboardUrl: `${resolveAppBaseUrl()}/dashboard`,
     journey,
+    updateMonthLabel: campaignMonth.label,
     finalActionMovement: findVisaBulletinMovementForProfile(
       finalActionRows,
       immigrationProfile
@@ -263,7 +279,7 @@ async function assembleEmploymentSource(
       filingRows,
       immigrationProfile
     ),
-    comparisonMonthLabel,
+    comparisonMonthLabel: resolveComparisonMonthLabel(campaignMonth.key),
   };
 }
 
@@ -290,14 +306,14 @@ async function assembleGreenCardSource(
     );
   }
 
-  const updateMonthLabel = resolveCalendarUpdateMonthLabel();
+  const campaignMonth = await resolveCampaignUpdateMonth();
 
   return {
     journeyType: "green_card_holder",
     firstName: getDashboardWelcomeName(null, profileWithRelations.profile),
     dashboardUrl: `${resolveAppBaseUrl()}/dashboard`,
     journey,
-    updateMonthLabel,
+    updateMonthLabel: campaignMonth.label,
   };
 }
 
