@@ -22,18 +22,21 @@ type SubscriptionApiResponse = {
   devSubscriptionMode: boolean;
   billing?: {
     billingInterval?: SubscriptionBillingInterval | null;
+    hasPaidStripeSubscription?: boolean;
   } | null;
 };
 
 type SubscriptionState = {
   tier: SubscriptionTier | null;
   billingInterval: SubscriptionBillingInterval | null;
+  hasPaidStripeSubscription: boolean;
   devSubscriptionMode: boolean;
 };
 
 type SubscriptionTierContextValue = {
   storedTier: SubscriptionTier | null;
   billingInterval: SubscriptionBillingInterval | null;
+  hasPaidStripeSubscription: boolean;
   isLoading: boolean;
   isSignedIn: boolean;
   devSubscriptionMode: boolean;
@@ -44,13 +47,23 @@ type SubscriptionTierContextValue = {
 const SubscriptionTierContext = createContext<SubscriptionTierContextValue | null>(null);
 
 async function fetchSubscriptionState(): Promise<SubscriptionState> {
-  const response = await fetch("/api/account/subscription", {
+  // Cache-bust query + no-store: post-Checkout activation must not reuse a stale Free response.
+  const response = await fetch(`/api/account/subscription?_ts=${Date.now()}`, {
     method: "GET",
     cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
   });
 
   if (response.status === 401) {
-    return { tier: null, billingInterval: null, devSubscriptionMode: false };
+    return {
+      tier: null,
+      billingInterval: null,
+      hasPaidStripeSubscription: false,
+      devSubscriptionMode: false,
+    };
   }
 
   if (!response.ok) {
@@ -67,6 +80,7 @@ async function fetchSubscriptionState(): Promise<SubscriptionState> {
   return {
     tier: body.data.tier,
     billingInterval: billingInterval === "month" || billingInterval === "year" ? billingInterval : null,
+    hasPaidStripeSubscription: Boolean(body.data.billing?.hasPaidStripeSubscription),
     devSubscriptionMode: body.data.devSubscriptionMode,
   };
 }
@@ -75,13 +89,21 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
   const { isLoaded, isSignedIn } = useAuth();
   const [storedTier, setStoredTier] = useState<SubscriptionTier | null>(null);
   const [billingInterval, setBillingInterval] = useState<SubscriptionBillingInterval | null>(null);
+  const [hasPaidStripeSubscription, setHasPaidStripeSubscription] = useState(false);
   const [devSubscriptionMode, setDevSubscriptionMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshStoredTier = useCallback(async (): Promise<SubscriptionTier | null> => {
+    // S7-BILLING-UX-008A: while Clerk is still loading, do not treat the session as
+    // signed-out and do not clear last-known entitlement (post-Checkout race).
+    if (!isLoaded) {
+      return null;
+    }
+
     if (!isSignedIn) {
       setStoredTier(null);
       setBillingInterval(null);
+      setHasPaidStripeSubscription(false);
       setDevSubscriptionMode(false);
       setIsLoading(false);
       return null;
@@ -93,17 +115,17 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
       const state = await fetchSubscriptionState();
       setStoredTier(state.tier);
       setBillingInterval(state.billingInterval);
+      setHasPaidStripeSubscription(state.hasPaidStripeSubscription);
       setDevSubscriptionMode(state.devSubscriptionMode);
       return state.tier;
     } catch {
-      setStoredTier(null);
-      setBillingInterval(null);
-      setDevSubscriptionMode(false);
+      // Preserve last-known tier on transient API failures so activation polling
+      // is not reset to Free mid-flight. Caller may retry.
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [isSignedIn]);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!isLoaded) {
@@ -144,6 +166,7 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
 
       setStoredTier(body.data.tier);
       setBillingInterval(body.data.billing?.billingInterval ?? null);
+      setHasPaidStripeSubscription(Boolean(body.data.billing?.hasPaidStripeSubscription));
       setDevSubscriptionMode(body.data.devSubscriptionMode);
       window.dispatchEvent(new Event(SUBSCRIPTION_TIER_EVENT));
       return body.data.tier;
@@ -155,6 +178,7 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
     () => ({
       storedTier,
       billingInterval,
+      hasPaidStripeSubscription,
       isLoading,
       isSignedIn: Boolean(isSignedIn),
       devSubscriptionMode,
@@ -164,6 +188,7 @@ export function SubscriptionTierProvider({ children }: { children: ReactNode }) 
     [
       storedTier,
       billingInterval,
+      hasPaidStripeSubscription,
       isLoading,
       isSignedIn,
       devSubscriptionMode,

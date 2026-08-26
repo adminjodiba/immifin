@@ -27,6 +27,16 @@ export type PricingPlanMatchInput = {
   currentBillingInterval: SubscriptionBillingInterval | null;
   /** Interval currently selected on the Pricing toggle. */
   displayedBillingInterval: CheckoutBillingInterval;
+  /**
+   * True when a real Stripe subscription id exists.
+   * False for Free and for Development Subscription Mode simulated Pro/Power.
+   */
+  hasPaidStripeSubscription?: boolean;
+  /**
+   * True only when the server authorized Development Subscription Mode for this user
+   * (dedicated local test user). Required for simulated entitlement Current Plan matching.
+   */
+  developmentSubscriptionOverrideActive?: boolean;
 };
 
 const TIER_RANK: Record<SubscriptionTier, number> = {
@@ -36,6 +46,8 @@ const TIER_RANK: Record<SubscriptionTier, number> = {
 };
 
 const MANAGE_HELPER = "Manage plan changes in Subscription & Billing.";
+const DEV_OVERRIDE_HELPER =
+  "Development plan override — no active Stripe billing. Switch plans with Development Subscription Mode.";
 
 function formatTierLabel(tier: SubscriptionTier): string {
   if (tier === "free") {
@@ -75,6 +87,22 @@ function intervalsMatch(
   return currentAsCheckout !== null && currentAsCheckout === displayedBillingInterval;
 }
 
+/**
+ * Resolve Stripe-backed billing for matching.
+ * Explicit flag wins; when omitted, a known billing interval implies a real Stripe plan
+ * (keeps Sprint 7 interval-aware callers correct).
+ */
+function resolveHasPaidStripeSubscription(
+  hasPaidStripeSubscription: boolean | undefined,
+  currentBillingInterval: SubscriptionBillingInterval | null,
+): boolean {
+  if (typeof hasPaidStripeSubscription === "boolean") {
+    return hasPaidStripeSubscription;
+  }
+
+  return currentBillingInterval === "month" || currentBillingInterval === "year";
+}
+
 function getCurrentPlanButtonClass(plan: PlanLike): string {
   const base = plan.ctaStyle === "btn-primary" ? "btn-primary" : "btn-secondary";
   const hoverReset =
@@ -84,8 +112,22 @@ function getCurrentPlanButtonClass(plan: PlanLike): string {
 }
 
 /**
- * A paid card is Current Plan only when tier AND billing interval both match.
- * Free has no billing interval — Free remains current on either toggle.
+ * Whether the user has a paid entitlement without a Stripe-backed subscription
+ * (typical Development Subscription Mode simulation).
+ */
+export function isSimulatedPaidEntitlement(
+  currentTier: SubscriptionTier,
+  hasPaidStripeSubscription: boolean,
+): boolean {
+  return (currentTier === "pro" || currentTier === "power") && !hasPaidStripeSubscription;
+}
+
+/**
+ * Current Plan card match.
+ *
+ * - Free: tier only
+ * - Real Stripe paid: tier + billing interval
+ * - Authorized Dev simulated paid (no Stripe): tier only (entitlement), never interval ownership
  */
 export function isPricingCurrentPlanCard(input: PricingPlanMatchInput): boolean {
   if (!input.isSignedIn) {
@@ -100,12 +142,32 @@ export function isPricingCurrentPlanCard(input: PricingPlanMatchInput): boolean 
     return false;
   }
 
+  const hasPaidStripeSubscription = resolveHasPaidStripeSubscription(
+    input.hasPaidStripeSubscription,
+    input.currentBillingInterval,
+  );
+
+  // Authorized Dev Mode simulation: entitlement current by tier only.
+  if (
+    !hasPaidStripeSubscription &&
+    input.developmentSubscriptionOverrideActive &&
+    isSimulatedPaidEntitlement(input.currentTier, hasPaidStripeSubscription)
+  ) {
+    return true;
+  }
+
+  if (!hasPaidStripeSubscription) {
+    return false;
+  }
+
   return intervalsMatch(input.currentBillingInterval, input.displayedBillingInterval);
 }
 
 /**
  * Checkout-mode plan action for a pricing card.
- * Current Plan requires tier + interval match for paid plans.
+ *
+ * Real Stripe Current Plan: tier + interval.
+ * Authorized Dev simulated entitlement: Current Plan by tier; suppress Stripe CTAs.
  */
 export function getCheckoutPlanButtonConfig(
   plan: PlanLike,
@@ -113,13 +175,25 @@ export function getCheckoutPlanButtonConfig(
   isSignedIn: boolean,
   currentBillingInterval: SubscriptionBillingInterval | null = null,
   displayedBillingInterval: CheckoutBillingInterval = "monthly",
+  hasPaidStripeSubscription?: boolean,
+  developmentSubscriptionOverrideActive = false,
 ): CheckoutPlanButtonConfig {
+  const resolvedHasPaid = resolveHasPaidStripeSubscription(
+    hasPaidStripeSubscription,
+    currentBillingInterval,
+  );
+  const simulatedPaid =
+    developmentSubscriptionOverrideActive &&
+    isSimulatedPaidEntitlement(currentTier, resolvedHasPaid);
+
   const isCurrentPlan = isPricingCurrentPlanCard({
     planId: plan.id,
     currentTier,
     isSignedIn,
     currentBillingInterval,
     displayedBillingInterval,
+    hasPaidStripeSubscription: resolvedHasPaid,
+    developmentSubscriptionOverrideActive,
   });
 
   if (isCurrentPlan) {
@@ -128,7 +202,33 @@ export function getCheckoutPlanButtonConfig(
       disabled: true,
       className: getCurrentPlanButtonClass(plan),
       isCurrentPlan: true,
-      helperText: "Your active subscription",
+      helperText: simulatedPaid
+        ? "Development plan override — no active Stripe billing"
+        : "Your active subscription",
+    };
+  }
+
+  // Authorized Dev simulated paid entitlement: no Stripe billing transitions from Pricing.
+  if (isSignedIn && simulatedPaid) {
+    if (plan.id === "free") {
+      return {
+        label: "Switch to Free",
+        disabled: true,
+        className: `${plan.ctaStyle} w-full opacity-75 cursor-not-allowed`,
+        isCurrentPlan: false,
+        helperText: DEV_OVERRIDE_HELPER,
+      };
+    }
+
+    const tierLabel = formatTierLabel(plan.id);
+    const isUpgrade = TIER_RANK[plan.id] > TIER_RANK[currentTier];
+
+    return {
+      label: isUpgrade ? `Upgrade to ${tierLabel}` : `Switch to ${tierLabel}`,
+      disabled: true,
+      className: `${plan.ctaStyle} w-full opacity-75 cursor-not-allowed`,
+      isCurrentPlan: false,
+      helperText: DEV_OVERRIDE_HELPER,
     };
   }
 

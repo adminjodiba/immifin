@@ -8,7 +8,13 @@ import {
   type BillingSummary,
 } from "@/lib/billing/billing-center";
 import { formatPricePerPeriod } from "@/lib/pricing/pricing-display-catalog";
+import type { SubscriptionChangePreviewResult } from "@/lib/stripe/subscription-change-preview.types";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
+import {
+  actionRequiresScheduledDowngradeConfirm,
+  buildScheduledDowngradeViewModel,
+  type ScheduledDowngradeViewModel,
+} from "@/lib/billing/downgrade-confirmation-view";
 
 export type PlanChangeTargetInterval = "monthly" | "annual" | null;
 
@@ -16,6 +22,8 @@ export type PlanChangeIntent = {
   targetTier: SubscriptionTier;
   targetInterval: PlanChangeTargetInterval;
 };
+
+export type UpgradePreviewLoadStatus = "none" | "loading" | "ready" | "error";
 
 export type PlanChangeReview = {
   action: Exclude<BillingCenterAction, { kind: "checkout" }>;
@@ -31,6 +39,19 @@ export type PlanChangeReview = {
   transitionExplanation: string | null;
   confirmLabel: string;
   dismissLabel: string;
+  /** Masked payment method label for immediate upgrades (S7-BILLING-UX-004). */
+  paymentMethodDisplay: string | null;
+  paymentMethodStatus: "present" | "missing" | "unavailable" | null;
+  /** Cached preview authorization when preview was loaded for display. */
+  previewAuthorization: string | null;
+  /** S7-BILLING-UX-006 — Stripe invoice preview for immediate paid upgrades. */
+  upgradePreviewStatus: UpgradePreviewLoadStatus;
+  upgradePreview: SubscriptionChangePreviewResult | null;
+  upgradePreviewError: string | null;
+  /** Non-error banner (e.g. expired preview refreshed). */
+  previewInfoBanner: string | null;
+  /** S7-BILLING-UX-007 — structured scheduled downgrade/cancel/interval copy. */
+  scheduledDowngrade: ScheduledDowngradeViewModel | null;
 };
 
 const QUERY_TIER = "targetTier";
@@ -256,10 +277,43 @@ export function buildPlanChangeReview(input: {
   const { tier, billing, action } = input;
   const timing = getTimingAndNote(action, tier, billing);
   const isFreeDowngrade = action.kind === "cancel";
+  const isImmediateUpgrade = action.kind === "upgrade";
+
+  if (actionRequiresScheduledDowngradeConfirm(action)) {
+    const scheduled = buildScheduledDowngradeViewModel({ tier, billing, action });
+
+    return {
+      action,
+      dialogTitle: scheduled.dialogTitle,
+      changeTypeLabel: scheduled.changeTypeLabel,
+      currentPlanLine: scheduled.currentPlanLine,
+      currentPriceLine: scheduled.currentPriceLine,
+      targetPlanLine: scheduled.targetPlanLine,
+      targetPriceLine: scheduled.targetPriceLine,
+      timingLabel: scheduled.effectiveDateLabel,
+      billingNote: scheduled.benefitRetentionCopy,
+      accessExplanation: scheduled.benefitRetentionCopy,
+      transitionExplanation: scheduled.autoChangeCopy,
+      confirmLabel: scheduled.confirmLabel,
+      dismissLabel: scheduled.dismissLabel,
+      paymentMethodDisplay: null,
+      paymentMethodStatus: null,
+      previewAuthorization: null,
+      upgradePreviewStatus: "none",
+      upgradePreview: null,
+      upgradePreviewError: null,
+      previewInfoBanner: null,
+      scheduledDowngrade: scheduled,
+    };
+  }
 
   return {
     action,
-    dialogTitle: isFreeDowngrade ? "Downgrade to Free" : "Confirm plan change",
+    dialogTitle: isFreeDowngrade
+      ? "Downgrade to Free"
+      : isImmediateUpgrade
+        ? "Confirm your upgrade"
+        : "Confirm plan change",
     changeTypeLabel: getChangeTypeLabel(action),
     currentPlanLine: formatPlanIntervalLine(tier, billing.billingInterval),
     currentPriceLine: formatCurrentPriceLine(tier, billing.billingInterval),
@@ -273,5 +327,13 @@ export function buildPlanChangeReview(input: {
     transitionExplanation: timing.transitionExplanation,
     confirmLabel: isFreeDowngrade ? "Schedule Downgrade" : "Confirm",
     dismissLabel: "Keep Current Plan",
+    paymentMethodDisplay: null,
+    paymentMethodStatus: null,
+    previewAuthorization: null,
+    upgradePreviewStatus: "none",
+    upgradePreview: null,
+    upgradePreviewError: null,
+    previewInfoBanner: null,
+    scheduledDowngrade: null,
   };
 }

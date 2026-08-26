@@ -9,12 +9,15 @@ import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseActio
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
 import {
   BILLING_CENTER_PATH,
+  DEVELOPMENT_PLAN_OVERRIDE_LABEL,
   describeScheduledChange,
   formatBillingDate,
   formatBillingIntervalLabel,
+  formatCurrentSubscriptionAmount,
   formatPlanLabel,
   formatSubscriptionStatusLabel,
   getBillingCenterActions,
+  isEntitlementWithoutStripeBilling,
   type BillingCenterAction,
   type BillingSummary,
 } from "@/lib/billing/billing-center";
@@ -24,40 +27,81 @@ import {
   parsePlanChangeIntentFromSearchParams,
   type PlanChangeReview,
 } from "@/lib/billing/plan-change-intent";
-import { formatPricePerPeriod } from "@/lib/pricing/pricing-display-catalog";
+import {
+  consumePendingUpgradeAfterPaymentMethod,
+  storePendingUpgradeAfterPaymentMethod,
+} from "@/lib/billing/pending-upgrade-after-payment-method";
+import {
+  actionRequiresInvoicePreview,
+  isPreviewExpiredErrorMessage,
+  UPGRADE_PREVIEW_EXPIRED_REFRESH_COPY,
+  UPGRADE_PREVIEW_FAILURE_COPY,
+  UPGRADE_SUBMITTED_PENDING_COPY,
+} from "@/lib/billing/upgrade-confirmation-view";
+import {
+  actionRequiresScheduledDowngradeConfirm,
+  formatScheduledFreeSuccessCopy,
+  hasAuthoritativePeriodEnd,
+  SCHEDULED_DOWNGRADE_SUCCESS_COPY,
+  SCHEDULED_MISSING_EFFECTIVE_DATE_COPY,
+  SCHEDULED_PLAN_CHANGE_SUCCESS_COPY,
+} from "@/lib/billing/downgrade-confirmation-view";
 import { checkoutIntervalFromBillingInterval } from "@/lib/pricing/checkout-plan-actions";
+import { requestPaymentMethodPortalSession } from "@/lib/stripe/client-billing-portal";
 import { startStripeCheckout } from "@/lib/stripe/client-checkout";
-import { requestPaidSubscriptionChange } from "@/lib/stripe/client-subscription-change";
+import {
+  requestPaidSubscriptionChange,
+  requestSubscriptionChangePreview,
+  type SubscriptionChangeResponse,
+} from "@/lib/stripe/client-subscription-change";
+import type { SubscriptionChangePreviewResult } from "@/lib/stripe/subscription-change-preview.types";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
-
-function formatCurrentSubscriptionAmount(
-  tier: SubscriptionTier,
-  billingInterval: BillingSummary["billingInterval"],
-): string {
-  if (tier === "free" || !billingInterval) {
-    return formatPricePerPeriod("free", null);
-  }
-
-  return formatPricePerPeriod(tier, billingInterval);
-}
+import {
+  BILLING_PORTAL_PAYMENT_METHOD_QUERY,
+  BILLING_PORTAL_PAYMENT_METHOD_UPDATED_VALUE,
+} from "@/lib/stripe/billing-portal-return-url.shared";
 
 type BillingApiResponse = {
   tier: SubscriptionTier;
   plan: string;
   billing: BillingSummary;
+  devSubscriptionMode?: boolean;
 };
 
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; tier: SubscriptionTier; billing: BillingSummary };
+  | {
+      status: "ready";
+      tier: SubscriptionTier;
+      billing: BillingSummary;
+      devSubscriptionMode: boolean;
+    };
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({
+  label,
+  value,
+  emphasize = false,
+}: {
+  label: string;
+  value: string;
+  emphasize?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-1 border-b border-slate-100 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-      <dt className="text-sm font-medium text-slate-500">{label}</dt>
-      <dd className="text-sm font-semibold text-slate-900 sm:text-right">{value}</dd>
+      <dt className={emphasize ? "text-sm font-bold text-brand-700" : "text-sm font-medium text-slate-500"}>
+        {label}
+      </dt>
+      <dd
+        className={
+          emphasize
+            ? "text-sm font-bold text-brand-700 sm:text-right"
+            : "text-sm font-semibold text-slate-900 sm:text-right"
+        }
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -93,11 +137,7 @@ function actionButtonClass(variant: BillingCenterAction["variant"]): string {
 }
 
 function successMessageForResult(
-  result: {
-    status: string;
-    changeType?: string;
-    effectiveAt?: string;
-  },
+  result: SubscriptionChangeResponse,
   currentTier: SubscriptionTier,
 ): string {
   if (result.changeType === "retain_paid_subscription") {
@@ -105,23 +145,106 @@ function successMessageForResult(
   }
 
   if (result.changeType === "cancel_at_period_end") {
-    const effective = formatBillingDate(result.effectiveAt);
-    const planName = formatPlanLabel(currentTier);
-    if (effective === "—") {
-      return `Downgrade scheduled. You will continue enjoying all ${planName} features until the end of your current billing period.`;
+    return formatScheduledFreeSuccessCopy({
+      effectiveAt: "effectiveAt" in result ? result.effectiveAt : undefined,
+      currentTier,
+    });
+  }
+
+  if (result.changeType === "scheduled_downgrade") {
+    return SCHEDULED_DOWNGRADE_SUCCESS_COPY;
+  }
+
+  if (result.changeType === "scheduled_interval_change") {
+    return SCHEDULED_PLAN_CHANGE_SUCCESS_COPY;
+  }
+
+  if (result.changeType === "immediate_upgrade") {
+    if (result.status === "confirmed") {
+      return UPGRADE_SUBMITTED_PENDING_COPY;
     }
-    return `Downgrade scheduled. Your account will automatically transition to the Free plan on ${effective}. You will continue enjoying all ${planName} features until that date.`;
+    if (result.status === "requires_action") {
+      return "Additional payment authentication is required to complete your upgrade.";
+    }
+    if (result.status === "failed") {
+      return "Upgrade payment was not completed. Your current plan is unchanged.";
+    }
   }
 
   if (result.status === "pending_confirmation") {
     return "Change submitted. IMMIFIN will update automatically after Stripe confirms billing — usually within a minute.";
   }
 
-  if (result.effectiveAt) {
+  if ("effectiveAt" in result && result.effectiveAt) {
     return `Change scheduled for ${formatBillingDate(result.effectiveAt)}. IMMIFIN will update after Stripe confirms.`;
   }
 
   return "Change scheduled. IMMIFIN will update automatically after Stripe confirms.";
+}
+
+/**
+ * Immediate upgrades (and month→year) require a full Stripe invoice preview (UX-006).
+ */
+async function loadUpgradePreviewForAction(
+  action: Exclude<BillingCenterAction, { kind: "checkout" }>,
+): Promise<
+  | { status: "skipped" }
+  | { status: "ready"; preview: SubscriptionChangePreviewResult }
+  | { status: "error"; message: string }
+> {
+  if (!actionRequiresInvoicePreview(action) || action.targetInterval == null) {
+    return { status: "skipped" };
+  }
+
+  try {
+    const preview = await requestSubscriptionChangePreview({
+      targetTier: action.targetTier,
+      targetInterval: action.targetInterval,
+    });
+    return { status: "ready", preview };
+  } catch {
+    return { status: "error", message: UPGRADE_PREVIEW_FAILURE_COPY };
+  }
+}
+
+function applyPreviewToReview(
+  current: PlanChangeReview,
+  result: Awaited<ReturnType<typeof loadUpgradePreviewForAction>>,
+  infoBanner: string | null = null,
+): PlanChangeReview {
+  if (result.status === "skipped") {
+    return {
+      ...current,
+      upgradePreviewStatus: "none",
+      upgradePreview: null,
+      upgradePreviewError: null,
+      previewInfoBanner: infoBanner,
+    };
+  }
+
+  if (result.status === "error") {
+    return {
+      ...current,
+      upgradePreviewStatus: "error",
+      upgradePreview: null,
+      upgradePreviewError: result.message,
+      previewAuthorization: null,
+      paymentMethodDisplay: null,
+      paymentMethodStatus: null,
+      previewInfoBanner: infoBanner,
+    };
+  }
+
+  return {
+    ...current,
+    upgradePreviewStatus: "ready",
+    upgradePreview: result.preview,
+    upgradePreviewError: null,
+    previewAuthorization: result.preview.previewAuthorization,
+    paymentMethodDisplay: result.preview.paymentMethod?.displayLabel ?? null,
+    paymentMethodStatus: result.preview.paymentMethodStatus,
+    previewInfoBanner: infoBanner,
+  };
 }
 
 export function BillingCenter() {
@@ -132,10 +255,24 @@ export function BillingCenter() {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [pendingReview, setPendingReview] = useState<PlanChangeReview | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpeningPaymentMethod, setIsOpeningPaymentMethod] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const intentHandledKeyRef = useRef<string | null>(null);
+  const paymentMethodReturnHandledRef = useRef(false);
+
+  const clearBillingQuery = useCallback(() => {
+    if (
+      !searchParams.get("targetTier") &&
+      !searchParams.get("targetInterval") &&
+      !searchParams.get(BILLING_PORTAL_PAYMENT_METHOD_QUERY)
+    ) {
+      return;
+    }
+
+    router.replace(pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const clearIntentQuery = useCallback(() => {
     if (!searchParams.get("targetTier") && !searchParams.get("targetInterval")) {
@@ -150,7 +287,7 @@ export function BillingCenter() {
     setActionError(null);
 
     try {
-      const response = await fetch("/api/account/subscription", {
+      const response = await fetch(`/api/account/subscription?_ts=${Date.now()}`, {
         method: "GET",
         cache: "no-store",
       });
@@ -169,6 +306,7 @@ export function BillingCenter() {
         status: "ready",
         tier: body.data.tier,
         billing: body.data.billing,
+        devSubscriptionMode: Boolean(body.data.devSubscriptionMode),
       });
     } catch (error: unknown) {
       setLoadState({
@@ -226,13 +364,36 @@ export function BillingCenter() {
 
     setActionError(null);
     setConfirmError(null);
-    setPendingReview(
-      buildPlanChangeReview({
-        tier: loadState.tier,
-        billing: loadState.billing,
-        action,
-      }),
-    );
+    const baseReview = buildPlanChangeReview({
+      tier: loadState.tier,
+      billing: loadState.billing,
+      action,
+    });
+
+    if (actionRequiresInvoicePreview(action)) {
+      setPendingReview({
+        ...baseReview,
+        upgradePreviewStatus: "loading",
+        upgradePreview: null,
+        upgradePreviewError: null,
+        previewAuthorization: null,
+        paymentMethodDisplay: null,
+        paymentMethodStatus: null,
+        previewInfoBanner: null,
+      });
+
+      void loadUpgradePreviewForAction(action).then((preview) => {
+        setPendingReview((current) => {
+          if (!current || current.action.id !== action.id) {
+            return current;
+          }
+          return applyPreviewToReview(current, preview);
+        });
+      });
+      return;
+    }
+
+    setPendingReview(baseReview);
   }, [clearIntentQuery, loadState, searchParams]);
 
   function openReviewForAction(action: Exclude<BillingCenterAction, { kind: "checkout" }>) {
@@ -242,26 +403,190 @@ export function BillingCenter() {
 
     setActionError(null);
     setConfirmError(null);
-    setActionMessage(null);
-    setPendingReview(
-      buildPlanChangeReview({
-        tier: loadState.tier,
-        billing: loadState.billing,
-        action,
-      }),
-    );
+    const baseReview = buildPlanChangeReview({
+      tier: loadState.tier,
+      billing: loadState.billing,
+      action,
+    });
+
+    if (actionRequiresInvoicePreview(action)) {
+      setPendingReview({
+        ...baseReview,
+        upgradePreviewStatus: "loading",
+        upgradePreview: null,
+        upgradePreviewError: null,
+        previewAuthorization: null,
+        paymentMethodDisplay: null,
+        paymentMethodStatus: null,
+        previewInfoBanner: null,
+      });
+
+      void loadUpgradePreviewForAction(action).then((preview) => {
+        setPendingReview((current) => {
+          if (!current || current.action.id !== action.id) {
+            return current;
+          }
+          return applyPreviewToReview(current, preview);
+        });
+      });
+      return;
+    }
+
+    setPendingReview(baseReview);
   }
+
+  function retryUpgradePreview() {
+    if (!pendingReview || !actionRequiresInvoicePreview(pendingReview.action)) {
+      return;
+    }
+
+    const action = pendingReview.action;
+    setConfirmError(null);
+    setPendingReview((current) =>
+      current
+        ? {
+            ...current,
+            upgradePreviewStatus: "loading",
+            upgradePreview: null,
+            upgradePreviewError: null,
+            previewAuthorization: null,
+            paymentMethodDisplay: null,
+            paymentMethodStatus: null,
+          }
+        : current,
+    );
+
+    void loadUpgradePreviewForAction(action).then((preview) => {
+      setPendingReview((current) => {
+        if (!current || current.action.id !== action.id) {
+          return current;
+        }
+        return applyPreviewToReview(current, preview);
+      });
+    });
+  }
+
+  // After Stripe-hosted payment method management: invalidate old preview and reopen fresh.
+  useEffect(() => {
+    if (loadState.status !== "ready") {
+      return;
+    }
+
+    if (
+      searchParams.get(BILLING_PORTAL_PAYMENT_METHOD_QUERY) !==
+      BILLING_PORTAL_PAYMENT_METHOD_UPDATED_VALUE
+    ) {
+      return;
+    }
+
+    if (paymentMethodReturnHandledRef.current) {
+      return;
+    }
+
+    paymentMethodReturnHandledRef.current = true;
+    setActionMessage("Payment method settings refreshed.");
+    setConfirmError(null);
+    setPendingReview(null);
+    clearBillingQuery();
+
+    const pending = consumePendingUpgradeAfterPaymentMethod();
+    if (!pending) {
+      return;
+    }
+
+    const action = findBillingCenterActionForIntent({
+      tier: loadState.tier,
+      billing: loadState.billing,
+      intent: {
+        targetTier: pending.targetTier,
+        targetInterval: pending.targetInterval,
+      },
+    });
+
+    if (!action || action.id !== pending.actionId) {
+      setActionError(
+        "Your payment method settings were refreshed. Re-open the plan change to continue with a fresh preview.",
+      );
+      return;
+    }
+
+    openReviewForAction(action);
+    // openReviewForAction closes over loadState; intentional one-shot after return.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- payment_method return handoff
+  }, [clearBillingQuery, loadState, searchParams]);
 
   function handleCancelConfirmation() {
     setPendingReview(null);
     setConfirmError(null);
     setIsSubmitting(false);
+    setIsOpeningPaymentMethod(false);
     clearIntentQuery();
   }
 
-  async function handleConfirmChange() {
-    if (!pendingReview || isSubmitting) {
+  async function handleManagePaymentMethod() {
+    if (!pendingReview || isSubmitting || isOpeningPaymentMethod) {
       return;
+    }
+
+    const action = pendingReview.action;
+    if (
+      (action.targetTier !== "pro" && action.targetTier !== "power") ||
+      (action.targetInterval !== "monthly" && action.targetInterval !== "annual")
+    ) {
+      setConfirmError("Payment method management is only available for paid plan upgrades.");
+      return;
+    }
+
+    setIsOpeningPaymentMethod(true);
+    setConfirmError(null);
+
+    try {
+      storePendingUpgradeAfterPaymentMethod({
+        targetTier: action.targetTier,
+        targetInterval: action.targetInterval,
+        actionId: action.id,
+      });
+
+      const { url } = await requestPaymentMethodPortalSession();
+
+      // Invalidate confirmation only once redirect is about to begin.
+      setPendingReview(null);
+      window.location.assign(url);
+    } catch (error: unknown) {
+      setConfirmError(
+        error instanceof Error
+          ? error.message
+          : "Unable to open payment method settings. Please try again.",
+      );
+      setIsOpeningPaymentMethod(false);
+    }
+  }
+
+  async function handleConfirmChange() {
+    if (!pendingReview || isSubmitting || isOpeningPaymentMethod) {
+      return;
+    }
+
+    if (actionRequiresInvoicePreview(pendingReview.action)) {
+      if (
+        pendingReview.upgradePreviewStatus !== "ready" ||
+        !pendingReview.previewAuthorization ||
+        !pendingReview.upgradePreview
+      ) {
+        setConfirmError(UPGRADE_PREVIEW_FAILURE_COPY);
+        return;
+      }
+    }
+
+    if (actionRequiresScheduledDowngradeConfirm(pendingReview.action)) {
+      if (
+        loadState.status !== "ready" ||
+        !hasAuthoritativePeriodEnd(loadState.billing) ||
+        pendingReview.scheduledDowngrade?.missingEffectiveDate
+      ) {
+        setConfirmError(SCHEDULED_MISSING_EFFECTIVE_DATE_COPY);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -269,20 +594,79 @@ export function BillingCenter() {
     setActionError(null);
 
     try {
+      const previewAuthorization = pendingReview.previewAuthorization;
+
       const result = await requestPaidSubscriptionChange({
         targetTier: pendingReview.action.targetTier,
         targetInterval: pendingReview.action.targetInterval,
+        ...(previewAuthorization ? { previewAuthorization } : {}),
       });
 
-      setActionMessage(successMessageForResult(result, loadState.status === "ready" ? loadState.tier : "pro"));
+      if (
+        result.changeType === "immediate_upgrade" &&
+        result.status === "requires_action" &&
+        "payment" in result
+      ) {
+        if (result.payment.hostedInvoiceUrl) {
+          // Smallest SCA path without Stripe.js: Stripe-hosted invoice payment.
+          window.location.assign(result.payment.hostedInvoiceUrl);
+          return;
+        }
+
+        setConfirmError(
+          "Additional payment authentication is required, but a hosted invoice URL was not available. Please try again or contact support.",
+        );
+        return;
+      }
+
+      if (result.changeType === "immediate_upgrade" && result.status === "failed") {
+        setConfirmError("Upgrade payment was not completed. Your current plan is unchanged.");
+        return;
+      }
+
+      setActionMessage(
+        successMessageForResult(result, loadState.status === "ready" ? loadState.tier : "pro"),
+      );
       setPendingReview(null);
       clearIntentQuery();
       await subscriptionContext?.refreshStoredTier();
       await loadBilling();
     } catch (error: unknown) {
-      setConfirmError(
-        error instanceof Error ? error.message : "Unable to update subscription. Please try again.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Unable to update subscription. Please try again.";
+
+      if (
+        actionRequiresInvoicePreview(pendingReview.action) &&
+        isPreviewExpiredErrorMessage(message)
+      ) {
+        const action = pendingReview.action;
+        setConfirmError(null);
+        setPendingReview((current) =>
+          current
+            ? {
+                ...current,
+                upgradePreviewStatus: "loading",
+                upgradePreview: null,
+                upgradePreviewError: null,
+                previewAuthorization: null,
+                paymentMethodDisplay: null,
+                paymentMethodStatus: null,
+                previewInfoBanner: UPGRADE_PREVIEW_EXPIRED_REFRESH_COPY,
+              }
+            : current,
+        );
+
+        const refreshed = await loadUpgradePreviewForAction(action);
+        setPendingReview((current) => {
+          if (!current || current.action.id !== action.id) {
+            return current;
+          }
+          return applyPreviewToReview(current, refreshed, UPGRADE_PREVIEW_EXPIRED_REFRESH_COPY);
+        });
+        return;
+      }
+
+      setConfirmError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -373,14 +757,17 @@ export function BillingCenter() {
     );
   }
 
-  const { tier, billing } = loadState;
+  const { tier, billing, devSubscriptionMode } = loadState;
   const actions = getBillingCenterActions({ tier, billing });
   const planLabel = formatPlanLabel(tier);
   const intervalLabel = formatBillingIntervalLabel(billing.billingInterval);
-  const amountLabel = formatCurrentSubscriptionAmount(tier, billing.billingInterval);
+  const amountLabel = formatCurrentSubscriptionAmount(tier, billing);
   const renewalLabel = formatBillingDate(billing.currentPeriodEnd);
   const scheduledChange = describeScheduledChange(billing);
-  const actionBusy = isSubmitting || pendingReview !== null;
+  const actionBusy = isSubmitting || isOpeningPaymentMethod || pendingReview !== null;
+  const simulatedPaidEntitlement = isEntitlementWithoutStripeBilling(tier, billing);
+  const showDevelopmentOverride =
+    devSubscriptionMode && simulatedPaidEntitlement;
 
   return (
     <div className="space-y-6">
@@ -415,6 +802,11 @@ export function BillingCenter() {
               ) : null}
             </h2>
             <p className="mt-1 text-lg font-semibold text-slate-800">{amountLabel}</p>
+            {showDevelopmentOverride ? (
+              <p className="mt-2 inline-flex w-fit items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                {DEVELOPMENT_PLAN_OVERRIDE_LABEL}
+              </p>
+            ) : null}
             {renewalLabel !== "—" ? (
               <p className="mt-1 text-sm text-slate-600">
                 {billing.cancelAtPeriodEnd ? "Ends" : "Renews"} {renewalLabel}
@@ -428,8 +820,14 @@ export function BillingCenter() {
 
         <dl className="mt-1">
           <DetailRow label="Current plan" value={planLabel} />
+          {showDevelopmentOverride ? (
+            <DetailRow label="Environment" value={DEVELOPMENT_PLAN_OVERRIDE_LABEL} />
+          ) : null}
           <DetailRow label="Billing interval" value={intervalLabel} />
-          <DetailRow label="Current subscription amount" value={amountLabel} />
+          <DetailRow
+            label={simulatedPaidEntitlement ? "Billing" : "Current subscription amount"}
+            value={amountLabel}
+          />
           <DetailRow
             label="Subscription status"
             value={formatSubscriptionStatusLabel(billing.status)}
@@ -447,8 +845,21 @@ export function BillingCenter() {
             label="Downgrade to Free scheduled"
             value={billing.cancelAtPeriodEnd ? "Yes" : "No"}
           />
-          <DetailRow label="Scheduled plan change" value={scheduledChange} />
+          <DetailRow
+            label="Scheduled plan change"
+            value={scheduledChange}
+            emphasize={scheduledChange !== "None"}
+          />
         </dl>
+        {billing.scheduledPlanChange && !billing.cancelAtPeriodEnd ? (
+          <p className="mt-4 text-sm leading-relaxed text-slate-600">
+            {planLabel} access remains active until{" "}
+            <span className="font-semibold text-slate-900">
+              {formatBillingDate(billing.scheduledPlanChange.effectiveAt)}
+            </span>
+            .
+          </p>
+        ) : null}
       </section>
 
       {billing.cancelAtPeriodEnd ? (
@@ -506,9 +917,21 @@ export function BillingCenter() {
           </p>
         ) : null}
 
+        {billing.scheduledPlanChange && !billing.cancelAtPeriodEnd ? (
+          <p className="mt-4 text-sm text-slate-600">
+            A plan change to {formatPlanLabel(billing.scheduledPlanChange.targetTier)}{" "}
+            {formatBillingIntervalLabel(billing.scheduledPlanChange.targetInterval)} is already
+            scheduled. The same transition is not offered again.
+          </p>
+        ) : null}
+
         {actions.length === 0 && !billing.cancelAtPeriodEnd ? (
           <p className="mt-4 text-sm text-slate-600">
-            No plan changes are available for this subscription state.
+            {simulatedPaidEntitlement
+              ? showDevelopmentOverride
+                ? "This plan is a development entitlement override with no Stripe billing. Use Development Subscription Mode (Account / Pricing) to switch plans. Stripe Checkout and paid plan changes are unavailable until you start a real Free → paid subscription."
+                : "This plan has no active Stripe billing subscription. Stripe Checkout and paid plan changes are unavailable for this state."
+              : "No plan changes are available for this subscription state."}
           </p>
         ) : null}
 
@@ -548,7 +971,7 @@ export function BillingCenter() {
       <div className="grid gap-6 lg:grid-cols-2">
         <PlaceholderPanel
           title="Payment method"
-          message="Payment method management will connect to Stripe Customer Portal in a later task. No payment details are available yet."
+          message="During paid upgrades, change or add a payment method through Stripe-hosted settings. Standalone Billing Center payment management remains deferred."
         />
         <PlaceholderPanel
           title="Recent billing activity"
@@ -560,9 +983,12 @@ export function BillingCenter() {
         <PlanChangeConfirmationDialog
           review={pendingReview}
           isSubmitting={isSubmitting}
+          isOpeningPaymentMethod={isOpeningPaymentMethod}
           errorMessage={confirmError}
           onConfirm={() => void handleConfirmChange()}
           onCancel={handleCancelConfirmation}
+          onManagePaymentMethod={() => void handleManagePaymentMethod()}
+          onRetryPreview={retryUpgradePreview}
         />
       ) : null}
     </div>

@@ -49,6 +49,10 @@ function main() {
   assert("power welcome mentions AI", /AI capabilities/i.test(powerCopy.message));
 
   assert("activating title set", ACTIVATING_COPY.title.length > 0);
+  assert(
+    "activating mentions payment received",
+    /Payment received/i.test(ACTIVATING_COPY.message),
+  );
   assert("timeout does not claim payment failed", !/payment failed/i.test(TIMEOUT_COPY.message));
   assert("cancelled copy preserved", /try again/i.test(CANCELLED_COPY.message));
 

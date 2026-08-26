@@ -154,6 +154,73 @@ export function assertNoConflictingScheduleForImmediateChange(
   );
 }
 
+const TERMINAL_SCHEDULE_STATUSES = new Set(["released", "canceled", "completed"]);
+
+/**
+ * S7-BILLING-UX-008C — replace an attached paid-plan schedule with Free at period end.
+ *
+ * Stripe does not treat `cancel_at_period_end` as a second destination alongside an
+ * active Subscription Schedule. Updating the subscription while a schedule is attached
+ * is typically rejected; `subscriptionSchedules.cancel()` cancels the subscription now.
+ *
+ * Sequence (not atomic — Stripe has no single replacement API for this pair):
+ * 1. `subscriptionSchedules.release` — drops remaining phases (e.g. Pro), leaves
+ *    current Power in place. Failure → original Power→Pro schedule unchanged.
+ * 2. `subscriptions.update({ cancel_at_period_end: true })` — IMMIFIN's existing
+ *    Free-at-period-end path. Failure after release → Power continues with no Pro
+ *    destination and no Free yet; retry only needs step 2. Entitlement is not
+ *    rewritten locally.
+ */
+export async function releaseAttachedScheduleThenCancelAtPeriodEnd(
+  subscription: Stripe.Subscription,
+): Promise<{ effectiveAt: string; releasedSchedule: boolean }> {
+  const effectiveAt = getSubscriptionEffectiveAtIso(subscription);
+
+  if (subscription.cancel_at_period_end) {
+    return { effectiveAt, releasedSchedule: false };
+  }
+
+  const stripe = getStripeClient();
+  const scheduleId = getExistingScheduleId(subscription);
+  let releasedSchedule = false;
+
+  if (scheduleId) {
+    const schedule = await retrieveSchedule(scheduleId);
+
+    if (ACTIVE_SCHEDULE_STATUSES.has(schedule.status)) {
+      try {
+        await stripe.subscriptionSchedules.release(scheduleId);
+        releasedSchedule = true;
+      } catch {
+        throw new StripeSubscriptionChangeError(
+          "Unable to replace the existing scheduled plan change. Your current plan is unchanged.",
+          502,
+        );
+      }
+    } else if (!TERMINAL_SCHEDULE_STATUSES.has(schedule.status)) {
+      throw new StripeSubscriptionChangeError(
+        "Existing subscription schedule is in an unsupported state.",
+        409,
+      );
+    }
+  }
+
+  try {
+    await stripe.subscriptions.update(subscription.id, {
+      cancel_at_period_end: true,
+    });
+  } catch {
+    throw new StripeSubscriptionChangeError(
+      releasedSchedule
+        ? "The previous scheduled paid plan was removed, but Free could not be scheduled. Please try Downgrade to Free again. Your current plan and access are unchanged."
+        : "Unable to schedule a downgrade to Free. Your current plan is unchanged.",
+      502,
+    );
+  }
+
+  return { effectiveAt, releasedSchedule };
+}
+
 export function getSubscriptionEffectiveAtIso(subscription: Stripe.Subscription): string {
   const { currentPeriodEnd } = getSubscriptionPeriodBounds(subscription);
 

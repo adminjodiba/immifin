@@ -1,6 +1,6 @@
 import "server-only";
 
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import { assertApprovedStripePriceId, resolveApprovedStripePriceId } from "@/lib/stripe/catalog";
 import { StripeCatalogError, StripeSubscriptionChangeError } from "@/lib/stripe/errors";
 import type { ParsedSubscriptionChangeRequest } from "@/lib/stripe/subscription-change-request";
@@ -11,18 +11,26 @@ import {
 import {
   assertNoConflictingScheduleForImmediateChange,
   getSubscriptionEffectiveAtIso,
+  releaseAttachedScheduleThenCancelAtPeriodEnd,
   scheduleSubscriptionPriceChangeAtPeriodEnd,
 } from "@/lib/stripe/subscription-schedule";
 import { getValidatedSingleSubscriptionItem, SubscriptionItemValidationError } from "@/lib/stripe/subscription-items";
+import { verifySubscriptionChangePreviewAuthorization } from "@/lib/stripe/subscription-change-preview-auth";
+import {
+  classifyImmediateUpgradeOutcome,
+  type ImmediateUpgradeOutcome,
+} from "@/lib/stripe/subscription-change-outcome";
 import { getStripeClient } from "@/lib/stripe/server";
 import type { BillingInterval } from "@/lib/stripe/types";
 import type { Profile, Subscription } from "@/lib/supabase/types";
 
-export type SubscriptionChangeResult = {
-  status: "pending_confirmation" | "scheduled";
-  changeType: Exclude<SubscriptionChangeType, "no_change" | "forbidden">;
-  effectiveAt?: string;
-};
+export type SubscriptionChangeResult =
+  | {
+      status: "pending_confirmation" | "scheduled" | "confirmed";
+      changeType: Exclude<SubscriptionChangeType, "no_change" | "forbidden">;
+      effectiveAt?: string;
+    }
+  | ImmediateUpgradeOutcome;
 
 const MANAGEABLE_STRIPE_STATUSES = new Set(["active", "trialing", "past_due"]);
 
@@ -119,61 +127,69 @@ function mapPolicyResultToHttpError(
   );
 }
 
+/**
+ * Immediate paid upgrade — invoice / charge now.
+ * Uses always_invoice + pending_if_incomplete so the destination price applies
+ * only after payment succeeds (pending_update until then).
+ */
 async function executeImmediateUpgrade(input: {
   stripeSubscription: Stripe.Subscription;
   targetPriceId: string;
-}): Promise<SubscriptionChangeResult> {
+  targetTier: "pro" | "power";
+  targetInterval: BillingInterval;
+  prorationDate: number;
+}): Promise<ImmediateUpgradeOutcome> {
   assertNoConflictingScheduleForImmediateChange(input.stripeSubscription);
 
   const { itemId } = getValidatedSingleSubscriptionItem(input.stripeSubscription);
   const stripe = getStripeClient();
 
-  const updatedSubscription = await stripe.subscriptions.update(input.stripeSubscription.id, {
-    items: [
-      {
-        id: itemId,
-        price: input.targetPriceId,
-        quantity: 1,
-      },
-    ],
-    proration_behavior: "create_prorations",
-    payment_behavior: "pending_if_incomplete",
-  });
+  let updatedSubscription: Stripe.Subscription;
 
-  if (
-    updatedSubscription.status === "incomplete" ||
-    updatedSubscription.status === "past_due"
-  ) {
-    return {
-      status: "pending_confirmation",
-      changeType: "immediate_upgrade",
-    };
+  try {
+    updatedSubscription = await stripe.subscriptions.update(input.stripeSubscription.id, {
+      items: [
+        {
+          id: itemId,
+          price: input.targetPriceId,
+          quantity: 1,
+        },
+      ],
+      proration_behavior: "always_invoice",
+      proration_date: input.prorationDate,
+      payment_behavior: "pending_if_incomplete",
+      // Expand latest_invoice so confirmation_secret / hosted_invoice_url are available.
+      expand: ["latest_invoice"],
+    });
+  } catch (error) {
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error("[stripe] immediate upgrade failed:", error.type);
+      return {
+        status: "failed",
+        changeType: "immediate_upgrade",
+        targetTier: input.targetTier,
+        targetInterval: input.targetInterval,
+        payment: { requiresAction: false },
+      };
+    }
+
+    throw error;
   }
 
-  return {
-    status: "pending_confirmation",
-    changeType: "immediate_upgrade",
-  };
+  return classifyImmediateUpgradeOutcome({
+    subscription: updatedSubscription,
+    targetPriceId: input.targetPriceId,
+    targetTier: input.targetTier,
+    targetInterval: input.targetInterval,
+  });
 }
 
 async function executeCancelAtPeriodEnd(
   stripeSubscription: Stripe.Subscription,
 ): Promise<SubscriptionChangeResult> {
-  const effectiveAt = getSubscriptionEffectiveAtIso(stripeSubscription);
-
-  if (stripeSubscription.cancel_at_period_end) {
-    return {
-      status: "scheduled",
-      changeType: "cancel_at_period_end",
-      effectiveAt,
-    };
-  }
-
-  const stripe = getStripeClient();
-
-  await stripe.subscriptions.update(stripeSubscription.id, {
-    cancel_at_period_end: true,
-  });
+  const { effectiveAt } = await releaseAttachedScheduleThenCancelAtPeriodEnd(
+    stripeSubscription,
+  );
 
   return {
     status: "scheduled",
@@ -301,9 +317,26 @@ export async function executePaidSubscriptionChange(
   const effectiveAt = getSubscriptionEffectiveAtIso(stripeSubscription);
 
   if (policy.changeType === "immediate_upgrade") {
+    if (!input.request.previewAuthorization) {
+      throw new StripeSubscriptionChangeError(
+        "previewAuthorization is required for immediate upgrades. Request a preview first.",
+        400,
+      );
+    }
+
+    const previewClaims = verifySubscriptionChangePreviewAuthorization({
+      token: input.request.previewAuthorization,
+      profileId: input.profile.id,
+      targetTier,
+      targetInterval: input.request.targetBillingInterval,
+    });
+
     return executeImmediateUpgrade({
       stripeSubscription,
       targetPriceId,
+      targetTier,
+      targetInterval: input.request.targetBillingInterval,
+      prorationDate: previewClaims.prorationDate,
     });
   }
 

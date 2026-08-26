@@ -6,7 +6,9 @@
 | **Theme** | Commercial Platform — Stripe Subscription Platform |
 | **Kickoff** | 2026-07-11 |
 | **As-built record** | 2026-07-20 (S7-DOC-002; UX follow-up same day) |
-| **Status** | **Implementation substantially complete** — production cutover and Live Stripe validation remain |
+| **LIVE Free→Pro Monthly** | **PASS** — 2026-08-24 ([S7-OPS-STRIPE-032 signoff](./S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md)) |
+| **LIVE Pro→Power Monthly** | **Technical PASS** — 2026-08-24 ([S7-OPS-STRIPE-033 signoff](./S7_OPS_STRIPE_033_LIVE_PRO_POWER_MONTHLY_E2E_SIGNOFF.md)); UX enhancement required |
+| **Status** | **Implementation complete** — LIVE Free→Pro + Pro→Power technical paths validated; **S7-BILLING-UX-002–008D** billing UX code done; **S7-BILLING-UX-008E** full Stripe **TEST E2E PASS** ([signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)). **TEST validated. Not Production-deployed.** |
 | **Previous sprint** | Sprint 6 — Notification Platform (production validated) |
 | **Previous handoff** | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
 
@@ -37,7 +39,7 @@ Sprint 7 delivered an end-to-end commercial stack in the application:
 - Capability enforcement helpers wired into account APIs
 - Navigation, design-system, and contact UX polish supporting the commercial surface
 
-Production Live Stripe cutover, full Sandbox/Live operational validation, and Customer Portal payment-method/invoice sessions were **not** finished in this sprint.
+Production Live Stripe cutover for **Free → Pro Monthly** is **validated** (2026-08-24). Full Sandbox/Live operational matrix (other plan transitions), and Customer Portal payment-method/invoice sessions were **not** finished as a complete Sprint 7 acceptance package.
 
 ## Final completion status
 
@@ -47,10 +49,10 @@ Production Live Stripe cutover, full Sandbox/Live operational validation, and Cu
 | Billing Experience (Pricing + Billing Center) | **Complete in code** |
 | Capability enforcement helpers | **Complete in code** |
 | Dedicated entitlement cutover from Dev Mode → Stripe-only | **Pending production gate** |
-| Customer Portal (payment method / invoices) | **Not built** (placeholders only) |
-| Sandbox / Live operational validation | **Pending** |
-| Sprint 7 documentation suite (beyond this handoff) | **Pending** (see S7-DOC-001 audit) |
-| Production deploy + signoff | **Pending** |
+| Customer Portal (payment method / invoices) | **Narrow PM-update during upgrade (UX-005 code)**; full invoices / standalone panel not built |
+| Sandbox / Live operational validation | **Partial** — Free→Pro PASS; Pro→Power technical PASS; UX-002 preview done; UX-003+ pending; other transitions pending |
+| Sprint 7 documentation suite (beyond this handoff) | **Updated** — see S7-OPS-STRIPE-032 signoff |
+| Production deploy + signoff | **Partial** — Fetch transport + Free→Pro LIVE; matrix incomplete |
 
 ---
 
@@ -93,7 +95,7 @@ Early mid-sprint status (~88%) reflected **backend foundation only**. That perce
 - **Downgrade to Free** — supported via Billing Center + change policy
 - **Plan-change confirmation UX** — confirmation dialog / intent helpers
 - **My Immifin navigation entry** — Billing Center reachable from account navigation
-- **Customer Portal** — **not implemented**; Billing Center shows placeholders for payment method / invoices (“later”)
+- **Customer Portal** — **narrow payment-method update during upgrade confirmation (S7-BILLING-UX-005 code)**; Billing Center standalone payment method / invoices panel still placeholders
 
 ## Capability Platform
 

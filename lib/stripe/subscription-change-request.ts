@@ -12,7 +12,7 @@ function subscriptionChangeIntervalToBillingInterval(
   return interval === "monthly" ? "month" : "year";
 }
 
-const ALLOWED_BODY_KEYS = new Set(["targetTier", "targetInterval"]);
+const ALLOWED_BODY_KEYS = new Set(["targetTier", "targetInterval", "previewAuthorization"]);
 
 const FORBIDDEN_BODY_KEYS = [
   "priceId",
@@ -27,6 +27,8 @@ const FORBIDDEN_BODY_KEYS = [
   "current_interval",
   "prorationBehavior",
   "proration_behavior",
+  "prorationDate",
+  "proration_date",
   "effectiveDate",
   "effective_date",
   "successUrl",
@@ -47,6 +49,8 @@ export type ParsedSubscriptionChangeRequest = {
   targetTier: SubscriptionTier;
   targetInterval: SubscriptionChangeInterval | null;
   targetBillingInterval: BillingInterval | null;
+  /** Signed preview authorization — required for immediate upgrades. */
+  previewAuthorization: string | null;
 };
 
 function isSubscriptionChangeInterval(value: unknown): value is SubscriptionChangeInterval {
@@ -59,7 +63,8 @@ function isTargetTier(value: unknown): value is SubscriptionTier {
 
 /**
  * Validates the paid subscription change request body.
- * Accepts only targetTier + targetInterval — never Stripe identifiers or policy fields.
+ * Accepts targetTier + targetInterval (+ optional previewAuthorization).
+ * Never accepts Stripe identifiers, raw prorationDate, or policy fields.
  */
 export function parseSubscriptionChangeRequest(body: unknown): ParsedSubscriptionChangeRequest {
   if (body == null || typeof body !== "object" || Array.isArray(body)) {
@@ -94,6 +99,19 @@ export function parseSubscriptionChangeRequest(body: unknown): ParsedSubscriptio
     throw new StripeSubscriptionChangeError("targetInterval is required.");
   }
 
+  let previewAuthorization: string | null = null;
+
+  if ("previewAuthorization" in record) {
+    if (record.previewAuthorization === null) {
+      previewAuthorization = null;
+    } else if (typeof record.previewAuthorization !== "string") {
+      throw new StripeSubscriptionChangeError("previewAuthorization must be a string.");
+    } else {
+      const trimmed = record.previewAuthorization.trim();
+      previewAuthorization = trimmed.length > 0 ? trimmed : null;
+    }
+  }
+
   if (record.targetInterval === null) {
     if (targetTier !== "free") {
       throw new StripeSubscriptionChangeError(
@@ -105,6 +123,7 @@ export function parseSubscriptionChangeRequest(body: unknown): ParsedSubscriptio
       targetTier,
       targetInterval: null,
       targetBillingInterval: null,
+      previewAuthorization,
     };
   }
 
@@ -126,5 +145,6 @@ export function parseSubscriptionChangeRequest(body: unknown): ParsedSubscriptio
     targetTier,
     targetInterval,
     targetBillingInterval: subscriptionChangeIntervalToBillingInterval(targetInterval),
+    previewAuthorization,
   };
 }

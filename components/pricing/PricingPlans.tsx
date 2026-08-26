@@ -17,14 +17,22 @@ import {
   CHECKOUT_ACTIVATION_TIMEOUT_MS,
   TIMEOUT_COPY,
   activationSuccessCopy,
+  canStartCheckoutActivationPolling,
   checkoutExperienceFromQuery,
+  decideCheckoutActivationPoll,
   INITIAL_CHECKOUT_EXPERIENCE,
-  isPaidCheckoutActivationTier,
   type CheckoutExperienceState,
 } from "@/lib/pricing/checkout-activation";
 import {
+  BILLING_NOT_BILLED_LABEL,
+  DEVELOPMENT_PLAN_OVERRIDE_LABEL,
+  formatBillingIntervalLabel,
+  formatPlanLabel,
+} from "@/lib/billing/billing-center";
+import {
   getCheckoutPlanButtonConfig,
   isPricingCurrentPlanCard,
+  isSimulatedPaidEntitlement,
 } from "@/lib/pricing/checkout-plan-actions";
 import {
   formatCurrentSubscriptionPriceLine,
@@ -37,7 +45,6 @@ import {
 } from "@/lib/stripe/client-checkout";
 import { formatSubscriptionPlanLabel } from "@/lib/subscription/plan";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
-import { formatBillingIntervalLabel, formatPlanLabel } from "@/lib/billing/billing-center";
 
 type PlanConfig = {
   id: SubscriptionTier;
@@ -200,7 +207,7 @@ export function PricingPlans({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { canUse: contextDevMode, isLoading: subscriptionLoading } = useCanUseDevSubscriptionTools();
   const devMode = isSignedIn
     ? contextDevMode && !subscriptionLoading
@@ -208,6 +215,13 @@ export function PricingPlans({
   const subscriptionContext = useSubscriptionTierContext();
   const { tier: currentTier } = useEffectiveSubscriptionTier();
   const currentBillingInterval = subscriptionContext?.billingInterval ?? null;
+  const hasPaidStripeSubscription = subscriptionContext?.hasPaidStripeSubscription ?? false;
+  const simulatedPaidEntitlement = isSimulatedPaidEntitlement(
+    currentTier,
+    hasPaidStripeSubscription,
+  );
+  // Dev override UX only when server authorized this user (dedicated test account).
+  const developmentSubscriptionOverrideActive = Boolean(devMode && simulatedPaidEntitlement);
   const [billingInterval, setBillingInterval] = useState<CheckoutBillingInterval>("monthly");
   const [pendingPlan, setPendingPlan] = useState<SubscriptionTier | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -259,6 +273,18 @@ export function PricingPlans({
       return;
     }
 
+    // S7-BILLING-UX-008A: do not start the bounded timeout until Clerk reports a
+    // signed-in session — otherwise refreshStoredTier returns null without a
+    // network read and activation can time out after sync already wrote Pro.
+    if (
+      !canStartCheckoutActivationPolling({
+        isLoaded: isAuthLoaded,
+        isSignedIn,
+      })
+    ) {
+      return;
+    }
+
     const refresh = subscriptionContext?.refreshStoredTier;
     if (!refresh) {
       return;
@@ -290,9 +316,10 @@ export function PricingPlans({
         if (cancelled) {
           return;
         }
-        if (isPaidCheckoutActivationTier(tier)) {
+        const decision = decideCheckoutActivationPoll(tier);
+        if (decision.action === "activated") {
           stopTimers();
-          markActivated(tier);
+          markActivated(decision.tier);
         }
       } catch {
         // Keep polling until timeout; transient errors should not alarm.
@@ -323,7 +350,13 @@ export function PricingPlans({
       stopTimers();
       pollInFlightRef.current = false;
     };
-  }, [checkoutExperience.phase, markActivated, subscriptionContext?.refreshStoredTier]);
+  }, [
+    checkoutExperience.phase,
+    isAuthLoaded,
+    isSignedIn,
+    markActivated,
+    subscriptionContext?.refreshStoredTier,
+  ]);
 
   useEffect(() => {
     if (checkoutExperience.phase !== "activated" || !checkoutExperience.activatedTier) {
@@ -500,7 +533,17 @@ export function PricingPlans({
           ) : (
             <>
               <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
-              {isSignedIn && currentTier !== "free" && currentBillingInterval ? (
+              {isSignedIn && developmentSubscriptionOverrideActive ? (
+                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-slate-600">
+                  Current entitlement:{" "}
+                  <span className="font-semibold text-slate-900">
+                    {formatPlanLabel(currentTier)}
+                  </span>
+                  <span className="mt-1 block text-xs text-slate-500">
+                    {DEVELOPMENT_PLAN_OVERRIDE_LABEL} · {BILLING_NOT_BILLED_LABEL}
+                  </span>
+                </p>
+              ) : isSignedIn && currentTier !== "free" && currentBillingInterval ? (
                 <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-slate-600">
                   Current subscription:{" "}
                   <span className="font-semibold text-slate-900">
@@ -521,6 +564,8 @@ export function PricingPlans({
                 isSignedIn: Boolean(isSignedIn),
                 currentBillingInterval,
                 displayedBillingInterval: billingInterval,
+                hasPaidStripeSubscription,
+                developmentSubscriptionOverrideActive,
               });
               const devButton =
                 devMode && isSignedIn ? getDevModeButtonConfig(plan, currentTier) : null;
@@ -531,6 +576,8 @@ export function PricingPlans({
                     Boolean(isSignedIn),
                     currentBillingInterval,
                     billingInterval,
+                    hasPaidStripeSubscription,
+                    developmentSubscriptionOverrideActive,
                   )
                 : null;
               const isCheckoutLoading = checkoutLoadingTier === plan.id;
@@ -590,7 +637,16 @@ export function PricingPlans({
                       <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
                         Current plan
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">Your current plan</p>
+                      {developmentSubscriptionOverrideActive && plan.id === currentTier ? (
+                        <>
+                          <p className="mt-0.5 text-xs text-slate-600">
+                            {DEVELOPMENT_PLAN_OVERRIDE_LABEL}
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-500">{BILLING_NOT_BILLED_LABEL}</p>
+                        </>
+                      ) : (
+                        <p className="mt-0.5 text-xs text-slate-500">Your current plan</p>
+                      )}
                     </div>
                   ) : null}
 
@@ -631,7 +687,9 @@ export function PricingPlans({
                         </button>
                         {devButton?.isCurrentPlan ? (
                           <p className="mt-2 text-center text-xs text-slate-500">
-                            Your active subscription
+                            {developmentSubscriptionOverrideActive
+                              ? `${DEVELOPMENT_PLAN_OVERRIDE_LABEL} — ${BILLING_NOT_BILLED_LABEL}`
+                              : "Your active subscription"}
                           </p>
                         ) : null}
                       </>

@@ -85,6 +85,20 @@ export async function synchronizeStripeSubscription(
   context: SubscriptionSyncContext = {},
 ): Promise<SubscriptionSyncResult> {
   const profileWithRelations = await resolveProfileForSubscription(subscription, context);
+
+  /**
+   * S7-BILLING-UX-003 entitlement gate:
+   * With payment_behavior pending_if_incomplete, unpaid invoice-now upgrades leave
+   * pending_update set and keep the CURRENT subscription item price until payment
+   * succeeds. Sync must use current items only — never pending_update items —
+   * so Power is not granted before settlement.
+   */
+  if (subscription.pending_update) {
+    console.log(
+      "[stripe-sync] pending_update present; syncing current subscription items only",
+    );
+  }
+
   let priceId: string;
 
   try {

@@ -98,7 +98,8 @@
   .btn-secondary,
   .btn-ghost-light,
   .btn-white,
-  .btn-bulletin-tab {
+  .btn-bulletin-tab,
+  .btn-danger-solid {
     position: relative;
     overflow: hidden;
     isolation: isolate;
@@ -108,7 +109,8 @@
   .btn-secondary::before,
   .btn-ghost-light::before,
   .btn-white::before,
-  .btn-bulletin-tab::before {
+  .btn-bulletin-tab::before,
+  .btn-danger-solid::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -128,7 +130,9 @@
   .btn-white:hover::before,
   .btn-white:focus-visible::before,
   .btn-bulletin-tab:hover::before,
-  .btn-bulletin-tab:focus-visible::before {
+  .btn-bulletin-tab:focus-visible::before,
+  .btn-danger-solid:hover::before,
+  .btn-danger-solid:focus-visible::before {
     transform: translateX(0);
   }
 
@@ -157,14 +161,28 @@
   }
 
   /**
-   * Destructive actions — red safety language; no gold sweep.
+   * Destructive outline — red safety language; no gold sweep.
    */
   .btn-danger {
     @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-red-200 bg-white px-6 py-3 text-sm font-semibold text-red-700 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-800 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
   }
 
+  /**
+   * Destructive solid — red caution rest, same gold left→right flow as other IMMIFIN CTAs.
+   */
   .btn-danger-solid {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold text-white transition-[color,box-shadow,border-color,transform] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+    background-color: #dc2626;
+    border: 1px solid color-mix(in srgb, #dc2626 85%, black);
+    box-shadow: 0 10px 15px -3px rgb(220 38 38 / 0.28);
+    outline-color: #dc2626;
+  }
+
+  .btn-danger-solid:hover,
+  .btn-danger-solid:focus-visible {
+    color: var(--immifin-button-hover-gold-text);
+    border-color: var(--immifin-button-hover-gold);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--immifin-button-hover-gold) 30%, transparent);
   }
 
   /* Opt out of sweep (non-interactive Current Plan, etc.) */
@@ -189,22 +207,27 @@
   .btn-secondary:disabled::before,
   .btn-ghost-light:disabled::before,
   .btn-white:disabled::before,
+  .btn-danger-solid:disabled::before,
   .btn-primary[aria-disabled="true"]::before,
   .btn-secondary[aria-disabled="true"]::before,
   .btn-ghost-light[aria-disabled="true"]::before,
   .btn-white[aria-disabled="true"]::before,
+  .btn-danger-solid[aria-disabled="true"]::before,
   .btn-primary:disabled:hover::before,
   .btn-secondary:disabled:hover::before,
   .btn-ghost-light:disabled:hover::before,
   .btn-white:disabled:hover::before,
+  .btn-danger-solid:disabled:hover::before,
   .btn-primary[aria-disabled="true"]:hover::before,
   .btn-secondary[aria-disabled="true"]:hover::before,
   .btn-ghost-light[aria-disabled="true"]:hover::before,
   .btn-white[aria-disabled="true"]:hover::before,
+  .btn-danger-solid[aria-disabled="true"]:hover::before,
   .btn-primary:disabled:focus-visible::before,
   .btn-secondary:disabled:focus-visible::before,
   .btn-ghost-light:disabled:focus-visible::before,
-  .btn-white:disabled:focus-visible::before {
+  .btn-white:disabled:focus-visible::before,
+  .btn-danger-solid:disabled:focus-visible::before {
     transform: translateX(-101%);
     transition: none;
   }
@@ -230,12 +253,22 @@
     box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--immifin-button-default-cyan) 28%, transparent);
   }
 
+  .btn-danger-solid:disabled:hover,
+  .btn-danger-solid:disabled:focus-visible,
+  .btn-danger-solid[aria-disabled="true"]:hover,
+  .btn-danger-solid[aria-disabled="true"]:focus-visible {
+    color: #fff;
+    border-color: color-mix(in srgb, #dc2626 85%, black);
+    box-shadow: 0 10px 15px -3px rgb(220 38 38 / 0.28);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .btn-primary::before,
     .btn-secondary::before,
     .btn-ghost-light::before,
     .btn-white::before,
-    .btn-bulletin-tab::before {
+    .btn-bulletin-tab::before,
+    .btn-danger-solid::before {
       transition: none;
     }
   }

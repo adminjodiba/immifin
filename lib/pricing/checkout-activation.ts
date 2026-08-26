@@ -1,6 +1,10 @@
 /**
  * Post-Checkout subscription activation UX (Pricing page).
  * Pure helpers + copy — safe for unit verification without React.
+ *
+ * S7-BILLING-UX-008A: polling must wait for Clerk auth readiness before the
+ * bounded timeout starts, and must only accept authoritative paid tiers from
+ * GET /api/account/subscription (never manufacture entitlement from Checkout success).
  */
 
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
@@ -30,6 +34,74 @@ export function isPaidCheckoutActivationTier(
   tier: SubscriptionTier | null | undefined,
 ): tier is "pro" | "power" {
   return tier === "pro" || tier === "power";
+}
+
+/**
+ * Activation polling / timeout must not start until Clerk has loaded and the
+ * user is signed in. Otherwise refreshStoredTier short-circuits without a
+ * network read and the 30s timer can expire while entitlement is already Pro.
+ */
+export function canStartCheckoutActivationPolling(input: {
+  isLoaded: boolean;
+  isSignedIn: boolean | undefined | null;
+}): boolean {
+  return input.isLoaded === true && input.isSignedIn === true;
+}
+
+export type CheckoutActivationPollDecision =
+  | { action: "continue" }
+  | { action: "activated"; tier: "pro" | "power" };
+
+/**
+ * Pure poll step: Free / null / errors → continue; authoritative Pro/Power → stop.
+ * Does not mutate entitlement — caller supplies the latest API tier.
+ */
+export function decideCheckoutActivationPoll(
+  tier: SubscriptionTier | null | undefined,
+): CheckoutActivationPollDecision {
+  if (isPaidCheckoutActivationTier(tier)) {
+    return { action: "activated", tier };
+  }
+  return { action: "continue" };
+}
+
+/**
+ * Simulates a bounded activation loop for verification (no timers / React).
+ * `reads` are successive authoritative API tiers (webhook may land mid-loop).
+ */
+export function simulateCheckoutActivationPolling(input: {
+  reads: Array<SubscriptionTier | null>;
+  authReady: boolean;
+}): {
+  started: boolean;
+  activatedTier: "pro" | "power" | null;
+  pollsUsed: number;
+  timedOut: boolean;
+} {
+  if (!input.authReady) {
+    return { started: false, activatedTier: null, pollsUsed: 0, timedOut: false };
+  }
+
+  let pollsUsed = 0;
+  for (const tier of input.reads) {
+    pollsUsed += 1;
+    const decision = decideCheckoutActivationPoll(tier);
+    if (decision.action === "activated") {
+      return {
+        started: true,
+        activatedTier: decision.tier,
+        pollsUsed,
+        timedOut: false,
+      };
+    }
+  }
+
+  return {
+    started: true,
+    activatedTier: null,
+    pollsUsed,
+    timedOut: true,
+  };
 }
 
 export function checkoutExperienceFromQuery(
@@ -68,7 +140,7 @@ export function activationSuccessCopy(tier: "pro" | "power"): {
 export const ACTIVATING_COPY = {
   title: "Activating your subscription...",
   message:
-    "We received your payment and are activating your IMMIFIN features. This usually takes a few seconds.",
+    "Payment received. We're activating your subscription. This usually takes a few seconds.",
 } as const;
 
 export const TIMEOUT_COPY = {

@@ -1,9 +1,26 @@
-import { getDestinationListPriceLabel } from "@/lib/pricing/pricing-display-catalog";
+import {
+  checkoutIntervalToBillingInterval,
+  scheduledPlanChangeMatchesAction,
+  type ScheduledPlanChange,
+} from "@/lib/billing/scheduled-plan-change";
+import {
+  formatPricePerPeriod,
+  getDestinationListPriceLabel,
+} from "@/lib/pricing/pricing-display-catalog";
+import { evaluateSubscriptionChangePolicy } from "@/lib/stripe/subscription-change-policy";
 import type { BillingInterval } from "@/lib/stripe/types";
 import type { SubscriptionBillingInterval } from "@/lib/supabase/types";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
 
+export type { ScheduledPlanChange } from "@/lib/billing/scheduled-plan-change";
+
 export const BILLING_CENTER_PATH = "/account/billing";
+
+/** Shown when entitlement is paid but there is no Stripe-backed subscription. */
+export const BILLING_NOT_BILLED_LABEL = "Not billed";
+
+/** Localhost / Dev Subscription Mode label — never for real Stripe-paid users. */
+export const DEVELOPMENT_PLAN_OVERRIDE_LABEL = "Development plan override";
 
 export type BillingSummary = {
   status: string;
@@ -15,7 +32,44 @@ export type BillingSummary = {
   canceledAt: string | null;
   lastSynchronizedAt: string | null;
   hasPaidStripeSubscription: boolean;
+  /** Customer-safe Stripe Subscription Schedule destination, if recognized. */
+  scheduledPlanChange?: ScheduledPlanChange | null;
 };
+
+/**
+ * Paid entitlement (Pro/Power) without a Stripe subscription id —
+ * typical Dev Subscription Mode simulation.
+ */
+export function isEntitlementWithoutStripeBilling(
+  tier: SubscriptionTier,
+  billing: Pick<BillingSummary, "hasPaidStripeSubscription">,
+): boolean {
+  return (tier === "pro" || tier === "power") && !billing.hasPaidStripeSubscription;
+}
+
+/**
+ * Current subscription amount label.
+ * Free → catalog $0. Simulated paid (no Stripe) → "Not billed".
+ * Stripe-paid → catalog list price for tier + interval.
+ */
+export function formatCurrentSubscriptionAmount(
+  tier: SubscriptionTier,
+  billing: Pick<BillingSummary, "billingInterval" | "hasPaidStripeSubscription">,
+): string {
+  if (tier === "free") {
+    return formatPricePerPeriod("free", null);
+  }
+
+  if (!billing.hasPaidStripeSubscription) {
+    return BILLING_NOT_BILLED_LABEL;
+  }
+
+  if (!billing.billingInterval) {
+    return BILLING_NOT_BILLED_LABEL;
+  }
+
+  return formatPricePerPeriod(tier, billing.billingInterval);
+}
 
 export type BillingCenterAction =
   | {
@@ -115,8 +169,17 @@ export function describeScheduledChange(billing: BillingSummary): string {
   if (billing.cancelAtPeriodEnd) {
     const effective = formatBillingDate(billing.currentPeriodEnd);
     return effective === "—"
-      ? "Downgrade to Free scheduled at period end"
-      : `Downgrade to Free scheduled for ${effective}`;
+      ? "Free — scheduled at period end (current plan remains active until then)"
+      : `Free on ${effective} (current plan remains active until then)`;
+  }
+
+  const scheduled = billing.scheduledPlanChange;
+  if (scheduled) {
+    const plan = `${formatPlanLabel(scheduled.targetTier)} ${formatBillingIntervalLabel(scheduled.targetInterval)}`;
+    const effective = formatBillingDate(scheduled.effectiveAt);
+    return effective === "—"
+      ? `${plan} — scheduled at period end (current plan remains active until then)`
+      : `${plan} on ${effective} (current plan remains active until then)`;
   }
 
   return "None";
@@ -124,6 +187,11 @@ export function describeScheduledChange(billing: BillingSummary): string {
 
 /**
  * Builds user-facing Billing Center actions supported by existing Stripe change/checkout APIs.
+ *
+ * Authority split (BLP-BILL-FIX-001):
+ * - Checkout (Free→Paid) only when effective entitlement is Free.
+ * - Paid change actions only when a real Stripe subscription exists.
+ * - Simulated Pro/Power (Dev Mode, no Stripe id) → no Checkout / no Stripe change CTAs.
  */
 export function getBillingCenterActions(input: {
   tier: SubscriptionTier;
@@ -133,7 +201,8 @@ export function getBillingCenterActions(input: {
   const interval = billing.billingInterval;
   const actions: BillingCenterAction[] = [];
 
-  if (tier === "free" || !billing.hasPaidStripeSubscription) {
+  // Free entitlement → new-subscription Checkout only (never for simulated Pro/Power).
+  if (tier === "free") {
     actions.push({
       id: "checkout-pro-monthly",
       kind: "checkout",
@@ -156,6 +225,11 @@ export function getBillingCenterActions(input: {
       targetInterval: "monthly",
       variant: "secondary",
     });
+    return actions;
+  }
+
+  // Pro/Power entitlement without Stripe billing — no Free→Paid Checkout, no paid-change APIs.
+  if (!billing.hasPaidStripeSubscription) {
     return actions;
   }
 
@@ -277,5 +351,64 @@ export function getBillingCenterActions(input: {
     });
   }
 
-  return actions;
+  return filterActionsForScheduledPlanChange(tier, billing, actions);
+}
+
+function filterActionsForScheduledPlanChange(
+  tier: SubscriptionTier,
+  billing: BillingSummary,
+  actions: BillingCenterAction[],
+): BillingCenterAction[] {
+  const scheduled = billing.scheduledPlanChange;
+  if (!scheduled) {
+    return actions;
+  }
+
+  return actions.filter((action) => {
+    if (
+      scheduledPlanChangeMatchesAction({
+        scheduled,
+        targetTier: action.targetTier,
+        targetInterval: action.targetInterval,
+      })
+    ) {
+      return false;
+    }
+
+    if (action.kind === "cancel" || action.kind === "checkout") {
+      return true;
+    }
+
+    if (tier !== "pro" && tier !== "power") {
+      return true;
+    }
+
+    const currentInterval = billing.billingInterval;
+    if (currentInterval !== "month" && currentInterval !== "year") {
+      return true;
+    }
+
+    const policy = evaluateSubscriptionChangePolicy({
+      currentTier: tier,
+      currentInterval,
+      targetTier: action.targetTier,
+      targetInterval: checkoutIntervalToBillingInterval(action.targetInterval),
+      cancelAtPeriodEnd: false,
+    });
+
+    // Existing execute path 409s immediate upgrades while a schedule is attached.
+    if (policy.changeType === "immediate_upgrade") {
+      return false;
+    }
+
+    // Other scheduled paid changes would update the existing Stripe schedule — out of scope.
+    if (
+      policy.changeType === "scheduled_downgrade" ||
+      policy.changeType === "scheduled_interval_change"
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 }
