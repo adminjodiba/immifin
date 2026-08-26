@@ -1,13 +1,22 @@
 /**
- * Eligible audience resolution for Monthly Immigration Update bulk sends.
- * Reuses plan capabilities, notification prefs, and dashboard assembler — no duplicate math.
+ * Monthly Immigration Update audience resolution.
+ *
+ * Summary uses cheap local eligibility only — never full email assembly or
+ * per-user Visa Bulletin / Google Sheets movement reads.
+ * Send remains authoritative: full personalized assembly per recipient before Resend.
  */
 
 import { readNotificationPreferences } from "@/lib/account/notificationPreferences";
+import { isActiveProfileStatus } from "@/lib/auth/roles";
+import { hasCompleteImmigrationProfile } from "@/lib/dashboard/getPersonalDashboardData";
+import { buildGreenCardJourneyData } from "@/lib/dashboard/journeyDates";
+import {
+  hasValidGreenCardDate,
+  resolveJourneyStage,
+} from "@/lib/dashboard/journeyStage";
 import {
   isMonthlyUpdateAssemblyError,
   MONTHLY_UPDATE_ASSEMBLY_ERROR,
-  prepareMonthlyImmigrationUpdateForUser,
 } from "@/lib/notifications/build-monthly-immigration-report-dashboard-source";
 import { canAccessEmailAlerts } from "@/lib/subscription/capabilities";
 import { getStoredSubscriptionTier } from "@/lib/subscription/service";
@@ -108,7 +117,12 @@ export function buildMonthlyUpdateExclusionBreakdown(
   };
 }
 
-function skipReasonFromAssemblyError(
+export type MonthlyUpdateSummaryEligibility =
+  | { kind: "eligible"; tier: "pro" | "power" }
+  | { kind: "skip"; reason: MonthlyUpdateSkipReason };
+
+/** Map send-time assembly errors onto the same skip buckets Summary uses. */
+export function skipReasonFromAssemblyError(
   error: unknown
 ): MonthlyUpdateSkipReason {
   if (!isMonthlyUpdateAssemblyError(error)) {
@@ -197,9 +211,69 @@ function resolvePaidAlertTier(
 }
 
 /**
- * Resolve Pro/Power recipients who can receive the Monthly Immigration Update.
- * Free users and incomplete/unsupported profiles are skipped (counted, not emailed).
- * Eligibility rules are unchanged — skip reasons are classified for admin summary only.
+ * Cheap Summary / preflight eligibility — local profile, plan, prefs, and journey
+ * completeness only. Does not assemble Monthly Update emails or read Visa Bulletin
+ * movement / Google Sheets.
+ */
+export function evaluateMonthlyUpdateSummaryEligibility(
+  profileWithRelations: ProfileWithRelations
+): MonthlyUpdateSummaryEligibility {
+  const email = profileWithRelations.profile.email?.trim() ?? "";
+  if (!email || !isValidEmail(email)) {
+    return { kind: "skip", reason: "missing_email" };
+  }
+
+  if (!isActiveProfileStatus(profileWithRelations.profile.status)) {
+    return { kind: "skip", reason: "unsupported_profile" };
+  }
+
+  const tier = resolvePaidAlertTier(profileWithRelations);
+  if (!tier || (tier !== "pro" && tier !== "power")) {
+    return { kind: "skip", reason: "free_plan" };
+  }
+
+  const prefs = readNotificationPreferences(
+    profileWithRelations.immigrationProfile?.preferences
+  );
+  if (!prefs.emailAlerts) {
+    return { kind: "skip", reason: "email_alerts_disabled" };
+  }
+  if (!prefs.visaBulletinUpdates) {
+    return { kind: "skip", reason: "visa_bulletin_updates_disabled" };
+  }
+
+  const immigrationProfile = profileWithRelations.immigrationProfile;
+  if (!immigrationProfile) {
+    return { kind: "skip", reason: "missing_immigration_profile" };
+  }
+
+  const journeyStage = resolveJourneyStage(immigrationProfile);
+  if (journeyStage === "green_card_holder") {
+    if (!hasValidGreenCardDate(immigrationProfile.green_card_issue_date)) {
+      return { kind: "skip", reason: "missing_required_data" };
+    }
+    const journey = buildGreenCardJourneyData(
+      immigrationProfile.green_card_issue_date!,
+      immigrationProfile.married_to_us_citizen ?? false
+    );
+    if (!journey) {
+      return { kind: "skip", reason: "missing_required_data" };
+    }
+  } else if (journeyStage === "employment_gc_waiting") {
+    if (!hasCompleteImmigrationProfile(immigrationProfile)) {
+      return { kind: "skip", reason: "missing_required_data" };
+    }
+  } else {
+    return { kind: "skip", reason: "unsupported_profile" };
+  }
+
+  return { kind: "eligible", tier };
+}
+
+/**
+ * Preflight Pro/Power audience for Summary (and send candidate list).
+ * Does not assemble Monthly Update emails. Send must still run full personalized
+ * assembly per candidate before Resend.
  */
 export async function resolveMonthlyUpdateAudience(): Promise<MonthlyUpdateAudienceResolution> {
   const profiles = await listActiveProfilesWithRelations();
@@ -208,45 +282,16 @@ export async function resolveMonthlyUpdateAudience(): Promise<MonthlyUpdateAudie
   let skippedCount = 0;
 
   for (const profileWithRelations of profiles) {
-    const email = profileWithRelations.profile.email?.trim() ?? "";
-    if (!email || !isValidEmail(email)) {
+    const eligibility = evaluateMonthlyUpdateSummaryEligibility(profileWithRelations);
+    if (eligibility.kind === "skip") {
       skippedCount += 1;
-      incrementSkip(skippedByReason, "missing_email");
-      continue;
-    }
-
-    const tier = resolvePaidAlertTier(profileWithRelations);
-    if (!tier || (tier !== "pro" && tier !== "power")) {
-      skippedCount += 1;
-      incrementSkip(skippedByReason, "free_plan");
-      continue;
-    }
-
-    const prefs = readNotificationPreferences(
-      profileWithRelations.immigrationProfile?.preferences
-    );
-    if (!prefs.emailAlerts) {
-      skippedCount += 1;
-      incrementSkip(skippedByReason, "email_alerts_disabled");
-      continue;
-    }
-    if (!prefs.visaBulletinUpdates) {
-      skippedCount += 1;
-      incrementSkip(skippedByReason, "visa_bulletin_updates_disabled");
-      continue;
-    }
-
-    try {
-      await prepareMonthlyImmigrationUpdateForUser(profileWithRelations);
-    } catch (error: unknown) {
-      skippedCount += 1;
-      incrementSkip(skippedByReason, skipReasonFromAssemblyError(error));
+      incrementSkip(skippedByReason, eligibility.reason);
       continue;
     }
 
     sendable.push({
       profileWithRelations,
-      tier,
+      tier: eligibility.tier,
     });
   }
 

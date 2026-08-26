@@ -456,6 +456,16 @@ Personalized body content remains journey-specific. Preview Sample and bulk send
 
 **Local code:** 2026-08-26. **Production deploy of this fix:** not in this story.
 
+### Audience Summary vs Send assembly — S7-PROD-NOTIFY-FIX-002
+
+**Summary** (`GET .../monthly-immigration-updates/summary` / Refresh Summary) answers who is *potentially* eligible. It uses `evaluateMonthlyUpdateSummaryEligibility()` — local plan, prefs, email, and journey completeness. It must **not** call `prepareMonthlyImmigrationUpdateForUser()` per user and must **not** read Visa Bulletin movement / Google Sheets per user.
+
+**Send** (bulk and single-user Preview/send) remains authoritative. Bulk send still calls `prepareMonthlyImmigrationUpdateForUser()` for each candidate before Resend. Assembly failure skips that user (no invalid email).
+
+**Campaign month** still comes from latest Visa Bulletin history (`getLatestVisaBulletinMonth`) once per Summary, not `new Date()`.
+
+**Local code:** 2026-08-26. **Production deploy of this fix:** not in this story.
+
 ### Channel
 
 Email via Resend (HTML + plain-text fallback). Deep links into authenticated IMMIFIN pages.
@@ -1968,3 +1978,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.14 | 2026-07-10 | S6-EMAIL-004.2 | Admin Monthly Update Control Center — Pro/Power audience summary + batched bulk send |
 | v1.15 | 2026-07-10 | S6-EMAIL-005.1 | Journey-aware Monthly Update — Green Card holder / citizenship journey support |
 | v1.16 | 2026-08-26 | S7-PROD-NOTIFY-FIX-001 | Campaign `updateMonthLabel` = latest Visa Bulletin month for all journeys (not calendar month); not Production-deployed |
+| v1.17 | 2026-08-26 | S7-PROD-NOTIFY-FIX-002 | Audience Summary uses cheap local eligibility (no per-user email/Sheets assembly); Send remains full assemble; not Production-deployed |

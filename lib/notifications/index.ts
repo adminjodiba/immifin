@@ -63,6 +63,13 @@ export {
 } from "./build-monthly-immigration-report-dashboard-source";
 
 export {
+  evaluateMonthlyUpdateSummaryEligibility,
+  skipReasonFromAssemblyError,
+  resolveMonthlyUpdateAudience,
+  type MonthlyUpdateSummaryEligibility,
+} from "./monthly-update-audience";
+
+export {
   buildMonthlyUpdateAudienceSummary,
   sendMonthlyImmigrationUpdatesBulk,
   MONTHLY_UPDATE_BATCH_SIZE,

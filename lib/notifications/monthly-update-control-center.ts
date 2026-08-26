@@ -6,6 +6,7 @@ import {
   renderMonthlyImmigrationReportEmail,
 } from "@/emails/templates/monthly-immigration-report-email";
 import {
+  isMonthlyUpdateAssemblyError,
   prepareMonthlyImmigrationUpdateForUser,
 } from "@/lib/notifications/build-monthly-immigration-report-dashboard-source";
 import { mapMonthlyImmigrationReportEmailProps } from "@/lib/notifications/mappers/map-monthly-immigration-report-email";
@@ -134,6 +135,7 @@ async function getLastVisaBulletinRefreshAt(): Promise<string | null> {
   return data?.created_at ?? null;
 }
 
+/** Summary: one bulletin-month lookup + cheap local audience. No per-user email assembly. */
 export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdateAudienceSummary> {
   const bulletinMonthKey = await getLatestVisaBulletinMonth();
   const bulletinMonthLabel = bulletinMonthKey
@@ -254,6 +256,7 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
   const notificationService = createNotificationService();
   let successCount = 0;
   let failureCount = 0;
+  let skippedCount = audience.skippedCount;
 
   try {
     for (let index = 0; index < audience.sendable.length; index += 1) {
@@ -282,8 +285,12 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
         } else {
           failureCount += 1;
         }
-      } catch {
-        failureCount += 1;
+      } catch (error: unknown) {
+        if (isMonthlyUpdateAssemblyError(error)) {
+          skippedCount += 1;
+        } else {
+          failureCount += 1;
+        }
       }
 
       const isBatchBoundary =
@@ -298,7 +305,7 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
       campaignId: campaign.id,
       successCount,
       failureCount,
-      skippedCount: audience.skippedCount,
+      skippedCount,
       proCount: audience.proCount,
       powerCount: audience.powerCount,
       totalRecipients: audience.totalRecipients,
@@ -312,7 +319,7 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
       totalRecipients: audience.totalRecipients,
       successCount,
       failureCount,
-      skippedCount: audience.skippedCount,
+      skippedCount,
       proCount: audience.proCount,
       powerCount: audience.powerCount,
       completedAt: completed.completed_at,
@@ -324,7 +331,7 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
       campaignId: campaign.id,
       successCount,
       failureCount: failureCount + 1,
-      skippedCount: audience.skippedCount,
+      skippedCount,
     });
     throw error;
   }

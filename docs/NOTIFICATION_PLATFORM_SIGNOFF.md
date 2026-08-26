@@ -170,7 +170,8 @@ The Monthly Immigration Update must be **scannable in about one minute**. Hero c
 | **Supported journeys** | `employment_gc_waiting`, `green_card_holder` |
 | **Template** | Same `monthly-immigration-report` (journey-aware card contents) |
 | **Dashboard reuse** | `buildGreenCardJourneyData` / citizenship eligibility — no duplicate math |
-| **Campaign month** | Latest Visa Bulletin month for **all** journeys ([S7-PROD-NOTIFY-FIX-001](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) — **not Production-deployed yet** |
+| **Campaign month** | Latest Visa Bulletin month for **all** journeys ([S7-PROD-NOTIFY-FIX-001](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) |
+| **Audience Summary** | Cheap local eligibility — no per-user email assembly / Sheets movement ([S7-PROD-NOTIFY-FIX-002](./S7_PROD_NOTIFY_FIX_002_SUMMARY_PERFORMANCE_SIGNOFF.md)) — **not Production-deployed yet** |
 
 ---
 
