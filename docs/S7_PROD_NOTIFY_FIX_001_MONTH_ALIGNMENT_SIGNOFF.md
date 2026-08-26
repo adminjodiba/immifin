@@ -38,7 +38,9 @@ If latest Visa Bulletin month cannot be resolved, assembly throws `MONTHLY_UPDAT
 
 ## Production status
 
-**NOT DEPLOYED.** Worker `immifin` / version `1200e05b-…` still runs the calendar-month Green Card path. September bulk send remains **unauthorized** until a controlled production bugfix package is deployed and preview-rechecked.
+**Implementation story:** not deployed in FIX-001 itself.
+
+**Production follow-up (2026-08-26):** deployed and Product Owner validated. Live Production at signoff is `bd4da029ce8f4de651b41514cea8af9e6b33c343` / Worker `2ec0e5fe-7104-40f8-96ce-e4ebfcc38324`. Received subject: `IMMIFIN | Your September 2026 Immigration Update`. Record: [S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md).
 
 ---
 

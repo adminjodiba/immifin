@@ -66,7 +66,9 @@ For a 5-user dataset, Summary no longer performs N full assemblies or per-user S
 
 ## Production status
 
-**NOT DEPLOYED.** Worker `immifin` / `6c29597e-…` still runs the N-assembly Summary until a later controlled bugfix package is deployed.
+**Implementation story:** not deployed in FIX-002 itself.
+
+**Production follow-up (2026-08-26):** deployed as `bd4da029ce8f4de651b41514cea8af9e6b33c343` / Worker `2ec0e5fe-7104-40f8-96ce-e4ebfcc38324`. Product Owner confirmed Refresh Summary returned quickly. Record: [S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md).
 
 ---
 

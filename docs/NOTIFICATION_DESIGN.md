@@ -454,7 +454,7 @@ Green Card holders are **eligible recipients** (not Unsupported Profile) when Pr
 
 Personalized body content remains journey-specific. Preview Sample and bulk send both go through `prepareMonthlyImmigrationUpdateForUser()`.
 
-**Local code:** 2026-08-26. **Production deploy of this fix:** not in this story.
+**Local code:** 2026-08-26. **Production:** validated 2026-08-26 ([September 2026 signoff](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md)).
 
 ### Audience Summary vs Send assembly — S7-PROD-NOTIFY-FIX-002
 
@@ -464,7 +464,7 @@ Personalized body content remains journey-specific. Preview Sample and bulk send
 
 **Campaign month** still comes from latest Visa Bulletin history (`getLatestVisaBulletinMonth`) once per Summary, not `new Date()`.
 
-**Local code:** 2026-08-26. **Production deploy of this fix:** not in this story.
+**Local code:** 2026-08-26. **Production:** validated 2026-08-26 ([September 2026 signoff](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md)). Summary remains a preflight; Send still fully assembles each candidate.
 
 ### Channel
 
@@ -1979,3 +1979,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.15 | 2026-07-10 | S6-EMAIL-005.1 | Journey-aware Monthly Update — Green Card holder / citizenship journey support |
 | v1.16 | 2026-08-26 | S7-PROD-NOTIFY-FIX-001 | Campaign `updateMonthLabel` = latest Visa Bulletin month for all journeys (not calendar month); not Production-deployed |
 | v1.17 | 2026-08-26 | S7-PROD-NOTIFY-FIX-002 | Audience Summary uses cheap local eligibility (no per-user email/Sheets assembly); Send remains full assemble; not Production-deployed |
+| v1.18 | 2026-08-26 | S7-PROD-NOTIFY-SIGNOFF-001 | September 2026 Monthly Update Production validated (3 sent / 0 failed; FIX-001 + FIX-002 PASS) |

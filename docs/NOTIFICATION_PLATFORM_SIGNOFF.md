@@ -171,7 +171,7 @@ The Monthly Immigration Update must be **scannable in about one minute**. Hero c
 | **Template** | Same `monthly-immigration-report` (journey-aware card contents) |
 | **Dashboard reuse** | `buildGreenCardJourneyData` / citizenship eligibility — no duplicate math |
 | **Campaign month** | Latest Visa Bulletin month for **all** journeys ([S7-PROD-NOTIFY-FIX-001](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) |
-| **Audience Summary** | Cheap local eligibility — no per-user email assembly / Sheets movement ([S7-PROD-NOTIFY-FIX-002](./S7_PROD_NOTIFY_FIX_002_SUMMARY_PERFORMANCE_SIGNOFF.md)) — **not Production-deployed yet** |
+| **Audience Summary** | Cheap local eligibility — no per-user email assembly / Sheets movement ([S7-PROD-NOTIFY-FIX-002](./S7_PROD_NOTIFY_FIX_002_SUMMARY_PERFORMANCE_SIGNOFF.md)) — **Production validated** September 2026 ([signoff](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md)) |
 
 ---
 
@@ -254,6 +254,23 @@ Notification Platform **v1.0** is **Production Ready** for the July 16 MVP scope
 | Inbox Delivery validated | ✓ |
 
 **Overall Result:** Production Validated
+
+### September 2026 Monthly Immigration Update (S7-PROD-NOTIFY-SIGNOFF-001)
+
+Product Owner Production validation after FIX-001 (month alignment) and FIX-002 (fast Summary).
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-08-26 |
+| **Commit** | `bd4da029ce8f4de651b41514cea8af9e6b33c343` |
+| **Worker** | `immifin` / `2ec0e5fe-7104-40f8-96ce-e4ebfcc38324` |
+| **Eligible** | 3 (Pro 2 + Power 1) |
+| **Sent successfully** | 3 |
+| **Failed** | 0 |
+| **FIX-001** | **PASS** |
+| **FIX-002** | **PASS** |
+| **Real Gmail delivery** | **PASS** |
+| **Record** | [S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md) |
 
 ---
 
@@ -344,3 +361,4 @@ Deferred enhancements listed above remain **out of scope** for v1.0 and must not
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | System ADRs (Sheets as bulletin source) |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Engineering workflow |
 | [ENGINEERING_FRAMEWORK/](./ENGINEERING_FRAMEWORK/) | AI agent guidelines + task templates |
+| [S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md](./S7_PROD_NOTIFY_SEPTEMBER_2026_PRODUCTION_SIGNOFF.md) | September 2026 Monthly Update Production validation |
