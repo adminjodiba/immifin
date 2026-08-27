@@ -118,6 +118,10 @@ These are **separate**. They must never be mixed conceptually or in UX.
 - **Sign In** (secondary)
 - **Compare Free, Pro, and Power** (Pricing)
 
+**Header auth CTAs (explicit, not Account Gate):** Join IMMIFIN → `/signup`. Sign In → `/login`. These must continue directly into the canonical authentication flow and must never terminate in restricted-access gating (`showLoginRequired` / Login Required modal). That modal remains for signed-out clicks on restricted application features only.
+
+**Clerk development testing:** When IMMIFIN uses the production/custom Clerk Frontend API (`clerk.immifin.com`), direct `http://localhost:3000` authentication may fail with Clerk `origin_invalid`. Clerk authentication integration should be validated through the approved development origin `https://dev.immifin.com` unless a separately approved localhost Clerk configuration exists. Do not treat localhost blank Clerk forms as an IMMIFIN React/navigation defect.
+
 **Supporting:** No credit card required for Free.
 
 **Return path:** After successful authentication, return to the **intended tool**. Do **not** bounce the visitor to Home merely because authentication is required.
@@ -342,4 +346,6 @@ Intelligence remains Power-gated per the Business Model. This architecture only 
 
 | Version | Date | Story | Description |
 |---------|------|-------|-------------|
+| v1.2 | 2026-08-27 | S7A-PUBLIC-AUTH-CLOSE-001 | Document Clerk `origin_invalid` on localhost; validate auth through `https://dev.immifin.com` |
+| v1.1 | 2026-08-27 | S7A-PUBLIC-AUTH-REG-001 | Explicit Join IMMIFIN / Sign In CTAs must use canonical `/signup` and `/login`, never Login Required gating |
 | v1.0 | 2026-08-26 | S7-PUBLIC-002 | Initial approved public discovery vs authenticated Use architecture |

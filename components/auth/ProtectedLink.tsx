@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import type { ComponentProps, MouseEvent } from "react";
 import { useLoginRequired } from "@/components/auth/LoginRequiredProvider";
-import { requiresAuthForNavigation } from "@/lib/auth/publicRoutes";
+import { requiresAuthForNavigation } from "@/lib/auth/publicNavigation";
 
 type ProtectedLinkProps = ComponentProps<typeof Link>;
 

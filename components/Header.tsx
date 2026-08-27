@@ -185,28 +185,6 @@ function renderNavMenuItem(
     );
   }
 
-  if (item.href === "/pricing") {
-    if (options?.mobile) {
-      return (
-        <Link
-          key={`${item.href}-${item.label}`}
-          href={item.href}
-          className={navMenuItemMobileClassName}
-          onClick={options.onNavigate}
-        >
-          {item.label}
-        </Link>
-      );
-    }
-
-    return (
-      <Link key={`${item.href}-${item.label}`} href={item.href} className={navMenuItemClassName}>
-        <span className={menuItemLabelClassName}>{item.label}</span>
-        <span className={menuItemDescriptionClassName}>{item.description}</span>
-      </Link>
-    );
-  }
-
   if (options?.mobile) {
     return (
       <ProtectedLink
@@ -376,17 +354,73 @@ function MyImmifinDropdown({
   }
 
   function handleTriggerClick() {
-    if (!isLoaded) {
-      return;
-    }
-
     if (!isSignedIn) {
       setIsOpen(false);
       showLoginRequired("/dashboard");
       return;
     }
 
+    if (!isLoaded) {
+      return;
+    }
+
     setIsOpen((open) => !open);
+  }
+
+  const menuItems = items.map((item) =>
+    isSignedIn && item.premiumPreview ? (
+      <PremiumMenuButton
+        key={item.label}
+        label={item.label}
+        description={item.description}
+        previewKey={item.premiumPreview}
+        onOpenPreview={openPreview}
+      />
+    ) : (
+      <ProtectedLink
+        key={item.href}
+        href={item.href}
+        role="menuitem"
+        className={navMenuItemClassName}
+        onClick={() => setIsOpen(false)}
+      >
+        <span className={menuItemLabelClassName}>{item.label}</span>
+        <span className={menuItemDescriptionClassName}>{item.description}</span>
+      </ProtectedLink>
+    ),
+  );
+
+  // Signed-out: CSS hover menu like Immigration/About/Join IMMIFIN so the
+  // control is not dead. Child links stay ProtectedLink (Account Gate).
+  if (!isSignedIn) {
+    return (
+      <div className="group relative">
+        <button
+          type="button"
+          className={`${navLinkClassName} inline-flex items-center gap-1`}
+          aria-haspopup="menu"
+          onClick={handleTriggerClick}
+        >
+          {MY_IMMIFIN_NAV_LABEL}
+          <svg
+            className="h-4 w-4 transition-transform group-hover:rotate-180"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+
+        <div className={dropdownPanelClassName}>
+          <div className={dropdownMenuSurfaceClassName} role="menu">
+            {menuItems}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -394,9 +428,9 @@ function MyImmifinDropdown({
       <button
         type="button"
         className={`${navLinkClassName} inline-flex items-center gap-1`}
-        aria-haspopup={isSignedIn ? "menu" : undefined}
-        aria-expanded={isSignedIn ? isOpen : undefined}
-        aria-controls={isSignedIn ? menuId : undefined}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls={menuId}
         onClick={handleTriggerClick}
       >
         {MY_IMMIFIN_NAV_LABEL}
@@ -412,36 +446,13 @@ function MyImmifinDropdown({
         </svg>
       </button>
 
-      {isOpen && isSignedIn ? (
+      {isOpen ? (
         <div
           id={menuId}
           role="menu"
           className="absolute left-1/2 top-full z-50 w-max min-w-[16rem] max-w-[min(26rem,calc(100vw-1.5rem))] -translate-x-1/2 pt-3"
         >
-          <div className={dropdownMenuSurfaceClassName}>
-            {items.map((item) =>
-              item.premiumPreview ? (
-                <PremiumMenuButton
-                  key={item.label}
-                  label={item.label}
-                  description={item.description}
-                  previewKey={item.premiumPreview}
-                  onOpenPreview={openPreview}
-                />
-              ) : (
-                <ProtectedLink
-                  key={item.href}
-                  href={item.href}
-                  role="menuitem"
-                  className={navMenuItemClassName}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className={menuItemLabelClassName}>{item.label}</span>
-                  <span className={menuItemDescriptionClassName}>{item.description}</span>
-                </ProtectedLink>
-              ),
-            )}
-          </div>
+          <div className={dropdownMenuSurfaceClassName}>{menuItems}</div>
         </div>
       ) : null}
     </div>
@@ -450,11 +461,11 @@ function MyImmifinDropdown({
 
 const JOIN_IMMIFIN_NAV_LABEL = "Join IMMIFIN";
 
-function JoinImmifinDropdown({ onSignIn }: { onSignIn: () => void }) {
+function JoinImmifinDropdown() {
   return (
     <div className="group relative">
-      <button
-        type="button"
+      <Link
+        href="/signup"
         className={`${navLinkClassName} inline-flex items-center gap-1`}
         aria-haspopup="menu"
       >
@@ -469,7 +480,7 @@ function JoinImmifinDropdown({ onSignIn }: { onSignIn: () => void }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
-      </button>
+      </Link>
 
       <div className={dropdownPanelClassName}>
         <div className={dropdownMenuSurfaceClassName} role="menu">
@@ -479,10 +490,10 @@ function JoinImmifinDropdown({ onSignIn }: { onSignIn: () => void }) {
               Free · $0 · No credit card required
             </span>
           </Link>
-          <button type="button" className={navMenuItemClassName} role="menuitem" onClick={onSignIn}>
+          <Link href="/login" className={navMenuItemClassName} role="menuitem">
             <span className={menuItemLabelClassName}>Sign In</span>
             <span className={menuItemDescriptionClassName}>Already have an IMMIFIN account?</span>
-          </button>
+          </Link>
         </div>
       </div>
     </div>
@@ -597,7 +608,7 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                 </ProtectedLink>
               );
             })}
-            {showSignedOutAuth ? <JoinImmifinDropdown onSignIn={openLoginFromChrome} /> : null}
+            {showSignedOutAuth ? <JoinImmifinDropdown /> : null}
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
@@ -763,13 +774,13 @@ export function Header({ mobileMenuOpen, onToggleMenu }: HeaderProps) {
                   <p className="px-4 pb-1 text-center text-xs text-slate-500">
                     Free · $0 · No credit card required
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    href="/login"
                     className="nav-menu-item block w-full rounded-xl px-4 py-3 text-center text-base font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
-                    onClick={openLoginFromChrome}
+                    onClick={onToggleMenu}
                   >
                     Sign In
-                  </button>
+                  </Link>
                   <p className="px-4 pb-1 text-center text-xs text-slate-500">
                     Already have an IMMIFIN account?
                   </p>
