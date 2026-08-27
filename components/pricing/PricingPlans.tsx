@@ -60,7 +60,7 @@ const plans: readonly PlanConfig[] = [
   {
     id: "free",
     name: "Free",
-    description: "Check bulletins and use calculators manually.",
+    description: "Start with IMMIFIN Free",
     features: [
       "Current Visa Bulletin Dashboard",
       "Manual calculators",
@@ -69,7 +69,7 @@ const plans: readonly PlanConfig[] = [
       "No notifications",
       "No AI",
     ],
-    cta: "Get Started",
+    cta: "Create Free Account",
     ctaStyle: "btn-secondary",
     highlighted: false,
   },
@@ -603,7 +603,8 @@ export function PricingPlans({
                       <p className="text-3xl font-bold tracking-tight text-slate-900">
                         {formatPriceAmount(0)}
                       </p>
-                      <p className="mt-1 text-sm font-medium text-slate-600">Free</p>
+                      <p className="mt-3 text-sm font-medium text-slate-700">Free login required</p>
+                      <p className="mt-0.5 text-sm font-bold text-brand-700">No credit card required</p>
                     </div>
                   ) : plan.id === "pro" || plan.id === "power" ? (
                     (() => {
