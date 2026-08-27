@@ -61,8 +61,11 @@ function main() {
     freeIds === proIds,
   );
   assert(
-    "Shared My Immifin menu includes Dashboard, Profile, Billing, View Plan",
-    freeIds === "dashboard,manage-profile,subscription,view-plan",
+    "Shared My Immifin menu includes Dashboard, Profile, Billing and not View Plan",
+    freeItems.some((item) => item.id === "dashboard") &&
+      freeItems.some((item) => item.id === "manage-profile") &&
+      freeItems.some((item) => item.id === "subscription") &&
+      !freeItems.some((item) => item.id === "view-plan"),
   );
   assert(
     "Free menu does not use Upgrade to Pro row",
@@ -88,8 +91,8 @@ function main() {
     freeItems.some((item) => item.id === "subscription" && item.label === "Subscription & Billing"),
   );
   assert(
-    "Free can see View Plan",
-    freeItems.some((item) => item.id === "view-plan" && item.label === "View Plan"),
+    "My Immifin does not include View Plan",
+    !freeItems.some((item) => item.id === "view-plan" || item.label === "View Plan"),
   );
 
   const movementContent = getPremiumNavPreviewContent("movementTracker");

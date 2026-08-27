@@ -35,8 +35,6 @@ export const MY_IMMIFIN_NAV_LABEL = "My Immifin";
 /** @deprecated Prefer PremiumNavPreviewDialog — retained for any legacy copy references. */
 export const DASHBOARD_PRO_LOCK_MESSAGE = "Dashboard is available in Pro.";
 
-export const PRICING_PATH = "/pricing";
-
 const dashboardItem: MyImmifinMenuItem = {
   id: "dashboard",
   href: "/dashboard",
@@ -61,15 +59,6 @@ const subscriptionItem: MyImmifinMenuItem = {
   href: BILLING_CENTER_PATH,
   label: "Subscription & Billing",
   description: "Manage your plan, renewals, and billing.",
-  capability: "subscription",
-  phase: 1,
-};
-
-const viewPlanItem: MyImmifinMenuItem = {
-  id: "view-plan",
-  href: `${PRICING_PATH}#plans`,
-  label: "View Plan",
-  description: "Compare Immifin plans and choose the right tier.",
   capability: "subscription",
   phase: 1,
 };
@@ -106,7 +95,6 @@ export function getVisibleMyImmifinMenuItems(
     dashboardItem,
     manageProfileItem,
     subscriptionItem,
-    viewPlanItem,
   ];
 
   if (options.isAdmin) {
