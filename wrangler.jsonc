@@ -26,6 +26,37 @@
       "service": "immifin"
     }
   ],
+  // OpenNext persistent cache (S7A-PERF-003B) — CONFIGURED LOCALLY, not yet
+  // Production-deployed. Binding names must match @opennextjs/cloudflare 1.20.1.
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "immifin-prod-opennext-inc-cache"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "immifin-prod-opennext-tag-cache",
+      "database_id": "c1c789db-3370-4f40-9611-172ed7b67fde"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
+      }
+    ]
+  },
+  // First Durable Object migration for Worker immifin (no prior DO migrations
+  // on production version e5e95e97 / committed wrangler.jsonc).
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler"]
+    }
+  ],
   "vars": {
     "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/login",
     "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/signup"

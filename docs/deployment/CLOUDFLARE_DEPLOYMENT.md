@@ -88,6 +88,30 @@ Generated output (gitignored): `.open-next/`, `.wrangler/`
 
 ---
 
+## OpenNext persistent cache (S7A-PERF-003B)
+
+**Status: CONFIGURED LOCALLY — NOT PRODUCTION DEPLOYED**
+
+Do not treat this section as Production-live until a clean-worktree Production deploy is approved and completed.
+
+| Component | Binding | Physical resource | Purpose |
+|-----------|---------|-------------------|---------|
+| R2 incremental cache | `NEXT_INC_CACHE_R2_BUCKET` | `immifin-prod-opennext-inc-cache` | Persist SSG/ISR HTML, RSC, fetch/`unstable_cache` |
+| D1 tag cache | `NEXT_TAG_CACHE_D1` | `immifin-prod-opennext-tag-cache` (`c1c789db-3370-4f40-9611-172ed7b67fde`) | `revalidateTag` / admin Data Refresh across isolates |
+| Durable Object queue | `NEXT_CACHE_DO_QUEUE` → class `DOQueueHandler` | Created on Worker deploy via migration `v1` | Time-based revalidation (86400s) |
+| Cache interception | `enableCacheInterception: true` in `open-next.config.ts` | N/A | Skip NextServer on prerender HIT after middleware |
+
+**Hard rules:**
+
+- Do **not** enable Cloudflare Workers Cache for HTML to “speed up” navigation.
+- Never shared-cache authenticated/private HTML, APIs, Stripe, or webhooks.
+- Clerk middleware must continue to run **before** OpenNext cache interception.
+- Production deploy of this config must use a **clean** Git worktree/release directory — never the dirty Sprint 8 WIP tree.
+
+Adapter authority: `@opennextjs/cloudflare` **1.20.1**.
+
+---
+
 ## Branch strategy
 
 | Branch | Environment | Deploy trigger |
