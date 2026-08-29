@@ -1,6 +1,6 @@
 # Immifin — Deployment Guide
 
-**Last updated:** 2026-07-05  
+**Last updated:** 2026-08-29 (S7A-PERF-CLOSE)  
 **Production domain:** https://immifin.com
 
 > **Authoritative deployment reference:** [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)  
@@ -26,12 +26,12 @@ Cursor → Commit → GitHub main → Cloudflare Git Build → OpenNext Build �
 
 | Setting | Value |
 |---------|-------|
-| **Build command** | `npm run deploy` |
-| **Deploy command** | `echo done` |
+| **Build command** | `npx @opennextjs/cloudflare build` |
+| **Deploy command** | `npx wrangler deploy` |
 | **Node version** | 22.x |
 | **Branch** | `main` |
 
-The deploy command is `echo done` because `npm run deploy` already runs `opennextjs-cloudflare deploy` inside the build script.
+Wrangler 4.105.0 uses the OpenNext deploy path (including cache population). The stale pair `npm run deploy` + `echo done` is **not** the live Cloudflare Builds pipeline. See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ### Why OpenNext (not plain `next build`)?
 
@@ -73,16 +73,16 @@ See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 3. Test dev.immifin.com — when auth/webhooks changed
 4. `git commit` — descriptive message
 5. `git push origin main`
-6. Cloudflare automatically runs `npm run deploy`
+6. Cloudflare automatically runs `npx @opennextjs/cloudflare build` then `npx wrangler deploy`
 7. Verify production — https://immifin.com
 
 ---
 
 ## Rollback
 
-Cloudflare Dashboard → Workers & Pages → immifin → Deployments → select last known good deployment.
+Prefer dashboard recovery over force-push to `main`. Use only a **post–migration v1** Worker (must retain `DOQueueHandler` and migration **v1**). **Do not promote a pre-v1 Worker.** Recovery should normally be a **forward deployment** that keeps migration v1, `DOQueueHandler`, and the R2/D1/DO bindings.
 
-Prefer dashboard rollback over force-push to `main`.
+Authoritative rollback: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ---
 

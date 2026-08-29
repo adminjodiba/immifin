@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-07-20 |
+| **Last Updated** | 2026-08-29 |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending |
 
@@ -173,7 +173,7 @@ External Integrations (Clerk · Supabase · Stripe · Resend · Google Sheets ·
 |-------------|---------|-----|-------------------|--------|
 | **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active |
 | **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active |
-| **Production** | Public live site | `https://immifin.com` | GitHub `main` → OpenNext (`npm run deploy`) | Active |
+| **Production** | Public live site | `https://immifin.com` | GitHub `main` → `npx @opennextjs/cloudflare build` + `npx wrangler deploy` | Active |
 | **Preview** | Branch-based pre-production testing | *Planned* | Cloudflare Preview | Planned |
 
 ---
@@ -228,19 +228,24 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `5f40203` — Subscription Foundation + Cloudflare build variable rebuild |
-| **Production build command** | `npm run deploy` |
-| **Production deploy command** | `echo done` |
+| **Latest production commit** | `3038ddf4` — persistent OpenNext cache on Worker `e0855e5f` |
+| **Production build command** | `npx @opennextjs/cloudflare build` |
+| **Production deploy command** | `npx wrangler deploy` |
 
 ### OpenNext vs plain Next.js build
 
 | Command | Purpose |
 |---------|---------|
 | `npm run build` | Next.js only (`next build`) — **not** sufficient for Cloudflare Workers |
-| `opennextjs-cloudflare build` | Next.js + Worker bundle (output in `.open-next/`) |
-| `npm run deploy` | OpenNext build + deploy to Cloudflare |
+| `npx @opennextjs/cloudflare build` | Next.js + Worker bundle (output in `.open-next/`) — **Cloudflare Builds** |
+| `npx wrangler deploy` | Worker deploy; Wrangler 4.105.0 uses the OpenNext path (includes cache population) |
+| `npm run deploy` | Local workstation helper (`opennextjs-cloudflare build` + `deploy`) — **not** the live Builds pair |
 
-Cloudflare’s dashboard runs **`npm run deploy`** as the build command. Deploy is already included in that script, so the separate deploy command is **`echo done`** to avoid double deployment.
+Cloudflare Builds uses **`npx @opennextjs/cloudflare build`** then **`npx wrangler deploy`**. The stale dashboard pair `npm run deploy` + `echo done` is **not** the current Production pipeline.
+
+### Persistent cache (S7A-PERF-003 CLOSED)
+
+Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 next-mode tag cache (`immifin-prod-opennext-tag-cache`), Durable Object `DOQueueHandler` (migration **v1**), and `enableCacheInterception=true`. Clerk middleware still runs **before** cache interception. Warm public HIT latency is **accepted** (S7A-PERF-004). Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Do not remove migration v1; recover by **forward deploy**.
 
 ### Repository config files
 
@@ -342,7 +347,7 @@ dev.immifin.com (Cloudflare Tunnel)
         ↓
 git add → commit → push main
         ↓
-Cloudflare Workers (npm run deploy / OpenNext)
+Cloudflare Workers (`npx @opennextjs/cloudflare build` + `npx wrangler deploy`)
         ↓
 immifin.com
 ```
@@ -403,9 +408,9 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 ### Cloudflare deployment rollback
 
 1. Open **Cloudflare Dashboard → Workers & Pages → immifin → Deployments**.
-2. Identify the last known good deployment.
-3. Roll back or promote that deployment to restore `immifin.com`.
-4. Prefer dashboard rollback over force-push to `main`.
+2. Identify a known-good **post–migration v1** deployment (must still declare `DOQueueHandler` / migration **v1**).
+3. Recover by **forward deploy** of that version. **Do not promote a pre-v1 Worker.** Do not remove migration v1.
+4. Prefer this path over force-push to `main`. Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ### Tunnel recreation
 
@@ -688,6 +693,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.4 | 2026-07-04 | Premium feature gating components; Design System 2.0 reference (S4-005.15). |
 | v1.5 | 2026-07-05 | Subscription Architecture; Development Subscription Mode; deployment docs (S5-ENG-004). |
 | v1.6 | 2026-07-20 | Sprint 7 as-built — Stripe billing platform, capabilities, notifications, dashboards, production status (S7-DOC-005). |
+| v1.7 | 2026-08-29 | S7A-PERF-CLOSE — Production persistent cache + proven Builds pipeline (`opennextjs-cloudflare build` + `wrangler deploy`). |
 
 ---
 

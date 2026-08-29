@@ -1,8 +1,10 @@
 # Cloudflare Deployment Guide
 
-**Last updated:** 2026-07-09  
+**Last updated:** 2026-08-29 (S7A-PERF-CLOSE)  
 **Production domain:** https://immifin.com  
-**Worker name:** `immifin`
+**Worker name:** `immifin`  
+**Serving version:** `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (100%)  
+**Git / `origin/main`:** `3038ddf4c19a8548a621942c865faab0afb7b3dd`
 
 This document is the authoritative guide for IMMIFIN production deployment on Cloudflare Workers via OpenNext.
 
@@ -18,7 +20,7 @@ IMMIFIN runs on **Workers Paid** (upgraded 2026-07-09). `wrangler.jsonc` sets `l
 |--------|--------|
 | **Workers Paid + `cpu_ms: 60000`** | Primary fix for cold-start 1102 |
 | Code optimizations (Sprint 5 / audit remediations) | Slim Visa Stamping API; lazy history; no public `?refresh=true` |
-| Manual deploy | `npm run deploy` when Git auto-deploy lags |
+| Manual deploy | `npx @opennextjs/cloudflare build` then `npx wrangler deploy` when Git auto-deploy lags |
 
 Do **not** remove `limits.cpu_ms` or downgrade to Free without expecting 1102 to return.
 
@@ -48,13 +50,15 @@ Production (https://immifin.com)
 
 | Setting | Value |
 |---------|-------|
-| **Build command** | `npm run deploy` |
-| **Deploy command** | `echo done` |
+| **Build command** | `npx @opennextjs/cloudflare build` |
+| **Deploy command** | `npx wrangler deploy` |
 | **Node version** | 22.x |
 | **Branch** | `main` (production) |
 | **Git integration** | GitHub → Cloudflare automatic deployment |
 
-The deploy command is `echo done` because `npm run deploy` already runs `opennextjs-cloudflare deploy` inside the build script. This satisfies Cloudflare's two-step build/deploy UI without deploying twice.
+Wrangler **4.105.0** detects the OpenNext project and uses the `opennextjs-cloudflare` deployment path. That path populates/setup the persistent cache **before** the final Worker deploy. Do **not** document or restore the stale dashboard pair `npm run deploy` + `echo done` as the live Production pipeline.
+
+Local `package.json` still has `npm run deploy` (`opennextjs-cloudflare build && opennextjs-cloudflare deploy`) for **manual** workstation deploys. Cloudflare Builds does **not** use that pair.
 
 ### Package.json scripts
 
@@ -62,7 +66,7 @@ The deploy command is `echo done` because `npm run deploy` already runs `opennex
 |--------|---------|---------|
 | `npm run build` | `next build` | Next.js only — **not sufficient** for Cloudflare Workers |
 | `npm run preview` | `opennextjs-cloudflare build && opennextjs-cloudflare preview` | Local Workers preview |
-| `npm run deploy` | `opennextjs-cloudflare build && opennextjs-cloudflare deploy` | **Production build + deploy** |
+| `npm run deploy` | `opennextjs-cloudflare build && opennextjs-cloudflare deploy` | Local/manual OpenNext build + deploy (not the Cloudflare Builds pair) |
 
 ### Version / deployment inspection
 
@@ -88,27 +92,88 @@ Generated output (gitignored): `.open-next/`, `.wrangler/`
 
 ---
 
-## OpenNext persistent cache (S7A-PERF-003B)
+## OpenNext persistent cache (S7A-PERF-003 CLOSED)
 
-**Status: CONFIGURED LOCALLY — NOT PRODUCTION DEPLOYED**
+**Status: PRODUCTION LIVE AND VALIDATED** (PERF-003D release, PERF-003E proof).
 
-Do not treat this section as Production-live until a clean-worktree Production deploy is approved and completed.
+The original OpenNext dummy incremental-cache problem is **closed**. Public HTML and RSC persistent HIT, R2 persistence, and D1 tag invalidation are proven on Worker `e0855e5f`.
 
 | Component | Binding | Physical resource | Purpose |
 |-----------|---------|-------------------|---------|
 | R2 incremental cache | `NEXT_INC_CACHE_R2_BUCKET` | `immifin-prod-opennext-inc-cache` | Persist SSG/ISR HTML, RSC, fetch/`unstable_cache` |
 | D1 tag cache | `NEXT_TAG_CACHE_D1` | `immifin-prod-opennext-tag-cache` (`c1c789db-3370-4f40-9611-172ed7b67fde`) | `revalidateTag` / admin Data Refresh across isolates |
-| Durable Object queue | `NEXT_CACHE_DO_QUEUE` → class `DOQueueHandler` | Created on Worker deploy via migration `v1` | Time-based revalidation (86400s) |
-| Cache interception | `enableCacheInterception: true` in `open-next.config.ts` | N/A | Skip NextServer on prerender HIT after middleware |
+| Durable Object queue | `NEXT_CACHE_DO_QUEUE` → class `DOQueueHandler` | Worker migration **v1** (`new_sqlite_classes: DOQueueHandler`) | Time-based revalidation (not used on ordinary SSG HIT) |
+| Cache interception | `enableCacheInterception: true` in `open-next.config.ts` | N/A | Skip Next.js App Router render on prerender HIT **after** middleware |
+| Worker self-reference | `WORKER_SELF_REFERENCE` | service `immifin` | OpenNext self-invocation |
 
-**Hard rules:**
+**Validated Production inventory (PERF-003E / PERF-004):**
 
-- Do **not** enable Cloudflare Workers Cache for HTML to “speed up” navigation.
+| Resource | Validated state |
+|----------|-----------------|
+| R2 `immifin-prod-opennext-inc-cache` | Present — **31 objects**, **~1.44 MB**, location WNAM |
+| D1 `immifin-prod-opennext-tag-cache` | Tables `_cf_KV`, `revalidations` |
+| D1 after one Admin Visa Bulletin refresh | `revalidations` **0 → 2 rows** (`visa-bulletin-sheets`, `visa-bulletin-history`) |
+
+**Request path (HIT):** Cloudflare edge → Worker → OpenNext routing → **Clerk middleware** → route match → cache interceptor → R2 get → D1 tag lookup → cached HTML/RSC. A HIT avoids Next.js App Router render, server layout/page render, page data loaders, and normal DO queue activity. It does **not** skip Clerk or OpenNext routing.
+
+**Hard rules (unchanged):**
+
+- Do **not** enable Cloudflare Workers Cache / CDN cache for HTML in front of Clerk.
+- Do **not** bypass middleware for public pages.
 - Never shared-cache authenticated/private HTML, APIs, Stripe, or webhooks.
 - Clerk middleware must continue to run **before** OpenNext cache interception.
-- Production deploy of this config must use a **clean** Git worktree/release directory — never the dirty Sprint 8 WIP tree.
+- Do **not** cache-key on user/session.
+- Production deploys must use a **clean** Git worktree — never the dirty Sprint 8 WIP tree.
 
 Adapter authority: `@opennextjs/cloudflare` **1.20.1**.
+
+### Durable Object migration v1 — forward deploy only
+
+Production migration **v1** is applied (`DOQueueHandler`). A future rollback **must not** assume a pre-v1 Worker version can simply be promoted.
+
+**Approved recovery:** **forward deploy** a good Worker that still declares migration `v1`, `DOQueueHandler`, and the R2/D1/DO bindings. **Do not delete or remove migration `v1`** from `wrangler.jsonc`.
+
+### Admin Visa Bulletin refresh and 24-hour revalidation
+
+`POST /api/admin/refresh-visa-bulletin` calls `revalidateTag()` for `visa-bulletin-sheets` and `visa-bulletin-history`. One controlled Production Admin refresh wrote those two D1 rows. Persistent R2 does **not** freeze Visa Bulletin permanently — data remains designed for **86400 seconds / 24-hour** revalidation.
+
+### Auth and shared-cache safety (PERF-003E)
+
+Signed-out protected routes still redirect to `/login` (Clerk `auth.protect()`), including `/dashboard`, `/admin`, `/account`, `/immigration/visa-bulletin`, `/user-profile`, `/account/billing`, `/intelligence`. No authenticated/private page body was served from shared public cache. Private-cache inspection found no emails, Clerk user IDs, Stripe customer/subscription IDs, or secrets. Generic prerender application shells in R2 are **not** user-specific data.
+
+### Public HIT latency (S7A-PERF-004 CLOSED)
+
+**Verdict: current Production latency is acceptable. PERF-005 is not authorized.**
+
+| Layer | Typical | Notes |
+|-------|---------|-------|
+| Wall-clock HTML HIT TTFB | **220–360 ms** | Diagnostic client (DFW) |
+| RSC HIT TTFB | **200–450 ms** typical | Same R2 object as HTML |
+| Worker time on HIT | **~100–130 ms** | OpenNext + R2 get + D1 tag lookup + JSON/headers |
+| Clerk signed-out middleware | **~1–5 ms** Worker | Local signed-out; **not** the remaining TTFB cause |
+| Client TLS / edge | **~70–180 ms** | Network; static Assets have no Worker span |
+| First-request / isolate spikes | **600–1000 ms+** | Isolate/network; not the warm HIT floor |
+
+**Clerk verdict:** do **not** remove Clerk middleware and do **not** move cache ahead of Clerk for protected-route handling.
+
+**Not approved now:** `withRegionalCache`, global Workers Cache for HTML, CDN in front of Clerk, middleware bypass. `withRegionalCache` may reduce some R2/D1 Worker time later but adds invalidation-correctness risk. Treat it as an **optional future design**, not committed work.
+
+### Preview infrastructure cleanup (PERF-003F)
+
+Temporary PERF-003C preview resources were **deleted**. Production was untouched.
+
+| Resource | Name | Status |
+|----------|------|--------|
+| Preview Worker | `immifin-s7a-perf-003c-preview` | Deleted |
+| Preview R2 | `immifin-preview-opennext-inc-cache` | Emptied and deleted |
+| Preview D1 | `immifin-preview-opennext-tag-cache` | Deleted |
+| Isolated config | `wrangler.preview-003c.jsonc` | Removed from the preview worktree |
+
+### Wrangler tooling notes
+
+- Diagnostic/runtime Wrangler: **4.105.0**
+- `wrangler r2 object list` is **unsupported** on this version. Use Cloudflare API or `wrangler r2 object get` / bucket `info` for inspection.
+- Cloudflare observability/history did not expose isolate-start time; first-request spikes were inferred, not instrumented.
 
 ---
 
@@ -137,6 +202,8 @@ This distinction is **critical** for IMMIFIN.
 **Rule:** All `NEXT_PUBLIC_*` variables must exist as **Build Variables** if they affect client bundles or prerendered HTML. Runtime-only variables cannot change prerendered UI after deploy.
 
 Example: `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE=true` must be a **Build Variable** — see [DEPLOYMENT_TROUBLESHOOTING.md](./DEPLOYMENT_TROUBLESHOOTING.md).
+
+**Proven Cloudflare Builds environment (names only — never document values):** the Production Builds environment includes `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` as a **Build secret** and `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` as a Build variable.
 
 ### Required (Production)
 
@@ -180,9 +247,9 @@ See [.env.example](../../.env.example) for the full template.
 3. Run `npm run build` locally (type-check gate)
 4. Commit with descriptive message
 5. Push to `main`
-6. Cloudflare automatically runs `npm run deploy`
+6. Cloudflare automatically runs `npx @opennextjs/cloudflare build` then `npx wrangler deploy`
 7. Verify deployment in Cloudflare Dashboard → Deployments
-8. Smoke test `https://immifin.com`
+8. Smoke test `https://immifin.com` (public HTML should show `x-opennext-cache: HIT` when warm)
 
 ---
 
@@ -211,17 +278,17 @@ Runtime variable changes alone do **not** rebuild client bundles or prerendered 
 | Feature flags | Verify UI matches expected env (e.g. `/pricing` dev mode banner) |
 | API routes | Test protected endpoints (e.g. `/api/account/subscription` when signed in) |
 
-Response headers on prerendered pages may include `x-nextjs-prerender: 1` and `x-opennext: 1`.
+Response headers on interceptor HIT pages include `x-opennext-cache: HIT`. Some routes (notably `/`) may show `x-opennext: 1` without the HIT header while still serving quickly from the Next incremental-cache path.
 
 ---
 
 ## How to rollback
 
 1. Cloudflare Dashboard → Workers & Pages → immifin → Deployments
-2. Select the last known good deployment
-3. Roll back or promote to production
+2. Select a known-good **post-v1** deployment (must still include `DOQueueHandler` / migration **v1**)
+3. Prefer **forward deploy** of that good version rather than promoting a pre-v1 Worker
 
-Prefer dashboard rollback over force-push to `main`.
+Prefer dashboard rollback over force-push to `main`. **Do not** promote a Worker version from before Durable Object migration v1.
 
 ---
 
@@ -238,7 +305,7 @@ Prefer dashboard rollback over force-push to `main`.
 ### OpenNext build failures
 
 - Verify Node 22.x in Cloudflare build settings
-- Run `npm run deploy` locally to reproduce
+- Reproduce locally with `npx @opennextjs/cloudflare build` (or `npm run deploy` on a workstation)
 - Check for TypeScript errors: `npx tsc --noEmit`
 - Clear `.open-next/` locally if preview is stale
 
