@@ -3,9 +3,9 @@ import { GreenCardWaitTimeCalculator } from "@/components/GreenCardWaitTimeCalcu
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "Green Card Calculator",
+  title: "Green Card Wait Time Calculator",
   description:
-    "Check how your priority date compares to the latest visa bulletin cutoffs by employment category and country.",
+    "Estimate your employment-based Green Card wait by comparing your priority date with a Visa Bulletin cutoff date.",
   path: "/calculators/green-card-wait-time",
 });
 

@@ -5,9 +5,9 @@ import { calculators } from "@/lib/data/calculators";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "Calculators",
+  title: "Immigration Calculators & Tools",
   description:
-    "Immigration and finance calculators for visa wait times, taxes, mortgages, credit building, and more.",
+    "Explore IMMIFIN immigration calculators and tools for Green Card wait times, U.S. citizenship eligibility, H-1B wage levels and more.",
   path: "/calculators",
 });
 

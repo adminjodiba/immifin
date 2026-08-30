@@ -12,7 +12,13 @@ import { immigrationGuides, financeGuides } from "@/lib/data/guides";
 import { articles } from "@/lib/data/articles";
 import { createMetadata } from "@/lib/metadata";
 
-export const metadata = createMetadata();
+export const metadata = createMetadata({
+  title: "IMMIFIN | U.S. Immigration Tools & Insights",
+  description:
+    "Know where you stand. Stay informed when things change. Explore trusted U.S. immigration tools for Green Cards, citizenship, H-1B and visa planning.",
+  path: "",
+  absoluteTitle: true,
+});
 
 export default function HomePage() {
   const featuredCalculators = getFeaturedCalculators();

@@ -21,7 +21,7 @@ export const calculators: Calculator[] = [
     slug: "green-card-wait-time",
     title: "Green Card Calculator",
     description:
-      "Check how your priority date compares to the latest visa bulletin cutoffs.",
+      "Estimate your employment-based Green Card wait by comparing your priority date with a Visa Bulletin cutoff date.",
     category: "immigration",
     featured: true,
     href: "/calculators/green-card-wait-time",

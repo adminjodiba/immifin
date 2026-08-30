@@ -3,12 +3,12 @@
 | Field | Value |
 |-------|-------|
 | **Sprint** | Sprint 7A — Marketing, Go-To-Market & User Acquisition |
-| **Story** | S7A-SEO-000 (runbook) · S7A-SEO-001 (Search Console) · S7A-SEO-002 (crawlability audit) · S7A-SEO-003 (sitemap integrity) · S7A-SEO-003A-DOC (dev tunnel recovery runbook) |
+| **Story** | S7A-SEO-000 (runbook) · S7A-SEO-001 (Search Console) · S7A-SEO-002 (crawlability audit) · S7A-SEO-003 (sitemap integrity) · S7A-SEO-003A-DOC (dev tunnel recovery) · S7A-SEO-004 (Production sitemap verification) · S7A-SEO-005 (domain diagnostic) · S7A-SEO-005-DOC (domain normalization closeout) · S7A-SEO-006 (public metadata) |
 | **Document** | Google Search Foundation — Strategy & Execution Runbook |
 | **Date** | 2026-08-26 |
 | **Owner** | Product / Marketing documentation |
-| **Status** | **PHASE A IN PROGRESS — S7A-SEO-003 LOCALHOST COMPLETE; SITEMAP NOT SUBMITTED TO SEARCH CONSOLE** |
-| **Next executable step** | **S7A-SEO-004 — Product Owner review of sitemap integrity; do not submit to Search Console until approved** |
+| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED (PRODUCTION NOT MANUALLY DEPLOYED)** |
+| **Next executable step** | **Do not start another SEO story. Optional: verify Production metadata after the Git Builds pipeline, if it deploys. Do not request indexing until authorized.** |
 
 This document is the runbook for IMMIFIN’s first formal Google Search indexing and SEO-foundation work. It records locked strategy and the approved execution sequence **before any Search Console, crawl, or ranking work begins**.
 
@@ -18,16 +18,23 @@ Sprint 7A is a marketing / acquisition workstream. It is **separate from Sprint 
 
 ## A. Purpose
 
-IMMIFIN is live in Production at `https://immifin.com`. The product has been built and deployed. Formal Google Search Console **domain ownership is verified**. Indexing baseline, sitemap submission, and ranking work are **not** complete.
+IMMIFIN is live in Production at **`https://immifin.com`** (canonical public origin). The product has been built and deployed. Formal Google Search Console **domain ownership is verified**. The corrected Production sitemap has been **submitted and processed**. A recorded indexing / coverage baseline and ranking programs are **not** complete.
 
-As of 2026-08-26, Google Search Console **domain ownership is verified**. The following remain incomplete:
+As of 2026-08-29:
 
-- sitemap submission
+- Domain property `immifin.com` — verified
+- Sitemap `https://immifin.com/sitemap.xml` — processed successfully; **12 pages discovered** (discovery, **not** confirmed indexing)
+- HTTP → HTTPS and www → apex normalization — **complete** at the Cloudflare edge ([S7A-SEO-005-DOC](#s7a-seo-005-doc--production-domain-normalization))
+
+Still incomplete:
+
 - URL Inspection / indexing requests
-- a recorded Search Console coverage / performance baseline (reports still processing)
+- a recorded Search Console coverage / performance baseline
 - ranking or keyword programs
+- remaining SEO-002 items (robots F4, `og:image` F9, public Visa Bulletin discovery)
+- Production verification of S7A-SEO-006 metadata after the Git Builds pipeline (not manually deployed)
 
-Application source includes Next.js metadata routes `app/robots.ts` and `app/sitemap.ts`. Production robots/sitemap were audited in S7A-SEO-002: they exist, but the sitemap is **not safe to submit as-is**.
+Application source includes Next.js metadata routes `app/robots.ts` and `app/sitemap.ts`. Production now serves the approved 12-URL sitemap (S7A-SEO-003 / SEO-004).
 
 This runbook exists so later work proceeds baby-step by baby-step, with Product Owner validation after each step.
 
@@ -192,7 +199,7 @@ Determine:
 - whether only appropriate canonical / public URLs are present
 - whether authenticated / private / product-only routes are incorrectly represented
 
-**Complete (S7A-SEO-002).** Production `https://immifin.com/sitemap.xml` exists (HTTP 200). Source: `app/sitemap.ts`. **Not safe to submit as-is.** Not edited.
+**Complete (S7A-SEO-002).** Later corrected (S7A-SEO-003) and verified in Production (S7A-SEO-004). Search Console processed the sitemap (12 discovered pages). See [Search Console status](#google-search-console-status).
 
 ### Step 6 — Metadata / Canonical Audit
 
@@ -473,6 +480,8 @@ Open Graph title/description/url are present on the homepage. **`og:image` is no
 
 ### Canonical / redirects
 
+**As of S7A-SEO-002 (2026-08-26):**
+
 | Check | Result |
 |-------|--------|
 | Public page canonicals | Absolute `https://immifin.com…` |
@@ -481,7 +490,7 @@ Open Graph title/description/url are present on the homepage. **`og:image` is no
 | `https://www.immifin.com/` | **522** |
 | `http://www.immifin.com/` | **522** |
 
-Apex HTTPS is the intended host. HTTP-without-redirect and www 522 are later review items; they are not a robots/sitemap submission prerequisite by themselves.
+F5/F6 were later remediations, not sitemap-submission blockers. **Current Production:** HTTP → HTTPS and www → apex are Cloudflare-edge **301**s. www **522** is **resolved**. See [S7A-SEO-005-DOC](#s7a-seo-005-doc--production-domain-normalization).
 
 ### Private / premium exposure
 
@@ -497,9 +506,9 @@ Residual risks (not confirmed leaks): `robots.txt` `Allow: /`; admin/dashboard m
 | F2 | **High** | Sitemap includes five URLs that 404 for crawlers (`/immigration`, visa bulletin, movement, `/finance`, `/insurance`). Submitting it would ask Google to fetch non-indexable URLs. |
 | F3 | **Medium** | `/pricing` is publicly crawlable (200) but **absent** from the sitemap. |
 | F4 | **Medium** | `robots.txt` allows the entire site; private/admin/API paths are not disallowed. |
-| F5 | **Medium** | `http://immifin.com/` serves 200 without redirect to HTTPS; no HSTS. |
-| F6 | **Medium** | `www.immifin.com` returns Cloudflare **522**. |
-| F7 | **Low** | Public titles duplicate “Immifin” (`createMetadata` + layout title template). |
+| F5 | **Medium** | `http://immifin.com/` served 200 without HTTPS redirect (SEO-002). **Resolved (S7A-SEO-005):** Always Use HTTPS → 301 to `https://immifin.com`. HSTS still not enabled. |
+| F6 | **Medium** | `www.immifin.com` returned Cloudflare **522** (SEO-002). **Resolved (S7A-SEO-005):** Redirect Rule `IMMIFIN - WWW to Apex` → 301 to `https://immifin.com`. |
+| F7 | **Low** | Public titles duplicated “Immifin” (`createMetadata` + layout title template). **Remediated on localhost (S7A-SEO-006-FIX):** layout template owns `| Immifin`; helper supplies the semantic title. |
 | F8 | **Low** | Sitemap `lastmod` is request time (`new Date()`), not real modification time. |
 | F9 | **Low** | Homepage Open Graph has no `og:image`. |
 | F10 | **Informational** | Finance/Insurance sitemap entries describe future verticals that are not public today. |
@@ -528,13 +537,11 @@ No dedicated Google Search Console, analytics, or SEO-foundation document existe
 
 ## Current status
 
-> **PHASE A IN PROGRESS — S7A-SEO-003 LOCALHOST COMPLETE; SITEMAP NOT SUBMITTED TO SEARCH CONSOLE**
+> **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED (PRODUCTION NOT MANUALLY DEPLOYED)**
 
 ## Next executable step
 
-> **S7A-SEO-004 — Product Owner review of sitemap integrity; do not submit to Search Console until approved**
-
-Do not submit `https://immifin.com/sitemap.xml` until Production includes this correction and the Product Owner authorizes Search Console submission.
+> **Do not start another SEO story. Optional: verify Production metadata after the Git Builds pipeline, if it deploys. Do not request indexing until authorized.**
 
 ---
 
@@ -593,14 +600,148 @@ The **530** on `dev.immifin.com` was a named-tunnel connector failure. The known
 
 ### Remaining known sitemap concerns
 
-- Production still serves the **pre-correction** sitemap until this change is committed and deployed.
 - Public Visa Bulletin discovery remains a later story; the dashboard stays auth-gated and off the sitemap.
 - `/login` / `/signup` stay out of the sitemap.
-- robots.txt, metadata, HTTP→HTTPS, and www 522 are unchanged (SEO-002 F4–F7, F9).
+- robots.txt `Allow: /` (F4) and missing `og:image` (F9) are unchanged. Title duplication (F7) is remediating in S7A-SEO-006 (committed; Production pipeline may deploy).
+- HTTP→HTTPS and www 522 (F5/F6) are **resolved** — see [S7A-SEO-005-DOC](#s7a-seo-005-doc--production-domain-normalization).
 
-### Confirmations
+### Confirmations (S7A-SEO-003)
 
-- No Search Console sitemap submission.
-- No Google indexing request.
+- Sitemap correction was later committed and verified in Production (S7A-SEO-004).
+- Search Console sitemap submission occurred after Production served the 12-URL sitemap (see below).
+- No Google **indexing request** (URL Inspection) as of this closeout.
 - Authenticated-tool boundary unchanged.
-- No Cloudflare DNS, Production, or tunnel-token rotation in this documentation story.
+
+---
+
+## Google Search Console status
+
+| Field | Value |
+|-------|--------|
+| **Domain property** | `immifin.com` (verified) |
+| **Sitemap URL** | `https://immifin.com/sitemap.xml` |
+| **Sitemap contents** | Approved 12 public URLs (S7A-SEO-003 / SEO-004) |
+| **Google result** | Sitemap processed successfully |
+| **Discovered pages** | **12** — sitemap **discovery**, **not** confirmed indexing |
+| **Last read** | 2026-08-29 |
+| **Temporary “Couldn't fetch”** | Resolved without remediation; sitemap detail later showed **Sitemap processed successfully** |
+| **Indexing requests** | **None** |
+
+Do not treat “Discovered pages: 12” as “12 pages indexed.”
+
+---
+
+## S7A-SEO-005-DOC — Production domain normalization
+
+| Field | Value |
+|-------|--------|
+| **Date** | 2026-08-29 |
+| **Mode** | Documentation of Product Owner–approved Cloudflare Dashboard remediation |
+| **Application / Worker / Clerk / cache** | **Unchanged** |
+| **HSTS** | **Not enabled** — outside this story |
+
+### Canonical public origin
+
+**`https://immifin.com`**
+
+Page-level canonical tags on tested public pages already pointed here (S7A-SEO-005 diagnostic). No application redirect layer was added.
+
+### Cloudflare configuration (edge)
+
+Remediation was performed in the Cloudflare Dashboard. Do not re-apply unless Production validation regresses.
+
+1. **SSL/TLS → Edge Certificates → Always Use HTTPS = ON**
+
+   `http://immifin.com/*` → **301** → `https://immifin.com/*`
+
+2. **Redirect Rule**
+
+   | Setting | Value |
+   |---------|--------|
+   | **Rule name** | `IMMIFIN - WWW to Apex` |
+   | **Incoming wildcard** | `https://www.immifin.com/*` |
+   | **Target** | `https://immifin.com/${1}` |
+   | **Status** | **301** Permanent Redirect |
+   | **Preserve query string** | Enabled |
+
+Always Use HTTPS runs first on HTTP. An HTTP www request therefore uses this accepted two-hop chain:
+
+`http://www.immifin.com/path` → **301** `https://www.immifin.com/path` → **301** `https://immifin.com/path`
+
+### Production validation evidence
+
+| Request | Result |
+|---------|--------|
+| `http://immifin.com/pricing` | **301** → `https://immifin.com/pricing` |
+| `https://www.immifin.com` | **301** → `https://immifin.com/` |
+| `https://www.immifin.com/pricing` | **301** → `https://immifin.com/pricing` |
+| `http://www.immifin.com/pricing` | **301** → `https://www.immifin.com/pricing` → **301** → `https://immifin.com/pricing` → **200** |
+| `https://www.immifin.com/pricing?test=seo` | **301** → `https://immifin.com/pricing?test=seo` |
+
+| Check | Result |
+|-------|--------|
+| Path preservation | **PASS** |
+| Query preservation | **PASS** |
+| www 522 | **RESOLVED** |
+| HTTP duplicate serving (apex HTTP 200 HTML) | **RESOLVED** |
+| Canonical origin | `https://immifin.com` |
+| Existing page canonical tags | **PASS** |
+| Application redirect layer | **None added** |
+| Clerk | **Unchanged** |
+| Cache architecture | **Unchanged** |
+| Worker application code | **Unchanged** |
+| HSTS | **Not enabled** (deferred) |
+
+### Confirmations (S7A-SEO-005-DOC)
+
+- No application, DNS, or Worker-code change in this documentation story.
+- No secrets, API tokens, or tunnel tokens recorded.
+
+---
+
+## S7A-SEO-006 — Public metadata accuracy
+
+| Field | Value |
+|-------|--------|
+| **Audit** | S7A-SEO-006-AUDIT — **NEEDS REMEDIATION** (no indexing blocker) |
+| **Implementation** | S7A-SEO-006-FIX / S7A-SEO-006-RELEASE — localhost validated and committed; Production not manually deployed |
+| **og:image** | **Deferred** |
+| **JSON-LD / Schema.org** | **Deferred** |
+
+### Audit verdict (approved)
+
+- 12 sitemap URLs: HTTP 200, `index, follow`, correct `https://immifin.com` canonicals.
+- **F1 HIGH:** Green Card metadata implied “latest visa bulletin cutoffs” for all users.
+- **F2 MEDIUM:** `createMetadata()` and the root layout title template both added `\| Immifin`.
+- **F3 MEDIUM:** `/calculators` advertised finance/tax/mortgage/credit tools that are not live routes.
+- **F4 MEDIUM:** Homepage search metadata was vision-wide, not Immigration-first acquisition.
+
+### Title architecture
+
+- **Owner of the brand suffix:** root `app/layout.tsx` `title.template` = `%s | Immifin`.
+- **Owner of the semantic title:** `createMetadata()` (page `title` string only).
+- Homepage uses `absoluteTitle: true` so the approved search title is **not** suffixed again.
+- Open Graph / Twitter titles use a **single** `| Immifin` (or the absolute homepage title). No `og:image` added.
+
+### Approved homepage search metadata
+
+Visible hero identity remains **Immigration, Finance & Life in America**. Search metadata is intentionally different:
+
+- **Title:** `IMMIFIN | U.S. Immigration Tools & Insights`
+- **Description:** `Know where you stand. Stay informed when things change. Explore trusted U.S. immigration tools for Green Cards, citizenship, H-1B and visa planning.`
+
+### Green Card product-boundary correction
+
+- **Title:** `Green Card Wait Time Calculator` → document `Green Card Wait Time Calculator | Immifin`
+- **Description / public card:** `Estimate your employment-based Green Card wait by comparing your priority date with a Visa Bulletin cutoff date.`
+- Does **not** claim automatic/current bulletin for Free/unsigned users. Pro/Power is not advertised in this description.
+
+### Calculators hub correction
+
+- **Title:** `Immigration Calculators & Tools` → document `Immigration Calculators & Tools | Immifin`
+- **Description:** live immigration tools only (Green Card wait, citizenship, H-1B, and more).
+- Finance/tax/insurance **cards** were not deleted.
+
+### Localhost validation (2026-08-29)
+
+All 12 sitemap paths rendered HTTP 200. No `| Immifin | Immifin`. Canonicals and `index, follow` unchanged. Unsigned `/immigration/visa-bulletin` and `/dashboard` remain non-public (Clerk 404). Sitemap membership, Clerk, cache, and Cloudflare were not changed.
