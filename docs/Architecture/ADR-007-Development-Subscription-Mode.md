@@ -2,10 +2,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted |
+| **Status** | Accepted (eligibility tightened — BLP-BILL-DEV-001) |
 | **Date** | 2026-07-05 |
 | **Sprint** | Sprint 5 |
-| **Tasks** | S5-ENG-004, S5-ENG-005, S5-ENG-006 |
+| **Tasks** | S5-ENG-004, S5-ENG-005, S5-ENG-006; BLP-BILL-DEV-001 |
+
+> **Current enablement (authoritative):** server-only `IMMIFIN_ENABLE_DEVELOPMENT_SUBSCRIPTION_MODE=true` **and** `IMMIFIN_DEV_SUBSCRIPTION_TEST_USER_ID` matching the authenticated Clerk user ID. Production always disables Dev Mode. Entitlement for the authorized Dev user uses stored simulated plan via `resolveSubscriptionEntitlement` (historical canceled Stripe does not force Free). See [STRIPE_OPERATIONS.md](../STRIPE_OPERATIONS.md), `lib/subscription/devSubscriptionAccess.ts`, and `lib/subscription/resolveSubscriptionEntitlement.ts`. Historical `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` references below are obsolete.
 
 ---
 

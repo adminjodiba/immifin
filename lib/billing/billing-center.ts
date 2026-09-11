@@ -165,6 +165,60 @@ export function formatSubscriptionStatusLabel(status: string | null | undefined)
     .join(" ");
 }
 
+/** Customer-facing active subscription states. All other stored statuses are non-active. */
+export function isActiveSubscriptionStatus(status: string | null | undefined): boolean {
+  const normalized = (status ?? "").trim().toLowerCase();
+  return normalized === "active" || normalized === "trialing";
+}
+
+export function hasScheduledBillingChange(
+  billing: Pick<BillingSummary, "cancelAtPeriodEnd" | "scheduledPlanChange">,
+): boolean {
+  return billing.cancelAtPeriodEnd || Boolean(billing.scheduledPlanChange);
+}
+
+export type ScheduledChangePresentation = {
+  destinationLabel: string;
+  effectiveLabel: string | null;
+  continuesCopy: string;
+  canKeepSubscription: boolean;
+};
+
+export function getScheduledChangePresentation(
+  billing: BillingSummary,
+  currentTier: SubscriptionTier,
+): ScheduledChangePresentation | null {
+  if (!hasScheduledBillingChange(billing)) {
+    return null;
+  }
+
+  const planLabel = formatPlanLabel(currentTier);
+  const continuesCopy = `Your current ${planLabel} access continues until then.`;
+
+  if (billing.cancelAtPeriodEnd) {
+    const effective = formatBillingDate(billing.currentPeriodEnd);
+    return {
+      destinationLabel: "Downgrade to Free",
+      effectiveLabel: effective === "—" ? null : effective,
+      continuesCopy,
+      canKeepSubscription: true,
+    };
+  }
+
+  const scheduled = billing.scheduledPlanChange;
+  if (!scheduled) {
+    return null;
+  }
+
+  const effective = formatBillingDate(scheduled.effectiveAt);
+  return {
+    destinationLabel: `${formatPlanLabel(scheduled.targetTier)} ${formatBillingIntervalLabel(scheduled.targetInterval)}`,
+    effectiveLabel: effective === "—" ? null : effective,
+    continuesCopy,
+    canKeepSubscription: false,
+  };
+}
+
 export function describeScheduledChange(billing: BillingSummary): string {
   if (billing.cancelAtPeriodEnd) {
     const effective = formatBillingDate(billing.currentPeriodEnd);

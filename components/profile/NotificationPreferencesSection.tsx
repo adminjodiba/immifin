@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MyProfileQuadrant } from "@/components/profile/MyProfileQuadrant";
 import {
   PROFILE_SECTION_IDS,
   useProfileDirtyState,
@@ -12,18 +12,55 @@ import {
   readNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/account/notificationPreferences";
+import { fetchAccountMe } from "@/lib/account/fetchAccountMe";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
-import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
+import type { ImmigrationProfile } from "@/lib/supabase/types";
 
-const PHONE_DISCLAIMER =
-  "Your phone number may be used to send immigration alerts and notifications based on your communication preferences.";
-
-const SECTION_CLEARED_MESSAGE = "Section cleared. Click Save to apply changes.";
-
-type AccountMeResponse = {
-  profile: Profile;
-  immigrationProfile: ImmigrationProfile | null;
-};
+function PreferenceIcon({ name }: { name: keyof NotificationPreferences }) {
+  const common = "h-4 w-4";
+  if (name === "smsAlerts") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M5 6.5h14v8.5H8.5L5 18.2V6.5Z" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (name === "emailAlerts") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+        <rect x="4" y="6.5" width="16" height="11" rx="1.6" />
+        <path d="m5 8 7 5 7-5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "visaBulletinUpdates") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M5 17V9M10 17V6M15 17v-5M19 17v-8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "priorityDateCurrent") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M4 16.5 9 11l3.5 3.5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (name === "citizenshipReminders") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M7 4.8h7.2L19 8.6v11.1H7V4.8Z" />
+        <path d="M14.2 4.8V8.6H19M9.6 12.2h5M9.6 15.4h5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M12 4.6 13.7 9h4.7l-3.8 3 1.4 4.6L12 14.4 7.96 16.6 9.4 12 5.6 9h4.7L12 4.6Z" />
+    </svg>
+  );
+}
 
 export function NotificationPreferencesSection() {
   const { markDirty, markClean, registerSaveHandler } = useProfileDirtyState();
@@ -33,9 +70,7 @@ export function NotificationPreferencesSection() {
     DEFAULT_NOTIFICATION_PREFERENCES,
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,26 +80,23 @@ export function NotificationPreferencesSection() {
       setError(null);
 
       try {
-        const response = await fetch("/api/account/me");
-        const result = await readJsonResponseBody<AccountMeResponse>(response);
+        const result = await fetchAccountMe();
 
         if (!result.ok) {
           throw new Error(result.error);
         }
 
-        const data = result.data;
-
         if (!cancelled) {
-          setPreferencesState(readNotificationPreferences(data.immigrationProfile?.preferences));
+          setPreferencesState(readNotificationPreferences(result.data.immigrationProfile?.preferences));
           hasLoadedRef.current = true;
         }
       } catch (loadError: unknown) {
         if (!cancelled) {
-          const message =
+          setError(
             loadError instanceof Error
               ? loadError.message
-              : "Failed to load notification preferences.";
-          setError(message);
+              : "Failed to load notification preferences.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -84,151 +116,104 @@ export function NotificationPreferencesSection() {
     setPreferencesState((current) => ({ ...current, [key]: value }));
     if (hasLoadedRef.current) {
       markDirty(PROFILE_SECTION_IDS.notifications);
-      setSuccess(null);
     }
   }
 
   const savePreferences = useCallback(
-    async (nextPreferences: NotificationPreferences, successMessage: string) => {
-      setIsSaving(true);
+    async (nextPreferences: NotificationPreferences) => {
       setError(null);
-      setSuccess(null);
 
-      try {
-        const response = await fetch("/api/account/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ notificationPreferences: nextPreferences }),
-        });
+      const response = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationPreferences: nextPreferences }),
+      });
 
-        const result = await readJsonResponseBody<{
-          error?: string;
-          immigrationProfile?: ImmigrationProfile;
-        }>(response);
+      const result = await readJsonResponseBody<{
+        error?: string;
+        immigrationProfile?: ImmigrationProfile;
+      }>(response);
 
-        if (!result.ok) {
-          throw new Error(result.error);
-        }
-
-        const payload = result.data;
-
-        if (payload.immigrationProfile) {
-          setPreferencesState(readNotificationPreferences(payload.immigrationProfile.preferences));
-        } else {
-          setPreferencesState(nextPreferences);
-        }
-
-        setSuccess(successMessage);
-        markClean(PROFILE_SECTION_IDS.notifications);
-      } catch (saveError: unknown) {
-        const message =
-          saveError instanceof Error
-            ? saveError.message
-            : "Failed to save notification preferences.";
-        setError(message);
-        throw saveError instanceof Error ? saveError : new Error(message);
-      } finally {
-        setIsSaving(false);
+      if (!result.ok) {
+        throw new Error(result.error);
       }
+
+      if (result.data.immigrationProfile) {
+        setPreferencesState(readNotificationPreferences(result.data.immigrationProfile.preferences));
+      } else {
+        setPreferencesState(nextPreferences);
+      }
+
+      markClean(PROFILE_SECTION_IDS.notifications);
     },
     [markClean],
   );
 
   const saveCurrentPreferences = useCallback(async () => {
-    await savePreferences(preferences, "Notification preferences saved.");
+    if (!hasLoadedRef.current) {
+      return;
+    }
+
+    try {
+      await savePreferences(preferences);
+    } catch (saveError: unknown) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "Failed to save notification preferences.";
+      setError(message);
+      throw saveError instanceof Error ? saveError : new Error(message);
+    }
   }, [preferences, savePreferences]);
 
   useEffect(() => {
     return registerSaveHandler(PROFILE_SECTION_IDS.notifications, saveCurrentPreferences);
   }, [registerSaveHandler, saveCurrentPreferences]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    try {
-      await savePreferences(preferences, "Notification preferences saved.");
-    } catch {
-      // Error state is already set by savePreferences.
-    }
-  }
-
-  async function resetToDefault() {
-    setPreferencesState(DEFAULT_NOTIFICATION_PREFERENCES);
-    setError(null);
-    setSuccess(SECTION_CLEARED_MESSAGE);
-    markDirty(PROFILE_SECTION_IDS.notifications);
-  }
-
   return (
-    <form className="space-y-5 p-1" onSubmit={(event) => void handleSubmit(event)}>
-      <div>
-        <h2 className="heading-2 text-lg">Notification Preferences</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Choose how IMMIFIN should notify you about immigration updates and reminders.
-        </p>
-      </div>
-
+    <MyProfileQuadrant
+      accent="notifications"
+      id="profile-notifications"
+      title="Notification Preferences"
+      subtitle="Choose what updates and alerts you’d like to receive. You can change these at any time."
+      icon={
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M12 5.2a4.4 4.4 0 0 1 4.4 4.4v3.1l1.4 2.4H6.2l1.4-2.4V9.6A4.4 4.4 0 0 1 12 5.2Z" />
+          <path d="M10 18.2a2 2 0 0 0 4 0" strokeLinecap="round" />
+        </svg>
+      }
+    >
       {isLoading ? (
-        <p className="text-sm text-slate-600">Loading notification preferences...</p>
+        <p className="ds2-profile-quad-loading">Loading notification preferences...</p>
       ) : (
-        <div className="space-y-4">
-          <p className="text-xs text-slate-500">{PHONE_DISCLAIMER}</p>
+        <ul className="ds2-profile-pref-list">
           {NOTIFICATION_PREFERENCE_FIELDS.map((field) => (
-            <label key={field.key} className="flex items-start gap-3 rounded-xl border border-slate-200 p-4">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                checked={preferences[field.key]}
-                onChange={(event) => updatePreference(field.key, event.target.checked)}
-              />
-              <span>
-                <span className="block text-sm font-semibold text-slate-900">{field.label}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-slate-500">
-                  {field.description}
+            <li key={field.key}>
+              <label className="ds2-profile-pref-row">
+                <span className="ds2-profile-pref-icon" aria-hidden="true">
+                  <PreferenceIcon name={field.key} />
                 </span>
-              </span>
-            </label>
+                <span className="ds2-profile-pref-copy">
+                  <span className="ds2-profile-pref-title">{field.label}</span>
+                  <span className="ds2-profile-pref-description">{field.description}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="ds2-profile-switch"
+                  checked={preferences[field.key]}
+                  onChange={(event) => updatePreference(field.key, event.target.checked)}
+                  aria-label={field.label}
+                />
+              </label>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-
-      {error && (
-        <div
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
-          role="alert"
-        >
+      {error ? (
+        <div className="ds2-profile-quad-alert ds2-profile-quad-alert-error" role="alert">
           {error}
         </div>
-      )}
-
-      {success && (
-        <div
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
-          role="status"
-        >
-          {success}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="submit"
-          className="btn-primary w-full sm:flex-1"
-          disabled={isLoading || isSaving}
-        >
-          {isSaving ? "Saving..." : "Save notification preferences"}
-        </button>
-        <div className="sm:flex-1">
-          <ProfileSectionResetButton
-            label="Reset to Default"
-            title="Are you sure you want to reset this data?"
-            message="This will reset this section only. It will not affect your account or other profile sections."
-            confirmLabel="Yes, Reset Data"
-            onReset={resetToDefault}
-            disabled={isLoading || isSaving}
-          />
-        </div>
-      </div>
-    </form>
+      ) : null}
+    </MyProfileQuadrant>
   );
 }

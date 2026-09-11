@@ -114,9 +114,9 @@ Checkout remains reserved for **new** paid subscriptions from Free. Do not route
 
 **Post-Checkout activation (S7-BILLING-UX-008A):** Pricing may poll `GET /api/account/subscription` after Checkout success, but only after Clerk auth is ready. Entitlement is never granted from the success redirect alone — webhook→Supabase sync remains authoritative.
 
-**Scheduled paid-plan visibility (S7-BILLING-UX-008B):** Billing Center reads the attached Stripe Subscription Schedule on GET (retrieve only). Next-phase approved catalog prices are shown as a customer-safe destination (tier, interval, Stripe effective date). Duplicate equivalent CTAs are suppressed. Current entitlement still comes from webhook-synced current items. **Not Production-deployed.**
+**Scheduled paid-plan visibility (S7-BILLING-UX-008B):** Billing Center reads the attached Stripe Subscription Schedule on GET (retrieve only). Next-phase approved catalog prices are shown as a customer-safe destination (tier, interval, Stripe effective date). Duplicate equivalent CTAs are suppressed. Current entitlement still comes from webhook-synced current items. **Production-deployed (REL-002); LIVE validation not yet performed.**
 
-**Replace scheduled paid destination with Free (S7-BILLING-UX-008C):** An existing scheduled paid-plan transition may be replaced by Free only after explicit customer confirmation. IMMIFIN does not attach `cancel_at_period_end` to a subscription that still has a paid next phase. The execute path **releases** the attached schedule (current plan remains) and then sets `cancel_at_period_end`. If release succeeds and cancel fails, current entitlement is unchanged; the customer retries Free scheduling. Webhooks remain entitlement authority. GET also reads live Stripe `cancel_at_period_end` from the same retrieve used for schedule visibility. **TEST replacement was executed once by the Product Owner; 008E reconciled Power-now / Free-later. Not Production-deployed.**
+**Replace scheduled paid destination with Free (S7-BILLING-UX-008C):** An existing scheduled paid-plan transition may be replaced by Free only after explicit customer confirmation. IMMIFIN does not attach `cancel_at_period_end` to a subscription that still has a paid next phase. The execute path **releases** the attached schedule (current plan remains) and then sets `cancel_at_period_end`. If release succeeds and cancel fails, current entitlement is unchanged; the customer retries Free scheduling. Webhooks remain entitlement authority. GET also reads live Stripe `cancel_at_period_end` from the same retrieve used for schedule visibility. **TEST replacement was executed once by the Product Owner; 008E reconciled Power-now / Free-later. Production-deployed (REL-002); LIVE validation not yet performed.**
 
 ### Development Subscription Mode eligibility (BLP-BILL-DEV-001 / FIX-002)
 
@@ -152,7 +152,7 @@ All other users (including the same Clerk account in production) use normal Stri
 
 Plan and lifecycle changes remain **in-app** flows backed by the Billing Rules Engine — not Stripe Portal configuration alone.
 
-**S7-BILLING-UX-005 (code):** During paid upgrade confirmation, IMMIFIN opens a Stripe-hosted **payment_method_update** Billing Portal session using a narrow API-managed configuration (PM update only). IMMIFIN never handles raw card details. Returning from Stripe invalidates the prior upgrade preview and requires a fresh preview + explicit confirmation. Full invoice history / standalone portal panel remain deferred. **Not Production-deployed.**
+**S7-BILLING-UX-005 (code):** During paid upgrade confirmation, IMMIFIN opens a Stripe-hosted **payment_method_update** Billing Portal session using a narrow API-managed configuration (PM update only). IMMIFIN never handles raw card details. Returning from Stripe invalidates the prior upgrade preview and requires a fresh preview + explicit confirmation. Full invoice history / standalone portal panel remain deferred. **Production-deployed (REL-002); LIVE PM-change validation not yet performed.**
 
 ---
 
@@ -241,15 +241,15 @@ Reserved for future releases:
 
 - **S7-BILLING-UX-001** — Transparent Upgrade / Downgrade Billing Confirmation (architecture audit complete)
 - **S7-BILLING-UX-002** — **Done** — read-only Stripe upgrade preview foundation
-- **S7-BILLING-UX-003** — **Done (code)** — charge-now execution (`always_invoice` + `pending_if_incomplete`), signed preview authorization, SCA via hosted invoice URL / client_secret; entitlement gated by pending_update-safe sync. **Not Production-deployed.**
-- **S7-BILLING-UX-004** — **Done (code)** — masked payment method on upgrade preview/confirmation. **Not Production-deployed.**
-- **S7-BILLING-UX-005** — **Done (code)** — Stripe-hosted change/add payment method during upgrade confirmation; return forces fresh preview. **Not Production-deployed.**
-- **S7-BILLING-UX-006** — **Done (code)** — Transparent immediate-upgrade confirmation (preview-first Stripe amounts + PM + timing). **Not Production-deployed.**
-- **S7-BILLING-UX-007** — **Done (code)** — Scheduled downgrade transparency (no charge today + period-end retention). **Not Production-deployed.**
-- **S7-BILLING-UX-008B** — **Done (code)** — Scheduled paid-plan visibility + duplicate CTA suppression. **Not Production-deployed.**
-- **S7-BILLING-UX-008C** — **Done (code + TEST)** — Replace existing scheduled paid destination with Free after confirmation (`release` then `cancel_at_period_end`). Product Owner executed Replace With Free once; **008E** reconciled. **Not Production-deployed.**
-- **S7-BILLING-UX-008D** — **Done (code)** — Visual redesign of the 008C replacement confirmation dialog. Presentation only. **Not Production-deployed.**
-- **S7-BILLING-UX-008E** — **Done (TEST E2E)** — Full Stripe TEST lifecycle reconciliation. **TEST validated. Not Production-deployed.**
+- **S7-BILLING-UX-003** — **Done (code)** — charge-now execution (`always_invoice` + `pending_if_incomplete`), signed preview authorization, SCA via hosted invoice URL / client_secret; entitlement gated by pending_update-safe sync. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-004** — **Done (code)** — masked payment method on upgrade preview/confirmation. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-005** — **Done (code)** — Stripe-hosted change/add payment method during upgrade confirmation; return forces fresh preview. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-006** — **Done (code)** — Transparent immediate-upgrade confirmation (preview-first Stripe amounts + PM + timing). **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-007** — **Done (code)** — Scheduled downgrade transparency (no charge today + period-end retention). **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-008B** — **Done (code)** — Scheduled paid-plan visibility + duplicate CTA suppression. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-008C** — **Done (code + TEST)** — Replace existing scheduled paid destination with Free after confirmation (`release` then `cancel_at_period_end`). Product Owner executed Replace With Free once; **008E** reconciled. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-008D** — **Done (code)** — Visual redesign of the 008C replacement confirmation dialog. Presentation only. **Production-deployed (REL-002); LIVE validation not yet performed.**
+- **S7-BILLING-UX-008E** — **Done (TEST E2E)** — Full Stripe TEST lifecycle reconciliation. **TEST validated.** Production code shipped in REL-002; **LIVE UX lifecycle not yet validated.**
 - Team Plans
 - HR Plans
 - Enterprise Billing

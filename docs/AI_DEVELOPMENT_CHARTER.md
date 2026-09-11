@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN AI Development Charter |
-| **Version** | v1.2 |
-| **Sprint** | Sprint 4 |
-| **Task ID** | S4-000.2 |
-| **Last Updated** | 2026-07-01 |
+| **Version** | v1.9 |
+| **Sprint** | Sprint 4 (charter); Sprint 8 foundation note |
+| **Task ID** | S4-000.2 / S8-IIP-012 |
+| **Last Updated** | 2026-07-25 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | Official engineering governance standard |
 
@@ -291,6 +291,47 @@ Risk level must be stated in every task metadata header.
 
 ---
 
+## 12A. Intelligence Platform Foundation (S8-IIP-001 … S8-IIP-012)
+
+IMMIFIN has a server-side Intelligence Platform foundation at `lib/intelligence/`, an authenticated API route, and a Power-gated single-turn workspace with controlled-beta invite enforcement. Sprint 8 engineering is **FROZEN** (S8-IIP-012); operational status is **PRE-BETA ENABLEMENT PENDING**; recommendation is **CONDITIONAL GO FOR INVITE-ONLY CONTROLLED BETA**; public launch is **NOT APPROVED**.
+
+- **S8-IIP-001** — Intelligence Context (`buildIntelligenceContext`) Version `1.0.0`
+- **S8-IIP-002** — Intelligence Request Envelope (`prepareIntelligenceRequest`) Version `1.0.0`
+- **S8-IIP-003** — Deterministic Prompt Payload (`buildIntelligencePromptPayload`) Version `1.0.0`
+- **S8-IIP-004** — AI Provider Interface (`IntelligenceProvider`) Version `1.0.0`
+- **S8-IIP-005** — Provider Registry and Resolver Foundation (explicit in-memory registry)
+- **S8-IIP-006** — OpenAI Provider Adapter Foundation (official Responses API; no auto-registration)
+- **S8-IIP-007** — Intelligence Service and Controlled Provider Bootstrap (internal orchestration)
+- **S8-IIP-008** — Authenticated Intelligence API Foundation (`POST /api/intelligence/ask`)
+- **S8-IIP-009** — Power-Plan Intelligence Workspace UI Foundation (`/intelligence`)
+- **S8-IIP-010** — Intelligence Workspace Refinement and Production-Readiness Audit
+- **S8-IIP-011** — Controlled-Beta Pre-Launch Remediation and Validation (**COMPLETE WITH OPEN PRE-ENABLE ACTIONS**)
+- **S8-IIP-012** — Sprint 8 Engineering Freeze and Pre-Beta Transition (documentation / governance)
+
+| Rule | Requirement |
+|------|-------------|
+| **Factual / deterministic only** | Context, request, and prompt-payload assembly — no AI-generated decisions |
+| **Single-turn workspace** | `/intelligence` is Power-gated; Free/Pro locked; **no** multi-turn chat, streaming, or anonymous access |
+| **Authenticated API** | `POST /api/intelligence/ask` enforces Clerk + `accessAI` (Power) |
+| **Controlled beta** | Server allowlist (`IMMIFIN_INTELLIGENCE_BETA_USER_IDS`) in addition to `accessAI`; fail closed |
+| **Kill switch** | `IMMIFIN_INTELLIGENCE_ENABLED=false` disables Ask execution server-side |
+| **Freeze** | No new Intelligence product features until Pre-Beta Enablement Gate + PO resume criteria |
+| **Compose services** | Context uses existing authorities; request consumes context builder; prompt payload consumes request envelope only |
+| **Provider-neutral payload** | Prompt payload is structured data; adapters translate it — they do not own IMMIFIN policy |
+| **Provider interface** | `IntelligenceProvider` is the contract; vendor SDKs stay behind adapters |
+| **Explicit registry** | Provider registry is an explicit in-memory instance; no default provider; no silent fallback; resolve by authoritative id only |
+| **OpenAI adapter boundary** | Official `openai` SDK + Responses API only; server-only; env `OPENAI_API_KEY` / `OPENAI_MODEL`; no import-time registration or live paid verification in automated tests |
+| **Intelligence Service** | Orchestrates approved builders + resolver + one provider call; explicit `providerId`; readiness short-circuit |
+| **API capability gate** | Server-side `assertCapability(accessAI)` before service execution — Free/Pro denied |
+| **No direct DB** | Route must not query Supabase when an approved service exists; intelligence modules must not query Supabase directly |
+| **Server-side consumption** | Builders/preparers/prompt payload/registry/OpenAI/service/bootstrap/API handlers must not be imported from Client Components |
+| **No persistence / logging** | Do not log or persist questions, contexts, requests, prompt payloads, provider I/O, answers, or registry state |
+| **Controlled beta only** | Recommendation remains **CONDITIONAL GO FOR INVITE-ONLY CONTROLLED BETA**; public launch **NOT APPROVED**; engineering **FROZEN** |
+
+See [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md), [../lib/intelligence/README.md](../lib/intelligence/README.md), [SPRINT_8_INTELLIGENCE_PRODUCTION_READINESS.md](./SPRINT_8_INTELLIGENCE_PRODUCTION_READINESS.md), and [INTELLIGENCE_BETA_OPERATIONS.md](./INTELLIGENCE_BETA_OPERATIONS.md).
+
+---
+
 ## 13. Business Impact Ratings
 
 Rate relevant dimensions using ★ (1–5 stars) in the task metadata:
@@ -509,3 +550,15 @@ Deployment errors: None observed (HTTP 200)
 | v1.0 | 2026-07-01 | S4-000 | Initial AI Development Charter — official engineering governance standard |
 | v1.1 | 2026-07-01 | S4-000.1 | ADR governance, Definition of Done, Sprint Closeout Procedure |
 | v1.2 | 2026-07-01 | S4-001 | Feature task closeout — push to GitHub, Cloudflare auto-deploy, closeout report |
+| v1.3 | 2026-07-25 | S8-IIP-001 | Intelligence Context foundation rules — factual server-only assembly; no LLM/chat/UI yet |
+| v1.4 | 2026-07-25 | S8-IIP-002 | Intelligence Request Envelope rules — in-memory request contract; no persistence/LLM/API |
+| v1.5 | 2026-07-25 | S8-IIP-003 | Deterministic Prompt Payload rules — provider-neutral structured payload; no model call |
+| v1.6 | 2026-07-25 | S8-IIP-004 | AI Provider Interface rules — contracts only; no adapters/SDKs |
+| v1.7 | 2026-07-25 | S8-IIP-005 | Provider Registry / Resolver rules — explicit instance; no default/fallback/execution |
+| v1.8 | 2026-07-25 | S8-IIP-006 | OpenAI Provider Adapter rules — Responses API; server-only; no Service/API/UI |
+| v1.9 | 2026-07-25 | S8-IIP-007 | Intelligence Service / bootstrap rules — internal orchestration; no API/UI |
+| v1.10 | 2026-07-25 | S8-IIP-008 | Authenticated Intelligence API — Power accessAI; no chat UI/streaming |
+| v1.11 | 2026-07-25 | S8-IIP-009 | Power-Plan Intelligence Workspace UI — single-turn; no multi-turn chat |
+| v1.12 | 2026-07-25 | S8-IIP-010 | Intelligence readiness audit — CONDITIONAL GO; kill switch |
+| v1.13 | 2026-07-25 | S8-IIP-011 | Controlled-beta allowlist + ops runbook — CONDITIONAL GO |
+| v1.14 | 2026-07-25 | S8-IIP-012 | Sprint 8 FROZEN; S8-IIP-011 COMPLETE WITH OPEN PRE-ENABLE ACTIONS |

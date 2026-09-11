@@ -24,7 +24,7 @@ See also: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [ENGINEERING_PLAYBOOK.md
 - [ ] `npm run build` passes
 - [ ] No TypeScript errors
 - [ ] No ESLint errors
-- [ ] Cloudflare Dev Tunnel is running (if webhook/auth/profile changes)
+- [ ] Cloudflare Dev Tunnel is healthy when the release requires `https://dev.immifin.com` (auth/webhooks/profile **or** tunnel-based public/SEO checks). Confirm with `curl.exe -I https://dev.immifin.com` → **HTTP 200**. Windows **Cloudflared** service **Running** is **not** sufficient. If 530 / no connector: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) **Development tunnel recovery** (stop service, known-good DNS + HTTP/2 command, token **local only**).
 - [ ] Clerk Dev webhook endpoint reachable
 - [ ] Supabase connected
 - [ ] Google Sheets connection working
@@ -154,7 +154,7 @@ See also: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [ENGINEERING_PLAYBOOK.md
 ### Webhook
 
 - [ ] 200 response
-- [ ] No 530
+- [ ] No 530 (530 = tunnel has no active connector until proven otherwise — recover per [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md); do not treat as an application defect)
 - [ ] No 400
 
 ---

@@ -10,7 +10,7 @@
 | **Stripe mode** | **TEST only** (`sk_test_…`; `livemode=false`) |
 | **Clerk (localhost / tunnel)** | Development (`pk_test_…`) |
 | **Result** | **PASS** — TEST E2E lifecycle reconciled |
-| **Production** | **Not validated · not deployed** |
+| **Production** | **Code deployed** 2026-08-25 ([REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md)); **LIVE UX lifecycle not validated** |
 | **Stripe / schedule / DB mutated this story** | **NO** |
 | **Commit / push / deploy this story** | **NO** |
 

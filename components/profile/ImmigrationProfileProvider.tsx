@@ -16,13 +16,9 @@ import {
   useProfileDirtyState,
 } from "@/components/profile/ProfileDirtyStateProvider";
 import { marriedToFormValue } from "@/lib/account/immigrationProfileOptions";
+import { fetchAccountMe } from "@/lib/account/fetchAccountMe";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
-import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
-
-type AccountMeResponse = {
-  profile: Profile;
-  immigrationProfile: ImmigrationProfile | null;
-};
+import type { ImmigrationProfile } from "@/lib/supabase/types";
 
 type ImmigrationProfilePayload = {
   defaultCategory: string;
@@ -134,8 +130,7 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
       setError(null);
 
       try {
-        const response = await fetch("/api/account/me");
-        const result = await readJsonResponseBody<AccountMeResponse>(response);
+        const result = await fetchAccountMe();
 
         if (!result.ok) {
           throw new Error(result.error);
@@ -231,6 +226,10 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
   );
 
   const saveCurrentImmigrationProfile = useCallback(async () => {
+    if (isLoading) {
+      return;
+    }
+
     await saveImmigrationProfile(
       {
         defaultCategory,
@@ -249,6 +248,7 @@ export function ImmigrationProfileProvider({ children }: { children: ReactNode }
     priorityDate,
     greenCardIssueDate,
     marriedToUsCitizen,
+    isLoading,
     saveImmigrationProfile,
   ]);
 

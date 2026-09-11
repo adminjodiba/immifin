@@ -1,4 +1,4 @@
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
+import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { CitizenshipEligibilityCalculator } from "@/components/CitizenshipEligibilityCalculator";
 import { createMetadata } from "@/lib/metadata";
 
@@ -11,10 +11,8 @@ export const metadata = createMetadata({
 
 export default function CitizenshipEligibilityPage() {
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-4 sm:py-5">
-        <CitizenshipEligibilityCalculator />
-      </div>
-    </WorkspacePageShell>
+    <Ds2CalculatorPageShell>
+      <CitizenshipEligibilityCalculator />
+    </Ds2CalculatorPageShell>
   );
 }

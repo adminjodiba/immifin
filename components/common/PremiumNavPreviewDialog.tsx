@@ -140,8 +140,8 @@ export function PremiumNavPreviewDialog({
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Link href="/pricing" className="btn-primary flex-1" onClick={onClose}>
-            Upgrade to Pro
+          <Link href="/pricing#plans" className="btn-primary flex-1" onClick={onClose}>
+            {previewKey === "intelligence" ? "View Power plan" : "Upgrade to Pro"}
           </Link>
           <Link href="/pricing#plans" className="btn-secondary flex-1" onClick={onClose}>
             Compare Plans

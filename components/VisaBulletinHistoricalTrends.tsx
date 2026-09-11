@@ -7,7 +7,6 @@
 import Link from "next/link";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
@@ -512,19 +511,19 @@ export function VisaBulletinHistoricalTrends() {
     swrError instanceof Error ? swrError.message : swrError ? "Failed to load visa bulletin history." : null;
 
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-5 sm:py-6 lg:py-7">
+    <>
+      <div>
         <header className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">Visa Bulletin History</h1>
+                <h1 className="ds2-data-page-title">Visa Bulletin History</h1>
                 <FavoriteStar
                   pageLabel="Visa Bulletin History"
                   pageHref="/immigration/visa-bulletin-history"
                 />
               </div>
-              <p className="mt-1 max-w-xl text-sm text-slate-600">
+              <p className="ds2-data-page-description">
                 Track historical cutoff dates and identify trends for your immigration journey.
               </p>
             </div>
@@ -645,6 +644,6 @@ export function VisaBulletinHistoricalTrends() {
           </p>
         </div>
       </div>
-    </WorkspacePageShell>
+    </>
   );
 }

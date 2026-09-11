@@ -3,17 +3,17 @@
 | Field | Value |
 |-------|-------|
 | **Document** | Stripe Operations Guide |
-| **Task** | S7-DOC-007 (as-built ops update); S7-OPS-STRIPE-032 LIVE E2E update |
-| **Version** | v2.4 |
+| **Task** | S7-DOC-007 (as-built ops update); S7-OPS-STRIPE-032 LIVE E2E update; S7-BILLING-REL-002 Production deploy |
+| **Version** | v2.5 |
 | **Sprint** | Sprint 7 — Commercial Platform |
-| **Status** | **Operational** — LIVE Free→Pro PASS; Pro→Power technical PASS; **TEST billing UX E2E PASS** (008E); not Production-deployed |
+| **Status** | **Operational** — LIVE Free→Pro PASS; Pro→Power technical PASS; **TEST billing UX E2E PASS** (008E); **UX-002–008D Production-deployed** (REL-002); LIVE UX lifecycle **not yet validated** |
 | **Created** | 2026-07-11 |
 | **Last Updated** | 2026-08-25 |
 | **Owner** | Engineering / Operations |
 
 > **Authority:** This document is the **operational handbook** for configuring, validating, monitoring, and maintaining Stripe for IMMIFIN. It does **not** define product architecture or commercial policy — those belong in [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md), [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md), and [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md).
 
-**Related:** [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md](./S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md) · [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [DEPLOYMENT.md](./DEPLOYMENT.md)
+**Related:** [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md](./STRIPE_SUBSCRIPTION_PLATFORM_DESIGN.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md) · [S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md](./S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md) · [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) · [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ---
 
@@ -27,9 +27,9 @@
 | **Stripe Test / Sandbox status** | Application supports Test Mode; use for non-LIVE validation |
 | **Stripe Live status** | **LIVE Free→Pro PASS**; **Pro→Power technical PASS** — see [033 signoff](./S7_OPS_STRIPE_033_LIVE_PRO_POWER_MONTHLY_E2E_SIGNOFF.md); confirmation UX enhancement required |
 | **Production hosting status** | Active (Cloudflare Workers / OpenNext) with Fetch Stripe transport |
-| **Commercial readiness** | Technical paid paths validated; **S7-BILLING-UX-002–008D** TEST E2E **PASS** ([008E signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)); **not Production-deployed**; remaining **LIVE** transitions pending |
+| **Commercial readiness** | Technical paid paths validated; **S7-BILLING-UX-002–008D** TEST E2E **PASS** ([008E signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)); **Production code deployed** [REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md) (`8f01cd67` / Worker `1200e05b-6732-427d-9c85-6b995cbcbb8f`); **LIVE UX-002–008D lifecycle validation not yet performed** |
 
-**Do not overstate readiness.** Free → Pro Monthly LIVE is signed off. Pro→Power LIVE remains a **technical** PASS. Sprint 7 billing confirmation UX is **TEST E2E validated** (008E) and **not Production-deployed**. Interval changes and LIVE Downgrade to Free / end-of-period remain pending.
+**Do not overstate readiness.** Free → Pro Monthly LIVE is signed off (pre-UX-stack). Pro→Power LIVE remains a **technical** PASS. Sprint 7 billing confirmation UX is **TEST E2E validated** (008E) and **Production-deployed** (REL-002). **LIVE** validation of that UX stack has **not** been performed. Interval changes and LIVE Downgrade to Free / end-of-period remain pending.
 
 Primary plan management UX: **IMMIFIN Billing Center** (`/account/billing`). Full Customer Portal (invoices / standalone PM panel) remains deferred. **S7-BILLING-UX-005** adds a **narrow** Stripe Billing Portal session for payment-method update during paid upgrade confirmation only.
 
@@ -42,12 +42,12 @@ Primary plan management UX: **IMMIFIN Billing Center** (`/account/billing`). Ful
 - **Does not:** mutate subscriptions, create invoices, charge, or change local billing state
 - **Execution (S7-BILLING-UX-003, code):** `executeImmediateUpgrade` uses `always_invoice` + `pending_if_incomplete` with signed `previewAuthorization` (HMAC via existing `STRIPE_SECRET_KEY` — no new secret). SCA: return `hostedInvoiceUrl` / `clientSecret`; Billing Center redirects to hosted invoice when required.
 - **Entitlement:** sync uses **current** subscription items; while `pending_update` is set, destination plan is not applied — Power is not granted before payment settles.
-- **Production:** Worker **unchanged** until controlled deploy of UX-003.
+- **Production:** UX-002–008D code **deployed** 2026-08-25 — commit `8f01cd67`, Worker version `1200e05b-6732-427d-9c85-6b995cbcbb8f` ([REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md)). **LIVE transition validation of this UX stack has not been performed.**
 - **Payment method display (S7-BILLING-UX-004, code):** Preview returns customer-safe masked PM (`brand`/`last4`/`displayLabel`) using Stripe precedence: subscription.default_payment_method → customer.invoice_settings.default_payment_method → legacy customer.default_source (Card only).
-- **Change / add payment method (S7-BILLING-UX-005, code):** `POST /api/stripe/billing-portal/payment-method` creates a Stripe-hosted Billing Portal session deep-linked to `payment_method_update` using an API-managed **payment-method-only** configuration (cancel / subscription-update disabled). IMMIFIN never collects PAN/CVC. Return URL is application-controlled (`/account/billing?payment_method=updated`). Return **invalidates** the prior upgrade preview / `previewAuthorization` / `prorationDate` and requests a **fresh** preview; explicit Confirm Upgrade remains required. PM update alone does **not** mutate the subscription plan. Optional pin: `STRIPE_BILLING_PORTAL_PM_CONFIGURATION_ID`. **Not Production-deployed.**
-- **Transparent upgrade confirmation (S7-BILLING-UX-006, code):** Billing Center shows a preview-first confirmation with Stripe-authoritative amount due now, classified credit/prorated charge (or safe line-item fallback), next renewal, payment method + Change/Add PM, and explicit effective-timing / entitlement copy. Confirm label is `Confirm & Pay $X.XX` only when `amountDue > 0`. Expired preview refreshes for review (does not auto-charge). **Not Production-deployed.**
-- **Scheduled downgrade transparency (S7-BILLING-UX-007, code):** Confirmation for `scheduled_downgrade` / `cancel_at_period_end` / `scheduled_interval_change` shows **No charge today**, authoritative `currentPeriodEnd` retention copy, target catalog price (or Free + no further charge), and blocks confirm when period end is missing. Does **not** call invoice preview for these paths. **Not Production-deployed.**
-- **Stripe TEST E2E (S7-BILLING-UX-008E):** Full lifecycle **PASS** — Free→Pro Checkout → Pro→Power Confirm & Pay **$9.97** → Power→Pro schedule → Replace With Free at period end. Final TEST: Power Monthly active now, Free scheduled Sep 25, 2026. See [008E signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md). **Not Production validation.**
+- **Change / add payment method (S7-BILLING-UX-005, code):** `POST /api/stripe/billing-portal/payment-method` creates a Stripe-hosted Billing Portal session deep-linked to `payment_method_update` using an API-managed **payment-method-only** configuration (cancel / subscription-update disabled). IMMIFIN never collects PAN/CVC. Return URL is application-controlled (`/account/billing?payment_method=updated`). Return **invalidates** the prior upgrade preview / `previewAuthorization` / `prorationDate` and requests a **fresh** preview; explicit Confirm Upgrade remains required. PM update alone does **not** mutate the subscription plan. Optional pin: `STRIPE_BILLING_PORTAL_PM_CONFIGURATION_ID`. **Production-deployed (REL-002); LIVE PM-change validation not yet performed.**
+- **Transparent upgrade confirmation (S7-BILLING-UX-006, code):** Billing Center shows a preview-first confirmation with Stripe-authoritative amount due now, classified credit/prorated charge (or safe line-item fallback), next renewal, payment method + Change/Add PM, and explicit effective-timing / entitlement copy. Confirm label is `Confirm & Pay $X.XX` only when `amountDue > 0`. Expired preview refreshes for review (does not auto-charge). **Production-deployed (REL-002); LIVE upgrade-confirmation validation not yet performed.**
+- **Scheduled downgrade transparency (S7-BILLING-UX-007, code):** Confirmation for `scheduled_downgrade` / `cancel_at_period_end` / `scheduled_interval_change` shows **No charge today**, authoritative `currentPeriodEnd` retention copy, target catalog price (or Free + no further charge), and blocks confirm when period end is missing. Does **not** call invoice preview for these paths. **Production-deployed (REL-002); LIVE scheduled-downgrade validation not yet performed.**
+- **Stripe TEST E2E (S7-BILLING-UX-008E):** Full lifecycle **PASS** — Free→Pro Checkout → Pro→Power Confirm & Pay **$9.97** → Power→Pro schedule → Replace With Free at period end. Final TEST: Power Monthly active now, Free scheduled Sep 25, 2026. See [008E signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md). **Not Production / LIVE validation.**
 - **Verify:** `npx tsx scripts/verify-s7-billing-ux-002-subscription-preview.mjs` · `npx tsx scripts/verify-s7-billing-ux-003-immediate-upgrade-charge-now.mjs` · `npx tsx scripts/verify-s7-billing-ux-004-payment-method-preview.mjs` · `npx tsx scripts/verify-s7-billing-ux-005-hosted-payment-method.mjs` · `npx tsx scripts/verify-s7-billing-ux-006-transparent-upgrade-confirmation.mjs` · `npx tsx scripts/verify-s7-billing-ux-007-scheduled-downgrade-transparency.mjs` · `npx tsx scripts/verify-s7-billing-ux-008a-checkout-entitlement-refresh.mjs` · `npx tsx scripts/verify-s7-billing-ux-008b-scheduled-plan-visibility.mjs` · `npx tsx scripts/verify-s7-billing-ux-008c-schedule-replacement-free.mjs` · `npx tsx scripts/verify-s7-billing-ux-008d-replacement-dialog-visual.mjs`
 
 ### Cloudflare Workers — Stripe HTTP transport (mandatory)
@@ -513,7 +513,7 @@ Recommended scenarios: successful payment, declined card, 3D Secure, insufficien
 
 Do **not** treat Portal as the primary plan-management UX. Plan changes stay in Billing Center.
 
-**S7-BILLING-UX-005 (code, not Production-deployed):** upgrade confirmation can open a **narrow** hosted payment-method flow:
+**S7-BILLING-UX-005 (Production-deployed REL-002; LIVE PM-change not yet validated):** upgrade confirmation can open a **narrow** hosted payment-method flow:
 
 - Endpoint: `POST /api/stripe/billing-portal/payment-method`
 - Stripe: `billingPortal.sessions.create` with `flow_data.type = payment_method_update`
@@ -534,6 +534,7 @@ Standalone Billing Center payment-method panel and invoice history remain deferr
 | [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | Upgrade / downgrade / cancel policy |
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | System architecture + production status |
 | [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) | Sprint 7 as-built record |
+| [S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md) | Production deploy of UX-002–008D (no LIVE UX validation) |
 | [S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md](./S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md) | LIVE Free→Pro Monthly E2E PASS + root causes |
 | [S7_OPS_STRIPE_033_LIVE_PRO_POWER_MONTHLY_E2E_SIGNOFF.md](./S7_OPS_STRIPE_033_LIVE_PRO_POWER_MONTHLY_E2E_SIGNOFF.md) | LIVE Pro→Power technical PASS + billing UX gap |
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Operational snapshot |
@@ -553,3 +554,4 @@ Standalone Billing Center payment-method panel and invoice history remain deferr
 | v2.1 | 2026-07-20 | S7-DOC-013 | Sandbox Validation Mode — temporary Dev Mode off for Stripe Test Checkout E2E |
 | v2.2 | 2026-08-24 | S7-OPS-STRIPE-032 | LIVE Free→Pro Monthly PASS; FetchHttpClient + LIVE webhook secret lessons |
 | v2.4 | 2026-08-25 | S7-BILLING-UX-008E | Full Stripe TEST E2E PASS (Power now / Free at period end); not Production-deployed |
+| v2.5 | 2026-08-25 | S7-BILLING-REL-002 | UX-002–008D Production-deployed (`8f01cd67` / Worker `1200e05b-…`); LIVE UX lifecycle not yet validated |

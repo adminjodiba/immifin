@@ -1,9 +1,7 @@
 "use client";
 
 import { useImmigrationProfileForm } from "@/components/profile/ImmigrationProfileProvider";
-import { ProfileFormAlerts } from "@/components/profile/ProfileFormAlerts";
-import { ProfileFormSaveButton } from "@/components/profile/ProfileFormSaveButton";
-import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
+import { MyProfileQuadrant } from "@/components/profile/MyProfileQuadrant";
 import { marriedToUsCitizenOptions } from "@/lib/account/immigrationProfileOptions";
 
 export function GreenCardProfileSection() {
@@ -13,34 +11,29 @@ export function GreenCardProfileSection() {
     marriedToUsCitizen,
     setMarriedToUsCitizen,
     isLoading,
-    isSaving,
-    handleSubmit,
-    clearGreenCardSection,
   } = useImmigrationProfileForm();
 
   return (
-    <form
-      className="space-y-5 p-1"
-      onSubmit={(event) => void handleSubmit(event, "Green card details saved.")}
+    <MyProfileQuadrant
+      accent="greencard"
+      id="profile-green-card"
+      title="Greencard Journey Information"
+      subtitle="Add your Green Card details to track eligibility and key dates."
+      icon={
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <rect x="3.5" y="6" width="17" height="12" rx="2" />
+          <path d="M3.5 10h17" />
+          <path d="M7 15h5" strokeLinecap="round" />
+        </svg>
+      }
     >
-      <div>
-        <h2 className="heading-2 text-lg">Green Card</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Record your green card issue date and marriage status for citizenship planning and
-          calculator defaults.
-        </p>
-      </div>
-
       {isLoading ? (
-        <p className="text-sm text-slate-600">Loading green card details...</p>
+        <p className="ds2-profile-quad-loading">Loading green card details...</p>
       ) : (
-        <>
+        <div className="ds2-profile-greencard-fields">
           <div>
-            <label
-              htmlFor="green-card-issueDate"
-              className="block text-sm font-semibold text-slate-900"
-            >
-              Green card issue date <span className="font-normal text-slate-500">(optional)</span>
+            <label htmlFor="green-card-issueDate" className="ds2-profile-label">
+              Green card issue date
             </label>
             <input
               id="green-card-issueDate"
@@ -50,16 +43,10 @@ export function GreenCardProfileSection() {
               value={greenCardIssueDate}
               onChange={(event) => setGreenCardIssueDate(event.target.value)}
             />
-            <p className="mt-1.5 text-xs text-slate-500">
-              Leave blank if you do not have a green card yet.
-            </p>
+            <p className="ds2-profile-help">Leave blank if you do not have a green card yet.</p>
           </div>
-
           <div>
-            <label
-              htmlFor="green-card-marriedToUsCitizen"
-              className="block text-sm font-semibold text-slate-900"
-            >
+            <label htmlFor="green-card-marriedToUsCitizen" className="ds2-profile-label">
               Married to U.S. citizen
             </label>
             <select
@@ -77,22 +64,8 @@ export function GreenCardProfileSection() {
               ))}
             </select>
           </div>
-        </>
+        </div>
       )}
-
-      <ProfileFormAlerts />
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="sm:flex-1">
-          <ProfileFormSaveButton label="Save green card details" />
-        </div>
-        <div className="sm:flex-1">
-          <ProfileSectionResetButton
-            label="Clear Section"
-            onReset={clearGreenCardSection}
-            disabled={isLoading || isSaving}
-          />
-        </div>
-      </div>
-    </form>
+    </MyProfileQuadrant>
   );
 }

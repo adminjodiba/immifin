@@ -3,24 +3,28 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Standard Cursor Prompt Template |
-| **Version** | v1.0 |
-| **Sprint** | Sprint 4 |
-| **Task ID** | S4-000.2 |
-| **Last Updated** | 2026-07-01 |
+| **Version** | v1.1 |
+| **Sprint** | Sprint 4 (origin); superseded for execution baseline by ENG-STD-001 |
+| **Task ID** | S4-000.2 / ENG-STD-001 |
+| **Last Updated** | 2026-07-25 |
 | **Owner** | Technical Architecture (CTO) |
-| **Status** | Canonical prompt template |
+| **Status** | Historical metadata / prompt-format reference — **does not override** the master Cursor task template |
 
-**Governed by:** [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md)
+**Governed by:** [AI_DEVELOPMENT_CHARTER.md](./AI_DEVELOPMENT_CHARTER.md) · **Execution baseline:** [ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md](./ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md)
 
 ---
 
 ## 1. Purpose
 
-This document defines the **standard Cursor prompt format** for all IMMIFIN development work.
+This document defines the **Sprint 4 Cursor prompt metadata format**.
 
-Every implementation prompt — whether for features, bug fixes, refactors, or documentation — **must** be generated from this template. The Technical Architect (ChatGPT) populates placeholders; the Senior Full Stack Engineer (Cursor) executes the resulting prompt.
+For mandatory universal Cursor execution rules (discovery, worktree protection, validation, deliverables, stop conditions), use:
 
-**Do not recreate prompts manually.** Copy this template, replace placeholders, and deliver the completed prompt to Cursor.
+**[ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md](./ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md)**
+
+Hierarchy: Master Cursor Task Template → specialized Engineering Framework template → story-specific prompt.
+
+This file remains useful for historical metadata fields (business impact ratings, assigned AI roles, etc.). It must **not** be treated as a competing master standard.
 
 ---
 
@@ -716,3 +720,4 @@ END OF TASK
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
 | v1.0 | 2026-07-01 | S4-000.2 | Initial standard Cursor prompt template; task closeout report |
+| v1.1 | 2026-07-25 | ENG-STD-001 | Clarify historical role; point execution baseline to Master Cursor Task Template |

@@ -83,9 +83,9 @@ export function YourJourneySidebarCard(props: YourJourneySidebarCardProps) {
     props.variant === "employment" ? "/user-profile#/immigration" : "/user-profile#/immigration";
 
   return (
-    <section className="card-static">
+    <section className="ds2-card-static">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="heading-3 text-slate-900">Immigration Details</h2>
+        <h2 className="ds2-workspace-heading">Immigration Details</h2>
         <Link
           href={editHref}
           className="text-sm font-semibold text-brand-700 hover:text-brand-800"

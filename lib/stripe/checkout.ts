@@ -1,6 +1,7 @@
 import "server-only";
 
-import { getEffectivePlan, isExecutivePlan } from "@/lib/account/plan";
+import { isExecutivePlan, resolveEntitlementPlan } from "@/lib/account/plan";
+import { canUseDevSubscriptionTools } from "@/lib/subscription/devSubscriptionAccess";
 import { StripeCheckoutError } from "@/lib/stripe/errors";
 import { resolveApprovedStripePriceId } from "@/lib/stripe/catalog";
 import type { ParsedCheckoutRequest } from "@/lib/stripe/checkout-request";
@@ -54,7 +55,11 @@ export function assertFreeUserForNewSubscriptionCheckout(input: {
   profile: Profile;
   subscription: Subscription | null;
 }): void {
-  const effectivePlan = getEffectivePlan(input.profile, input.subscription);
+  const effectivePlan = resolveEntitlementPlan({
+    profile: input.profile,
+    subscription: input.subscription,
+    developmentSimulationActive: canUseDevSubscriptionTools(input.profile.clerk_user_id),
+  });
 
   if (isExecutivePlan(effectivePlan) || effectivePlan === "basic") {
     throw new StripeCheckoutError(

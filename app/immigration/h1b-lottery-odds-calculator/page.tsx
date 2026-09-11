@@ -1,6 +1,6 @@
 import { Suspense } from "react";
+import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { H1bLotteryOddsCalculator } from "@/components/H1bLotteryOddsCalculator";
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -12,12 +12,10 @@ export const metadata = createMetadata({
 
 export default function H1bLotteryOddsCalculatorPage() {
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-4 sm:py-5">
-        <Suspense fallback={<div className="text-sm text-slate-500">Loading calculator…</div>}>
-          <H1bLotteryOddsCalculator />
-        </Suspense>
-      </div>
-    </WorkspacePageShell>
+    <Ds2CalculatorPageShell>
+      <Suspense fallback={<div className="text-sm text-slate-500">Loading calculator…</div>}>
+        <H1bLotteryOddsCalculator />
+      </Suspense>
+    </Ds2CalculatorPageShell>
   );
 }

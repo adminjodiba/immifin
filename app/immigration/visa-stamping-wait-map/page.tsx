@@ -1,3 +1,4 @@
+import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaStampingWaitMap } from "@/components/VisaStampingWaitMap";
 import { createMetadata } from "@/lib/metadata";
 
@@ -9,5 +10,9 @@ export const metadata = createMetadata({
 });
 
 export default function VisaStampingWaitMapPage() {
-  return <VisaStampingWaitMap />;
+  return (
+    <Ds2DataPageShell>
+      <VisaStampingWaitMap />
+    </Ds2DataPageShell>
+  );
 }

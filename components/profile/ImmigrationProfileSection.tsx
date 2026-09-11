@@ -1,9 +1,7 @@
 "use client";
 
 import { useImmigrationProfileForm } from "@/components/profile/ImmigrationProfileProvider";
-import { ProfileFormAlerts } from "@/components/profile/ProfileFormAlerts";
-import { ProfileFormSaveButton } from "@/components/profile/ProfileFormSaveButton";
-import { ProfileSectionResetButton } from "@/components/profile/ProfileSectionResetButton";
+import { MyProfileQuadrant } from "@/components/profile/MyProfileQuadrant";
 import {
   bulletinTypeOptions,
   categoryOptions,
@@ -21,33 +19,28 @@ export function ImmigrationProfileSection() {
     priorityDate,
     setPriorityDate,
     isLoading,
-    isSaving,
-    handleSubmit,
-    clearImmigrationSection,
+    error,
   } = useImmigrationProfileForm();
 
   return (
-    <form
-      className="space-y-5 p-1"
-      onSubmit={(event) => void handleSubmit(event, "Immigration details saved.")}
+    <MyProfileQuadrant
+      accent="immigration"
+      id="profile-immigration"
+      title="Immigration Information"
+      subtitle="Tell us about your employment-based category, chargeability, and priority date so IMMIFIN can personalize your tools."
+      icon={
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 3.8h7.4L19 8.4v12.1H7V3.8Z" />
+          <path strokeLinecap="round" d="M14.4 3.8V8.4H19M9.5 12h5M9.5 15.4h5" />
+        </svg>
+      }
     >
-      <div>
-        <h2 className="heading-2 text-lg">Immigration</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Employment-based category, country of chargeability, bulletin date type, and priority date
-          for calculators and bulletin tools.
-        </p>
-      </div>
-
       {isLoading ? (
-        <p className="text-sm text-slate-600">Loading immigration details...</p>
+        <p className="ds2-profile-quad-loading">Loading immigration details...</p>
       ) : (
-        <>
+        <div className="ds2-profile-field-grid">
           <div>
-            <label
-              htmlFor="immigration-defaultCategory"
-              className="block text-sm font-semibold text-slate-900"
-            >
+            <label htmlFor="immigration-defaultCategory" className="ds2-profile-label">
               Default category
             </label>
             <select
@@ -64,13 +57,9 @@ export function ImmigrationProfileSection() {
               ))}
             </select>
           </div>
-
           <div>
-            <label
-              htmlFor="immigration-defaultCountry"
-              className="block text-sm font-semibold text-slate-900"
-            >
-              Default country
+            <label htmlFor="immigration-defaultCountry" className="ds2-profile-label">
+              Country of chargeability
             </label>
             <select
               id="immigration-defaultCountry"
@@ -86,12 +75,8 @@ export function ImmigrationProfileSection() {
               ))}
             </select>
           </div>
-
           <div>
-            <label
-              htmlFor="immigration-defaultBulletinType"
-              className="block text-sm font-semibold text-slate-900"
-            >
+            <label htmlFor="immigration-defaultBulletinType" className="ds2-profile-label">
               Default bulletin type
             </label>
             <select
@@ -108,13 +93,9 @@ export function ImmigrationProfileSection() {
               ))}
             </select>
           </div>
-
           <div>
-            <label
-              htmlFor="immigration-priorityDate"
-              className="block text-sm font-semibold text-slate-900"
-            >
-              Priority date <span className="font-normal text-slate-500">(optional)</span>
+            <label htmlFor="immigration-priorityDate" className="ds2-profile-label">
+              Priority date
             </label>
             <input
               id="immigration-priorityDate"
@@ -124,26 +105,15 @@ export function ImmigrationProfileSection() {
               value={priorityDate}
               onChange={(event) => setPriorityDate(event.target.value)}
             />
-            <p className="mt-1.5 text-xs text-slate-500">
-              Used to prefill the Green Card Calculator.
-            </p>
+            <p className="ds2-profile-help">Used to prefill the Green Card Calculator.</p>
           </div>
-        </>
+        </div>
       )}
-
-      <ProfileFormAlerts />
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="sm:flex-1">
-          <ProfileFormSaveButton label="Save immigration details" />
+      {error ? (
+        <div className="ds2-profile-quad-alert ds2-profile-quad-alert-error" role="alert">
+          {error}
         </div>
-        <div className="sm:flex-1">
-          <ProfileSectionResetButton
-            label="Clear Section"
-            onReset={clearImmigrationSection}
-            disabled={isLoading || isSaving}
-          />
-        </div>
-      </div>
-    </form>
+      ) : null}
+    </MyProfileQuadrant>
   );
 }

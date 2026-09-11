@@ -2,13 +2,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | v1.1 |
-| **Task ID** | S6-DOC-009 (Architecture Review template) |
-| **Last Updated** | 2026-07-10 |
+| **Version** | v1.2 |
+| **Task ID** | ENG-STD-001 |
+| **Last Updated** | 2026-07-25 |
 | **Status** | Permanent foundation — evolve in future sprints |
 | **Owner** | Technical Architecture (CTO) |
 
-**Related:** [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md) · [../ENGINEERING_PLAYBOOK.md](../ENGINEERING_PLAYBOOK.md) · [../AI_DEVELOPMENT_CHARTER.md](../AI_DEVELOPMENT_CHARTER.md) · [../PROMPT_TEMPLATE.md](../PROMPT_TEMPLATE.md) · [../PROJECT_GUIDE.md](../PROJECT_GUIDE.md)
+**Related:** [IMMIFIN_CURSOR_TASK_TEMPLATE.md](./IMMIFIN_CURSOR_TASK_TEMPLATE.md) · [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md) · [../ENGINEERING_PLAYBOOK.md](../ENGINEERING_PLAYBOOK.md) · [../AI_DEVELOPMENT_CHARTER.md](../AI_DEVELOPMENT_CHARTER.md) · [../PROMPT_TEMPLATE.md](../PROMPT_TEMPLATE.md) · [../PROJECT_GUIDE.md](../PROJECT_GUIDE.md)
 
 ---
 
@@ -40,24 +40,51 @@ It standardizes how AI agents and human engineers **review, design, implement, t
 
 ## How to use
 
+### Template hierarchy *(mandatory)*
+
+```text
+IMMIFIN Master Cursor Task Template
+        ↓
+Applicable Specialized Task Template
+        ↓
+Story-Specific Cursor Prompt
+```
+
+| Layer | Document |
+|-------|----------|
+| **Master (universal)** | [IMMIFIN_CURSOR_TASK_TEMPLATE.md](./IMMIFIN_CURSOR_TASK_TEMPLATE.md) |
+| **Specialized** | [TASK_TEMPLATES/](./TASK_TEMPLATES/) |
+| **Story prompt** | Story-specific objective, discovery, scope, tests, deliverables, stop conditions |
+
+Future Cursor prompts **must not weaken** the master standard. They may only add stricter story-specific requirements.
+
+### Usage modes
+
+| Mode | When | How |
+|------|------|-----|
+| **A — Repository-aware** *(preferred)* | Normal IMMIFIN repo work | Instruct Cursor to read the master template + specialized template; story prompt contains only story-specific sections |
+| **B — Fully self-contained** | Production ops / high-risk / Cursor may not read repo docs | Copy the Master Template Body into the prompt and fill placeholders |
+
 ### AI agents and human engineers
 
 1. Read [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md)
-2. Select the correct **task template** (table below)
-3. Write a short task prompt that **references** the template path
-4. Fill only task-specific fields (ID, objective, approved files, requirements, out of scope, tests)
-5. Execute the template’s development workflow
-6. Return a Task Completion Report
+2. Read [IMMIFIN_CURSOR_TASK_TEMPLATE.md](./IMMIFIN_CURSOR_TASK_TEMPLATE.md)
+3. Select the correct **specialized task template** (table below)
+4. Write a short task prompt (Mode A) that references the master + specialized template
+5. Fill only story-specific fields
+6. Execute the workflow (preserve pre-existing work; localhost before commit; Product Owner review before commit/push unless explicitly authorized)
+7. Return a Task Completion Report
 
-### Usage example
+### Usage example (Mode A)
 
 ```text
-Read and follow:
+This story inherits all requirements from:
 
-docs/ENGINEERING_FRAMEWORK/TASK_TEMPLATES/NOTIFICATION_TASK_TEMPLATE.md
+docs/ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md
 
 Also follow:
 
+docs/ENGINEERING_FRAMEWORK/TASK_TEMPLATES/NOTIFICATION_TASK_TEMPLATE.md
 docs/ENGINEERING_FRAMEWORK/AI_AGENT_GUIDELINES.md
 
 Task ID:
@@ -78,7 +105,7 @@ Providers, services, Resend calls, templates, API routes
 
 ---
 
-## When to select each template
+## When to select each specialized template
 
 | Template | Select when |
 |----------|-------------|
@@ -91,6 +118,8 @@ Providers, services, Resend calls, templates, API routes
 | [RELEASE_TASK_TEMPLATE.md](./TASK_TEMPLATES/RELEASE_TASK_TEMPLATE.md) | Commit, push, deploy, production smoke, release notes |
 
 Examples: [EXAMPLES/](./EXAMPLES/).
+
+Future specialized gaps (e.g. Infrastructure / Production Operations) may be added later — do not invent them ad hoc inside story prompts.
 
 ---
 
@@ -109,6 +138,7 @@ Examples: [EXAMPLES/](./EXAMPLES/).
 docs/ENGINEERING_FRAMEWORK/
 ├── README.md
 ├── AI_AGENT_GUIDELINES.md
+├── IMMIFIN_CURSOR_TASK_TEMPLATE.md   ← master Cursor execution standard
 ├── TASK_TEMPLATES/
 │   ├── ARCHITECTURE_REVIEW_TEMPLATE.md
 │   ├── NOTIFICATION_TASK_TEMPLATE.md
@@ -132,3 +162,4 @@ docs/ENGINEERING_FRAMEWORK/
 |---------|------|------|-------------|
 | v1.0 | 2026-07-10 | S6-DOC-008 | Initial permanent Engineering Framework foundation |
 | v1.1 | 2026-07-10 | S6-DOC-009 | Add Architecture Review task template |
+| v1.2 | 2026-07-25 | ENG-STD-001 | Add Master Cursor Task Template + hierarchy / Mode A–B usage |

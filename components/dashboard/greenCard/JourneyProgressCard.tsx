@@ -143,7 +143,7 @@ export function JourneyProgressCard({ journey }: JourneyProgressCardProps) {
   const statusDotClass = canFile ? "bg-emerald-500" : "bg-brand-500";
 
   return (
-    <section className="card-static overflow-hidden border border-emerald-200 !py-3 sm:!py-4">
+    <section className="ds2-card-static overflow-hidden border border-emerald-200 !py-3 sm:!py-4">
       <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <h2 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg sm:justify-self-start">
           Your Citizenship Journey

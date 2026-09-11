@@ -10,6 +10,7 @@ export const PREMIUM_NAV_PREVIEW_KEYS = [
   "movementTracker",
   "favorites",
   "visaHistory",
+  "intelligence",
 ] as const;
 
 export type PremiumNavPreviewKey = (typeof PREMIUM_NAV_PREVIEW_KEYS)[number];
@@ -84,6 +85,21 @@ export const PREMIUM_NAV_PREVIEWS: Record<PremiumNavPreviewKey, PremiumNavPrevie
       "Personalized historical insights",
     ],
   },
+  intelligence: {
+    key: "intelligence",
+    capability: CAPABILITY.ai,
+    title: "Unlock IMMIFIN Intelligence",
+    description:
+      "Ask questions using your saved immigration profile and IMMIFIN’s structured immigration context. Available on the Power plan.",
+    featureGroupTitle: "IMMIFIN Intelligence",
+    benefits: [
+      "Ask questions about your immigration journey",
+      "Use your saved profile context",
+      "Understand timeline-related profile details",
+      "Plain-English Visa Bulletin explanations",
+      "Informational guidance — not legal advice",
+    ],
+  },
 };
 
 export function getPremiumNavPreviewContent(
@@ -97,6 +113,7 @@ export function isPremiumNavPreviewKey(value: string | null | undefined): value 
     value === "dashboard" ||
     value === "movementTracker" ||
     value === "favorites" ||
-    value === "visaHistory"
+    value === "visaHistory" ||
+    value === "intelligence"
   );
 }

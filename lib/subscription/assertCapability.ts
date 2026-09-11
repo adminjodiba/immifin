@@ -1,6 +1,6 @@
 import { AuthError } from "@/lib/auth/errors";
 import { hasCapability, type SubscriptionCapability } from "@/lib/subscription/capabilities";
-import { getStoredSubscriptionTier } from "@/lib/subscription/service";
+import { resolveSubscriptionEntitlement } from "@/lib/subscription/resolveSubscriptionEntitlement";
 import type { ProfileWithRelations } from "@/lib/supabase/types";
 
 const CAPABILITY_DENIED_MESSAGES: Record<SubscriptionCapability, string> = {
@@ -18,15 +18,17 @@ const CAPABILITY_DENIED_MESSAGES: Record<SubscriptionCapability, string> = {
 };
 
 /**
- * Asserts the user has a capability. Uses getStoredSubscriptionTier only.
+ * Asserts the user has a capability.
+ * Uses authenticated Dev-aware entitlement when Development Subscription Mode applies.
  */
 export function assertCapability(
   profileWithRelations: ProfileWithRelations,
   capability: SubscriptionCapability,
 ): void {
-  const tier = getStoredSubscriptionTier({
+  const { tier } = resolveSubscriptionEntitlement({
     profile: profileWithRelations.profile,
     subscription: profileWithRelations.subscription,
+    clerkUserId: profileWithRelations.profile.clerk_user_id,
   });
 
   if (!hasCapability(tier, capability)) {

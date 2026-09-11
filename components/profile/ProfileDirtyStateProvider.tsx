@@ -60,17 +60,21 @@ export function ProfileDirtyStateProvider({ children }: { children: ReactNode })
   }, []);
 
   const saveAllPending = useCallback(async () => {
-    const dirtySectionIds = [...dirtySectionsRef.current];
+    const handlers = [...saveHandlersRef.current.values()];
+    const errors: unknown[] = [];
 
-    for (const sectionId of dirtySectionIds) {
-      const handler = saveHandlersRef.current.get(sectionId);
-      if (handler) {
+    for (const handler of handlers) {
+      try {
         await handler();
+      } catch (error: unknown) {
+        errors.push(error);
       }
     }
 
-    dirtySectionsRef.current.clear();
-    setIsProfileDirty(false);
+    if (errors.length > 0) {
+      const first = errors[0];
+      throw first instanceof Error ? first : new Error("Failed to save some profile changes.");
+    }
   }, []);
 
   const value = useMemo(

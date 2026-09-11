@@ -1,4 +1,7 @@
-import { canAccessPersonalDashboard } from "@/lib/subscription/capabilities";
+import {
+  canAccessAI,
+  canAccessPersonalDashboard,
+} from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
 import { BILLING_CENTER_PATH } from "@/lib/billing/billing-center";
 import type { PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
@@ -54,6 +57,16 @@ const manageProfileItem: MyImmifinMenuItem = {
   phase: 1,
 };
 
+const intelligenceItem: MyImmifinMenuItem = {
+  id: "intelligence",
+  href: "/intelligence",
+  label: "Intelligence",
+  description: "Ask questions using your saved immigration profile.",
+  capability: "aiAssistant",
+  phase: 1,
+  premiumPreview: "intelligence",
+};
+
 const subscriptionItem: MyImmifinMenuItem = {
   id: "subscription",
   href: BILLING_CENTER_PATH,
@@ -94,6 +107,7 @@ export function getVisibleMyImmifinMenuItems(
   const items: MyImmifinMenuItem[] = [
     dashboardItem,
     manageProfileItem,
+    intelligenceItem,
     subscriptionItem,
   ];
 
@@ -113,6 +127,10 @@ export function getMyImmifinPremiumPreview(
 ): PremiumNavPreviewKey | null {
   if (item.premiumPreview === "dashboard" && !canAccessPersonalDashboard(tier)) {
     return "dashboard";
+  }
+
+  if (item.premiumPreview === "intelligence" && !canAccessAI(tier)) {
+    return "intelligence";
   }
 
   return null;

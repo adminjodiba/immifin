@@ -1,7 +1,7 @@
-import { PageHeader } from "@/components/PageHeader";
-import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
-import { ArticleCard } from "@/components/ArticleCard";
-import { CtaBanner } from "@/components/CtaBanner";
+import Link from "next/link";
+import { Ds2Card } from "@/components/ds2/Ds2Card";
+import { Ds2PublicPageShell } from "@/components/ds2/Ds2PublicPageShell";
+import { Ds2SectionHeader } from "@/components/ds2/Ds2SectionHeader";
 import { articles } from "@/lib/data/articles";
 import { createMetadata } from "@/lib/metadata";
 
@@ -32,60 +32,98 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <PageHeader
+    <Ds2PublicPageShell
+      eyebrow="IMMIFIN"
       title="About Immifin"
       description="We help immigrants navigate the complexities of life in America — from visa applications to building wealth."
     >
-      <WorkspaceSection>
-        <div className="card-static">
-          <h2 className="heading-2">Our Mission</h2>
-          <p className="mt-5 text-sm leading-relaxed text-slate-600 sm:text-base">
-            Moving to a new country is one of life&apos;s biggest transitions. Immifin was
-            created to make that journey easier by providing trustworthy immigration guides,
-            financial tools, and practical calculators — all in one place.
-          </p>
-          <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
-            Whether you&apos;re on an H-1B visa, pursuing a green card, or building your first
-            credit history, we&apos;re here to help you make informed decisions every step of the way.
-          </p>
-        </div>
-      </WorkspaceSection>
+      <section>
+        <Ds2SectionHeader title="Our Mission" titleAs="h2" />
+        <Ds2Card>
+          <div className="ds2-public-prose">
+            <p>
+              Moving to a new country is one of life&apos;s biggest transitions. Immifin was created to
+              make that journey easier by providing trustworthy immigration guides, financial tools, and
+              practical calculators — all in one place.
+            </p>
+            <p>
+              Whether you&apos;re on an H-1B visa, pursuing a green card, or building your first credit
+              history, we&apos;re here to help you make informed decisions every step of the way.
+            </p>
+          </div>
+        </Ds2Card>
+      </section>
 
-      <WorkspaceSection alt>
-        <h2 className="heading-2 text-center">Our Values</h2>
-        <p className="mx-auto max-w-xl text-center text-sm text-slate-600 sm:text-base">
-          The principles that guide everything we publish.
-        </p>
-        <div className="grid gap-5 sm:grid-cols-3 sm:gap-6">
+      <section>
+        <Ds2SectionHeader
+          title="Our Values"
+          titleAs="h2"
+          description="The principles that guide everything we publish."
+        />
+        <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
           {values.map((value) => (
-            <div key={value.title} className="card-static text-center">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-lg font-bold text-brand-700 ring-1 ring-brand-100">
+            <Ds2Card key={value.title}>
+              <span
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold"
+                style={{
+                  backgroundColor: "var(--immifin-ds2-blue-soft)",
+                  color: "var(--immifin-ds2-blue)",
+                }}
+                aria-hidden="true"
+              >
                 {value.icon}
               </span>
-              <h3 className="heading-3 mt-5">{value.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{value.description}</p>
-            </div>
+              <h3 className="mt-4 text-base font-bold tracking-tight text-[color:var(--immifin-ds2-text-primary)]">
+                {value.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-[color:var(--immifin-ds2-text-muted)]">
+                {value.description}
+              </p>
+            </Ds2Card>
           ))}
         </div>
-      </WorkspaceSection>
+      </section>
 
-      <WorkspaceSection id="articles" className="scroll-mt-24">
-        <h2 className="heading-2">Latest Articles</h2>
-        <p className="max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-          Stay up to date with immigration policy changes and financial tips for newcomers.
-        </p>
-        <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+      <section id="articles" className="scroll-mt-24">
+        <Ds2SectionHeader
+          title="Latest Articles"
+          titleAs="h2"
+          description="Stay up to date with immigration policy changes and financial tips for newcomers."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {articles.map((article) => (
-            <ArticleCard key={article.slug} article={article} />
+            <Ds2Card key={article.slug} as="article">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--immifin-ds2-text-muted)]">
+                {article.category}
+              </p>
+              <h3 className="mt-2 text-sm font-bold leading-snug text-[color:var(--immifin-ds2-text-primary)]">
+                <Link
+                  href="/about#articles"
+                  className="transition-colors hover:text-[color:var(--immifin-ds2-blue)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--immifin-ds2-navy)]"
+                >
+                  {article.title}
+                </Link>
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-[color:var(--immifin-ds2-text-muted)]">
+                {article.excerpt}
+              </p>
+            </Ds2Card>
           ))}
         </div>
-      </WorkspaceSection>
+      </section>
 
-      <CtaBanner
-        title="Get in Touch"
-        description="Have a question or suggestion? We'd love to hear from you."
-        primaryCta={{ href: "/contact", label: "Contact Us" }}
-      />
-    </PageHeader>
+      <section>
+        <Ds2Card className="ds2-public-cta">
+          <Ds2SectionHeader
+            title="Get in Touch"
+            titleAs="h2"
+            description="Have a question or suggestion? We'd love to hear from you."
+          />
+          <Link href="/contact" className="ds2-public-cta-link">
+            Contact Us
+          </Link>
+        </Ds2Card>
+      </section>
+    </Ds2PublicPageShell>
   );
 }

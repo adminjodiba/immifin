@@ -69,8 +69,8 @@ export function DashboardActionCenterCard({
   const actions = getDashboardActionCenterItems(journeyStage, focusId);
 
   return (
-    <section className="card-static overflow-x-auto">
-      <h2 className="heading-3 text-slate-900">Action Center</h2>
+    <section className="ds2-card-static overflow-x-auto">
+      <h2 className="ds2-workspace-heading">Action Center</h2>
       <p className="mt-1 text-sm text-slate-600">{ACTION_CENTER_SUBTITLE}</p>
       <table className="mt-4 w-full min-w-[32rem] text-left">
         <thead>

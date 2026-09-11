@@ -141,6 +141,8 @@ Verify: `http://localhost:3000` loads.
 cloudflared tunnel run immifin-dev
 ```
 
+If that command cannot start (missing credentials file) or `https://dev.immifin.com` still returns **530**, use [Development tunnel recovery](#development-tunnel-recovery-current-windows-workaround) — do not treat 530 as an application defect.
+
 Or set a custom tunnel name:
 
 ```powershell
@@ -158,10 +160,12 @@ cloudflared tunnel info immifin-dev
 
 Confirm:
 
-- Tunnel status is **Healthy** (or connections are active)
-- `https://dev.immifin.com` resolves and reaches your local app
+- Tunnel status is **Healthy** (or connections are **active**)
+- `https://dev.immifin.com` returns **HTTP 200** (see recovery section for `curl` checks)
 
-Quick check in browser: open `https://dev.immifin.com` — it should show the same app as localhost.
+`cloudflared tunnel info immifin-dev` may be used as an additional check. A Windows **Cloudflared** service status of **Running** is **not** sufficient — the service can be Running with zero connectors.
+
+Quick check: `https://dev.immifin.com` should show the same app as localhost.
 
 ### Critical note — tunnel must be running
 
@@ -180,13 +184,75 @@ If the Cloudflare tunnel is **DOWN**, the following **will fail**:
 
 ---
 
+## Development tunnel recovery (current Windows workaround)
+
+**Status:** current **development-environment workaround** — not permanent architecture. Named tunnel: `immifin-dev`. Hostname: `https://dev.immifin.com`. Origin: `http://localhost:3000`. Validated with **cloudflared 2026.8.2** (explicit Cloudflare DNS + HTTP/2). The Windows Cloudflared **service persistence issue is unresolved** (infrastructure cleanup; do not “fix” the service as part of product work).
+
+The Windows **Cloudflared** service may stay **Running** while the named tunnel has **zero** active connectors (`/ready` may return **503**; metrics may show repeated registration failures). **Do not** treat service **Running** as tunnel health.
+
+### Token security (mandatory)
+
+The tunnel token is a **secret**. Use the placeholder `<CLOUDFLARE_TUNNEL_TOKEN>` in docs and examples.
+
+- **Never** put the real token in source, Git, documentation, Cursor/chat, or committed logs.
+- Cursor must **never** ask anyone to paste the real token into chat.
+- The developer supplies the token **only on their machine**.
+- Do **not** paste a completed command (with a real token) or `cloudflared` output that might contain the token into AI/chat/documentation.
+- The token was **rotated** after an accidental exposure; never reuse an old token.
+
+### 1. Stop the Windows service before a manual start
+
+Administrator PowerShell:
+
+```powershell
+Stop-Service Cloudflared
+```
+
+Then confirm localhost is healthy (`http://localhost:3000`) before starting the tunnel.
+
+### 2. Known-good manual start
+
+Keep this terminal **running** for the whole validation session:
+
+```powershell
+cloudflared tunnel run --dns-resolver-addrs 1.1.1.1:53 --dns-resolver-addrs 1.0.0.1:53 --protocol http2 --token <CLOUDFLARE_TUNNEL_TOKEN>
+```
+
+Replace `<CLOUDFLARE_TUNNEL_TOKEN>` locally. Do not commit or share the completed line.
+
+### 3. Validate
+
+```powershell
+curl.exe -I https://dev.immifin.com
+```
+
+Expected: **HTTP 200**.
+
+SEO / sitemap work also:
+
+```powershell
+curl.exe -I https://dev.immifin.com/sitemap.xml
+```
+
+Expected: **HTTP 200** and `Content-Type: application/xml`.
+
+Optional extra check: `cloudflared tunnel info immifin-dev` (look for **active connections**, not only that a process exists).
+
+### Interpreting Cloudflare 530 on `dev.immifin.com`
+
+A **530** can mean the named tunnel has **no active connector**. First check localhost and tunnel connectivity **separately**.
+
+**Do not** immediately change IMMIFIN application code, Clerk middleware, Production, DNS, or caching because of a 530. For this Windows/cloudflared environment, use the explicit DNS + HTTP/2 invocation above.
+
+---
+
 ## Local verification checklist
 
 Before testing any feature (especially auth, profile, or webhooks):
 
 - [ ] `npm run build` passes
 - [ ] `http://localhost:3000` loads
-- [ ] Cloudflare tunnel is running (`npm run dev:local` or manual tunnel)
+- [ ] Cloudflare tunnel is healthy (`https://dev.immifin.com` HTTP **200**). If 530, use **Development tunnel recovery**. Service **Running** is not enough.
 - [ ] `https://dev.immifin.com` loads
 - [ ] Clerk Dev webhook endpoint is reachable (`https://dev.immifin.com/api/webhooks/clerk`)
 - [ ] Supabase connected (profile APIs return data, not config errors)
@@ -222,7 +288,7 @@ https://immifin.com/api/webhooks/clerk
 | Code | Meaning |
 |------|---------|
 | **200** | Success — webhook verified and handled |
-| **530 / 1033** | Tunnel offline — start `cloudflared tunnel run immifin-dev` |
+| **530 / 1033** | Tunnel offline / no connector — see [Development tunnel recovery](#development-tunnel-recovery-current-windows-workaround); do not change application or Production config first |
 | **400** | Webhook verification failed — check signing secret or payload |
 | **401** | Auth / middleware blocked request (should not happen on webhook route) |
 | **500** | Application or Supabase error — check server logs |

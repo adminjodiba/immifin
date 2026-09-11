@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { SiteShell } from "@/components/SiteShell";
+import { clerkAuthLocalization } from "@/lib/clerk/signIn";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
@@ -52,7 +53,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans">
-        <ClerkProvider signInUrl="/login" signUpUrl="/signup">
+        <ClerkProvider
+          signInUrl="/login"
+          signUpUrl="/signup"
+          localization={clerkAuthLocalization}
+        >
           <SiteShell>{children}</SiteShell>
         </ClerkProvider>
       </body>

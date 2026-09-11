@@ -5,7 +5,7 @@ type FutureModuleCardProps = {
 
 export function FutureModuleCard({ title, description }: FutureModuleCardProps) {
   return (
-    <article className="card-static flex h-full flex-col border-dashed bg-slate-50/40 opacity-90">
+    <article className="ds2-card-static flex h-full flex-col border-dashed bg-slate-50/40 opacity-90">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         Coming Soon
       </p>
@@ -29,7 +29,7 @@ const futureModules = [
 export function FutureExpansionSection() {
   return (
     <section aria-labelledby="future-expansion">
-      <h2 id="future-expansion" className="heading-3 mb-4 text-slate-900">
+      <h2 id="future-expansion" className="ds2-workspace-heading mb-4">
         Coming Soon
       </h2>
       <p className="mb-5 text-sm text-slate-600">

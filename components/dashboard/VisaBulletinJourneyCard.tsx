@@ -461,7 +461,7 @@ export function VisaBulletinJourneyCard({ timeline }: VisaBulletinJourneyCardPro
   const cardSubtitle = getCardSubtitle(timeline.title, timeline.subtitle);
 
   return (
-    <section className={`card-static overflow-hidden border !py-3 sm:!py-4 ${cardBorderClass(timeline)}`}>
+    <section className={`ds2-card-static overflow-hidden border !py-3 sm:!py-4 ${cardBorderClass(timeline)}`}>
       <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <h2 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg sm:justify-self-start">
           {getCardTitle(timeline.title)}

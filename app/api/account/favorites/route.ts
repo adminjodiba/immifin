@@ -10,7 +10,7 @@ import {
 import { authErrorResponse } from "@/lib/auth/http";
 import { CAPABILITY, canAccessFavorites } from "@/lib/subscription/capabilities";
 import { assertCapability } from "@/lib/subscription/requireCapability";
-import { getStoredSubscriptionTier } from "@/lib/subscription/service";
+import { resolveSubscriptionEntitlement } from "@/lib/subscription/resolveSubscriptionEntitlement";
 import { requireUser } from "@/lib/auth/requireUser";
 import { updateImmigrationProfilePreferences } from "@/lib/supabase/profiles";
 
@@ -19,9 +19,10 @@ export const runtime = "nodejs";
 export async function GET() {
   try {
     const profileWithRelations = await requireUser();
-    const tier = getStoredSubscriptionTier({
+    const { tier } = resolveSubscriptionEntitlement({
       profile: profileWithRelations.profile,
       subscription: profileWithRelations.subscription,
+      clerkUserId: profileWithRelations.profile.clerk_user_id,
     });
     const preferences = profileWithRelations.immigrationProfile?.preferences ?? {};
     const favorites = readFavorites(preferences);

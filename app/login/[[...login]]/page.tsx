@@ -1,5 +1,6 @@
 import { SignIn } from "@clerk/nextjs";
-import { ClerkAuthShell } from "@/components/auth/ClerkAuthShell";
+import { Ds2AuthPageShell } from "@/components/ds2/Ds2AuthPageShell";
+import { ds2ClerkSignInAppearance } from "@/lib/clerk/ds2AuthAppearance";
 import { clerkSignInProps } from "@/lib/clerk/signIn";
 import { sanitizeReturnPath } from "@/lib/auth/signInRedirect";
 import { createMetadata } from "@/lib/metadata";
@@ -21,11 +22,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     : clerkSignInProps.fallbackRedirectUrl;
 
   return (
-    <ClerkAuthShell
-      title="Welcome back"
+    <Ds2AuthPageShell
       description="Sign in to access your Immifin account."
+      promise="Know where you stand. Stay informed when things change."
     >
-      <SignIn {...clerkSignInProps} fallbackRedirectUrl={redirectUrl} />
-    </ClerkAuthShell>
+      <SignIn
+        {...clerkSignInProps}
+        appearance={ds2ClerkSignInAppearance}
+        fallbackRedirectUrl={redirectUrl}
+      />
+    </Ds2AuthPageShell>
   );
 }

@@ -6,7 +6,7 @@ type LockedFeatureCardProps = {
 
 export function LockedFeatureCard({ title, tier, description }: LockedFeatureCardProps) {
   return (
-    <article className="card-static flex h-full flex-col border-dashed bg-slate-50/60">
+    <article className="ds2-card-static flex h-full flex-col border-dashed bg-slate-50/60">
       <div className="flex items-start gap-3">
         <span className="text-lg" aria-hidden="true">
           🔒
@@ -49,7 +49,7 @@ const lockedFeatures = [
 export function LockedPremiumFeaturesSection() {
   return (
     <section aria-labelledby="locked-premium-features">
-      <h2 id="locked-premium-features" className="heading-3 mb-4 text-slate-900">
+      <h2 id="locked-premium-features" className="ds2-workspace-heading mb-4">
         Premium Features
       </h2>
       <p className="mb-5 text-sm text-slate-600">

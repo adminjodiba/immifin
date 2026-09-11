@@ -3,16 +3,35 @@ import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 
 type HeroProps = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   primaryCta?: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
   compact?: boolean;
+  /** Compact ribbon eyebrow badge. Defaults to true so `/` stays unchanged. */
+  showEyebrow?: boolean;
+  /** Heading element for compact ribbon. Defaults to h1 so `/` stays unchanged. */
+  headingAs?: "h1" | "h2";
+  /** Optional extra classes on the compact section wrapper (e.g. bottom padding). */
+  className?: string;
+  /** Compact ribbon outer container. Defaults to container-main so `/` stays unchanged. */
+  containerClassName?: string;
 };
 
-export function Hero({ title, subtitle, primaryCta, secondaryCta, compact = false }: HeroProps) {
+export function Hero({
+  title,
+  subtitle,
+  primaryCta,
+  secondaryCta,
+  compact = false,
+  showEyebrow = true,
+  headingAs = "h1",
+  className = "",
+  containerClassName = "container-main",
+}: HeroProps) {
   if (compact) {
+    const TitleTag = headingAs;
     return (
-      <section className="container-main pt-5 sm:pt-6">
+      <section className={`${containerClassName} pt-5 sm:pt-6 ${className}`.trim()}>
         <div className="hero-ribbon relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 shadow-lg shadow-brand-700/15 sm:rounded-3xl">
           <div className="pointer-events-none absolute -right-16 -top-16 z-0 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div
@@ -25,20 +44,24 @@ export function Hero({ title, subtitle, primaryCta, secondaryCta, compact = fals
           </div>
 
           <div className="relative z-10 px-5 py-8 sm:px-8 sm:py-10">
-            <div className="mx-auto w-full max-w-3xl text-center">
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100">
-                Immigration &amp; Finance
-              </span>
-            </div>
-            <div className="hero-ribbon-title-rail mt-3 sm:mt-4">
+            {showEyebrow ? (
+              <div className="mx-auto w-full max-w-3xl text-center">
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100">
+                  Immigration &amp; Finance
+                </span>
+              </div>
+            ) : null}
+            <div className={`hero-ribbon-title-rail ${showEyebrow ? "mt-3 sm:mt-4" : ""}`}>
               <div className="hero-ribbon-title-shuttle">
-                <h1 className="hero-ribbon-title-float whitespace-nowrap text-[clamp(0.9rem,3.8vw,2.25rem)] font-bold leading-tight tracking-tight text-white">
+                <TitleTag className="hero-ribbon-title-float whitespace-nowrap text-[clamp(0.9rem,3.8vw,2.25rem)] font-bold leading-tight tracking-tight text-white">
                   {title}
-                </h1>
+                </TitleTag>
               </div>
             </div>
             <div className="mx-auto mt-2 w-full max-w-3xl text-center sm:mt-3">
-              <p className="text-sm leading-relaxed text-blue-100 sm:text-base">{subtitle}</p>
+              {subtitle ? (
+                <p className="text-sm leading-relaxed text-blue-100 sm:text-base">{subtitle}</p>
+              ) : null}
               {(primaryCta || secondaryCta) && (
                 <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
                   {primaryCta && (
@@ -78,7 +101,9 @@ export function Hero({ title, subtitle, primaryCta, secondaryCta, compact = fals
             </h1>
             <FavoriteStar pageLabel="Home" pageHref="/" variant="onDark" />
           </div>
-          <p className="mt-6 text-base leading-relaxed text-blue-100 sm:text-xl">{subtitle}</p>
+          {subtitle ? (
+            <p className="mt-6 text-base leading-relaxed text-blue-100 sm:text-xl">{subtitle}</p>
+          ) : null}
           {(primaryCta || secondaryCta) && (
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               {primaryCta && (

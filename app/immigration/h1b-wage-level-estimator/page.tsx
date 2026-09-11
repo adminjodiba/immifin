@@ -1,5 +1,5 @@
+import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { H1bWageLevelEstimator } from "@/components/H1bWageLevelEstimator";
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -11,10 +11,8 @@ export const metadata = createMetadata({
 
 export default function H1bWageLevelEstimatorPage() {
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-4 sm:py-5">
-        <H1bWageLevelEstimator />
-      </div>
-    </WorkspacePageShell>
+    <Ds2CalculatorPageShell>
+      <H1bWageLevelEstimator />
+    </Ds2CalculatorPageShell>
   );
 }

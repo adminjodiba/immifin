@@ -71,7 +71,7 @@ Admins can switch **Free / Pro / Power** without Stripe even when `NEXT_PUBLIC_D
 
 | File | Role |
 |------|------|
-| `lib/subscription/devSubscriptionAccess.ts` | `canUseDevSubscriptionTools(role)` |
+| `lib/subscription/devSubscriptionAccess.ts` | `canUseDevSubscriptionTools(userId)` — dedicated local test user only |
 | `lib/hooks/useCanUseDevSubscriptionTools.ts` | Client UI gate |
 | `app/api/account/subscription/route.ts` | PATCH allowed for admin or dev mode |
 

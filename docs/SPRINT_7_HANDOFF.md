@@ -8,7 +8,7 @@
 | **As-built record** | 2026-07-20 (S7-DOC-002; UX follow-up same day) |
 | **LIVE Free→Pro Monthly** | **PASS** — 2026-08-24 ([S7-OPS-STRIPE-032 signoff](./S7_OPS_STRIPE_032_LIVE_FREE_PRO_MONTHLY_E2E_SIGNOFF.md)) |
 | **LIVE Pro→Power Monthly** | **Technical PASS** — 2026-08-24 ([S7-OPS-STRIPE-033 signoff](./S7_OPS_STRIPE_033_LIVE_PRO_POWER_MONTHLY_E2E_SIGNOFF.md)); UX enhancement required |
-| **Status** | **Implementation complete** — LIVE Free→Pro + Pro→Power technical paths validated; **S7-BILLING-UX-002–008D** billing UX code done; **S7-BILLING-UX-008E** full Stripe **TEST E2E PASS** ([signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)). **TEST validated. Not Production-deployed.** |
+| **Status** | **Implementation complete** — LIVE Free→Pro + Pro→Power technical paths validated; **S7-BILLING-UX-002–008D** billing UX **Production-deployed** 2026-08-25 ([REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md): `8f01cd67` / Worker `1200e05b-6732-427d-9c85-6b995cbcbb8f`); **S7-BILLING-UX-008E** full Stripe **TEST E2E PASS** ([signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)). **LIVE UX-002–008D lifecycle validation not yet performed.** **S7-PROD-NOTIFY-FIX-001** Monthly Update campaign month aligned locally ([signoff](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) — **not Production-deployed; September bulk send not authorized.** |
 | **Previous sprint** | Sprint 6 — Notification Platform (production validated) |
 | **Previous handoff** | [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) |
 

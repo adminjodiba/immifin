@@ -2,6 +2,7 @@ import {
   PremiumFeaturePreview,
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
+import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaBulletinMovementTracker2 } from "@/components/VisaBulletinMovementTracker2";
 import { CAPABILITY } from "@/lib/subscription/capabilities";
 import { createMetadata } from "@/lib/metadata";
@@ -77,18 +78,20 @@ export default async function VisaBulletinMovementPage() {
     formatBulletinColumnLabel(previousMonth) ?? "Previous Bulletin";
 
   return (
-    <PremiumFeaturePreview
-      capability={CAPABILITY.movementTracker}
-      featureGroupTitle="Movement Intelligence"
-      featureList={[...MOVEMENT_TRACKER_FEATURES]}
-      showCloseButton
-      infoState={MOVEMENT_TRACKER_INFO_STATE}
-    >
-      <VisaBulletinMovementTracker2
-        bulletinMonthLabel={bulletinMonthLabel}
-        previousBulletinColumnLabel={previousBulletinColumnLabel}
-        currentBulletinColumnLabel={currentBulletinColumnLabel}
-      />
-    </PremiumFeaturePreview>
+    <Ds2DataPageShell>
+      <PremiumFeaturePreview
+        capability={CAPABILITY.movementTracker}
+        featureGroupTitle="Movement Intelligence"
+        featureList={[...MOVEMENT_TRACKER_FEATURES]}
+        showCloseButton
+        infoState={MOVEMENT_TRACKER_INFO_STATE}
+      >
+        <VisaBulletinMovementTracker2
+          bulletinMonthLabel={bulletinMonthLabel}
+          previousBulletinColumnLabel={previousBulletinColumnLabel}
+          currentBulletinColumnLabel={currentBulletinColumnLabel}
+        />
+      </PremiumFeaturePreview>
+    </Ds2DataPageShell>
   );
 }

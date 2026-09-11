@@ -8,7 +8,6 @@
 import Link from "next/link";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
@@ -766,12 +765,12 @@ export function VisaBulletinMovementTracker2({
   };
 
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-5 sm:py-6 lg:py-7">
+    <>
+      <div>
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-start gap-3">
-              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
+              <span className="ds2-data-page-icon">
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                   <path
                     d="M4 16l5-5 4 4 7-9"
@@ -784,7 +783,7 @@ export function VisaBulletinMovementTracker2({
               </span>
               <div className="min-w-0">
                 <div className="flex items-start gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-brand-900 sm:text-3xl">
+                  <h1 className="ds2-data-page-title">
                     Visa Bulletin Movement Tracker
                   </h1>
                   <FavoriteStar
@@ -792,7 +791,7 @@ export function VisaBulletinMovementTracker2({
                     pageHref="/immigration/visa-bulletin-movement"
                   />
                 </div>
-                <p className="mt-1 max-w-xl text-sm text-slate-600">
+                <p className="ds2-data-page-description">
                   Compare Visa Bulletin movements between two consecutive months.
                 </p>
               </div>
@@ -981,6 +980,6 @@ export function VisaBulletinMovementTracker2({
           </p>
         </div>
       </div>
-    </WorkspacePageShell>
+    </>
   );
 }

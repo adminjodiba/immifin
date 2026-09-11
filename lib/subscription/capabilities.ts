@@ -103,6 +103,12 @@ export function canAccessPersonalDashboard(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessPersonalDashboard");
 }
 
+/**
+ * Historical Pro capability for immigration-profile persistence.
+ * My Profile Immigration / Green Card data entry is available to all signed-in
+ * users and is not gated by this helper. Premium consumption of that data
+ * (dashboard, tracking, calculator autofill) uses other capabilities.
+ */
 export function canAccessSaveImmigrationProfile(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessSaveImmigrationProfile");
 }
@@ -123,7 +129,11 @@ export function canAccessEmailAlerts(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessEmailAlerts");
 }
 
-/** Notification preferences and automated alerts (Pro automation). */
+/**
+ * Historical Pro capability for notification preference UI.
+ * My Profile Notifications preference storage is available to all signed-in
+ * users. Automated email delivery remains `accessEmailAlerts`.
+ */
 export function canAccessNotifications(tier: SubscriptionTier): boolean {
   return hasCapability(tier, "accessNotifications");
 }

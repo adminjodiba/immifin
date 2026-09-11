@@ -14,7 +14,7 @@ type GreenCardHolderDashboardProps = {
 function ImmigrationJourneySectionTitle() {
   return (
     <header>
-      <h2 className="heading-3 text-slate-900">Immigration Journey</h2>
+      <h2 className="ds2-workspace-heading">Immigration Journey</h2>
     </header>
   );
 }

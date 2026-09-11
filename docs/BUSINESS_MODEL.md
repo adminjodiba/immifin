@@ -350,7 +350,7 @@ Internal product access model. After Sprint 7, verified Stripe billing sync upda
 | `accessPersonalDashboard` | Full personalized My Immifin dashboard |
 | `accessSaveImmigrationProfile` | Save immigration / green card profile data |
 | `accessPriorityDateTracking` | Priority date tracking on personalized dashboard |
-| `accessAI` | AI assistant and intelligence features |
+| `accessAI` | AI assistant and intelligence features (server-enforced on `POST /api/intelligence/ask`; Power UI at `/intelligence` — S8-IIP-008/009; single-turn only) |
 | `accessMultipleProfiles` | Multiple saved immigration profiles |
 | `accessEmailAlerts` | Email alert notifications |
 | `accessNotifications` | Notification preferences and automated alerts |
@@ -579,3 +579,5 @@ These principles apply to all subscription-gated surfaces. See also [PRODUCT_VIS
 | v2.1 | 2026-07-11 | S7-DOC-001 | Approved Beta launch pricing (Pro/Power monthly + annual); no coupons/trials; link Stripe design |
 | v2.2 | 2026-07-20 | S7-DOC-009 | Post–Sprint 7 commercial strategy — journey, revenue, capabilities, commercial status; Billing Center |
 | v2.3 | 2026-07-20 | S7-UI follow-up | Shared My Immifin menu across tiers; guest Login Required modal over Home; nav chrome gating |
+| v2.4 | 2026-07-25 | S8-IIP-008 | Note server-side `accessAI` enforcement on Authenticated Intelligence API (no chat UI) |
+| v2.5 | 2026-07-25 | S8-IIP-009 | Note Power Intelligence Workspace UI at `/intelligence` (single-turn) |

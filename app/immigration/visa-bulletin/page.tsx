@@ -1,3 +1,4 @@
+import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaBulletinDashboard2 } from "@/components/VisaBulletinDashboard2";
 import { createMetadata } from "@/lib/metadata";
 import {
@@ -16,5 +17,9 @@ export default async function ImmigrationVisaBulletinPage() {
   const latestMonth = await getLatestVisaBulletinMonth();
   const bulletinMonthLabel = latestMonth ? formatVisaBulletinMonthShort(latestMonth) : null;
 
-  return <VisaBulletinDashboard2 bulletinMonthLabel={bulletinMonthLabel} />;
+  return (
+    <Ds2DataPageShell>
+      <VisaBulletinDashboard2 bulletinMonthLabel={bulletinMonthLabel} />
+    </Ds2DataPageShell>
+  );
 }

@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-07-04 |
+| **Last Updated** | 2026-08-29 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -165,6 +165,16 @@ Every significant feature requires the following sequence:
 
 **No major feature begins with code. Inspect and explain architecture first.**
 
+### Cursor task standard (ENG-STD-001)
+
+All Cursor stories inherit the master execution standard:
+
+[ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md](./ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md)
+
+Hierarchy: **Master template → specialized template → story prompt**. Story prompts must not weaken the master standard. Prefer Mode A (repository reference). Use Mode B (full copy) for high-risk or production-ops prompts.
+
+Preserve pre-existing worktree changes. For runtime/code changes: stop IMMIFIN dev services before edits, restart for localhost validation, and verify the Cloudflare development tunnel when the story requires it. Do not silently waive a required `dev.immifin.com` gate. Do not misreport intentional process stops as crashes. **Product Owner review precedes commit/push** unless the story explicitly authorizes Git/release actions.
+
 ---
 
 ## 8. Git & Development Workflow v2.0
@@ -274,17 +284,30 @@ See [DEVELOPER_SETUP.md § Release checklist](./DEVELOPER_SETUP.md#release-check
 - **Sprint completion requires `PROJECT_STATUS.md` updates.**
 - **Debugging infrastructure longer than 15 minutes** requires updating `SYSTEM_ARCHITECTURE.md` with findings before continuing.
 
-### Mandatory Cloudflare tunnel workflow (auth & webhooks)
+### Mandatory Cloudflare tunnel workflow
 
-When work involves **Clerk, authentication, webhooks, user lifecycle, profile synchronization, email OTP, or contact onboarding**, the developer **must**:
+When work involves **Clerk, authentication, webhooks, user lifecycle, profile synchronization, email OTP, contact onboarding**, or any story that requires **`https://dev.immifin.com`** (including SEO/sitemap localhost-via-tunnel checks), the developer **must** keep the development tunnel healthy. Procedure: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) (daily workflow + **Development tunnel recovery**).
 
-1. Start the Cloudflare development tunnel (`npm run dev:local` or `cloudflared tunnel run immifin-dev`).
-2. Verify the tunnel is healthy before testing (`cloudflared tunnel info immifin-dev`; `https://dev.immifin.com` loads).
-3. Verify Clerk webhook delivery (**200** in Dashboard → Webhooks → Message Attempts) before concluding there is an application code bug.
+If Clerk webhooks or `https://dev.immifin.com` return **530 / 1033**, the named tunnel likely has **no active connector** — not an application, Clerk, Production, DNS, or cache defect. Validate localhost and the tunnel independently first. Do not change IMMIFIN application code or Production configuration because of this condition.
 
-If Clerk webhooks return **530 / 1033**, the tunnel is offline — not an application defect.
+A Windows **Cloudflared** service status of **Running** is **not** tunnel-health evidence. The current explicit DNS + HTTP/2 manual start is a **development-environment workaround**; the Windows service persistence issue remains infrastructure cleanup.
 
-Implementation instructions from the Technical Architect (ChatGPT) for the above areas **must** include this reminder. This is mandatory for IMMIFIN.
+#### Cursor: when a task requires the development tunnel
+
+Whenever a Cursor task requires the Cloudflare development tunnel for localhost validation, Cursor **must**:
+
+1. Check whether `https://dev.immifin.com` is healthy.
+2. If the hostname is unavailable or returns **530**, use the documented known-good startup in [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) (**Development tunnel recovery**).
+3. Stop the Windows **Cloudflared** service if it is occupying the connector (`Stop-Service Cloudflared` in Administrator PowerShell).
+4. Ask the developer to supply/use the tunnel token **only on their machine**.
+5. **Never** request that the token be pasted into Cursor/chat. **Never** print or echo the real token in a completion report.
+6. Execute or instruct execution of the canonical command with **explicit Cloudflare DNS resolvers** and **HTTP/2**, using the placeholder `<CLOUDFLARE_TUNNEL_TOKEN>` in any written example.
+7. Verify the development hostname returns the expected HTTP response (`curl.exe -I https://dev.immifin.com` → **200**; sitemap work also `https://dev.immifin.com/sitemap.xml` → **200**, `Content-Type: application/xml`).
+8. Only then proceed with the development/release validation gate.
+
+Do **not** silently waive the development-tunnel validation requirement.
+
+Implementation instructions from the Technical Architect (ChatGPT) for auth/webhook areas **must** include this reminder. This is mandatory for IMMIFIN.
 
 ---
 
@@ -309,7 +332,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 - **Do not hardcode production secrets into source code.**
 - **Do not modify deployment configuration while simultaneously changing application features.**
 - **Always verify localhost before pushing.**
-- **Always verify dev.immifin.com (tunnel healthy) before webhook or auth testing — and before production when those areas changed.**
+- **Always verify `dev.immifin.com` (tunnel healthy) before webhook, auth, or other tunnel-required validation — and before production when those areas changed.** HTTP **530** is a missing connector until proven otherwise; do not waive the gate. Service **Running** is not health.
 - **Always verify production immediately after Cloudflare deployment.**
 - **Use the Movement Tracker architecture as the reference implementation** for future interactive Visa Bulletin features.
 
@@ -344,7 +367,7 @@ Hard-won rules from the 2026-06-27 infrastructure and Visa Bulletin work:
 
 **Symptom:** Cloudflare HTTP **530**, Error **1033**.
 
-**Resolution:** Start tunnel (`npm run dev:local`); confirm Clerk Message Attempts return **200**; then re-test or replay webhook.
+**Resolution:** Restore a healthy development tunnel per [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) (including **Development tunnel recovery** if `dev.immifin.com` is 530 / the Windows service is Running with no connector). Confirm Clerk Message Attempts return **200**; then re-test or replay webhook.
 
 **Rule:** Verify infrastructure before debugging application logic. Documented in [DEVELOPER_SETUP.md § Lessons learned](./DEVELOPER_SETUP.md#lessons-learned).
 
@@ -480,6 +503,8 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 | v2.3 | 2026-07-04 | Roadmap revision procedure; Sprint 5 handoff references (S4-005.16). |
 | v2.4 | 2026-07-05 | Deployment best practices; Cloudflare Build vs Runtime variables (S5-ENG-004). |
 | v2.5 | 2026-07-10 | Link AI Engineering Framework (`docs/ENGINEERING_FRAMEWORK/`) — S6-DOC-008 |
+| v2.6 | 2026-07-25 | Master Cursor Task Template hierarchy (ENG-STD-001); Product Owner review before commit/push by default |
+| v2.7 | 2026-08-29 | Cloudflare development-tunnel recovery (S7A-SEO-003A-DOC); Cursor must not waive `dev.immifin.com` gates; token never in chat |
 
 ---
 
@@ -487,7 +512,8 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 
 | Document | Contents |
 |----------|----------|
-| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | **AI Engineering Framework** — task templates and agent guidelines (start here for Cursor task prompts) |
+| [ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md](./ENGINEERING_FRAMEWORK/IMMIFIN_CURSOR_TASK_TEMPLATE.md) | **Master Cursor task template** — mandatory universal execution baseline |
+| [ENGINEERING_FRAMEWORK/README.md](./ENGINEERING_FRAMEWORK/README.md) | **AI Engineering Framework** — specialized task templates and agent guidelines |
 | [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) | Local dev, tunnel, webhooks, release checklist |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build commands and Cloudflare configuration (summary) |
 | [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) | Full Cloudflare deployment guide |

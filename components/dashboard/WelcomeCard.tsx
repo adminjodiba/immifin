@@ -4,9 +4,9 @@ type WelcomeCardProps = {
 
 export function WelcomeCard({ name }: WelcomeCardProps) {
   return (
-    <section className="card-static">
-      <p className="text-sm font-medium text-brand-600">Your IMMIFIN home</p>
-      <h2 className="heading-3 mt-2 text-slate-900">
+    <section className="ds2-card-static">
+      <p className="ds2-workspace-kicker">Your IMMIFIN home</p>
+      <h2 className="ds2-workspace-heading mt-2">
         Welcome, {name} 👋
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">

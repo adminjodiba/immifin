@@ -2,7 +2,8 @@ export const runtime = "nodejs";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { getEffectivePlan } from "@/lib/account/plan";
+import { resolveEntitlementPlan } from "@/lib/account/plan";
+import { canUseDevSubscriptionTools } from "@/lib/subscription/devSubscriptionAccess";
 import {
   CONTACT_LIMITS,
   type ContactEmailAttachment,
@@ -76,7 +77,13 @@ async function resolveTrustedIdentity(): Promise<{
   try {
     const profileWithRelations = await getProfileWithRelationsByClerkId(userId);
     if (profileWithRelations) {
-      plan = getEffectivePlan(profileWithRelations.profile, profileWithRelations.subscription);
+      plan = resolveEntitlementPlan({
+        profile: profileWithRelations.profile,
+        subscription: profileWithRelations.subscription,
+        developmentSimulationActive: canUseDevSubscriptionTools(
+          profileWithRelations.profile.clerk_user_id,
+        ),
+      });
     }
   } catch (error) {
     console.error("[contact] failed to load account plan for contact submission");

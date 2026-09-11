@@ -2,6 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { MyProfileQuadrant } from "@/components/profile/MyProfileQuadrant";
 import {
   PROFILE_SECTION_IDS,
   useOptionalProfileDirtyState,
@@ -12,17 +13,13 @@ import {
   parseE164Phone,
   stripPhoneInput,
 } from "@/lib/account/countryCodes";
+import { fetchAccountMe } from "@/lib/account/fetchAccountMe";
 import { buildSignupContactMetadata } from "@/lib/clerk/signupMetadata";
 import { readJsonResponseBody } from "@/lib/http/readJsonResponse";
-import type { ImmigrationProfile, Profile } from "@/lib/supabase/types";
+import type { Profile } from "@/lib/supabase/types";
 
 const PHONE_DISCLAIMER =
   "Your phone number may be used to send immigration alerts and notifications based on your communication preferences.";
-
-type AccountMeResponse = {
-  profile: Profile;
-  immigrationProfile: ImmigrationProfile | null;
-};
 
 type ContactProfileSectionProps = {
   variant?: "profile" | "onboarding";
@@ -90,8 +87,7 @@ export function ContactProfileSection({
       setError(null);
 
       try {
-        const response = await fetch("/api/account/me");
-        const result = await readJsonResponseBody<AccountMeResponse>(response);
+        const result = await fetchAccountMe();
 
         if (!result.ok) {
           throw new Error(result.error);
@@ -140,6 +136,10 @@ export function ContactProfileSection({
   }, []);
 
   const saveContactDetails = useCallback(async () => {
+    if (!hasLoadedRef.current) {
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -230,47 +230,164 @@ export function ContactProfileSection({
     }
   }
 
-  const heading =
-    variant === "profile" ? "Contact" : "Complete your contact preferences";
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || user?.fullName || "";
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  if (variant === "onboarding") {
+    return (
+      <form
+        className="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        onSubmit={(event) => void handleSubmit(event)}
+      >
+        <div>
+          <h2 className="ds2-workspace-heading">Complete your contact preferences</h2>
+          <p className="mt-2 text-sm text-slate-600">Add your phone number to complete account setup.</p>
+        </div>
 
-  const description =
-    variant === "profile"
-      ? "Your IMMIFIN contact phone for alerts and notifications. This is separate from your Clerk sign-in credentials."
-      : "Add your phone number to complete account setup.";
+        {isLoading ? (
+          <p className="text-sm text-slate-600">Loading contact details...</p>
+        ) : (
+          <>
+            <div>
+              <label
+                htmlFor="contact-countryCode"
+                className="block text-sm font-semibold text-slate-900"
+              >
+                Country code <span className="text-red-600">*</span>
+              </label>
+              <select
+                id="contact-countryCode"
+                name="countryCode"
+                className="input-field"
+                value={countryCodePreset}
+                onChange={(event) => setCountryCodePreset(event.target.value)}
+                required
+              >
+                {presetOptions.map((option) => (
+                  <option key={option.key} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-  const formClassName =
-    variant === "profile" ? "space-y-5 p-1" : "space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm";
+            {isOtherCountryCode && (
+              <div>
+                <label
+                  htmlFor="contact-customCountryCode"
+                  className="block text-sm font-semibold text-slate-900"
+                >
+                  Custom country code <span className="text-red-600">*</span>
+                </label>
+                <input
+                  id="contact-customCountryCode"
+                  name="customCountryCode"
+                  type="text"
+                  className="input-field"
+                  value={customCountryCode}
+                  onChange={(event) => setCustomCountryCode(event.target.value)}
+                  required
+                  placeholder="+353"
+                  pattern="\+\d{1,4}"
+                />
+              </div>
+            )}
+
+            <div>
+              <label
+                htmlFor="contact-phoneLocalNumber"
+                className="block text-sm font-semibold text-slate-900"
+              >
+                Phone number <span className="text-red-600">*</span>
+              </label>
+              <input
+                id="contact-phoneLocalNumber"
+                name="phoneLocalNumber"
+                type="tel"
+                className="input-field"
+                value={phoneLocalNumber}
+                onChange={(event) => setPhoneLocalNumber(stripPhoneInput(event.target.value))}
+                required
+                maxLength={15}
+                pattern="[\d\s+\-()]+"
+                autoComplete="tel-national"
+                placeholder="713 555 1234"
+              />
+              <p className="mt-1.5 text-xs text-slate-500">{PHONE_DISCLAIMER}</p>
+            </div>
+          </>
+        )}
+
+        {error && (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div
+            className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
+            role="status"
+          >
+            {success}
+          </div>
+        )}
+
+        <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
+          {isSaving ? "Saving..." : "Save & Continue"}
+        </button>
+      </form>
+    );
+  }
 
   return (
-    <form className={formClassName} onSubmit={(event) => void handleSubmit(event)}>
-      <div>
-        <h2 className="heading-2 text-lg">{heading}</h2>
-        <p className="mt-2 text-sm text-slate-600">{description}</p>
-        {variant === "profile" && (
-          <p className="mt-2 text-sm text-slate-600">
-            Manage alert and notification preferences in the{" "}
-            <a href="#/notifications" className="font-semibold text-brand-700 underline underline-offset-2">
-              Notifications
-            </a>{" "}
-            tab.
-          </p>
-        )}
-      </div>
-
+    <MyProfileQuadrant
+      accent="personal"
+      id="profile-contact"
+      title="Personal Information"
+      subtitle="Keep your personal information up to date. This helps you personalize your experience."
+      icon={
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <circle cx="12" cy="8" r="3.1" />
+          <path d="M5.4 19c.7-3.2 3.2-5.1 6.6-5.1s5.9 1.9 6.6 5.1" strokeLinecap="round" />
+        </svg>
+      }
+    >
       {isLoading ? (
-        <p className="text-sm text-slate-600">Loading contact details...</p>
+        <p className="ds2-profile-quad-loading">Loading contact details...</p>
       ) : (
-        <>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <p className="font-medium">Not verified yet</p>
-            <p className="mt-1 text-xs text-amber-800">Phone verification is coming soon.</p>
-          </div>
-
+        <div className="ds2-profile-field-grid">
           <div>
-            <label
-              htmlFor="contact-countryCode"
-              className="block text-sm font-semibold text-slate-900"
-            >
+            <label htmlFor="profile-full-name" className="ds2-profile-label">
+              Full Name
+            </label>
+            <input
+              id="profile-full-name"
+              className="input-field ds2-profile-input-readonly"
+              value={fullName}
+              readOnly
+              aria-readonly="true"
+            />
+            <p className="ds2-profile-help">As it appears on your official documents.</p>
+          </div>
+          <div>
+            <label htmlFor="profile-email" className="ds2-profile-label">
+              Email Address
+            </label>
+            <input
+              id="profile-email"
+              className="input-field ds2-profile-input-readonly"
+              value={email}
+              readOnly
+              aria-readonly="true"
+            />
+            <p className="ds2-profile-help">Managed by your account provider.</p>
+          </div>
+          <div>
+            <label htmlFor="contact-countryCode" className="ds2-profile-label">
               Country code <span className="text-red-600">*</span>
             </label>
             <select
@@ -288,13 +405,28 @@ export function ContactProfileSection({
               ))}
             </select>
           </div>
-
-          {isOtherCountryCode && (
-            <div>
-              <label
-                htmlFor="contact-customCountryCode"
-                className="block text-sm font-semibold text-slate-900"
-              >
+          <div>
+            <label htmlFor="contact-phoneLocalNumber" className="ds2-profile-label">
+              Phone Number <span className="text-red-600">*</span>
+            </label>
+            <input
+              id="contact-phoneLocalNumber"
+              name="phoneLocalNumber"
+              type="tel"
+              className="input-field"
+              value={phoneLocalNumber}
+              onChange={(event) => setPhoneLocalNumber(stripPhoneInput(event.target.value))}
+              required
+              maxLength={15}
+              pattern="[\d\s+\-()]+"
+              autoComplete="tel-national"
+              placeholder="713 555 1234"
+            />
+            <p className="ds2-profile-help">{PHONE_DISCLAIMER}</p>
+          </div>
+          {isOtherCountryCode ? (
+            <div className="ds2-profile-field-span">
+              <label htmlFor="contact-customCountryCode" className="ds2-profile-label">
                 Custom country code <span className="text-red-600">*</span>
               </label>
               <input
@@ -309,62 +441,15 @@ export function ContactProfileSection({
                 pattern="\+\d{1,4}"
               />
             </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="contact-phoneLocalNumber"
-              className="block text-sm font-semibold text-slate-900"
-            >
-              Phone number <span className="text-red-600">*</span>
-            </label>
-            <input
-              id="contact-phoneLocalNumber"
-              name="phoneLocalNumber"
-              type="tel"
-              className="input-field"
-              value={phoneLocalNumber}
-              onChange={(event) =>
-                setPhoneLocalNumber(stripPhoneInput(event.target.value))
-              }
-              required
-              maxLength={15}
-              pattern="[\d\s+\-()]+"
-              autoComplete="tel-national"
-              placeholder="713 555 1234"
-            />
-            <p className="mt-1.5 text-xs text-slate-500">{PHONE_DISCLAIMER}</p>
-          </div>
-        </>
+          ) : null}
+        </div>
       )}
 
-      {error && (
-        <div
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
-          role="alert"
-        >
+      {error ? (
+        <div className="ds2-profile-quad-alert ds2-profile-quad-alert-error" role="alert">
           {error}
         </div>
-      )}
-
-      {success && (
-        <div
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
-          role="status"
-        >
-          {success}
-        </div>
-      )}
-
-      {variant === "profile" ? (
-        <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
-          {isSaving ? "Saving..." : "Save contact details"}
-        </button>
-      ) : (
-        <button type="submit" className="btn-primary w-full" disabled={isLoading || isSaving}>
-          {isSaving ? "Saving..." : "Save & Continue"}
-        </button>
-      )}
-    </form>
+      ) : null}
+    </MyProfileQuadrant>
   );
 }

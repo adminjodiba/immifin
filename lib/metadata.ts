@@ -5,25 +5,35 @@ type MetadataProps = {
   title?: string;
   description?: string;
   path?: string;
+  /** Full document title; skips the root layout `| Immifin` template. */
+  absoluteTitle?: boolean;
 };
 
 export function createMetadata({
   title,
   description = siteConfig.description,
   path = "",
+  absoluteTitle = false,
 }: MetadataProps = {}): Metadata {
-  const pageTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.title;
   const url = `${siteConfig.url}${path}`;
+  const brandedOnce = title ? `${title} | ${siteConfig.name}` : siteConfig.title;
+  const socialTitle = absoluteTitle && title ? title : brandedOnce;
+  const documentTitle =
+    absoluteTitle && title
+      ? { absolute: title }
+      : title
+        ? title
+        : { absolute: siteConfig.title };
 
   return {
-    title: pageTitle,
+    title: documentTitle,
     description,
     metadataBase: new URL(siteConfig.url),
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title: pageTitle,
+      title: socialTitle,
       description,
       url,
       siteName: siteConfig.name,
@@ -32,7 +42,7 @@ export function createMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: pageTitle,
+      title: socialTitle,
       description,
     },
     robots: {

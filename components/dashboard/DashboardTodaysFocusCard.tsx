@@ -14,9 +14,9 @@ const badgeStyles: Record<FocusBadge, string> = {
 
 export function DashboardTodaysFocusCard({ focus }: DashboardTodaysFocusCardProps) {
   return (
-    <section className="card-static border-brand-200 bg-gradient-to-br from-brand-50/80 to-white">
+    <section className="ds2-card-static border-[color-mix(in_srgb,var(--immifin-ds2-blue)_28%,var(--immifin-ds2-border))]">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="heading-3 text-slate-900">Today&apos;s Focus</h2>
+        <h2 className="ds2-workspace-heading">Today&apos;s Focus</h2>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badgeStyles[focus.badge]}`}
         >

@@ -31,8 +31,8 @@ const quickActions = [
 
 export function QuickActionsCard() {
   return (
-    <section className="card-static">
-      <h2 className="heading-3 text-slate-900">Quick Actions</h2>
+    <section className="ds2-card-static">
+      <h2 className="ds2-workspace-heading">Quick Actions</h2>
       <p className="mt-2 text-sm text-slate-600">
         Jump to the tools you use most.
       </p>

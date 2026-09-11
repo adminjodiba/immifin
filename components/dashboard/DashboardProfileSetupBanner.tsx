@@ -13,10 +13,10 @@ export function DashboardProfileSetupBanner({
 
   return (
     <section
-      className="rounded-[1.25rem] border border-amber-200/80 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm sm:p-6"
+      className="ds2-card-static border-[color-mix(in_srgb,var(--immifin-ds2-gold)_40%,var(--immifin-ds2-border))]"
       role="status"
     >
-      <h2 className="text-base font-semibold text-slate-900">
+      <h2 className="ds2-workspace-heading">
         Complete your profile to personalize your dashboard.
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">

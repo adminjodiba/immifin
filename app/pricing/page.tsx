@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { auth } from "@clerk/nextjs/server";
+import { Ds2PublicPageShell } from "@/components/ds2/Ds2PublicPageShell";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
 import { createMetadata } from "@/lib/metadata";
-import { isDevelopmentSubscriptionModeEnabled } from "@/lib/subscription/devSubscriptionMode";
+import { canUseDevSubscriptionTools } from "@/lib/subscription/devSubscriptionAccess";
 
 export const metadata = createMetadata({
   title: "Pricing",
@@ -11,18 +12,19 @@ export const metadata = createMetadata({
   path: "/pricing",
 });
 
-export default function PricingPage() {
-  const developmentSubscriptionModeEnabled = isDevelopmentSubscriptionModeEnabled();
+export default async function PricingPage() {
+  const { userId } = await auth();
+  const developmentSubscriptionModeEnabled = canUseDevSubscriptionTools(userId);
 
   return (
-    <PageHeader
+    <Ds2PublicPageShell
+      eyebrow="PLANS"
       title="Choose Your Immifin Plan"
       description="Start free. Upgrade when you are ready for automation and intelligence."
-      pageHref="/pricing"
     >
       <Suspense fallback={null}>
         <PricingPlans developmentSubscriptionModeEnabled={developmentSubscriptionModeEnabled} />
       </Suspense>
-    </PageHeader>
+    </Ds2PublicPageShell>
   );
 }

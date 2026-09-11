@@ -1,6 +1,6 @@
 export function CitizenshipLockedAiCard() {
   return (
-    <section className="card-static border-dashed bg-slate-50/60">
+    <section className="ds2-card-static border-dashed bg-slate-50/60">
       <p className="text-sm font-semibold text-slate-900">Need Personalized Guidance?</p>
       <div className="mt-3 flex items-start gap-3">
         <span className="text-lg" aria-hidden="true">

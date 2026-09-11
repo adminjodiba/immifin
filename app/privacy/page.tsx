@@ -1,5 +1,4 @@
-import { PageHeader } from "@/components/PageHeader";
-import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
+import { Ds2PublicPageShell } from "@/components/ds2/Ds2PublicPageShell";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -10,67 +9,66 @@ export const metadata = createMetadata({
 
 export default function PrivacyPage() {
   return (
-    <PageHeader
+    <Ds2PublicPageShell
+      eyebrow="Legal"
       title="Privacy Policy"
       description="Last updated: June 22, 2025"
+      layout="reading"
     >
-      <WorkspaceSection>
-        <div className="card-static space-y-8">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Information We Collect</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              We may collect information you provide directly, such as your name and email address
-              when you contact us. We also collect standard usage data through analytics tools,
-              including pages visited, browser type, and device information.
-            </p>
-          </div>
+      <article className="ds2-public-prose">
+        <h2>Information We Collect</h2>
+        <p>
+          We may collect information you provide directly, such as your name and email address when
+          you contact us. We also collect standard usage data through analytics tools, including
+          pages visited, browser type, and device information.
+        </p>
 
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">How We Use Your Information</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              We use collected information to operate and improve our website, respond to
-              inquiries, and understand how visitors use our content. We do not sell your personal
-              information to third parties.
-            </p>
-          </div>
+        <h2>How We Use Your Information</h2>
+        <p>
+          We use collected information to operate and improve our website, respond to inquiries, and
+          understand how visitors use our content. We do not sell your personal information to third
+          parties.
+        </p>
 
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Cookies</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              Our website may use cookies and similar technologies to enhance your browsing
-              experience and analyze site traffic. You can control cookie preferences through your
-              browser settings.
-            </p>
-          </div>
+        <h2>Cookies</h2>
+        <p>
+          Our website may use cookies and similar technologies to enhance your browsing experience
+          and analyze site traffic. You can control cookie preferences through your browser
+          settings.
+        </p>
 
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Third-Party Services</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              We may use third-party services for analytics and hosting. These providers have their
-              own privacy policies governing how they handle data.
-            </p>
-          </div>
+        <h2>Third-Party Services</h2>
+        <p>
+          We may use third-party services for analytics and hosting. These providers have their own
+          privacy policies governing how they handle data.
+        </p>
 
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Your Rights</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              Depending on your location, you may have rights to access, correct, or delete your
-              personal data. Contact us at info@immifin.com to exercise these rights.
-            </p>
-          </div>
+        <h2>IMMIFIN Intelligence (controlled beta)</h2>
+        <p>
+          When you use IMMIFIN Intelligence, we may use your saved immigration profile and related
+          account context to prepare an informational response to your question. IMMIFIN does not
+          save chat history for this workspace in the application. Responses may be generated with
+          the assistance of an external AI service configured by IMMIFIN. We do not claim zero
+          retention by that provider beyond what is contractually and operationally configured. Do
+          not submit information you are not comfortable sharing for processing.
+        </p>
+        <p className="ds2-public-prose-note">
+          Status: proposed wording for controlled beta — pending Product Owner / legal approval
+          before broader enablement.
+        </p>
 
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Contact</h2>
-            <p className="mt-3 leading-relaxed text-slate-600">
-              If you have questions about this privacy policy, please contact us at{" "}
-              <a href="mailto:info@immifin.com" className="text-brand-700 hover:text-brand-800">
-                info@immifin.com
-              </a>
-              .
-            </p>
-          </div>
-        </div>
-      </WorkspaceSection>
-    </PageHeader>
+        <h2>Your Rights</h2>
+        <p>
+          Depending on your location, you may have rights to access, correct, or delete your
+          personal data. Contact us at info@immifin.com to exercise these rights.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          If you have questions about this privacy policy, please contact us at{" "}
+          <a href="mailto:info@immifin.com">info@immifin.com</a>.
+        </p>
+      </article>
+    </Ds2PublicPageShell>
   );
 }

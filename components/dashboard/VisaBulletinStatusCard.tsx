@@ -41,8 +41,8 @@ export function VisaBulletinStatusCard({
 }: VisaBulletinStatusCardProps) {
   if (!hasCompleteImmigrationProfile) {
     return (
-      <section className="card-static flex h-full flex-col">
-        <h2 className="heading-3 text-slate-900">Visa Bulletin Status</h2>
+      <section className="ds2-card-static flex h-full flex-col">
+        <h2 className="ds2-workspace-heading">Visa Bulletin Status</h2>
         <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
           Add your immigration category, country, and priority date to see whether you
           are current or still waiting.
@@ -56,8 +56,8 @@ export function VisaBulletinStatusCard({
 
   if (priorityCheckError) {
     return (
-      <section className="card-static flex h-full flex-col">
-        <h2 className="heading-3 text-slate-900">Visa Bulletin Status</h2>
+      <section className="ds2-card-static flex h-full flex-col">
+        <h2 className="ds2-workspace-heading">Visa Bulletin Status</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           We could not load your bulletin status right now. Please try again later.
         </p>
@@ -68,8 +68,8 @@ export function VisaBulletinStatusCard({
 
   if (!priorityCheck) {
     return (
-      <section className="card-static flex h-full flex-col">
-        <h2 className="heading-3 text-slate-900">Visa Bulletin Status</h2>
+      <section className="ds2-card-static flex h-full flex-col">
+        <h2 className="ds2-workspace-heading">Visa Bulletin Status</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           Bulletin status is not available yet.
         </p>
@@ -80,8 +80,8 @@ export function VisaBulletinStatusCard({
   const styles = statusStyles[priorityCheck.status];
 
   return (
-    <section className={`card-static flex h-full flex-col border ${styles.container}`}>
-      <h2 className="heading-3 text-slate-900">Visa Bulletin Status</h2>
+    <section className={`ds2-card-static flex h-full flex-col border ${styles.container}`}>
+      <h2 className="ds2-workspace-heading">Visa Bulletin Status</h2>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

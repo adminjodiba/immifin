@@ -31,8 +31,8 @@ export function ImmigrationProfileSummaryCard({
 }: ImmigrationProfileSummaryCardProps) {
   if (!hasCompleteImmigrationProfile || !immigrationProfile) {
     return (
-      <section className="card-static flex h-full flex-col">
-        <h2 className="heading-3 text-slate-900">Immigration Profile</h2>
+      <section className="ds2-card-static flex h-full flex-col">
+        <h2 className="ds2-workspace-heading">Immigration Profile</h2>
         <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
           Complete your immigration profile to personalize your dashboard.
         </p>
@@ -50,9 +50,9 @@ export function ImmigrationProfileSummaryCard({
   const lastUpdated = formatDisplayDate(immigrationProfile.updated_at);
 
   return (
-    <section className="card-static flex h-full flex-col">
+    <section className="ds2-card-static flex h-full flex-col">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="heading-3 text-slate-900">Immigration Profile</h2>
+        <h2 className="ds2-workspace-heading">Immigration Profile</h2>
         <Link
           href="/user-profile#/immigration"
           className="text-sm font-semibold text-brand-700 transition-colors hover:text-brand-800"

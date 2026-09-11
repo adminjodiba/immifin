@@ -5,7 +5,7 @@
 | **Version** | 1.0 (Beta) |
 | **Status** | **Approved** |
 | **Owner** | IMMIFIN |
-| **Last Updated** | 2026-08-25 (S7-BILLING-UX-008E — TEST E2E reconciled; not Production-deployed) |
+| **Last Updated** | 2026-08-25 (S7-BILLING-REL-002 — UX stack Production-deployed; LIVE UX lifecycle not yet validated) |
 
 > **Authority:** This document is the **source of truth** for IMMIFIN subscription billing behavior — upgrades, downgrades, cancellations, Customer Portal rules, and refund philosophy. Stripe implementation must follow this policy.
 
@@ -212,15 +212,15 @@ Before confirming a next-cycle downgrade or Paid → Free:
 
 **Implemented (code):** **S7-BILLING-UX-005** — change/add payment method via Stripe-hosted Billing Portal (`payment_method_update` deep link, PM-only configuration). IMMIFIN never collects PAN/CVC. Return invalidates prior upgrade preview authorization; fresh preview + explicit confirm required. Payment-method update alone does not execute the upgrade.
 
-**Implemented (code):** **S7-BILLING-UX-006** — transparent immediate-upgrade confirmation: preview-first Stripe amount due now, credit/prorated charge when classified (else safe line items), next renewal, payment method, Change/Add PM, and entitlement-after-Stripe-confirm copy. **Not Production-deployed.**
+**Implemented (code):** **S7-BILLING-UX-006** — transparent immediate-upgrade confirmation: preview-first Stripe amount due now, credit/prorated charge when classified (else safe line items), next renewal, payment method, Change/Add PM, and entitlement-after-Stripe-confirm copy. **Production-deployed (REL-002); LIVE validation not yet performed.**
 
-**Implemented (code):** **S7-BILLING-UX-007** — scheduled downgrade transparency for `scheduled_downgrade`, `cancel_at_period_end`, and `scheduled_interval_change`: no charge today, authoritative period-end retention copy, target plan/price (catalog), Paid→Free no-further-charge copy. Does not change Stripe mutation strategy. **Not Production-deployed.**
+**Implemented (code):** **S7-BILLING-UX-007** — scheduled downgrade transparency for `scheduled_downgrade`, `cancel_at_period_end`, and `scheduled_interval_change`: no charge today, authoritative period-end retention copy, target plan/price (catalog), Paid→Free no-further-charge copy. Does not change Stripe mutation strategy. **Production-deployed (REL-002); LIVE validation not yet performed.**
 
-**Implemented (code):** **S7-BILLING-UX-008B** — Billing Center surfaces a recognized Stripe Subscription Schedule destination (customer-safe tier/interval/effective date) and suppresses the equivalent duplicate paid-plan CTA. Does not persist schedule rows in Supabase; GET retrieves the attached schedule read-only. **Not Production-deployed.**
+**Implemented (code):** **S7-BILLING-UX-008B** — Billing Center surfaces a recognized Stripe Subscription Schedule destination (customer-safe tier/interval/effective date) and suppresses the equivalent duplicate paid-plan CTA. Does not persist schedule rows in Supabase; GET retrieves the attached schedule read-only. **Production-deployed (REL-002); LIVE validation not yet performed.**
 
-**Implemented (code):** **S7-BILLING-UX-008C** — An existing scheduled paid-plan transition may be replaced by Free only after explicit customer confirmation. Stripe sequence: `subscriptionSchedules.release` (drop the paid next phase, leave current plan) then `subscriptions.update({ cancel_at_period_end: true })`. Not an immediate cancellation. Entitlement stays on the current paid plan until the effective date. **TEST replacement executed once (PO); 008E reconciled. Not Production-deployed.**
+**Implemented (code):** **S7-BILLING-UX-008C** — An existing scheduled paid-plan transition may be replaced by Free only after explicit customer confirmation. Stripe sequence: `subscriptionSchedules.release` (drop the paid next phase, leave current plan) then `subscriptions.update({ cancel_at_period_end: true })`. Not an immediate cancellation. Entitlement stays on the current paid plan until the effective date. **TEST replacement executed once (PO); 008E reconciled. Production-deployed (REL-002); LIVE validation not yet performed.**
 
-**Implemented (code):** **S7-BILLING-UX-008D** — Visual redesign of the 008C replacement confirmation dialog only (IMMIFIN-native hierarchy, primary Keep CTA, destructive Replace). No Stripe or policy change. **Not Production-deployed.**
+**Implemented (code):** **S7-BILLING-UX-008D** — Visual redesign of the 008C replacement confirmation dialog only (IMMIFIN-native hierarchy, primary Keep CTA, destructive Replace). No Stripe or policy change. **Production-deployed (REL-002); LIVE validation not yet performed.**
 
 **TEST E2E (S7-BILLING-UX-008E):** Full Stripe TEST lifecycle **PASS** — Free → Pro Monthly → Power Monthly ($9.97) → Pro scheduled → Free scheduled at period end. See [008E signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md). **TEST validated. Production Worker unchanged.**
 

@@ -51,8 +51,8 @@ export function HowItWorksCard({ variant = "employment" }: HowItWorksCardProps) 
   const items = variant === "green_card" ? greenCardItems : employmentItems;
 
   return (
-    <section className="card-static">
-      <h2 className="heading-3 text-slate-900">How It Works</h2>
+    <section className="ds2-card-static">
+      <h2 className="ds2-workspace-heading">How It Works</h2>
       <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-600">
         {items.map((item) =>
           typeof item === "string" ? (

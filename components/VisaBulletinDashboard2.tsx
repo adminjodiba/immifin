@@ -8,7 +8,6 @@
 import Link from "next/link";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import { WorkspacePageShell } from "@/components/layout/WorkspacePageShell";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
@@ -423,11 +422,11 @@ export function VisaBulletinDashboard2({
   };
 
   return (
-    <WorkspacePageShell>
-      <div className="container-main py-4 sm:py-5">
+    <>
+      <div>
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-2.5">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
+            <span className="ds2-data-page-icon">
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                   <path
                     d="M4 18V6M10 18V10M16 18V4M20 18v-4"
@@ -439,7 +438,7 @@ export function VisaBulletinDashboard2({
               </span>
               <div className="min-w-0">
                 <div className="flex items-start gap-2">
-                  <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
+                  <h1 className="ds2-data-page-title">
                     Visa Bulletin Dashboard
                   </h1>
                   <FavoriteStar pageLabel="Visa Bulletin Dashboard" pageHref="/immigration/visa-bulletin" />
@@ -619,6 +618,6 @@ export function VisaBulletinDashboard2({
           </p>
         </div>
       </div>
-    </WorkspacePageShell>
+    </>
   );
 }

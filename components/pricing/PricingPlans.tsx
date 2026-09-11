@@ -34,6 +34,7 @@ import {
   isPricingCurrentPlanCard,
   isSimulatedPaidEntitlement,
 } from "@/lib/pricing/checkout-plan-actions";
+import { getPlanDisplay } from "@/lib/pricing/plan-display";
 import {
   formatCurrentSubscriptionPriceLine,
   formatPriceAmount,
@@ -58,48 +59,19 @@ type PlanConfig = {
 
 const plans: readonly PlanConfig[] = [
   {
-    id: "free",
-    name: "Free",
-    description: "Start with IMMIFIN Free",
-    features: [
-      "Current Visa Bulletin Dashboard",
-      "Manual calculators",
-      "Manage profile data",
-      "No automation",
-      "No notifications",
-      "No AI",
-    ],
+    ...getPlanDisplay("free"),
     cta: "Create Free Account",
     ctaStyle: "btn-secondary",
     highlighted: false,
   },
   {
-    id: "pro",
-    name: "Pro",
-    description: "Automation for your immigration journey.",
-    features: [
-      "Personalized Dashboard",
-      "Auto-populated calculators",
-      "Visa Bulletin history",
-      "Movement tracker",
-      "Email alerts",
-      "Notifications",
-    ],
+    ...getPlanDisplay("pro"),
     cta: "Upgrade to Pro",
     ctaStyle: "btn-primary",
     highlighted: true,
   },
   {
-    id: "power",
-    name: "Power",
-    description: "Full intelligence for life in America.",
-    features: [
-      "Everything in Pro",
-      "AI Assistant",
-      "Multiple profiles",
-      "Advanced insights",
-      "Priority support",
-    ],
+    ...getPlanDisplay("power"),
     cta: "Upgrade to Power",
     ctaStyle: "btn-secondary",
     highlighted: false,
@@ -171,11 +143,7 @@ function BillingIntervalToggle({
 }) {
   return (
     <div className="mx-auto mb-8 flex justify-center">
-      <div
-        role="group"
-        aria-label="Billing interval"
-        className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
-      >
+      <div role="group" aria-label="Billing interval" className="ds2-pricing-toggle">
         {(["monthly", "annual"] as const).map((interval) => {
           const selected = value === interval;
           return (
@@ -183,11 +151,7 @@ function BillingIntervalToggle({
               key={interval}
               type="button"
               onClick={() => onChange(interval)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition-colors ${
-                selected
-                  ? "bg-brand-700 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
+              className="ds2-pricing-toggle-option"
               aria-pressed={selected}
             >
               {interval}
@@ -466,67 +430,67 @@ export function PricingPlans({
   return (
     <>
       {checkoutExperience.phase === "activating" ? (
-        <div className="container-main mb-6" role="status" aria-live="polite">
-          <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
+        <div className="mb-6" role="status" aria-live="polite">
+          <div className="ds2-card-static flex items-start gap-3 px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
             <span
-              className="mt-0.5 inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-300 border-t-brand-700"
+              className="mt-0.5 inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[var(--immifin-ds2-border)] border-t-[var(--immifin-ds2-navy)]"
               aria-hidden="true"
             />
             <div>
-              <p className="font-semibold text-slate-900">{ACTIVATING_COPY.title}</p>
-              <p className="mt-1 text-slate-700">{ACTIVATING_COPY.message}</p>
+              <p className="font-semibold">{ACTIVATING_COPY.title}</p>
+              <p className="mt-1 text-[var(--immifin-ds2-text-muted)]">{ACTIVATING_COPY.message}</p>
             </div>
           </div>
         </div>
       ) : null}
 
       {checkoutExperience.phase === "activated" && activatedCopy ? (
-        <div className="container-main mb-6" role="status" aria-live="polite">
-          <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+        <div className="mb-6" role="status" aria-live="polite">
+          <div className="ds2-card-static border-[color-mix(in_srgb,var(--immifin-ds2-blue)_28%,var(--immifin-ds2-border))] px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
             <p className="font-semibold">{activatedCopy.title}</p>
-            <p className="mt-1 text-brand-900/90">{activatedCopy.message}</p>
+            <p className="mt-1 text-[var(--immifin-ds2-text-muted)]">{activatedCopy.message}</p>
           </div>
         </div>
       ) : null}
 
       {checkoutExperience.phase === "timeout" ? (
-        <div className="container-main mb-6" role="status" aria-live="polite">
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <div className="mb-6" role="status" aria-live="polite">
+          <div className="ds2-card-static border-[color-mix(in_srgb,var(--immifin-ds2-gold)_40%,var(--immifin-ds2-border))] px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
             <p className="font-semibold">{TIMEOUT_COPY.title}</p>
-            <p className="mt-1 text-amber-900/90">{TIMEOUT_COPY.message}</p>
+            <p className="mt-1 text-[var(--immifin-ds2-text-muted)]">{TIMEOUT_COPY.message}</p>
           </div>
         </div>
       ) : null}
 
       {checkoutExperience.phase === "cancelled" ? (
-        <div className="container-main mb-6" role="status" aria-live="polite">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
-            <p className="font-semibold text-slate-900">{CANCELLED_COPY.title}</p>
-            <p className="mt-1 text-slate-700">{CANCELLED_COPY.message}</p>
+        <div className="mb-6" role="status" aria-live="polite">
+          <div className="ds2-card-static px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
+            <p className="font-semibold">{CANCELLED_COPY.title}</p>
+            <p className="mt-1 text-[var(--immifin-ds2-text-muted)]">{CANCELLED_COPY.message}</p>
           </div>
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="container-main mb-6">
-          <p className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+        <div className="mb-6">
+          <p className="ds2-card-static border-[color-mix(in_srgb,var(--immifin-ds2-blue)_28%,var(--immifin-ds2-border))] px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
             {successMessage}
           </p>
         </div>
       ) : null}
 
       {errorMessage ? (
-        <div className="container-main mb-6">
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="mb-6">
+          <p className="ds2-card-static border-red-200 px-4 py-3 text-sm text-[var(--immifin-ds2-text-primary)]">
             {errorMessage}
           </p>
         </div>
       ) : null}
 
-      <section id="plans" className="workspace-section">
-        <div className="container-main">
+      <section id="plans" className="ds2-pricing-plans">
+        <div>
           {devMode ? (
-            <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+            <p className="ds2-card-static mx-auto mb-8 max-w-2xl px-4 py-3 text-center text-sm text-[var(--immifin-ds2-text-primary)]">
               Development Subscription Mode is active. Select a plan to test Free, Pro, or Power —
               no payment is collected.
             </p>
@@ -534,19 +498,19 @@ export function PricingPlans({
             <>
               <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
               {isSignedIn && developmentSubscriptionOverrideActive ? (
-                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-slate-600">
+                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-[var(--immifin-ds2-text-muted)]">
                   Current entitlement:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-[var(--immifin-ds2-text-primary)]">
                     {formatPlanLabel(currentTier)}
                   </span>
-                  <span className="mt-1 block text-xs text-slate-500">
+                  <span className="mt-1 block text-xs text-[var(--immifin-ds2-text-muted)]">
                     {DEVELOPMENT_PLAN_OVERRIDE_LABEL} · {BILLING_NOT_BILLED_LABEL}
                   </span>
                 </p>
               ) : isSignedIn && currentTier !== "free" && currentBillingInterval ? (
-                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-slate-600">
+                <p className="mx-auto mb-8 -mt-4 max-w-2xl text-center text-sm text-[var(--immifin-ds2-text-muted)]">
                   Current subscription:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-[var(--immifin-ds2-text-primary)]">
                     {formatPlanLabel(currentTier)}{" "}
                     {formatBillingIntervalLabel(currentBillingInterval)} —{" "}
                     {formatCurrentSubscriptionPriceLine(currentTier, currentBillingInterval)}
@@ -586,45 +550,47 @@ export function PricingPlans({
                 <article
                   key={plan.id}
                   ref={isCurrentPlanCard ? currentPlanCardRef : undefined}
-                  className={`card-static flex flex-col ${
-                    plan.highlighted ? "border-brand-300 ring-2 ring-brand-100" : ""
+                  className={`ds2-card-static ds2-pricing-card ${
+                    plan.highlighted ? "ds2-pricing-card-featured" : ""
                   }`}
                 >
                   {plan.highlighted ? (
-                    <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">
-                      Most popular
-                    </p>
+                    <p className="ds2-pricing-badge">Most popular</p>
                   ) : null}
-                  <h2 className="heading-3 mt-1 text-slate-900">{plan.name}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{plan.description}</p>
+                  <h2 className="ds2-workspace-heading mt-1">{plan.name}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--immifin-ds2-text-muted)]">
+                    {plan.description}
+                  </p>
 
                   {plan.id === "free" ? (
                     <div className="mt-5">
-                      <p className="text-3xl font-bold tracking-tight text-slate-900">
-                        {formatPriceAmount(0)}
+                      <p className="ds2-pricing-amount">{formatPriceAmount(0)}</p>
+                      <p className="mt-3 text-sm font-medium text-[var(--immifin-ds2-text-primary)]">
+                        Free login required
                       </p>
-                      <p className="mt-3 text-sm font-medium text-slate-700">Free login required</p>
-                      <p className="mt-0.5 text-sm font-bold text-brand-700">No credit card required</p>
+                      <p className="mt-0.5 text-sm font-bold text-[var(--immifin-ds2-navy)]">
+                        No credit card required
+                      </p>
                     </div>
                   ) : plan.id === "pro" || plan.id === "power" ? (
                     (() => {
                       const price = getPaidPlanPricePresentation(plan.id, billingInterval);
                       return (
                         <div className="mt-5">
-                          <p className="text-3xl font-bold tracking-tight text-slate-900">
-                            {price.amountLabel}
-                          </p>
-                          <p className="mt-1 text-sm font-medium text-slate-600">
+                          <p className="ds2-pricing-amount">{price.amountLabel}</p>
+                          <p className="mt-1 text-sm font-medium text-[var(--immifin-ds2-text-muted)]">
                             {price.periodLabel}
                           </p>
-                          <p className="mt-1 text-xs text-slate-500">{price.billingLabel}</p>
+                          <p className="mt-1 text-xs text-[var(--immifin-ds2-text-muted)]">
+                            {price.billingLabel}
+                          </p>
                           {price.equivalentMonthlyLabel ? (
-                            <p className="mt-2 text-sm text-slate-600">
+                            <p className="mt-2 text-sm text-[var(--immifin-ds2-text-muted)]">
                               {price.equivalentMonthlyLabel}
                             </p>
                           ) : null}
                           {price.savingsLabel ? (
-                            <p className="mt-1 text-sm font-medium text-brand-700">
+                            <p className="mt-1 text-sm font-medium text-[var(--immifin-ds2-navy)]">
                               {price.savingsLabel}
                             </p>
                           ) : null}
@@ -635,26 +601,31 @@ export function PricingPlans({
 
                   {isCurrentPlanCard ? (
                     <div className="mt-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
-                        Current plan
-                      </p>
+                      <p className="ds2-pricing-badge">Current plan</p>
                       {developmentSubscriptionOverrideActive && plan.id === currentTier ? (
                         <>
-                          <p className="mt-0.5 text-xs text-slate-600">
+                          <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
                             {DEVELOPMENT_PLAN_OVERRIDE_LABEL}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-500">{BILLING_NOT_BILLED_LABEL}</p>
+                          <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
+                            {BILLING_NOT_BILLED_LABEL}
+                          </p>
                         </>
                       ) : (
-                        <p className="mt-0.5 text-xs text-slate-500">Your current plan</p>
+                        <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
+                          Your current plan
+                        </p>
                       )}
                     </div>
                   ) : null}
 
                   <ul className="mt-6 flex-1 space-y-3">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex gap-2 text-sm text-slate-700">
-                        <span className="mt-0.5 text-brand-600" aria-hidden="true">
+                      <li
+                        key={feature}
+                        className="flex gap-2 text-sm text-[var(--immifin-ds2-text-primary)]"
+                      >
+                        <span className="ds2-pricing-check" aria-hidden="true">
                           ✓
                         </span>
                         <span>{feature}</span>
@@ -687,7 +658,7 @@ export function PricingPlans({
                           )}
                         </button>
                         {devButton?.isCurrentPlan ? (
-                          <p className="mt-2 text-center text-xs text-slate-500">
+                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
                             {developmentSubscriptionOverrideActive
                               ? `${DEVELOPMENT_PLAN_OVERRIDE_LABEL} — ${BILLING_NOT_BILLED_LABEL}`
                               : "Your active subscription"}
@@ -704,7 +675,7 @@ export function PricingPlans({
                           {checkoutButton.label}
                         </Link>
                         {checkoutButton.helperText ? (
-                          <p className="mt-2 text-center text-xs text-slate-500">
+                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
                             {checkoutButton.helperText}
                           </p>
                         ) : null}
@@ -728,7 +699,7 @@ export function PricingPlans({
                           {isCheckoutLoading ? "Redirecting..." : (checkoutButton?.label ?? plan.cta)}
                         </button>
                         {checkoutButton?.helperText ? (
-                          <p className="mt-2 text-center text-xs text-slate-500">
+                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
                             {checkoutButton.helperText}
                           </p>
                         ) : null}
@@ -740,7 +711,7 @@ export function PricingPlans({
             })}
           </div>
 
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-slate-500">
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--immifin-ds2-text-muted)]">
             Free includes manual tools and profile entry. Pro adds automation — dashboard, alerts,
             and tracking. Power adds AI and advanced intelligence. Paid plans are billed through
             Stripe; your access updates after billing is confirmed.

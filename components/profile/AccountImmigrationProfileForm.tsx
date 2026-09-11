@@ -30,11 +30,11 @@ export function AccountImmigrationProfileForm() {
 
   return (
     <form
-      className="card-static space-y-5"
+      className="ds2-card-static space-y-5"
       onSubmit={(event) => void handleSubmit(event, "Immigration profile saved.")}
     >
       <div>
-        <h2 className="heading-2">Immigration Profile</h2>
+        <h2 className="ds2-workspace-heading">Immigration Profile</h2>
         <p className="mt-2 text-sm text-slate-600">
           Set employment-based defaults, priority date, country of chargeability, bulletin date
           type, and optional citizenship planning fields.

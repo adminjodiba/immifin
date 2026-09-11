@@ -1,5 +1,5 @@
 import { SignUpPageContent } from "@/components/auth/SignUpPageContent";
-import { ClerkAuthShell } from "@/components/auth/ClerkAuthShell";
+import { Ds2AuthPageShell } from "@/components/ds2/Ds2AuthPageShell";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -10,11 +10,11 @@ export const metadata = createMetadata({
 
 export default function SignUpPage() {
   return (
-    <ClerkAuthShell
-      title="Create your account"
+    <Ds2AuthPageShell
       description="Join Immifin to track immigration tools and resources."
+      promise="Know where you stand. Stay informed when things change."
     >
       <SignUpPageContent />
-    </ClerkAuthShell>
+    </Ds2AuthPageShell>
   );
 }

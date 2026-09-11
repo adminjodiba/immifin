@@ -6,9 +6,9 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-07-20 |
+| **Last Updated** | 2026-07-25 |
 | **Owner** | Technical Architecture (CTO) |
-| **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending |
+| **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
 This document is the **single source of truth** for Immifin's system architecture: infrastructure, environments, deployment, external services, and the major application platforms that sit on top of them.
 
@@ -132,6 +132,7 @@ Capability Enforcement Layer
 │ Immigration Services (bulletin / calculators) │
 │ Notification Platform (Resend)                │
 │ Stripe Billing Platform (Checkout / webhooks) │
+│ Intelligence Platform foundation (lib/intelligence — through S8-IIP-011) │
 └───────────────────────────────────────────────┘
         ↓
 External Integrations (Clerk · Supabase · Stripe · Resend · Google Sheets · Cloudflare)
@@ -144,9 +145,23 @@ External Integrations (Clerk · Supabase · Stripe · Resend · Google Sheets ·
 | **Immigration Services** | Visa Bulletin surfaces, calculators, journey-aware dashboards |
 | **Notification Platform** | Journey-aware email campaigns via Resend (production validated) |
 | **Stripe Billing Platform** | Checkout, customer mapping, webhooks, billing-state sync, Billing Center plan changes |
+| **Intelligence Context** | Server-only Version 1 factual context builder (`lib/intelligence/context/`) for future IIE (S8-IIP-001) |
+| **Intelligence Request Envelope** | Server-only in-memory request contract (`lib/intelligence/request/`) — validated question + context + readiness (S8-IIP-002) |
+| **Intelligence Prompt Payload** | Provider-neutral deterministic prompt payload (`lib/intelligence/prompt/`) — **no** LLM call, vendor message shapes, API, UI, or persistence (S8-IIP-003) |
+| **AI Provider Interface** | Provider-neutral `IntelligenceProvider` contract (`lib/intelligence/providers/`) — **no** adapters, SDKs, or network calls (S8-IIP-004) |
+| **Provider Registry / Resolver** | Explicit in-memory registry + resolver (`lib/intelligence/providers/`) — **no** auto-registration or defaults (S8-IIP-005) |
+| **OpenAI Provider Adapter** | Official OpenAI Responses API adapter (`lib/intelligence/providers/openai/`) — **no** API, UI, or auto-registration (S8-IIP-006) |
+| **Intelligence Service / Bootstrap** | Internal orchestration + controlled OpenAI registry bootstrap (`lib/intelligence/service/`, `bootstrap/`) (S8-IIP-007) |
+| **Authenticated Intelligence API** | `POST /api/intelligence/ask` — Clerk + `accessAI` (Power) → Intelligence Service (S8-IIP-008) |
+| **Intelligence Workspace UI** | `/intelligence` Power-gated single-turn composer — Free/Pro locked; **no** multi-turn chat / streaming / persistence (S8-IIP-009) |
+| **Intelligence readiness** | Controlled-beta audit + kill switch (`IMMIFIN_INTELLIGENCE_ENABLED`); CONDITIONAL GO FOR INVITE-ONLY CONTROLLED BETA (S8-IIP-010) |
+| **Intelligence beta allowlist** | Server Clerk-ID allowlist + page/API enforcement; ops runbook (S8-IIP-011 — COMPLETE WITH OPEN PRE-ENABLE ACTIONS) |
+| **Sprint 8 freeze / handoff** | Engineering **FROZEN**; operational **PRE-BETA ENABLEMENT PENDING**; public launch **NOT APPROVED** ([SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md), S8-IIP-012) |
 | **Capability Enforcement Layer** | Tier → capability map; server helpers + premium UI gates |
 | **Presentation Layer** | Pricing, Billing Center, My Immifin, marketing/public pages |
 | **External Integrations** | Clerk, Supabase, Stripe, Resend, Google Sheets, Cloudflare |
+
+Intelligence Context must compose existing repository/business services and must **not** query Supabase directly. See [../lib/intelligence/README.md](../lib/intelligence/README.md).
 
 ### 4.3 Infrastructure component overview
 
@@ -171,9 +186,9 @@ External Integrations (Clerk · Supabase · Stripe · Resend · Google Sheets ·
 
 | Environment | Purpose | URL | Deployment Method | Status |
 |-------------|---------|-----|-------------------|--------|
-| **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active |
-| **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active |
-| **Production** | Public live site | `https://immifin.com` | GitHub `main` → OpenNext (`npm run deploy`) | Active |
+| **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active — Clerk **Development** |
+| **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active — Clerk **Development** |
+| **Production** | Public live site | `https://immifin.com` | GitHub `main` → OpenNext (`npm run deploy`) | Active — Clerk **Production** (S7-OPS-CLERK-015) |
 | **Preview** | Branch-based pre-production testing | *Planned* | Cloudflare Preview | Planned |
 
 ---
@@ -260,7 +275,7 @@ Production secrets are configured in the **Cloudflare Dashboard** or via **Wrang
 | **GitHub** | Source control and deploy trigger | Hosts `adminjodiba/immifin`; push to `main` deploys production | Active |
 | **Cloudflare Workers (OpenNext)** | Production hosting | Builds and serves `immifin.com` via Worker | Active |
 | **Cloudflare Tunnel** | Dev HTTPS access | Routes `dev.immifin.com` → localhost | Active |
-| **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase | Active / Production Validated |
+| **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase — **Production instance on `immifin.com`**; Development instance for localhost / `dev.immifin.com` | Active / Production instance cutover complete (S7-OPS-CLERK-015); protected-route E2E pending |
 | **Supabase** | Application database | Profiles, immigration data, subscriptions, Stripe webhook ledger | Active / Production Validated |
 | **Stripe** | Payments and subscription objects | Checkout, customers, subscriptions, invoices, webhooks | **Implemented in app** — Live validation pending |
 | **Resend** | Email delivery | Notification Platform provider | Active / Production Validated |
@@ -284,9 +299,9 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 
 | Variable | Purpose | Secret |
 |----------|---------|--------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client key | No |
-| `CLERK_SECRET_KEY` | Clerk server key | Yes |
-| `CLERK_WEBHOOK_SECRET` | Webhook verification | Yes |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client key — **must be `pk_live_` at production build time** for `immifin.com`; localhost uses `pk_test_` via `.env.local` | No |
+| `CLERK_SECRET_KEY` | Clerk server key (`sk_live_` on Worker `immifin`; Development secrets stay local/tunnel) | Yes |
+| `CLERK_WEBHOOK_SECRET` / `CLERK_WEBHOOK_SIGNING_SECRET` | Production Clerk webhook verification (`https://immifin.com/api/webhooks/clerk`) | Yes |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | No |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role | Yes |
 | `GOOGLE_SHEET_ID` | Google Spreadsheet ID (admin archive) | No |
@@ -633,9 +648,12 @@ Production hosting for the core product is active. Commercial Stripe is **implem
 - Core immigration product on `https://immifin.com` (v0.4.2 baseline)
 - Notification Platform v1.0 (Resend / journey campaigns)
 - Clerk + Supabase production auth/data path for the current baseline
+- Clerk **Production** instance active on `immifin.com` (publishable `pk_live_` build; production webhook endpoint established) — S7-OPS-CLERK-015
+- Localhost / `dev.immifin.com` remain on Clerk **Development**
 
 ### Pending validation
 
+- Production Clerk user signup/signin and protected-route auth E2E (post-cutover)
 - Stripe Sandbox webhook registration and signed end-to-end payment proof
 - Live Stripe products, prices, webhook, and secrets
 - Production Supabase migration apply for webhook foundation (target env)
@@ -663,8 +681,8 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 - [ ] Separate Development Environment
 - [ ] Separate Preview Environment
 - [ ] Separate Production Environment
-- [ ] Separate Clerk Development Instance
-- [ ] Separate Clerk Production Instance
+- [x] Separate Clerk Development Instance (localhost / `dev.immifin.com`)
+- [x] Separate Clerk Production Instance (`immifin.com` — S7-OPS-CLERK-015)
 - [ ] Separate Supabase Development Project
 - [ ] Separate Supabase Production Project
 - [ ] Live Stripe commercial cutover (operational validation)
@@ -688,6 +706,19 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.4 | 2026-07-04 | Premium feature gating components; Design System 2.0 reference (S4-005.15). |
 | v1.5 | 2026-07-05 | Subscription Architecture; Development Subscription Mode; deployment docs (S5-ENG-004). |
 | v1.6 | 2026-07-20 | Sprint 7 as-built — Stripe billing platform, capabilities, notifications, dashboards, production status (S7-DOC-005). |
+| v1.7 | 2026-08-23 | Clerk Production cutover for `immifin.com`; localhost/dev remain Development; production webhook noted (S7-OPS-CLERK-015). |
+| v1.7 | 2026-07-25 | S8-IIP-001 — Intelligence Context foundation layer (`lib/intelligence/`); no LLM/chat/API/UI |
+| v1.8 | 2026-07-25 | S8-IIP-002 — Intelligence Request Envelope foundation; in-memory request contract only |
+| v1.9 | 2026-07-25 | S8-IIP-003 — Deterministic Prompt Payload foundation; provider-neutral; no model call |
+| v1.10 | 2026-07-25 | S8-IIP-004 — AI Provider Interface; contracts only; no adapters/SDKs |
+| v1.11 | 2026-07-25 | S8-IIP-005 — Provider Registry and Resolver Foundation; in-memory; no adapters/execution |
+| v1.12 | 2026-07-25 | S8-IIP-006 — OpenAI Provider Adapter Foundation; Responses API; no Service/API/UI |
+| v1.13 | 2026-07-25 | S8-IIP-007 — Intelligence Service and Controlled Provider Bootstrap; internal only |
+| v1.14 | 2026-07-25 | S8-IIP-008 — Authenticated Intelligence API Foundation; Power accessAI; no chat UI |
+| v1.15 | 2026-07-25 | S8-IIP-009 — Power-Plan Intelligence Workspace UI Foundation; single-turn |
+| v1.16 | 2026-07-25 | S8-IIP-010 — Intelligence readiness audit; CONDITIONAL GO; kill switch |
+| v1.17 | 2026-07-25 | S8-IIP-011 — Controlled-beta allowlist + operations runbook |
+| v1.18 | 2026-07-25 | S8-IIP-012 — Sprint 8 FROZEN; PRE-BETA ENABLEMENT PENDING; handoff pointer |
 
 ---
 
@@ -696,6 +727,8 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | Document | Contents |
 |----------|----------|
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Operational snapshot |
+| [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md) | Sprint 8 freeze / Intelligence handoff |
+| [../lib/intelligence/README.md](../lib/intelligence/README.md) | Intelligence Platform foundation (S8-IIP-001–011) |
 | [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) | Sprint 7 as-built commercial platform |
 | [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md) | IMMIFIN vs Stripe ownership ADR |
 | [STRIPE_BILLING_POLICY.md](./STRIPE_BILLING_POLICY.md) | Commercial subscription rules |

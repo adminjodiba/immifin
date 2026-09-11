@@ -101,7 +101,7 @@ export function PlanChangeConfirmationDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
       <div
-        className={`card-static w-full overflow-y-auto shadow-xl shadow-slate-900/15 ${
+        className={`ds2-card-static w-full overflow-y-auto shadow-xl shadow-slate-900/15 ${
           isReplacement
             ? "max-h-[min(96vh,54rem)] max-w-xl p-4 sm:p-5"
             : "max-h-[min(92vh,44rem)] max-w-lg"
@@ -127,7 +127,7 @@ export function PlanChangeConfirmationDialog({
               </svg>
             </div>
             <div className="min-w-0">
-              <h2 id={titleId} className="heading-3 text-brand-700">
+              <h2 id={titleId} className="ds2-workspace-heading">
                 {review.dialogTitle}
               </h2>
               <p id={descriptionId} className="mt-1 text-sm leading-relaxed text-slate-600">
@@ -137,7 +137,7 @@ export function PlanChangeConfirmationDialog({
           </header>
         ) : (
           <>
-            <h2 id={titleId} className="heading-3 text-slate-900">
+            <h2 id={titleId} className="ds2-workspace-heading">
               {needsInvoicePreview ? "Confirm your upgrade" : review.dialogTitle}
             </h2>
             <p

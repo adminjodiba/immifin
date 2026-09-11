@@ -7,7 +7,11 @@ import { useProfileDirtyState } from "@/components/profile/ProfileDirtyStateProv
 /** Close on Manage Profile always returns to the home page. */
 const MANAGE_PROFILE_CLOSE_PATH = "/";
 
-export function UserProfileCloseAction() {
+export function UserProfileCloseAction({
+  className = "btn-secondary shrink-0",
+}: {
+  className?: string;
+}) {
   const router = useRouter();
   const { isProfileDirty, saveAllPending, markClean } = useProfileDirtyState();
   const [isOpen, setIsOpen] = useState(false);
@@ -97,7 +101,10 @@ export function UserProfileCloseAction() {
 
   return (
     <>
-      <button type="button" className="btn-secondary shrink-0" onClick={handleCloseClick}>
+      <button type="button" className={className} onClick={handleCloseClick}>
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M6 6 18 18M18 6 6 18" strokeLinecap="round" />
+        </svg>
         Close
       </button>
 

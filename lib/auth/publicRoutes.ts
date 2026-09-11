@@ -5,7 +5,12 @@
 
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
+  "/landing-v2",
+  "/landing-v3",
+  "/landing-v7",
+  "/articles(.*)",
   "/pricing",
+  "/life",
   "/about(.*)",
   "/contact(.*)",
   "/api/contact(.*)",
@@ -20,6 +25,9 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",
+  // Intelligence Ask enforces auth inside the route so clients receive JSON 401
+  // (not an HTML login redirect from middleware auth.protect).
+  "/api/intelligence/ask(.*)",
   "/sitemap.xml",
   "/robots.txt",
 ] as const;
@@ -50,6 +58,12 @@ export function isPublicLandingPath(path: string): boolean {
   return (
     pathname === "/" ||
     pathname === "" ||
+    pathname === "/landing-v2" ||
+    pathname === "/landing-v3" ||
+    pathname === "/landing-v7" ||
+    pathname === "/articles" ||
+    pathname.startsWith("/articles/") ||
+    pathname === "/life" ||
     pathname === "/about" ||
     pathname.startsWith("/about/") ||
     pathname === "/contact" ||

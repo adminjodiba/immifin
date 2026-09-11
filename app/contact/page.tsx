@@ -1,6 +1,5 @@
-import { PageHeader } from "@/components/PageHeader";
 import { ContactOfficeCard, ContactUsForm } from "@/components/contact/ContactUsForm";
-import { WorkspaceSection } from "@/components/layout/WorkspaceSection";
+import { Ds2PublicPageShell } from "@/components/ds2/Ds2PublicPageShell";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -12,19 +11,20 @@ export const metadata = createMetadata({
 
 export default function ContactPage() {
   return (
-    <PageHeader
+    <Ds2PublicPageShell
+      eyebrow="IMMIFIN"
       title="Contact Us"
       description="We're here to help. Choose the reason for contacting us and provide the details below. The IMMIFIN team will route your message to the appropriate team."
     >
-      <WorkspaceSection aria-labelledby="contact-form-heading">
-        <div className="mx-auto grid max-w-3xl gap-4">
-          <h2 id="contact-form-heading" className="sr-only">
-            Contact form
-          </h2>
+      <section className="mx-auto w-full max-w-3xl" aria-labelledby="contact-form-heading">
+        <h2 id="contact-form-heading" className="sr-only">
+          Contact form
+        </h2>
+        <div className="grid gap-4">
           <ContactUsForm />
           <ContactOfficeCard />
         </div>
-      </WorkspaceSection>
-    </PageHeader>
+      </section>
+    </Ds2PublicPageShell>
   );
 }

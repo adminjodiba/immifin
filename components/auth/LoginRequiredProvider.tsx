@@ -12,10 +12,10 @@ import {
   type ReactNode,
 } from "react";
 import { sanitizeReturnPath } from "@/lib/auth/signInRedirect";
-import { clerkSignInProps } from "@/lib/clerk/signIn";
+import { clerkModalSignInProps } from "@/lib/clerk/signIn";
 
 const LOGIN_REQUIRED_MESSAGE =
-  "Please sign in or create a free IMMIFIN account to use calculators, track your immigration progress, save your profile, receive alerts, and access personalized features.";
+  "Sign in or create your free IMMIFIN account to save your immigration profile, track progress, receive alerts, and unlock personalized tools.";
 
 type LoginRequiredContextValue = {
   showLoginRequired: (returnPath?: string) => void;
@@ -117,10 +117,10 @@ export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) 
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="relative z-[1] w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xl shadow-slate-900/20 ring-1 ring-slate-200/80 sm:p-6"
+            className="relative z-[1] w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/15 sm:p-6"
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div className="min-w-0">
+            <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
+              <div className="min-w-0 flex-1 pr-1">
                 <p id={titleId} className="text-base font-semibold text-slate-900">
                   Login Required
                 </p>
@@ -140,9 +140,9 @@ export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) 
               </button>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex w-full min-w-0 justify-center overflow-x-hidden">
               <SignIn
-                {...clerkSignInProps}
+                {...clerkModalSignInProps}
                 routing="hash"
                 forceRedirectUrl={returnPath}
                 fallbackRedirectUrl={returnPath}
