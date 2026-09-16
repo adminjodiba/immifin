@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { PlanCardEmblem } from "@/components/billing/PlanCardEmblem";
 import { DevSubscriptionActivationDialog } from "@/components/pricing/DevSubscriptionActivationDialog";
+import { PricingPlanComparison } from "@/components/pricing/PricingPlanComparison";
 import { buildSignInUrl } from "@/lib/auth/signInRedirect";
 import { useCanUseDevSubscriptionTools } from "@/lib/hooks/useCanUseDevSubscriptionTools";
 import { useSubscriptionTierContext } from "@/lib/hooks/SubscriptionTierProvider";
@@ -95,6 +97,12 @@ type DevModeButtonConfig = {
   disabled: boolean;
   className: string;
   isCurrentPlan: boolean;
+};
+
+const PLAN_FACE_CLASS: Record<SubscriptionTier, string> = {
+  free: "ds2-billing-plan-card-free",
+  pro: "ds2-billing-plan-card-pro",
+  power: "ds2-billing-plan-card-power",
 };
 
 function getCurrentPlanButtonClass(plan: PlanConfig): string {
@@ -490,7 +498,15 @@ export function PricingPlans({
       <section id="plans" className="ds2-pricing-plans">
         <div>
           {devMode ? (
-            <p className="ds2-card-static mx-auto mb-8 max-w-2xl px-4 py-3 text-center text-sm text-[var(--immifin-ds2-text-primary)]">
+            <p className="ds2-pricing-dev-banner" role="status">
+              <span className="ds2-pricing-dev-banner-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M8.2 3.4 8.7 5.2a5.7 5.7 0 0 0-1.5.9L5.4 5.3 3.8 6.9l.8 1.8c-.2.5-.4 1-.4 1.5 0 .5.1 1 .4 1.5l-.8 1.8 1.6 1.6 1.8-.8c.5.3 1 .6 1.5.8l-.5 1.9h2.3l.5-1.9c.5-.2 1-.5 1.5-.8l1.8.8 1.6-1.6-.8-1.8c.3-.5.4-1 .4-1.5 0-.5-.1-1-.4-1.5l.8-1.8-1.6-1.6-1.8.8a5.7 5.7 0 0 0-1.5-.9l.5-1.8H8.2Zm1.8 5.1a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
               Development Subscription Mode is active. Select a plan to test Free, Pro, or Power —
               no payment is collected.
             </p>
@@ -520,7 +536,7 @@ export function PricingPlans({
             </>
           )}
 
-          <div className="grid w-full gap-6 lg:grid-cols-3">
+          <div className="ds2-pricing-plan-grid">
             {plans.map((plan) => {
               const isCurrentPlanCard = isPricingCurrentPlanCard({
                 planId: plan.id,
@@ -531,6 +547,10 @@ export function PricingPlans({
                 hasPaidStripeSubscription,
                 developmentSubscriptionOverrideActive,
               });
+              const showDevOverridePanel =
+                isCurrentPlanCard &&
+                developmentSubscriptionOverrideActive &&
+                plan.id === currentTier;
               const devButton =
                 devMode && isSignedIn ? getDevModeButtonConfig(plan, currentTier) : null;
               const checkoutButton = !devMode
@@ -550,172 +570,143 @@ export function PricingPlans({
                 <article
                   key={plan.id}
                   ref={isCurrentPlanCard ? currentPlanCardRef : undefined}
-                  className={`ds2-card-static ds2-pricing-card ${
-                    plan.highlighted ? "ds2-pricing-card-featured" : ""
-                  }`}
+                  className={`ds2-pricing-plan-card ds2-pricing-plan-card--${plan.id}`}
+                  aria-current={isCurrentPlanCard ? "true" : undefined}
                 >
-                  {plan.highlighted ? (
-                    <p className="ds2-pricing-badge">Most popular</p>
-                  ) : null}
-                  <h2 className="ds2-workspace-heading mt-1">{plan.name}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--immifin-ds2-text-muted)]">
-                    {plan.description}
-                  </p>
-
-                  {plan.id === "free" ? (
-                    <div className="mt-5">
-                      <p className="ds2-pricing-amount">{formatPriceAmount(0)}</p>
-                      <p className="mt-3 text-sm font-medium text-[var(--immifin-ds2-text-primary)]">
-                        Free login required
-                      </p>
-                      <p className="mt-0.5 text-sm font-bold text-[var(--immifin-ds2-navy)]">
-                        No credit card required
-                      </p>
+                  <div className={`ds2-pricing-plan-face ${PLAN_FACE_CLASS[plan.id]}`}>
+                    <div className="ds2-pricing-plan-face-top">
+                      <p className="ds2-pricing-plan-wordmark">IMMIFIN</p>
+                      {isCurrentPlanCard ? (
+                        <p className="ds2-pricing-plan-current-badge">Current Plan</p>
+                      ) : null}
                     </div>
-                  ) : plan.id === "pro" || plan.id === "power" ? (
-                    (() => {
-                      const price = getPaidPlanPricePresentation(plan.id, billingInterval);
-                      return (
-                        <div className="mt-5">
-                          <p className="ds2-pricing-amount">{price.amountLabel}</p>
-                          <p className="mt-1 text-sm font-medium text-[var(--immifin-ds2-text-muted)]">
-                            {price.periodLabel}
-                          </p>
-                          <p className="mt-1 text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {price.billingLabel}
-                          </p>
-                          {price.equivalentMonthlyLabel ? (
-                            <p className="mt-2 text-sm text-[var(--immifin-ds2-text-muted)]">
-                              {price.equivalentMonthlyLabel}
-                            </p>
-                          ) : null}
-                          {price.savingsLabel ? (
-                            <p className="mt-1 text-sm font-medium text-[var(--immifin-ds2-navy)]">
-                              {price.savingsLabel}
-                            </p>
-                          ) : null}
-                        </div>
-                      );
-                    })()
-                  ) : null}
+                    <h2 className="ds2-pricing-plan-name">{plan.name}</h2>
+                    <p className="ds2-pricing-plan-tagline">{plan.description}</p>
+                    <PlanCardEmblem tier={plan.id} />
+                  </div>
 
-                  {isCurrentPlanCard ? (
-                    <div className="mt-3">
-                      <p className="ds2-pricing-badge">Current plan</p>
-                      {developmentSubscriptionOverrideActive && plan.id === currentTier ? (
+                  <div className="ds2-pricing-plan-body">
+                    {plan.id === "free" ? (
+                      <div className="ds2-pricing-plan-price">
+                        <p className="ds2-pricing-amount">{formatPriceAmount(0)}</p>
+                        <p className="ds2-pricing-plan-price-note">Free login required</p>
+                        <p className="ds2-pricing-plan-price-emphasis">No credit card required</p>
+                      </div>
+                    ) : plan.id === "pro" || plan.id === "power" ? (
+                      (() => {
+                        const price = getPaidPlanPricePresentation(plan.id, billingInterval);
+                        return (
+                          <div className="ds2-pricing-plan-price">
+                            <p className="ds2-pricing-amount">
+                              {price.amountLabel}{" "}
+                              <span className="ds2-pricing-plan-period">{price.periodLabel}</span>
+                            </p>
+                            <p className="ds2-pricing-plan-billing">{price.billingLabel}</p>
+                            {price.equivalentMonthlyLabel ? (
+                              <p className="ds2-pricing-plan-price-note">{price.equivalentMonthlyLabel}</p>
+                            ) : null}
+                            {price.savingsLabel ? (
+                              <p className="ds2-pricing-plan-price-emphasis">{price.savingsLabel}</p>
+                            ) : null}
+                          </div>
+                        );
+                      })()
+                    ) : null}
+
+                    {showDevOverridePanel ? (
+                      <div className="ds2-pricing-plan-override" role="status">
+                        <p className="ds2-pricing-plan-override-title">
+                          {DEVELOPMENT_PLAN_OVERRIDE_LABEL} — {BILLING_NOT_BILLED_LABEL}
+                        </p>
+                        <p className="ds2-pricing-plan-override-copy">
+                          You are currently using a development subscription. No payment is collected.
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <ul className="ds2-pricing-plan-features">
+                      {plan.features.map((feature) => (
+                        <li key={feature}>
+                          <span className="ds2-pricing-check" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="ds2-pricing-plan-cta">
+                      {devMode ? (
                         <>
-                          <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {DEVELOPMENT_PLAN_OVERRIDE_LABEL}
-                          </p>
-                          <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {BILLING_NOT_BILLED_LABEL}
-                          </p>
+                          <button
+                            type="button"
+                            className={devButton?.className ?? `${plan.ctaStyle} w-full`}
+                            onClick={() => handlePlanClick(plan.id)}
+                            disabled={devButton?.disabled ?? false}
+                            aria-disabled={devButton?.isCurrentPlan ?? false}
+                          >
+                            {devButton?.isCurrentPlan ? (
+                              <>
+                                <span
+                                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-sm font-bold"
+                                  aria-hidden="true"
+                                >
+                                  ✓
+                                </span>
+                                Current Plan
+                              </>
+                            ) : (
+                              (devButton?.label ?? plan.cta)
+                            )}
+                          </button>
+                          {devButton?.isCurrentPlan && !showDevOverridePanel ? (
+                            <p className="ds2-pricing-plan-cta-helper">Your active subscription</p>
+                          ) : null}
+                        </>
+                      ) : plan.id === "free" && !isSignedIn ? (
+                        <Link href="/signup" className={`${plan.ctaStyle} w-full`}>
+                          {plan.cta}
+                        </Link>
+                      ) : checkoutButton?.href ? (
+                        <>
+                          <Link href={checkoutButton.href} className={checkoutButton.className}>
+                            {checkoutButton.label}
+                          </Link>
+                          {checkoutButton.helperText ? (
+                            <p className="ds2-pricing-plan-cta-helper">{checkoutButton.helperText}</p>
+                          ) : null}
                         </>
                       ) : (
-                        <p className="mt-0.5 text-xs text-[var(--immifin-ds2-text-muted)]">
-                          Your current plan
-                        </p>
+                        <>
+                          <button
+                            type="button"
+                            className={checkoutButton?.className ?? `${plan.ctaStyle} w-full`}
+                            onClick={() => {
+                              if (plan.id === "pro" || plan.id === "power") {
+                                void handleCheckoutClick(plan.id);
+                              }
+                            }}
+                            disabled={
+                              checkoutButton?.disabled ||
+                              isCheckoutLoading ||
+                              (plan.id !== "pro" && plan.id !== "power")
+                            }
+                          >
+                            {isCheckoutLoading ? "Redirecting..." : (checkoutButton?.label ?? plan.cta)}
+                          </button>
+                          {checkoutButton?.helperText ? (
+                            <p className="ds2-pricing-plan-cta-helper">{checkoutButton.helperText}</p>
+                          ) : null}
+                        </>
                       )}
                     </div>
-                  ) : null}
-
-                  <ul className="mt-6 flex-1 space-y-3">
-                    {plan.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex gap-2 text-sm text-[var(--immifin-ds2-text-primary)]"
-                      >
-                        <span className="ds2-pricing-check" aria-hidden="true">
-                          ✓
-                        </span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-8">
-                    {devMode ? (
-                      <>
-                        <button
-                          type="button"
-                          className={devButton?.className ?? `${plan.ctaStyle} w-full`}
-                          onClick={() => handlePlanClick(plan.id)}
-                          disabled={devButton?.disabled ?? false}
-                          aria-disabled={devButton?.isCurrentPlan ?? false}
-                        >
-                          {devButton?.isCurrentPlan ? (
-                            <>
-                              <span
-                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-sm font-bold"
-                                aria-hidden="true"
-                              >
-                                ✓
-                              </span>
-                              Current Plan
-                            </>
-                          ) : (
-                            (devButton?.label ?? plan.cta)
-                          )}
-                        </button>
-                        {devButton?.isCurrentPlan ? (
-                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {developmentSubscriptionOverrideActive
-                              ? `${DEVELOPMENT_PLAN_OVERRIDE_LABEL} — ${BILLING_NOT_BILLED_LABEL}`
-                              : "Your active subscription"}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : plan.id === "free" && !isSignedIn ? (
-                      <Link href="/signup" className={`${plan.ctaStyle} w-full`}>
-                        {plan.cta}
-                      </Link>
-                    ) : checkoutButton?.href ? (
-                      <>
-                        <Link href={checkoutButton.href} className={checkoutButton.className}>
-                          {checkoutButton.label}
-                        </Link>
-                        {checkoutButton.helperText ? (
-                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {checkoutButton.helperText}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className={checkoutButton?.className ?? `${plan.ctaStyle} w-full`}
-                          onClick={() => {
-                            if (plan.id === "pro" || plan.id === "power") {
-                              void handleCheckoutClick(plan.id);
-                            }
-                          }}
-                          disabled={
-                            checkoutButton?.disabled ||
-                            isCheckoutLoading ||
-                            (plan.id !== "pro" && plan.id !== "power")
-                          }
-                        >
-                          {isCheckoutLoading ? "Redirecting..." : (checkoutButton?.label ?? plan.cta)}
-                        </button>
-                        {checkoutButton?.helperText ? (
-                          <p className="mt-2 text-center text-xs text-[var(--immifin-ds2-text-muted)]">
-                            {checkoutButton.helperText}
-                          </p>
-                        ) : null}
-                      </>
-                    )}
                   </div>
                 </article>
               );
             })}
           </div>
 
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--immifin-ds2-text-muted)]">
-            Free includes manual tools and profile entry. Pro adds automation — dashboard, alerts,
-            and tracking. Power adds AI and advanced intelligence. Paid plans are billed through
-            Stripe; your access updates after billing is confirmed.
-          </p>
+          <PricingPlanComparison />
         </div>
       </section>
 

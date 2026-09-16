@@ -125,7 +125,7 @@ export async function upsertProfileFromClerk(input: UpsertProfileInput): Promise
     p_avatar_url: input.avatarUrl ?? null,
   };
 
-  console.log("[clerk-webhook] rpc input:", rpcInput);
+  console.log("[clerk-webhook] rpc input:", { clerkUserId: input.clerkUserId });
 
   const { data, error } = await supabase.rpc("upsert_profile_from_clerk", rpcInput);
 
@@ -134,7 +134,10 @@ export async function upsertProfileFromClerk(input: UpsertProfileInput): Promise
     throw new Error(`Failed to upsert profile from Clerk: ${error.message}`);
   }
 
-  console.log("[clerk-webhook] rpc output:", data);
+  console.log("[clerk-webhook] rpc output:", {
+    clerkUserId: input.clerkUserId,
+    profileId: (data as { id?: unknown } | null)?.id ?? null,
+  });
 
   return mapProfile(data as Record<string, unknown>);
 }

@@ -281,7 +281,7 @@ export function IntelligenceWorkspace() {
             ) : null}
             {result.errorKind === "beta_not_eligible" ? (
               <Link href="/dashboard" className="btn-primary inline-flex min-h-11 items-center">
-                Back to Dashboard
+                Back to Immigration Dashboard
               </Link>
             ) : null}
             {result.errorKind === "validation" ||

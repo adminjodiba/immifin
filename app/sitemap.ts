@@ -15,6 +15,7 @@ const PUBLIC_SITEMAP_PATHS = [
   "/immigration/h1b-lottery-odds-calculator",
   "/immigration/visa-stamping-wait-map",
   "/about",
+  "/about/what-users-say",
   "/privacy",
   "/terms",
   "/contact",

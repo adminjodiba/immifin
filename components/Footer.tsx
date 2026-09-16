@@ -23,18 +23,6 @@ const ds2FooterGroups = [
     ],
   },
   {
-    heading: "IMMIGRATION",
-    links: [
-      { href: "/calculators/green-card-wait-time", label: "Green Card Wait Calculator" },
-      { href: "/calculators/citizenship-eligibility", label: "Citizenship Eligibility Calculator" },
-      { href: "/immigration/visa-stamping-wait-map", label: "Visa Stamping Wait Map" },
-    ],
-  },
-  {
-    heading: "PRODUCT",
-    links: [{ href: "/pricing", label: "Pricing" }],
-  },
-  {
     heading: "LEGAL",
     links: [
       { href: "/privacy", label: "Privacy" },
@@ -56,7 +44,7 @@ export function Footer({ logoIconTone = "default", variant = "default" }: Footer
         className="mt-auto border-t border-[color:var(--immifin-ds2-border)] bg-[var(--immifin-ds2-surface)]"
       >
         <div className={`${landingV3ContentGridClass} py-12 lg:py-14`}>
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-1">
               <Logo iconTone={logoIconTone} />
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-[color:var(--immifin-ds2-text-muted)]">

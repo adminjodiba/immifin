@@ -938,17 +938,15 @@ export function BillingCenter() {
       ) : null}
       {actionError ? <p className="ds2-billing-status-error">{actionError}</p> : null}
 
-      {billing.hasPaidStripeSubscription || tier === "free" ? (
-        <BillingManagement
-          tier={tier}
-          billing={billing}
-          actions={availableActions}
-          actionBusy={actionBusy}
-          isSubmitting={isSubmitting}
-          onSelectAction={(action) => void handleAction(action)}
-          onKeepSubscription={() => void handleKeepMySubscription()}
-        />
-      ) : null}
+      <BillingManagement
+        tier={tier}
+        billing={billing}
+        actions={availableActions}
+        actionBusy={actionBusy}
+        isSubmitting={isSubmitting}
+        onSelectAction={(action) => void handleAction(action)}
+        onKeepSubscription={() => void handleKeepMySubscription()}
+      />
 
       <PlanIdentityCards currentTier={tier} />
 

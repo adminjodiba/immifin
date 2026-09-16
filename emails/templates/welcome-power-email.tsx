@@ -10,7 +10,7 @@ import {
 
 export const WELCOME_POWER_TEMPLATE_ID = "welcome-power" as const;
 export const WELCOME_POWER_SUBJECT = "IMMIFIN | Welcome to Power";
-export const WELCOME_POWER_CTA_LABEL = "View My Dashboard";
+export const WELCOME_POWER_CTA_LABEL = "View Immigration Dashboard";
 
 export type WelcomePowerEmailProps = {
   firstName: string;

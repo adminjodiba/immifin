@@ -51,19 +51,19 @@ export function AdminDatasetRefreshButton({ label, endpoint }: AdminDatasetRefre
   }
 
   return (
-    <div className="space-y-2 border-t border-slate-200/80 pt-3">
+    <div className="ds2-drc-refresh">
       <button
         type="button"
         onClick={handleRefresh}
         disabled={status === "loading"}
-        className="btn-primary min-h-[40px] px-3.5 py-2 text-xs"
+        className="ds2-drc-refresh-btn"
       >
         {status === "loading" ? "Refreshing…" : label}
       </button>
       {message && (
         <p
-          className={`text-xs leading-relaxed ${
-            status === "error" ? "text-red-700" : "text-emerald-800"
+          className={`ds2-drc-refresh-message ${
+            status === "error" ? "ds2-drc-refresh-message-error" : "ds2-drc-refresh-message-success"
           }`}
           role="status"
         >

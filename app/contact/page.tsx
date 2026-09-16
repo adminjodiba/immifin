@@ -1,5 +1,7 @@
-import { ContactOfficeCard, ContactUsForm } from "@/components/contact/ContactUsForm";
-import { Ds2PublicPageShell } from "@/components/ds2/Ds2PublicPageShell";
+import type { CSSProperties } from "react";
+import { ContactUsBody } from "@/components/contact/ContactUsBody";
+import { Ds2SplitSceneHero } from "@/components/ds2/Ds2SplitSceneHero";
+import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -9,22 +11,70 @@ export const metadata = createMetadata({
   path: "/contact",
 });
 
+/** Contact Us split-scene hero. Natural 2172×724. Mailbox left, delivery van right. See EMMIFIN-HERO-DESIGN.MD. */
+const CONTACT_HERO_IMAGE = "/images/immifin-contact-us-hero-mail-delivery.png";
+const HERO_H = "min(19vh, 160px)";
+
+function CheckIcon() {
+  return (
+    <svg className="h-3 w-3 shrink-0 text-emerald-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L9 10.94 7.28 9.22a.75.75 0 10-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l4.25-4.25z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
 export default function ContactPage() {
   return (
-    <Ds2PublicPageShell
-      eyebrow="IMMIFIN"
-      title="Contact Us"
-      description="We're here to help. Choose the reason for contacting us and provide the details below. The IMMIFIN team will route your message to the appropriate team."
-    >
-      <section className="mx-auto w-full max-w-3xl" aria-labelledby="contact-form-heading">
-        <h2 id="contact-form-heading" className="sr-only">
-          Contact form
-        </h2>
-        <div className="grid gap-4">
-          <ContactUsForm />
-          <ContactOfficeCard />
+    <div className="ds2-contact-page">
+      <Ds2SplitSceneHero
+        className="ds2-contact-hero"
+        labelledBy="contact-heading"
+        imageSrc={CONTACT_HERO_IMAGE}
+        imageWidth={2172}
+        imageHeight={724}
+        leftLock={0.3}
+        rightLock={0.36}
+        fillLeft={0.3}
+        fillRight={0.64}
+        skyLeft={0.34}
+        skyRight={0.52}
+      >
+        <div className={`${landingV3ContentGridClass} ds2-contact-hero-inner`}>
+          <div className="ds2-contact-hero-copy">
+            <div className="landing-v3-hero-title-lane hero-ribbon-title-rail ds2-contact-hero-title-lane">
+              <div
+                className="hero-ribbon-title-shuttle landing-v3-hero-title-shuttle"
+                style={
+                  {
+                    ["--v3-glide-x-torch"]:
+                      `max(0px, calc(50vw - ${HERO_H} * 1.08 - 1.5rem - 50% - var(--v3-optical-center)))`,
+                  } as CSSProperties
+                }
+              >
+                <h1 id="contact-heading" className="ds2-share-hero-title hero-ribbon-title-float">
+                  Contact IMMIFIN
+                </h1>
+              </div>
+            </div>
+            <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[11px] font-bold leading-snug text-white drop-shadow-[0_1px_2px_rgba(11,27,58,0.55)] sm:gap-x-3">
+              <li className="inline-flex items-center gap-1">
+                <CheckIcon />
+                We&apos;re here to help
+              </li>
+              <li className="inline-flex items-center gap-1">
+                <CheckIcon />
+                Choose the reason for contacting us
+              </li>
+            </ul>
+          </div>
         </div>
-      </section>
-    </Ds2PublicPageShell>
+      </Ds2SplitSceneHero>
+
+      <ContactUsBody />
+    </div>
   );
 }

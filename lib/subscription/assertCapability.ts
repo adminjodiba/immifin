@@ -4,7 +4,7 @@ import { resolveSubscriptionEntitlement } from "@/lib/subscription/resolveSubscr
 import type { ProfileWithRelations } from "@/lib/supabase/types";
 
 const CAPABILITY_DENIED_MESSAGES: Record<SubscriptionCapability, string> = {
-  accessPersonalDashboard: "Personal Dashboard requires Pro.",
+  accessPersonalDashboard: "Immigration Dashboard requires Pro.",
   accessSaveImmigrationProfile: "Saving your immigration profile requires Pro.",
   accessPriorityDateTracking: "Priority date tracking requires Pro.",
   accessAI: "AI features require Power.",

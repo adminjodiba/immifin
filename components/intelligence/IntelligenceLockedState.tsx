@@ -56,7 +56,7 @@ export function IntelligenceLockedState({ embedded = false }: IntelligenceLocked
           View Power plan
         </Link>
         <Link href="/dashboard" className="btn-secondary">
-          Back to Dashboard
+          Back to Immigration Dashboard
         </Link>
       </div>
     </div>

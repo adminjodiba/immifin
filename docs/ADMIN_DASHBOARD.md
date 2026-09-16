@@ -2,10 +2,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-07-09 |
-| **Route** | `/admin` |
+| **Last updated** | 2026-09-13 |
+| **Working route** | `/admin` |
+| **DS2 Data Refresh Center** | `/admin/data-refresh` — same shared `AdminDataRefreshCenter` as `/admin` |
+| **DS2 mock route** | `/admin/overview` (S7A-DS2-ADMIN-DASHBOARD-MOCK-001) |
 | **Sprint** | Sprint 5 (MVP) — Visa Bulletin force sync parked for Sprint 6 |
-| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations) |
+| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations), S7A-DS2-ADMIN-DASHBOARD-MOCK-001 (shell only) |
 
 ---
 
@@ -25,7 +27,7 @@ Page chrome: top-right **Close** (returns home) — no “Back to Home” link.
 | **Bootstrap** | Manual SQL — `set_profile_role()` after first Clerk signup ([auth/PHASE1.md](./auth/PHASE1.md)) |
 | **Middleware** | Clerk sign-in required (`/admin` removed from public routes) |
 | **Page** | `requireAdmin()` in `app/admin/page.tsx` — non-admin → redirect `/` |
-| **Navigation** | **My Immifin → Admin** — visible only when `/api/account/me` returns `role: admin` (`useIsAdminRole`) |
+| **Navigation** | **My Immifin → Admin Dashboard** (expandable) — visible only when `/api/account/me` returns `role: admin` (`useIsAdminRole`) |
 | **API routes** | Existing `/api/admin/*` routes use `requireAdmin()` |
 
 ---
@@ -36,7 +38,9 @@ Page chrome: top-right **Close** (returns home) — no “Back to Home” link.
 
 | File | Role |
 |------|------|
-| `app/admin/page.tsx` | Admin dashboard UI |
+| `app/admin/page.tsx` | Legacy admin dashboard UI |
+| `app/admin/[section]/page.tsx` | DS2 Admin Dashboard submenu router (`/admin/data-refresh`) |
+| `components/admin/AdminDataRefreshCenter.tsx` | Shared Data Refresh Center presentation |
 | `lib/data/dataFreshness.ts` | Dataset catalog, status logic, refresh hints |
 
 Tracked datasets:

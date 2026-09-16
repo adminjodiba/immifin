@@ -26,6 +26,27 @@ export type StripeWebhookClaimOutcome =
 /** Stripe recurring interval values stored on subscriptions.billing_interval */
 export type SubscriptionBillingInterval = "month" | "year";
 
+export type FeedbackModerationStatus = "pending" | "approved" | "rejected";
+
+export type UserFeedback = {
+  id: string;
+  profile_id: string;
+  clerk_user_id: string;
+  rating: number;
+  feedback_text: string;
+  display_name: string | null;
+  publication_permission: boolean;
+  publication_permission_granted_at: string | null;
+  moderation_status: FeedbackModerationStatus;
+  featured: boolean;
+  moderated_at: string | null;
+  moderated_by_clerk_user_id: string | null;
+  moderation_note: string | null;
+  created_at: string;
+  updated_at: string;
+  last_submitted_at: string;
+};
+
 export type Profile = {
   id: string;
   clerk_user_id: string;

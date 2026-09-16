@@ -23,6 +23,8 @@ const PREVIEW_HIDE_FOOTER_PATHS = new Set<string>();
 /** Controlled DS2 public informational routes (S7A-DS2-PUBLIC-001). */
 const DS2_PUBLIC_PATHS = new Set([
   "/about",
+  "/about/share-feedback",
+  "/about/what-users-say",
   "/contact",
   "/privacy",
   "/terms",
@@ -49,24 +51,19 @@ const DS2_IMMIGRATION_HUB_PATHS = new Set([
   "/immigration/visa-stamping-wait-map",
 ]);
 /** Controlled DS2 authenticated workspace (S7A-DS2-DASH-SHELL-001 / S7A-DS2-BILL-CHROME-001). */
-const DS2_WORKSPACE_PATHS = new Set(["/dashboard", "/user-profile", "/account/billing"]);
+const DS2_WORKSPACE_PATHS = new Set([
+  "/dashboard",
+  "/user-profile",
+  "/user-profile/personalization",
+  "/account/billing",
+  "/admin",
+]);
 /** Controlled DS2 Intelligence workspace (S7A-DS2-AI-CHROME-001). Immigration domain, not My Immifin. */
 const DS2_INTELLIGENCE_PATHS = new Set(["/intelligence"]);
 /** Controlled DS2 public conversion surface (S7A-DS2-PRICE-CHROME-001). */
 const DS2_PRICING_PATHS = new Set(["/pricing"]);
 /** Canonical production home (S7A-DS2-HOME-PROMOTE-001). */
 const DS2_HOME_PATHS = new Set(["/"]);
-/** Controlled DS2 header opt-in. */
-const DS2_HEADER_PATHS = new Set([
-  ...DS2_HOME_PATHS,
-  ...DS2_PUBLIC_PATHS,
-  ...DS2_CALCULATOR_PATHS,
-  ...DS2_VISA_BULLETIN_PATHS,
-  ...DS2_IMMIGRATION_HUB_PATHS,
-  ...DS2_WORKSPACE_PATHS,
-  ...DS2_INTELLIGENCE_PATHS,
-  ...DS2_PRICING_PATHS,
-]);
 /** Controlled DS2 footer opt-in. Landing V3 keeps DS2 Footer without this body shell. */
 const DS2_FOOTER_PATHS = new Set([
   ...DS2_HOME_PATHS,
@@ -85,7 +82,9 @@ function isDs2AuthPath(pathname: string): boolean {
     pathname === "/login" ||
     pathname.startsWith("/login/") ||
     pathname === "/signup" ||
-    pathname.startsWith("/signup/")
+    pathname.startsWith("/signup/") ||
+    pathname === "/auth/start" ||
+    pathname.startsWith("/auth/start/")
   );
 }
 
@@ -94,7 +93,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hideLiveHeader = PREVIEW_OWN_HEADER_PATHS.has(pathname) || isDs2AuthPath(pathname);
   const hideLiveFooter = PREVIEW_HIDE_FOOTER_PATHS.has(pathname) || isDs2AuthPath(pathname);
-  const isDs2Footer = DS2_FOOTER_PATHS.has(pathname);
+  const isDs2Footer = DS2_FOOTER_PATHS.has(pathname) || pathname.startsWith("/admin/");
   /**
    * Canonical V2 (approved V6 baseline): avoid min-h-screen + main flex-1 stretch.
    * At reduced browser zoom the CSS viewport grows and that combination left a
@@ -107,8 +106,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     pathname === "/landing-v3" ||
     pathname === "/landing-v7";
   const showHomeAnnouncement = pathname === "/";
-  /** Scopes navy remapping of existing sweep buttons (S7A-DS2-HOVER-SLIDE-001). */
-  const isDs2App = DS2_HEADER_PATHS.has(pathname) || isDs2AuthPath(pathname);
+  /**
+   * Live portal chrome is DS2 everywhere. Preview landings keep their own header.
+   * Menu visibility is not authorization — /admin remains requireAdmin().
+   */
+  const isDs2App = !PREVIEW_OWN_HEADER_PATHS.has(pathname);
 
   return (
     <LoginRequiredProvider>
@@ -122,7 +124,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           {showHomeAnnouncement ? <LandingV3AnnouncementBar /> : null}
           {hideLiveHeader ? null : (
             <Header
-              variant={DS2_HEADER_PATHS.has(pathname) ? "ds2" : "default"}
+              variant="ds2"
               mobileMenuOpen={mobileMenuOpen}
               onToggleMenu={() => setMobileMenuOpen((open) => !open)}
             />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   getScheduledChangePresentation,
+  isEntitlementWithoutStripeBilling,
   type BillingCenterAction,
   type BillingSummary,
 } from "@/lib/billing/billing-center";
@@ -86,6 +87,24 @@ function SubscriptionActionButton({
         ›
       </span>
     </button>
+  );
+}
+
+function HistoryDocumentIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M7 3.75h7.2L18.5 8v12.25H7V3.75Z" strokeLinejoin="round" />
+      <path d="M14.1 3.75V8h4.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+      <rect x="4.5" y="5.5" width="15" height="14" rx="2" />
+      <path d="M8 4v3M16 4v3M4.5 10h15" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -208,6 +227,91 @@ export function BillingManagement({
         </p>
         <ManagementHeader />
         <FreeBillingManagementPreview />
+      </section>
+    );
+  }
+
+  const simulatedPaid = isEntitlementWithoutStripeBilling(tier, billing);
+
+  if (simulatedPaid) {
+    return (
+      <section className="ds2-billing-management" aria-labelledby="billing-management-heading">
+        <ManagementHeader />
+        <div className="ds2-billing-management-grid">
+          <section
+            className="ds2-billing-management-panel ds2-billing-history-panel"
+            aria-labelledby="billing-history-heading"
+          >
+            <div className="ds2-billing-history-panel-head">
+              <h3 id="billing-history-heading" className="ds2-billing-management-panel-title">
+                Recent Billing History
+              </h3>
+              <span className="ds2-billing-history-view-all">View all →</span>
+            </div>
+            <div className="ds2-billing-history-dev-empty">
+              <span className="ds2-billing-history-dev-empty-icon">
+                <HistoryDocumentIcon />
+              </span>
+              <p className="ds2-billing-history-dev-empty-title">
+                No History because special user on dev mode
+              </p>
+              <p className="ds2-billing-history-dev-empty-copy">
+                You are currently using a development override account.
+              </p>
+              <p className="ds2-billing-history-dev-empty-copy">
+                Billing history is not available for special users on dev mode.
+              </p>
+            </div>
+          </section>
+
+          <div className="ds2-billing-management-actions-column">
+            <section
+              className="ds2-billing-management-panel ds2-billing-actions-panel"
+              aria-labelledby="subscription-actions-heading"
+            >
+              <h3 id="subscription-actions-heading" className="ds2-billing-management-panel-title">
+                Subscription Actions
+              </h3>
+              <div className="ds2-billing-mgmt-action-list">
+                {PREVIEW_ACTIONS.map((action) => (
+                  <button
+                    key={action.title}
+                    type="button"
+                    className={`ds2-billing-mgmt-action ds2-billing-mgmt-action-${action.kind} ds2-billing-mgmt-action-static`}
+                    disabled
+                  >
+                    <span className="ds2-billing-mgmt-action-icon" aria-hidden="true">
+                      <ActionIcon kind={action.kind} />
+                    </span>
+                    <span className="ds2-billing-mgmt-action-copy">
+                      <span className="ds2-billing-mgmt-action-title">{action.title}</span>
+                      <span className="ds2-billing-mgmt-action-text">{action.text}</span>
+                    </span>
+                    <span className="ds2-billing-mgmt-action-chevron" aria-hidden="true">
+                      ›
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <aside
+              className="ds2-billing-scheduled-card ds2-billing-scheduled-card-neutral"
+              aria-labelledby="scheduled-change-heading"
+            >
+              <h3 id="scheduled-change-heading" className="ds2-billing-scheduled-title">
+                <span className="ds2-billing-scheduled-neutral-icon" aria-hidden="true">
+                  <CalendarIcon />
+                </span>
+                Scheduled Changes
+              </h3>
+              <p className="ds2-billing-scheduled-destination">No scheduled changes</p>
+              <p className="ds2-billing-scheduled-copy">
+                You don&apos;t have any scheduled plan changes at this time.
+              </p>
+            </aside>
+          </div>
+        </div>
       </section>
     );
   }

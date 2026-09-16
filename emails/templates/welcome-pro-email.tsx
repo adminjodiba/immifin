@@ -10,7 +10,7 @@ import {
 
 export const WELCOME_PRO_TEMPLATE_ID = "welcome-pro" as const;
 export const WELCOME_PRO_SUBJECT = "IMMIFIN | Welcome to Pro";
-export const WELCOME_PRO_CTA_LABEL = "View My Dashboard";
+export const WELCOME_PRO_CTA_LABEL = "View Immigration Dashboard";
 
 export type WelcomeProEmailProps = {
   firstName: string;

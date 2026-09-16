@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-10 (S7A-DS2-BILLING-FINAL-007 — paid Billing Center DS2 locked)  
+**Last Updated:** 2026-09-13 (S7A-DS2-ADMIN-DASHBOARD-MOCK-001 — Admin Dashboard DS2 mock shell)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)
@@ -51,8 +51,43 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 | **Not shown** | Duplicate Subscription Details column; current-plan row in Billing Details; old View Plans / Manage Billing cards; Plan Features; HR; payment-method UI |
 | **Invoice history** | Not currently supported by production architecture — empty state only, no fabricated rows |
 | **My Immifin → Plan & Billing** | Billing Center → `/account/billing`; View full plan → `/pricing` |
-| **Workspace sidebar** | Canonical My Immifin list: Dashboard, My Profile, Plan & Billing, Account Settings, Help & Support |
+| **Workspace sidebar** | Canonical My Immifin list: Immigration Dashboard, My Profile, Personalization, Plan & Billing, Account Settings, Help & Support |
 | **Billing/Stripe/entitlement logic** | Unchanged — existing plan-change, interval-change, and downgrade-to-Free actions are presented in the new layout |
+
+## Admin Dashboard Design System 2.0 mock (S7A-DS2-ADMIN-DASHBOARD-MOCK-001)
+
+| Field | Value |
+|-------|-------|
+| **Status** | MOCK / foundation only — ready for Product Owner localhost review |
+| **Approved visual** | `public/images/immifin-admin-dashboard-ds2-approved-reference.png` |
+| **Mock route** | `/admin/overview` |
+| **Existing working page** | `/admin` unchanged — do not treat the mock as a function migration |
+| **Information architecture** | Admin stays inside My Immifin. Authorized admins see expandable **Admin Dashboard**: Overview, User Management, User Feedback, Data Refresh Center, Notifications, Content Management, System Logs, Settings |
+| **Authorization** | Same `requireAdmin()` / `isAdminRole(profiles.role)` as `/admin` |
+| **Not in this mock** | No function migration, no fake production metrics, no feedback moderation, no new admin APIs |
+
+## User Feedback Review Queue (S7A-DS2-ADMIN-FEEDBACK)
+
+Locked lifecycle for `/admin/feedback`. Visitors cannot submit feedback. Admins moderate only three buckets.
+
+| Path | Lifecycle |
+|------|-----------|
+| **Public** | Submit → Public Review → Approve → Feedback Pool |
+| **Public reject** | Submit → Public Review → Reject → Permanent delete |
+| **Private** | Submit → Private Review → Acknowledge → Permanent delete |
+| **Pool delete** | Feedback Pool → Delete → Permanent delete |
+
+Select All applies to the current page only (max 100), including Feedback Pool. Bulk approve/reject/acknowledge/delete re-validates eligibility server-side with `requireAdmin()`. Private feedback cannot be approved. Public feedback cannot be acknowledged. Pool delete cannot remove pending review records. Reject, Acknowledge, and Pool Delete require a confirmation dialog and permanently delete; Approve does not. Feedback Pool has no Publish checkbox. `/about/what-users-say` pulls a daily Top-100 snapshot from approved public pool records.
+
+## Public What Users Say identity (S7A-FEEDBACK-PUBLIC-IDENTITY-004)
+
+Public testimonial cards on `/about/what-users-say` show identity in this order:
+
+1. **Display Name** from `user_feedback.display_name` when the submitter supplied a non-empty value
+2. Otherwise the submitter's **login email** from `profiles.email`, **masked on the server** by `maskEmailForPublicDisplay()`
+3. Otherwise the privacy-safe generic identity **IMMIFIN User**
+
+**RAW LOGIN EMAIL MUST NEVER BE INCLUDED IN PUBLIC TESTIMONIAL PAYLOADS OR PUBLIC TESTIMONIAL CACHE/SNAPSHOT RECORDS.** Masking happens before `buildWhatUsersSaySnapshot()`. The browser receives only Display Name, the masked email, or IMMIFIN User. Admin Feedback Review may still use account email for authorized moderation and is not subject to this public-display rule.
 
 ## My Profile Design System 2.0 (S7A-DS2-MY-PROFILE-FINAL-CLOSE-001)
 
@@ -61,7 +96,7 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 | **Status** | LOCKED — current localhost `/user-profile` presentation is the DS2 visual baseline |
 | **Visual reference** | `public/images/immifin-my-profile-ds2-final-approved.png` |
 | **Route** | `/user-profile` |
-| **Workspace sidebar** | One flat My Immifin list: Dashboard, My Profile, Plan & Billing, Account Settings, Help & Support |
+| **Workspace sidebar** | One flat My Immifin list: Immigration Dashboard, My Profile, Personalization, Plan & Billing, Account Settings, Help & Support |
 | **Page architecture** | Compact action bar + 2×2 quadrants (Personal, Immigration, Green Card, Notifications). No profile tabs. |
 | **Save** | One page-level Save All Changes action; existing section save contracts reused |
 | **Close** | Returns to `/` |
@@ -81,8 +116,21 @@ profile information.
 | Field | Value |
 |-------|-------|
 | **Data entry (Free / Pro / Power)** | Personal Info, Immigration, Green Card, Notifications preferences |
-| **Still Pro** | Personalized Dashboard, Priority Date Tracking, Visa Bulletin History, Movement Tracker, Email Alerts delivery, calculator autofill |
+| **Still Pro** | Immigration Dashboard, Priority Date Tracking, Visa Bulletin History, Movement Tracker, Email Alerts delivery, calculator autofill |
 | **Still Power** | IMMIFIN AI Advisor |
+
+## My Immifin Personalization (S7A-DS2-MYIMMIFIN-PERSONALIZATION-001)
+
+| Field | Value |
+|-------|-------|
+| **Status** | Implemented locally — start-page preference for Pro / Power |
+| **Route** | `/user-profile/personalization` |
+| **Persistence** | `immigration_profiles.preferences.startPage` (existing JSONB; no migration) |
+| **Post-login resolver** | `/auth/start` — used only when there is no explicit return path |
+| **Safe fallback** | IMMIFIN Home (`/`) |
+| **Destinations** | Home (all); Immigration Dashboard (existing `accessPersonalDashboard`); Admin Dashboard (admin role only) |
+| **Free** | Sidebar item visible with PRO badge; page is locked; cannot save; default start remains Home |
+| **Finance Dashboard** | Not created |
 
 ## IMMIFIN Beta Launch Program
 

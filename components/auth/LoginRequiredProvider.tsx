@@ -11,7 +11,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { sanitizeReturnPath } from "@/lib/auth/signInRedirect";
+import { POST_LOGIN_START_PATH } from "@/lib/account/startPage";
+import { resolveLoginReturnPath } from "@/lib/auth/signInRedirect";
 import { clerkModalSignInProps } from "@/lib/clerk/signIn";
 
 const LOGIN_REQUIRED_MESSAGE =
@@ -42,7 +43,7 @@ export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) 
   const router = useRouter();
   const titleId = useId();
   const [open, setOpen] = useState(false);
-  const [returnPath, setReturnPath] = useState("/");
+  const [returnPath, setReturnPath] = useState(POST_LOGIN_START_PATH);
 
   const closeLoginRequired = useCallback(() => {
     setOpen(false);
@@ -50,11 +51,11 @@ export function LoginRequiredProvider({ children }: LoginRequiredProviderProps) 
 
   const showLoginRequired = useCallback(
     (path = "/") => {
-      const safePath = sanitizeReturnPath(path);
+      const safePath = resolveLoginReturnPath(path);
       setReturnPath(safePath);
       setOpen(true);
 
-      if (pathname !== "/") {
+      if (pathname !== "/" && pathname !== safePath) {
         router.push("/");
       }
     },

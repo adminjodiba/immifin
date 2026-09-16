@@ -7,10 +7,12 @@
 //   SUPABASE_SERVICE_ROLE_KEY
 //   GOOGLE_SERVICE_ACCOUNT_KEY
 //   VISA_BULLETIN_GOOGLE_SHEET_ID
+//   DAILY_SHEET_SYNC_SECRET
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "immifin",
-  "main": ".open-next/worker.js",
+  // Custom worker adds scheduled(); fetch still comes from OpenNext.
+  "main": "./cloudflare/custom-worker.ts",
   "compatibility_date": "2026-06-23",
   "compatibility_flags": [
     "nodejs_compat",
@@ -37,5 +39,14 @@
   // Raises per-request CPU above Free's ~10 ms hard cap (Error 1102 / OpenNext cold start).
   "limits": {
     "cpu_ms": 60000
+  },
+  // DST-safe 12:01 AM America/Chicago: CDT=05:01 UTC, CST=06:01 UTC.
+  // Handler proceeds only when Chicago local time is 00:01.
+  // Not live until a Production deploy. Set Worker secret DAILY_SHEET_SYNC_SECRET first.
+  "triggers": {
+    "crons": [
+      "1 5 * * *",
+      "1 6 * * *"
+    ]
   }
 }

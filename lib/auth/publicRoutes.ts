@@ -28,6 +28,11 @@ export const PUBLIC_ROUTE_PATTERNS = [
   // Intelligence Ask enforces auth inside the route so clients receive JSON 401
   // (not an HTML login redirect from middleware auth.protect).
   "/api/intelligence/ask(.*)",
+  // Feedback submit enforces auth inside the route so clients receive JSON 401
+  // (not an HTML login redirect from middleware auth.protect).
+  "/api/feedback(.*)",
+  // Cron self-call; route authenticates with DAILY_SHEET_SYNC_SECRET.
+  "/api/internal/daily-sheet-sync(.*)",
   "/sitemap.xml",
   "/robots.txt",
 ] as const;

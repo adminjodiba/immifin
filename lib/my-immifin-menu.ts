@@ -36,12 +36,12 @@ export type MyImmifinMenuItem = {
 export const MY_IMMIFIN_NAV_LABEL = "My Immifin";
 
 /** @deprecated Prefer PremiumNavPreviewDialog — retained for any legacy copy references. */
-export const DASHBOARD_PRO_LOCK_MESSAGE = "Dashboard is available in Pro.";
+export const DASHBOARD_PRO_LOCK_MESSAGE = "Immigration Dashboard is available in Pro.";
 
 const dashboardItem: MyImmifinMenuItem = {
   id: "dashboard",
   href: "/dashboard",
-  label: "Dashboard",
+  label: "Immigration Dashboard",
   description: "Your personalized immigration journey and status.",
   capability: "dashboard",
   phase: 1,

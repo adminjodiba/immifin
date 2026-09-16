@@ -42,7 +42,9 @@ function parseCsvRows(csvText: string): BulletinSheetRow[] {
 async function fetchCsvText(url: string, label: string, forceRefresh = false): Promise<string> {
   const response = await fetch(
     url,
-    forceRefresh ? { cache: "no-store" } : { next: { revalidate: 86400 } },
+    forceRefresh
+      ? { cache: "no-store" }
+      : { next: { revalidate: 86400, tags: [VISA_BULLETIN_SHEETS_CACHE_TAG] } },
   );
 
   if (!response.ok) {

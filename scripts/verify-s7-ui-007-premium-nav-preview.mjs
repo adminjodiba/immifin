@@ -112,8 +112,8 @@ function main() {
 
   const dashboardContent = getPremiumNavPreviewContent("dashboard");
   assert(
-    "Dashboard popup title is personalized dashboard",
-    dashboardContent.title === "Unlock Your Personalized Dashboard",
+    "Dashboard popup title is immigration dashboard",
+    dashboardContent.title === "Unlock Your Immigration Dashboard",
   );
   assert(
     "Dashboard popup uses personal dashboard capability",

@@ -28,10 +28,10 @@ export const PREMIUM_NAV_PREVIEWS: Record<PremiumNavPreviewKey, PremiumNavPrevie
   dashboard: {
     key: "dashboard",
     capability: CAPABILITY.personalDashboard,
-    title: "Unlock Your Personalized Dashboard",
+    title: "Unlock Your Immigration Dashboard",
     description:
       "Bring your immigration journey into one personalized workspace — priority dates, bulletin status, progress, and recommended next steps in a single view.",
-    featureGroupTitle: "Personalized Dashboard",
+    featureGroupTitle: "Immigration Dashboard",
     benefits: [
       "Personalized immigration journey overview",
       "Priority-date tracking",

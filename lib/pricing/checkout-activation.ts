@@ -133,7 +133,7 @@ export function activationSuccessCopy(tier: "pro" | "power"): {
   return {
     title: "Welcome to IMMIFIN Pro!",
     message:
-      "Your Pro subscription is now active. Your personalized dashboard, Visa Bulletin history, Movement Tracker, notifications, and other Pro features are ready.",
+      "Your Pro subscription is now active. Your Immigration Dashboard, Visa Bulletin history, Movement Tracker, notifications, and other Pro features are ready.",
   };
 }
 

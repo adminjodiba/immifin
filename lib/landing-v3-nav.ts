@@ -147,7 +147,7 @@ export const landingV3MyImmifinSections: readonly LandingV3MyImmifinSection[] = 
     items: [
       {
         href: "/dashboard",
-        label: "Personalized Dashboard",
+        label: "Immigration Dashboard",
         description: "Your key dates, progress and insights.",
         icon: "dashboard",
         premiumPreview: "dashboard",

@@ -1,4 +1,4 @@
-import { revalidateTag, unstable_cache } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { fetchVisaBulletinHistoryCsvRows } from "@/lib/visaBulletinSheets";
 import {
   normalizeSheetCategory,
@@ -213,10 +213,7 @@ export async function getVisaBulletinHistory(
   options?: { forceRefresh?: boolean },
 ): Promise<VisaBulletinHistoryRecord[]> {
   const records = options?.forceRefresh
-    ? await (async () => {
-        revalidateTag(VISA_BULLETIN_HISTORY_CACHE_TAG);
-        return loadAllVisaBulletinHistoryRecords(true);
-      })()
+    ? await loadAllVisaBulletinHistoryRecords(true)
     : await getCachedVisaBulletinHistoryRecords();
 
   return records.filter((record) => matchesQuery(record, query));

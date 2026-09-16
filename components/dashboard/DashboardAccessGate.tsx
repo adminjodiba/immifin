@@ -22,9 +22,9 @@ const FREE_TOOL_LINKS: PremiumFeatureInfoLink[] = [
 ];
 
 const DASHBOARD_INFO_STATE = {
-  title: "Personal Dashboard is a Pro feature",
+  title: "Immigration Dashboard is a Pro feature",
   message:
-    "Your immigration profile and favorites are saved when your plan changes. Upgrade to Pro to unlock your personalized dashboard again.",
+    "Your immigration profile and favorites are saved when your plan changes. Upgrade to Pro to unlock your Immigration Dashboard again.",
   proBenefits: [
     "Track priority date against the Visa Bulletin",
     "See Dates for Filing and Final Action status",
@@ -48,9 +48,9 @@ export function DashboardAccessGate({ children }: DashboardAccessGateProps) {
   return (
     <PremiumFeaturePreview
       capability={CAPABILITY.personalDashboard}
-      title="Unlock Your Personal Dashboard"
+      title="Unlock Your Immigration Dashboard"
       description="Track your immigration journey with personalized timelines, Visa Bulletin comparisons, and clear next steps."
-      featureGroupTitle="Personal Dashboard"
+      featureGroupTitle="Immigration Dashboard"
       featureList={[...DASHBOARD_FEATURES]}
       showCloseButton
       infoState={DASHBOARD_INFO_STATE}

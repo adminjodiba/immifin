@@ -22,8 +22,19 @@ function main() {
   assert("About has dropdown", Boolean(aboutNav?.hasDropdown));
 
   assert(
-    "About menu has About IMMIFIN and Contact Us",
-    aboutMenuLinks.map((i) => i.label).join("|") === "About IMMIFIN|Contact Us",
+    "About menu order is About IMMIFIN, What Users Say, Share Your Feedback, Pricing, Contact Us",
+    aboutMenuLinks.map((i) => i.label).join("|") ===
+      "About IMMIFIN|What Users Say|Share Your Feedback|Pricing|Contact Us",
+  );
+  assert(
+    "What Users Say resolves to /about/what-users-say",
+    aboutMenuLinks.some((i) => i.label === "What Users Say" && i.href === "/about/what-users-say"),
+  );
+  assert(
+    "Share Your Feedback resolves to /about/share-feedback",
+    aboutMenuLinks.some(
+      (i) => i.label === "Share Your Feedback" && i.href === "/about/share-feedback",
+    ),
   );
   assert(
     "Contact Us resolves to /contact",

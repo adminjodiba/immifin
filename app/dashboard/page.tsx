@@ -9,8 +9,8 @@ import { getPersonalDashboardData } from "@/lib/dashboard/getPersonalDashboardDa
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
-  title: "My Immifin",
-  description: "Your personalized Dashboard",
+  title: "Immigration Dashboard",
+  description: "Your personalized immigration dashboard",
   path: "/dashboard",
 });
 
@@ -35,9 +35,9 @@ export default async function DashboardPage() {
       <Ds2WorkspacePageShell
         eyebrow="MY IMMIFIN"
         title={formatWelcomeBack(dashboardData.welcomeName)}
-        description="Your personalized Dashboard"
+        description="Your personalized immigration dashboard"
         icon={<DashboardWorkspaceIcon />}
-        titleAccessory={<FavoriteStar pageLabel="My Immifin Dashboard" pageHref="/dashboard" />}
+        titleAccessory={<FavoriteStar pageLabel="Immigration Dashboard" pageHref="/dashboard" />}
         actions={<DashboardCloseAction />}
       >
         <DashboardAccessGate>

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       case "user.created":
       case "user.updated": {
         const normalized = normalizeClerkUser(event.data as ClerkUserPayload);
-        console.log("[clerk-webhook] normalized user:", normalized);
+        console.log("[clerk-webhook] user synced:", { clerkUserId: normalized.clerkUserId });
         await syncClerkUserCreatedOrUpdated(normalized);
         break;
       }

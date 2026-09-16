@@ -67,6 +67,10 @@ export async function requireUser(): Promise<ProfileWithRelations> {
   return profileWithRelations;
 }
 
+/**
+ * Authoritative admin gate for `/admin` and admin APIs.
+ * Same check Personalization uses: `isAdminRole(profiles.role)`.
+ */
 export async function requireAdmin(): Promise<ProfileWithRelations> {
   const profileWithRelations = await requireUser();
 

@@ -23,7 +23,6 @@ import {
 import { LandingV3AiBuddyLed } from "@/components/landing-v3/LandingV3AiBuddyLed";
 import { LandingV3ImmigrationMegaMenu } from "@/components/landing-v3/LandingV3ImmigrationMegaMenu";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
-import { useIsAdminRole } from "@/lib/hooks/useIsAdminRole";
 import {
   getMyImmifinPremiumPreview,
   getVisibleMyImmifinMenuItems,
@@ -372,8 +371,8 @@ function buildAboutSections(): NavMenuSection[] {
   }));
 }
 
-function buildMyImmifinItems(tier: SubscriptionTier, isAdmin: boolean): MyImmifinNavItem[] {
-  return getVisibleMyImmifinMenuItems(tier, { isAdmin }).map((item) => ({
+function buildMyImmifinItems(tier: SubscriptionTier): MyImmifinNavItem[] {
+  return getVisibleMyImmifinMenuItems(tier).map((item) => ({
     href: item.href,
     label: item.label,
     description: item.description,
@@ -389,8 +388,7 @@ function MyImmifinDropdown({
   const { isLoaded, isSignedIn } = useAuth();
   const { showLoginRequired } = useLoginRequired();
   const { tier } = useEffectiveSubscriptionTier();
-  const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
-  const items = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
+  const items = buildMyImmifinItems(tier);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -579,7 +577,6 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
   const { user } = useUser();
   const { showLoginRequired } = useLoginRequired();
   const { tier } = useEffectiveSubscriptionTier();
-  const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
   // Visitor account entry must render even if Clerk has not finished loading.
   // Waiting on isLoaded leaves the header empty on localhost when Clerk hangs.
@@ -636,7 +633,7 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
     ? getGreetingLine(user.firstName, user.fullName, user.username)
     : getTimeGreeting();
 
-  const myImmifinItems = buildMyImmifinItems(tier, !isAdminLoading && isAdmin);
+  const myImmifinItems = buildMyImmifinItems(tier);
   const immigrationSections = isDs2
     ? buildLandingV3ImmigrationSections(tier)
     : buildImmigrationSections(tier);

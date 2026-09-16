@@ -1,43 +1,26 @@
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { authErrorResponse } from "@/lib/auth/http";
 import { isAuthError } from "@/lib/auth/errors";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { getRequestAuditMetadata, writeAdminAuditLog } from "@/lib/supabase/audit";
-import { getVisaStampingSheetData } from "@/lib/visa/visaStampingSheetService";
+import { refreshVisaStampingData } from "@/lib/data/refreshVisaStampingData";
 
 export async function POST(request: Request) {
   try {
     const actor = await requireAdmin();
-    const sheetData = await getVisaStampingSheetData({ forceRefresh: true });
-    const auditMetadata = getRequestAuditMetadata(request);
-
-    await writeAdminAuditLog({
-      actorProfileId: actor.profile.id,
-      actorClerkUserId: actor.profile.clerk_user_id,
-      actorEmail: actor.profile.email,
-      action: "refresh_visa_stamping",
-      resource: "/api/admin/refresh-visa-stamping",
-      metadata: {
-        source: sheetData.source,
-        lastUpdated: sheetData.lastUpdated,
-        recordCount: sheetData.records.length,
+    const result = await refreshVisaStampingData({
+      trigger: "admin",
+      actor: {
+        profileId: actor.profile.id,
+        clerkUserId: actor.profile.clerk_user_id,
+        email: actor.profile.email,
       },
-      ipAddress: auditMetadata.ipAddress,
-      userAgent: auditMetadata.userAgent,
+      request,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Visa stamping wait times refreshed from Google Sheets.",
-      metadata: {
-        source: sheetData.source,
-        lastUpdated: sheetData.lastUpdated,
-        count: sheetData.records.length,
-        countries: sheetData.countries,
-      },
-    });
+    return NextResponse.json(result);
   } catch (error: unknown) {
     if (isAuthError(error)) {
       return authErrorResponse(error);

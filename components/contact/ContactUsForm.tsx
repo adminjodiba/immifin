@@ -36,6 +36,10 @@ const INITIAL_STATE: FormState = {
 const inputClassName =
   "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
 
+/** Same gold rest + navy L→R sweep as header Get Started Free. */
+const contactCtaClassName =
+  "landing-v6-btn-primary inline-flex items-center justify-center rounded-full bg-[#E3B636] px-5 py-2.5 text-sm font-semibold text-[#0F172A] shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1B3A]";
+
 function PaperclipIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -336,7 +340,7 @@ export function ContactUsForm() {
               <p className="text-sm font-semibold text-slate-900">Attach supporting files</p>
               <label
                 htmlFor={fileInputId}
-                className={`btn-secondary mt-3 inline-flex cursor-pointer px-4 py-2 text-sm ${
+                className={`${contactCtaClassName} mt-3 cursor-pointer ${
                   !ready || submitting ? "pointer-events-none opacity-60" : ""
                 }`}
               >
@@ -466,7 +470,11 @@ export function ContactUsForm() {
         </p>
       ) : null}
 
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={!ready || submitting || inCooldown}>
+      <button
+        type="submit"
+        className={`${contactCtaClassName} w-full sm:w-auto`}
+        disabled={!ready || submitting || inCooldown}
+      >
         {submitting ? "Sending…" : "Send Message"}
       </button>
 

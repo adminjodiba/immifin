@@ -13,6 +13,11 @@ export const APP_PLANS = {
   PRO: "pro",
 } as const satisfies Record<string, AppPlan>;
 
+/**
+ * Authoritative IMMIFIN admin check.
+ * Used by `requireAdmin` (`/admin` + admin APIs) and Personalization destinations.
+ * Do not add a second admin definition (plan, email, client metadata, etc.).
+ */
 export function isAdminRole(role: AppUserRole): boolean {
   return role === APP_ROLES.ADMIN;
 }

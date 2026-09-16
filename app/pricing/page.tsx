@@ -19,8 +19,9 @@ export default async function PricingPage() {
   return (
     <Ds2PublicPageShell
       eyebrow="PLANS"
-      title="Choose Your Immifin Plan"
+      title="Choose Your IMMIFIN Plan"
       description="Start free. Upgrade when you are ready for automation and intelligence."
+      quote="Greater clarity today. A brighter tomorrow."
     >
       <Suspense fallback={null}>
         <PricingPlans developmentSubscriptionModeEnabled={developmentSubscriptionModeEnabled} />

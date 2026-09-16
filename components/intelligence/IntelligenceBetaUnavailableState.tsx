@@ -54,7 +54,7 @@ export function IntelligenceBetaUnavailableState({
 
         <Link href="/dashboard" className="btn-primary">
 
-          Back to Dashboard
+          Back to Immigration Dashboard
 
         </Link>
 

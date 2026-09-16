@@ -5,6 +5,9 @@
 
 import { resolveStampingCsvUrl, type StampingSheetKey } from "@/lib/visaStampingConfig";
 
+/** Same tag as assembled `unstable_cache` so one invalidation clears raw CSV + joined data. */
+export const VISA_STAMPING_SHEETS_CACHE_TAG = "visa-stamping-sheet-data";
+
 export type StampingCsvRow = Record<string, string>;
 
 function normalizeHeader(header: string): string {
@@ -73,7 +76,9 @@ export function parseStampingHeaderCsvRows(csvText: string): StampingCsvRow[] {
 async function fetchCsvText(url: string, label: string, forceRefresh = false): Promise<string> {
   const response = await fetch(
     url,
-    forceRefresh ? { cache: "no-store" } : { next: { revalidate: 86400 } },
+    forceRefresh
+      ? { cache: "no-store" }
+      : { next: { revalidate: 86400, tags: [VISA_STAMPING_SHEETS_CACHE_TAG] } },
   );
 
   if (!response.ok) {

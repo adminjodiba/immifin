@@ -48,6 +48,10 @@ function getFirstDayOfNextMonth(from: Date): string {
   return formatIsoDate(new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1)));
 }
 
+function getTenthDayOfNextMonth(from: Date): string {
+  return formatIsoDate(new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 10)));
+}
+
 function buildDatasetCatalog(referenceDate: Date): ImmifinDataset[] {
   const todayIso = formatIsoDate(referenceDate);
 
@@ -130,7 +134,7 @@ function buildDatasetCatalog(referenceDate: Date): ImmifinDataset[] {
       version: "Google Sheets feed",
       lastUpdated: todayIso,
       refreshFrequency: "Monthly",
-      nextRecommendedRefresh: getFirstDayOfNextMonth(referenceDate),
+      nextRecommendedRefresh: getTenthDayOfNextMonth(referenceDate),
       urgency: "High",
       refreshHint:
         "Update the Google Sheet tabs with the latest USCIS Visa Bulletin, then click Data Refresh on this card to pull fresh data into the website immediately.",

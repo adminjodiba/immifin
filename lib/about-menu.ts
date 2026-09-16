@@ -25,6 +25,16 @@ export const aboutMenuSections: readonly AboutMenuSection[] = [
         description: "Our mission, values, and the story behind Immifin",
       },
       {
+        href: "/about/what-users-say",
+        label: "What Users Say",
+        description: "Hear from people using IMMIFIN",
+      },
+      {
+        href: "/about/share-feedback",
+        label: "Share Your Feedback",
+        description: "Tell us how IMMIFIN is working for you",
+      },
+      {
         href: "/pricing",
         label: "Pricing",
         description: "Compare Free, Pro, and Power plans",
@@ -32,7 +42,7 @@ export const aboutMenuSections: readonly AboutMenuSection[] = [
       {
         href: "/contact",
         label: "Contact Us",
-        description: "Support, partnerships, bug reports, and feedback",
+        description: "Support, partnerships, and bug reports",
       },
     ],
   },

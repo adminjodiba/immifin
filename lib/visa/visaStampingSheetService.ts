@@ -1,4 +1,4 @@
-import { unstable_cache, revalidateTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { parseCivilDateToUtcNoon, toCivilIsoDate } from "@/lib/dates/civilDate";
 import { parseWaitTimeToDays } from "@/lib/visa/parseWaitTimeToDays";
 import {
@@ -586,7 +586,6 @@ export async function getVisaStampingSheetData(options?: {
   forceRefresh?: boolean;
 }): Promise<VisaStampingSheetLoadResult> {
   if (options?.forceRefresh) {
-    revalidateTag(VISA_STAMPING_CACHE_TAG);
     return loadVisaStampingSheetData(true);
   }
 

@@ -2,7 +2,7 @@ import { SignIn } from "@clerk/nextjs";
 import { Ds2AuthPageShell } from "@/components/ds2/Ds2AuthPageShell";
 import { ds2ClerkSignInAppearance } from "@/lib/clerk/ds2AuthAppearance";
 import { clerkSignInProps } from "@/lib/clerk/signIn";
-import { sanitizeReturnPath } from "@/lib/auth/signInRedirect";
+import { resolveLoginReturnPath } from "@/lib/auth/signInRedirect";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -18,7 +18,7 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const redirectUrl = params.redirect_url
-    ? sanitizeReturnPath(params.redirect_url)
+    ? resolveLoginReturnPath(params.redirect_url)
     : clerkSignInProps.fallbackRedirectUrl;
 
   return (
