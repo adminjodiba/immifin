@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-08-29 |
+| **Last Updated** | 2026-09-15 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -507,6 +507,7 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 | v2.6 | 2026-07-25 | Master Cursor Task Template hierarchy (ENG-STD-001); Product Owner review before commit/push by default |
 | v2.6.1 | 2026-08-29 | S7A-PERF-CLOSE — Cloudflare Builds pipeline is `opennextjs-cloudflare build` + `wrangler deploy`. |
 | v2.7 | 2026-08-29 | Cloudflare development-tunnel recovery (S7A-SEO-003A-DOC); Cursor must not waive `dev.immifin.com` gates; token never in chat |
+| v2.8 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — Sprint 7A go-live documentation closeout; push/deploy remain Product Owner gated |
 
 ---
 

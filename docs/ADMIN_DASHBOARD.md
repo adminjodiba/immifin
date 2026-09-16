@@ -2,12 +2,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-13 |
+| **Last updated** | 2026-09-15 |
 | **Working route** | `/admin` |
 | **DS2 Data Refresh Center** | `/admin/data-refresh` — same shared `AdminDataRefreshCenter` as `/admin` |
+| **User Feedback Review** | `/admin/feedback` — live moderation (Public Review, Private Review, Feedback Pool) |
 | **DS2 mock route** | `/admin/overview` (S7A-DS2-ADMIN-DASHBOARD-MOCK-001) |
-| **Sprint** | Sprint 5 (MVP) — Visa Bulletin force sync parked for Sprint 6 |
-| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations), S7A-DS2-ADMIN-DASHBOARD-MOCK-001 (shell only) |
+| **Sprint** | Sprint 5 (MVP) through Sprint 7A (feedback + scheduled sheet sync) |
+| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations), S7A-DS2-ADMIN-DASHBOARD-MOCK-001 (overview shell), S7A-DS2-ADMIN-FEEDBACK (review queue) |
 
 ---
 
@@ -64,8 +65,9 @@ Planned on-page — not implemented in MVP:
 - Email reminder notifications
 - DOL wage import button
 - Lottery assumptions editor
-- Cloudflare cron refresh
 - Visa Bulletin refresh logs
+
+**Daily scheduled Google Sheet refresh** is implemented on `release/s7a-go-live` (custom Worker, 12:01 AM America/Chicago, DST-safe 05:01/06:01 UTC crons, secret-protected `/api/internal/daily-sheet-sync`). It is **not Production-live** until the next deploy. See [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md).
 
 ---
 

@@ -1,6 +1,6 @@
 # Cloudflare Deployment Guide
 
-**Last updated:** 2026-08-29 (S7A-PERF-CLOSE)  
+**Last updated:** 2026-09-15 (S7A-RELEASE-CLOSEOUT-011 — next deploy not yet authorized)  
 **Production domain:** https://immifin.com  
 **Worker name:** `immifin`  
 **Serving version:** `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (100%)  
@@ -84,8 +84,9 @@ npx wrangler versions secret put VARIABLE_NAME
 
 | File | Purpose |
 |------|---------|
-| `open-next.config.ts` | OpenNext Cloudflare adapter configuration |
-| `wrangler.jsonc` | Worker name, compatibility flags, asset bindings, public `vars` |
+| `open-next.config.ts` | OpenNext Cloudflare adapter configuration (R2 incremental cache, D1 tag cache, Durable Object queue, cache interception) |
+| `wrangler.jsonc` | Worker name, compatibility flags, asset bindings, public `vars`, custom `main`, R2/D1/DO, migration v1, Chicago crons |
+| `cloudflare/custom-worker.ts` | Custom Worker: `scheduled()` daily sheet sync; `fetch` delegated to OpenNext |
 | `package.json` | `deploy` and `preview` scripts |
 
 Generated output (gitignored): `.open-next/`, `.wrangler/`
@@ -126,6 +127,20 @@ The original OpenNext dummy incremental-cache problem is **closed**. Public HTML
 - Production deploys must use a **clean** Git worktree — never the dirty Sprint 8 WIP tree.
 
 Adapter authority: `@opennextjs/cloudflare` **1.20.1**.
+
+### Custom Worker and daily sheet sync (Sprint 7A — packaged, not yet deployed)
+
+The next Production deploy from `release/s7a-go-live` changes Worker `main` from the generated OpenNext worker to `cloudflare/custom-worker.ts`.
+
+| Item | Value |
+|------|-------|
+| **fetch** | Delegated to `.open-next/worker.js` (OpenNext unchanged) |
+| **scheduled** | Invokes `POST /api/internal/daily-sheet-sync` only at 12:01 AM America/Chicago |
+| **Crons** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
+| **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …` |
+| **Current Production** | Still Worker `e0855e5f` without these crons until this release is deployed |
+
+Set `DAILY_SHEET_SYNC_SECRET` on the Production Worker **before** expecting the first scheduled run. Do not commit or print the value.
 
 ### Durable Object migration v1 — forward deploy only
 
@@ -228,6 +243,7 @@ Set in Cloudflare Dashboard or Wrangler Version Secrets. Never commit values to 
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Clerk sign-up path | `/signup` (also in `wrangler.jsonc`) |
 | `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` | Development Subscription Mode | `false` (unset) — **Build Variable when enabled** |
 | `VISA_BULLETIN_*` | Bulletin CSV overrides | Committed defaults in `lib/visaBulletinConfig.ts` |
+| `DAILY_SHEET_SYNC_SECRET` | Bearer secret for scheduled `POST /api/internal/daily-sheet-sync` | Runtime (secret). Name only — never document the value. Required before cron is useful. |
 
 ### Local development
 

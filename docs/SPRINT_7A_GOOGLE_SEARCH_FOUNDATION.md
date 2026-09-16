@@ -7,8 +7,8 @@
 | **Document** | Google Search Foundation — Strategy & Execution Runbook |
 | **Date** | 2026-08-26 |
 | **Owner** | Product / Marketing documentation |
-| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED (PRODUCTION NOT MANUALLY DEPLOYED)** |
-| **Next executable step** | **Do not start another SEO story. Optional: verify Production metadata after the Git Builds pipeline, if it deploys. Do not request indexing until authorized.** |
+| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED. SOURCE SITEMAP UPDATED FOR SPRINT 7A (PRODUCTION SITEMAP NOT YET THIS RELEASE)** |
+| **Next executable step** | **Do not start another SEO story. After Product Owner approves push/deploy, verify Production `sitemap.xml` includes `/about/what-users-say`. Do not request indexing until authorized.** |
 
 This document is the runbook for IMMIFIN’s first formal Google Search indexing and SEO-foundation work. It records locked strategy and the approved execution sequence **before any Search Console, crawl, or ranking work begins**.
 
@@ -20,11 +20,18 @@ Sprint 7A is a marketing / acquisition workstream. It is **separate from Sprint 
 
 IMMIFIN is live in Production at **`https://immifin.com`** (canonical public origin). The product has been built and deployed. Formal Google Search Console **domain ownership is verified**. The corrected Production sitemap has been **submitted and processed**. A recorded indexing / coverage baseline and ranking programs are **not** complete.
 
-As of 2026-08-29:
+As of 2026-08-29 (then-current Production):
 
 - Domain property `immifin.com` — verified
 - Sitemap `https://immifin.com/sitemap.xml` — processed successfully; **12 pages discovered** (discovery, **not** confirmed indexing)
 - HTTP → HTTPS and www → apex normalization — **complete** at the Cloudflare edge ([S7A-SEO-005-DOC](#s7a-seo-005-doc--production-domain-normalization))
+
+As of 2026-09-15 (Sprint 7A release branch, **not Production-deployed**):
+
+- Source `app/sitemap.ts` lists **14** public URLs, including `/about/what-users-say` and `/life`
+- `/about/share-feedback` is intentionally **not** in the sitemap and is `noindex`
+- Auth, admin, internal, and mock routes are **not** in the sitemap
+- Production still serves the previously submitted 12-URL sitemap until this release is deployed
 
 Still incomplete:
 
@@ -32,9 +39,9 @@ Still incomplete:
 - a recorded Search Console coverage / performance baseline
 - ranking or keyword programs
 - remaining SEO-002 items (robots F4, `og:image` F9, public Visa Bulletin discovery)
-- Production verification of S7A-SEO-006 metadata after the Git Builds pipeline (not manually deployed)
+- Production verification of S7A-SEO-006 metadata and the updated 14-URL sitemap after the Git Builds pipeline (not deployed)
 
-Application source includes Next.js metadata routes `app/robots.ts` and `app/sitemap.ts`. Production now serves the approved 12-URL sitemap (S7A-SEO-003 / SEO-004).
+Application source includes Next.js metadata routes `app/robots.ts` and `app/sitemap.ts`. Production currently still serves the approved 12-URL sitemap (S7A-SEO-003 / SEO-004) until the Sprint 7A release is pushed and deployed.
 
 This runbook exists so later work proceeds baby-step by baby-step, with Product Owner validation after each step.
 

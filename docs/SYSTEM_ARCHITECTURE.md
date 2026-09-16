@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-15 |
+| **Last Updated** | 2026-09-15 (S7A-RELEASE-CLOSEOUT-011) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -262,6 +262,18 @@ Cloudflare Builds uses **`npx @opennextjs/cloudflare build`** then **`npx wrangl
 
 Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 next-mode tag cache (`immifin-prod-opennext-tag-cache`), Durable Object `DOQueueHandler` (migration **v1**), and `enableCacheInterception=true`. Clerk middleware still runs **before** cache interception. Warm public HIT latency is **accepted** (S7A-PERF-004). Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Do not remove migration v1; recover by **forward deploy**.
 
+### Daily Google Sheet scheduled sync (Sprint 7A — in release branch)
+
+The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the generated OpenNext worker. `scheduled()` calls `POST /api/internal/daily-sheet-sync` only when America/Chicago local time is **12:01 AM**.
+
+| Item | Value |
+|------|-------|
+| **Design time** | 12:01 AM America/Chicago |
+| **Cron triggers** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
+| **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …`. Unset or mismatched secret → no sync / HTTP 401. Values are never committed. |
+| **Datasets** | Visa Bulletin and Visa Stamping Google Sheets (same refresh path as Admin Data Refresh) |
+| **Production status** | Implemented on `release/s7a-go-live`. **Not live until the next Production deploy.** Set the Worker secret before relying on cron. |
+
 ### Repository config files
 
 | File | Purpose |
@@ -285,7 +297,7 @@ Production secrets are configured in the **Cloudflare Dashboard** or via **Wrang
 | **Supabase** | Application database | Profiles, immigration data, subscriptions, Stripe webhook ledger | Active / Production Validated |
 | **Stripe** | Payments and subscription objects | Checkout, customers, subscriptions, invoices, webhooks | **Implemented in app** — Live validation pending |
 | **Resend** | Email delivery | Notification Platform provider | Active / Production Validated |
-| **Google Sheets** | Visa Bulletin source | Admin sync / archive source for bulletin datasets | Active |
+| **Google Sheets** | Visa Bulletin and Visa Stamping source | Admin Data Refresh plus scheduled daily Worker sync (12:01 AM America/Chicago; not Production-live until next deploy) | Active |
 
 ---
 
@@ -313,6 +325,7 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 | `GOOGLE_SHEET_ID` | Google Spreadsheet ID (admin archive) | No |
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
 | `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
+| `DAILY_SHEET_SYNC_SECRET` | Bearer secret for `POST /api/internal/daily-sheet-sync` (Worker cron). Name only — never document the value. | Yes |
 
 ### Stripe (required for commercial Checkout / webhooks)
 
@@ -726,6 +739,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.18 | 2026-07-25 | S8-IIP-011 — Controlled-beta allowlist + operations runbook |
 | v1.19 | 2026-07-25 | S8-IIP-012 — Sprint 8 FROZEN; PRE-BETA ENABLEMENT PENDING; handoff pointer |
 | v1.20 | 2026-08-29 | S7A-PERF-CLOSE — Production persistent cache + proven Builds pipeline (`opennextjs-cloudflare build` + `wrangler deploy`). |
+| v1.21 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — custom Worker + DST-safe Chicago crons + `DAILY_SHEET_SYNC_SECRET` recorded; not Production-deployed. |
 
 ---
 

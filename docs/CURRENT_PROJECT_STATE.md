@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-15 (S7A-RELEASE-MERGE-010 — origin/main reconciled into Sprint 7A go-live release)  
+**Last Updated:** 2026-09-15 (S7A-RELEASE-CLOSEOUT-011 — Sprint 7A go-live documentation closeout; not pushed / not deployed)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -21,13 +21,117 @@ The project has transitioned from sprint-based feature development into the **IM
 | Field | Value |
 |-------|-------|
 | **Current Phase** | **IMMIFIN Beta Launch Program** |
-| **Engineering Status** | **Feature Development Frozen** |
+| **Engineering Status** | **Sprint 7A go-live release packaged on `release/s7a-go-live` — awaiting Product Owner push/deploy approval** |
 | **Operational Status** | **Preparing Invite-only Beta** |
 | **Current Recommendation** | **Controlled Beta** |
 | **Public Launch** | **Not Approved** |
 | **Overall health** | Strong — core product stable; **LIVE Free→Pro PASS**; **LIVE Pro→Power technical PASS** (upgrade UX enhancement required); Intelligence engineered, not beta-enabled |
 | **Commercial readiness** | LIVE activation + Pro→Power technical path validated; **Sprint 7 billing UX TEST E2E PASS** (002–008D); **Production-deployed** 2026-08-25 ([REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md)); **LIVE UX lifecycle validation not yet performed** |
 | **Engineering blockers** | September Monthly Immigration Update bulk send **blocked** until S7-PROD-NOTIFY-FIX-001 is Production-deployed and preview-rechecked ([signoff](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) |
+| **Sprint 7A release** | Local merge complete (`2334374`). **Not pushed. Not Production-deployed.** |
+
+---
+
+## Sprint 7A go-live release (as-built on `release/s7a-go-live`)
+
+Protected Sprint 7A work and `origin/main` were reconciled in **S7A-RELEASE-MERGE-010**. This section records **implemented** behavior in the release branch. Production (`https://immifin.com`) still serves the prior Worker until Product Owner approves push and deploy.
+
+| Field | Value |
+|-------|-------|
+| **Release branch** | `release/s7a-go-live` |
+| **Merge commit** | `23343740b1d7ef84903303fe6e3f290fe84c2e06` (parents `8f001fc` + `bdd0075`) |
+| **Push / Production deploy** | **Not done** |
+| **Local validation after merge** | TypeScript PASS · lint PASS (2 known warnings) · `npm run build` PASS · localhost public smoke PASS |
+
+### Public Design System 2.0
+
+| Surface | Implemented behavior |
+|---------|----------------------|
+| **Production homepage in this branch** | `/` renders `LandingV3PageContent` (DS2 commercial landing). Preview routes `/landing-v2` (locked V7 copy), `/landing-v3` (workspace), and `/landing-v7` (approved source) remain. |
+| **Reusable split-scene hero** | `Ds2SplitSceneHero` is the locked method. Playbook: [EMMIFIN-HERO-DESIGN.MD](../EMMIFIN-HERO-DESIGN.MD). Approved reference is `/about/share-feedback`. Contact Us uses the same architecture. |
+| **Public About navigation** | Header About menu: About IMMIFIN, What Users Say, Share Your Feedback, Pricing, Contact Us (`lib/about-menu.ts`). |
+| **About** | DS2 public About page. |
+| **Contact Us** | `/contact` redesigned with split-scene hero + DS2 body. Form waits for Clerk `ready` before fields enable (UX, not a broken submit path). |
+| **Share Your Feedback** | `/about/share-feedback` — signed-in submitters only; page is `noindex`. Public visitors cannot submit. |
+| **What Users Say** | `/about/what-users-say` — public testimonials from approved Feedback Pool. |
+
+### User Feedback and What Users Say
+
+Locked lifecycle for `/admin/feedback`. Admins moderate only three buckets. All admin feedback APIs use `requireAdmin()`.
+
+| Path | Lifecycle |
+|------|-----------|
+| **Public** | Submit → Public Review → Approve → Feedback Pool |
+| **Public reject** | Submit → Public Review → Reject → Permanent delete |
+| **Private** | Submit → Private Review → Acknowledge → Permanent delete |
+| **Pool delete** | Feedback Pool → Delete → Permanent delete |
+
+Select All applies to the current page only (max 100), including Feedback Pool. Bulk approve/reject/acknowledge/delete re-validates eligibility server-side. Private feedback cannot be approved. Public feedback cannot be acknowledged. Pool delete cannot remove pending review records. Reject, Acknowledge, and Pool Delete require confirmation and permanently delete; Approve does not. Feedback Pool has no Publish checkbox.
+
+`/about/what-users-say` builds a daily Top-100 snapshot from approved public pool records (`moderation_status = approved` and `publication_permission = true`). Candidate window is 500; unique-user selection is 100; sort is rating DESC, then `created_at` DESC, then `id` DESC. The page shows **four ticker rows** with **alternating direction** and **hover pause**.
+
+Public identity order (server-side, before snapshot/cache):
+
+1. **Display Name** from `user_feedback.display_name` when non-empty
+2. Otherwise the submitter's login email from `profiles.email`, **masked** by `maskEmailForPublicDisplay()`
+3. Otherwise **IMMIFIN User**
+
+Raw login email is never included in public testimonial payloads or snapshot records. Admin Feedback Review may still use account email for authorized moderation.
+
+Snapshot cache: `unstable_cache` revalidate **86,400 seconds**, tag `what-users-say-daily`. Localhost/development bypasses the cache. **No `revalidateTag` on approve / reject / pool delete.** A deleted pool quote can remain on the public page until snapshot expiry **if** production cache persists. Pending rejects never entered the snapshot. Production/runtime persistence of this 24-hour cache still requires verification after deploy.
+
+### Data Refresh and daily Google Sheet sync
+
+| Item | Implemented behavior |
+|------|----------------------|
+| **Data Refresh Center** | `/admin` and `/admin/data-refresh` share `AdminDataRefreshCenter`. Admin-only. Manual Visa Bulletin and Visa Stamping refresh remain. |
+| **Daily scheduled sync** | Custom Worker `cloudflare/custom-worker.ts` POSTs `/api/internal/daily-sheet-sync` with `Authorization: Bearer <DAILY_SHEET_SYNC_SECRET>`. Route returns 401 without the secret. |
+| **Design time** | 12:01 AM America/Chicago. Handler proceeds only when Chicago local time is 00:01. |
+| **DST-safe crons** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST). Not live until Production deploy. Set Worker secret `DAILY_SHEET_SYNC_SECRET` before relying on cron. Secret values are not documented. |
+
+### Combined Cloudflare architecture (this release)
+
+Reconciled from `origin/main` persistent-cache close-out and Sprint 7A scheduled sync:
+
+| Component | Status in this branch |
+|-----------|------------------------|
+| Custom Worker `main` | `./cloudflare/custom-worker.ts` — `scheduled()` plus OpenNext `fetch` delegation |
+| 05:01 UTC cron | Yes |
+| 06:01 UTC cron | Yes |
+| R2 incremental cache | `NEXT_INC_CACHE_R2_BUCKET` → `immifin-prod-opennext-inc-cache` |
+| D1 tag cache | `NEXT_TAG_CACHE_D1` → `immifin-prod-opennext-tag-cache` |
+| Durable Object queue | `NEXT_CACHE_DO_QUEUE` → `DOQueueHandler` |
+| Migration v1 | `new_sqlite_classes: ["DOQueueHandler"]` — do not remove |
+| OpenNext persistent cache | `open-next.config.ts` — R2 + D1 + DO + `enableCacheInterception=true` |
+
+Production already validated the persistent-cache bindings (S7A-PERF-003 / PERF-004). Custom Worker + Chicago crons are **in this release only** until the next Production deploy.
+
+### SEO / Google Search Foundation
+
+Source `app/sitemap.ts` lists crawlable public URLs only, including `/about/what-users-say`. It does **not** list auth, admin, internal, mock, or `/about/share-feedback` (that page is `noindex`). Production still serves the previously submitted 12-URL sitemap until this release is deployed. Do not request indexing until authorized. Runbook: [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md).
+
+### Security remediation (code-level, this branch)
+
+| Item | Status |
+|------|--------|
+| `GET /api/debug/clerk-env` | **Deleted** |
+| `GET /api/debug/supabase` | **Deleted** |
+| `GET /api/google-test` | **Deleted** |
+| `GET /api/visa-bulletin/sheets` | **Deleted** |
+| Clerk webhook / profile upsert console logs | Routine email/name/full payload dumps removed; remaining logs use ids only |
+
+### Post-go-live observations (not release blockers)
+
+Recorded in S7A-CODE-SANITY-TRIAGE-005 and still true after merge:
+
+- `components/H1bWageLevelEstimator.tsx:151` — `jsx-a11y/role-has-required-aria-props` (`role="option"` without `aria-selected`)
+- `lib/hooks/useFavorites.ts:46` — `react-hooks/exhaustive-deps`
+- Admin Feedback year histogram uses one count query per year (`Promise.all` over years) — admin-only optimization opportunity
+- What Users Say 24-hour Cloudflare/OpenNext cache persistence still requires **production/runtime verification** after deploy
+- Daily WUS snapshot may temporarily retain previously cached approved content until expiry; optional later `revalidateTag('what-users-say-daily')` if Product Owner wants immediate public refresh
+- Contact form fields stay disabled until Clerk `ready`
+- Unused `ContactOfficeCard` export; unused unbounded `getPublishedUserFeedback()` helper
+- Homepage Open Graph still has no `og:image` (SEO F9)
 
 ---
 
@@ -39,7 +143,7 @@ The project has transitioned from sprint-based feature development into the **IM
 | **Locked commercial baseline** | `/landing-v2` — exact copy of V7; frozen |
 | **Design System 2.0 workspace** | `/landing-v3` — working copy; V3-only navigation experiment started |
 | **Removed preview routes** | `/landing-v4`, `/landing-v5`, `/landing-v6` |
-| **Production homepage** | `/` unchanged |
+| **Homepage in this release** | `/` serves Landing V3 (`LandingV3PageContent`). Not Production-deployed yet. |
 | **Sprint** | Sprint 7A — Production Marketing / SEO / Public Launch Readiness |
 
 Future Design System work must not modify `/landing-v2` or `/landing-v7`.
@@ -63,13 +167,13 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 
 | Field | Value |
 |-------|-------|
-| **Status** | MOCK / foundation only — ready for Product Owner localhost review |
+| **Status** | Overview remains a DS2 mock/foundation pane. **User Feedback** and **Data Refresh Center** are live admin functions in this release. |
 | **Approved visual** | `public/images/immifin-admin-dashboard-ds2-approved-reference.png` |
-| **Mock route** | `/admin/overview` |
-| **Existing working page** | `/admin` unchanged — do not treat the mock as a function migration |
+| **Mock route** | `/admin/overview` — presentation only; do not treat as a metrics migration |
+| **Working pages** | `/admin` and `/admin/data-refresh` (shared Data Refresh Center); `/admin/feedback` (review queue) |
 | **Information architecture** | Admin stays inside My Immifin. Authorized admins see expandable **Admin Dashboard**: Overview, User Management, User Feedback, Data Refresh Center, Notifications, Content Management, System Logs, Settings |
 | **Authorization** | Same `requireAdmin()` / `isAdminRole(profiles.role)` as `/admin` |
-| **Not in this mock** | No function migration, no fake production metrics, no feedback moderation, no new admin APIs |
+| **Still mock-only** | Overview metrics, User Management, Notifications, Content Management, System Logs, Settings |
 
 ## User Feedback Review Queue (S7A-DS2-ADMIN-FEEDBACK)
 
@@ -247,11 +351,13 @@ Root causes resolved during this path (documented in signoff):
 | Area | Status |
 |------|--------|
 | **Current production version** | **v0.5.1** on `https://immifin.com` — LIVE Free → Pro Monthly E2E **PASS** |
+| **Next packaged release** | Sprint 7A go-live on `release/s7a-go-live` @ `2334374` — **ready to push after Product Owner approval**; not on GitHub `main`; not Production-deployed |
 | **Target next commercial release** | **v0.5.0** matrix — Free→Pro Monthly LIVE signed off; remaining transitions pending |
 | **Active program** | **IMMIFIN Beta Launch Program** — Preparing Invite-only Beta |
 | **Sprint 8** | **FROZEN** — Engineering Complete through S8-IIP-011 |
 | **Persistent cache** | **S7A-PERF-003 CLOSED** — R2 + D1 + DO queue + cache interception **validated in Production** |
 | **Public HIT latency** | **S7A-PERF-004 CLOSED** — typical warm HIT is **accepted**; **PERF-005 is not authorized** |
+| **Custom Worker + Chicago crons** | Implemented in this release branch; **not Production-live until the next deploy** |
 | **Stripe status** | **Partial LIVE validation** — Free→Pro PASS; Pro→Power **technical** PASS; billing confirmation UX backlog (S7-BILLING-UX-001); other transitions pending |
 | **Production readiness (commercial)** | **Partial** — first LIVE activation validated; do not treat full matrix as complete |
 | **Public Launch** | **Not Approved** |
@@ -273,8 +379,9 @@ Root causes resolved during this path (documented in signoff):
 | **Sprint 8 freeze / handoff** | S8-IIP-012 documentation governance |
 | **Beta Launch Program foundation** | BLP-001 — [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md) |
 | **OpenNext persistent cache** | Production R2 incremental cache, D1 tag cache, Durable Object revalidation queue; public HTML/RSC HIT proven (S7A-PERF-003) |
+| **Sprint 7A public / admin / ops (this branch)** | DS2 homepage + hero playbook; Contact / Share Feedback / What Users Say; Admin Feedback + Data Refresh; daily Chicago sheet sync Worker; SEO sitemap includes `/about/what-users-say`; unused diagnostic routes removed |
 
-For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache operations: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
+For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache operations: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Sprint 7A closeout: [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md).
 
 ---
 
@@ -312,6 +419,8 @@ Do **not** begin Sprint 9 automatically.
 
 Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-turn Intelligence; durable AI rate limits; Insurance / Finance platform build-out; Commercial Management Platform catalog publishing.
 
+**Sprint 7A post-go-live (not blockers):** H-1B estimator `aria-selected` lint; `useFavorites` exhaustive-deps; Admin Feedback year-count N+1 counts; WUS 24-hour cache persistence verification after Production deploy; Contact Clerk-ready field gate; unused `ContactOfficeCard` / `getPublishedUserFeedback()`; optional `og:image`.
+
 **Deferred UX (observed during LIVE activation wait UI):** “Contact IMMIFIN Support” (and equivalents) should hyperlink to the Contact Us email/contact section — track separately; not part of Stripe signoff implementation.
 
 **Billing UX progress:** **S7-BILLING-UX-002–008D** code complete. **S7-BILLING-UX-008E** full Stripe **TEST** lifecycle **PASS** ([signoff](./S7_BILLING_UX_008_FULL_STRIPE_TEST_E2E_SIGNOFF.md)): Free → Pro Monthly → Power Monthly ($9.97 TEST) → Pro scheduled → scheduled Pro replaced with Free at period end. Final TEST fixture: **Power now / Free on Sep 25, 2026**. **TEST E2E validated. Production Worker unchanged until controlled deploy.**
@@ -322,8 +431,9 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 
 | Item | Value |
 |------|--------|
-| **Repository branch** | `main` (`3038ddf4`) |
-| **Production Worker / version** | `immifin` / `e0855e5f-66ec-4c12-828d-87caeeb4bd44` |
+| **Repository branch (local release)** | `release/s7a-go-live` (`2334374`) — not tracking a remote; not pushed |
+| **GitHub `main` / current Production git** | `3038ddf4` (persistent-cache close) until this release is pushed |
+| **Production Worker / version** | `immifin` / `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (unchanged until deploy) |
 | **Production URL** | `https://immifin.com` |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
 | **Billing Center** | `/account/billing` |
@@ -357,4 +467,5 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-08-29 | S7A-PERF-CLOSE | PERF-003/004 closed; Production persistent cache and accepted HIT latency recorded |
 | Prior | 2026-09-06 | S7A-LANDING-DS2-BASELINE-001 | Landing Page V7 is the approved source. V2 is the locked exact copy. V3 is the Design System 2.0 working copy. |
 | Prior | 2026-09-10 | S7A-DS2-BILLING-FINAL-001 | Billing & Plan Option A locked: current-plan digital card + Billing Details; Free/Pro/Power identities only |
-| **Current** | **2026-09-15** | **S7A-RELEASE-MERGE-010** | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |
+| Prior | 2026-09-15 | S7A-RELEASE-MERGE-010 | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |
+| **Current** | **2026-09-15** | **S7A-RELEASE-CLOSEOUT-011** | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
