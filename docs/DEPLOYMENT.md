@@ -62,7 +62,7 @@ See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 |------|---------|
 | `open-next.config.ts` | OpenNext Cloudflare adapter (R2 incremental cache, D1 tag cache, Durable Object queue) |
 | `wrangler.jsonc` | Worker bindings, public `vars`, custom `main`, DST-safe Chicago crons |
-| `cloudflare/custom-worker.ts` | Scheduled daily sheet sync; `fetch` delegated to OpenNext |
+| `cloudflare/custom-worker.ts` | Scheduled daily sheet sync; `fetch` delegated to OpenNext; re-exports `DOQueueHandler` |
 | `package.json` | `deploy` and `preview` scripts |
 
 Runtime secret **name** required for scheduled sync: `DAILY_SHEET_SYNC_SECRET` (Cloudflare Worker secret or local `.dev.vars`). Do not commit or print the value. Cron does not run until Production is deployed with that secret set.

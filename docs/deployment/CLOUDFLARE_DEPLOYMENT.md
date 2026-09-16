@@ -135,6 +135,7 @@ The next Production deploy from `release/s7a-go-live` changes Worker `main` from
 | Item | Value |
 |------|-------|
 | **fetch** | Delegated to `.open-next/worker.js` (OpenNext unchanged) |
+| **Durable Object export** | Custom entrypoint **re-exports** `DOQueueHandler` from `.open-next/worker.js`. Wrangler requires the class on `main`. |
 | **scheduled** | Invokes `POST /api/internal/daily-sheet-sync` only at 12:01 AM America/Chicago |
 | **Crons** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
 | **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …` |

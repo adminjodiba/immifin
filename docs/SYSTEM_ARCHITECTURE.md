@@ -264,7 +264,7 @@ Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 nex
 
 ### Daily Google Sheet scheduled sync (Sprint 7A — in release branch)
 
-The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the generated OpenNext worker. `scheduled()` calls `POST /api/internal/daily-sheet-sync` only when America/Chicago local time is **12:01 AM**.
+The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the generated OpenNext worker. `scheduled()` calls `POST /api/internal/daily-sheet-sync` only when America/Chicago local time is **12:01 AM**. Because `wrangler.jsonc` binds Durable Object class `DOQueueHandler`, this custom entrypoint **must re-export** `DOQueueHandler` from `.open-next/worker.js`. Wrangler will refuse deploy if the class is only present on the generated OpenNext worker.
 
 | Item | Value |
 |------|-------|
@@ -280,7 +280,7 @@ The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the 
 |------|---------|
 | `open-next.config.ts` | OpenNext Cloudflare adapter config (R2 incremental cache, D1 tag cache, DO queue) |
 | `wrangler.jsonc` | Worker bindings, persistent-cache resources, custom worker `main`, Chicago 12:01 cron triggers |
-| `cloudflare/custom-worker.ts` | Scheduled daily Google Sheet sync; `fetch` still delegated to the OpenNext worker |
+| `cloudflare/custom-worker.ts` | Scheduled daily Google Sheet sync; `fetch` delegated to OpenNext; **must re-export** `DOQueueHandler` |
 
 Production secrets are configured in the **Cloudflare Dashboard** or via **Wrangler Version Secrets** — never in Git. See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
@@ -740,6 +740,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.19 | 2026-07-25 | S8-IIP-012 — Sprint 8 FROZEN; PRE-BETA ENABLEMENT PENDING; handoff pointer |
 | v1.20 | 2026-08-29 | S7A-PERF-CLOSE — Production persistent cache + proven Builds pipeline (`opennextjs-cloudflare build` + `wrangler deploy`). |
 | v1.21 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — custom Worker + DST-safe Chicago crons + `DAILY_SHEET_SYNC_SECRET` recorded; not Production-deployed. |
+| v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
 
 ---
 

@@ -2,6 +2,11 @@
 import { default as handler } from "../.open-next/worker.js";
 import { isChicagoDailySyncMinute } from "../lib/data/dailySheetSyncTimezone";
 
+// Wrangler requires Durable Object classes bound in wrangler.jsonc to be
+// exported from this entrypoint. OpenNext defines DOQueueHandler.
+// @ts-ignore generated OpenNext Durable Object class
+export { DOQueueHandler } from "../.open-next/worker.js";
+
 type DailySyncEnv = {
   DAILY_SHEET_SYNC_SECRET?: string;
   WORKER_SELF_REFERENCE?: { fetch: (request: Request) => Promise<Response> };
