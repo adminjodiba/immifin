@@ -1,9 +1,10 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-13 (S7A-DS2-ADMIN-DASHBOARD-MOCK-001 — Admin Dashboard DS2 mock shell)  
+**Last Updated:** 2026-09-15 (S7A-RELEASE-MERGE-010 — origin/main reconciled into Sprint 7A go-live release)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
-**Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)
+**Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
+**Persistent-cache ops:** [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 
 ---
 
@@ -12,6 +13,10 @@
 IMMIFIN is a production immigration/finance web application on Cloudflare Workers (OpenNext) with Clerk auth, Supabase data, and a Free / Pro / Power capability model.
 
 The project has transitioned from sprint-based feature development into the **IMMIFIN Beta Launch Program (BLP)** — coordinating invite-only beta, billing validation, operations, support, feedback, and controlled Intelligence enablement before any public launch.
+
+**S7A-PERF-003 is CLOSED** — Production persistent OpenNext cache (R2 + D1 + Durable Object queue) is implemented and validated. **S7A-PERF-004 is CLOSED** — remaining warm HIT latency is accepted. **PERF-005 is not authorized.**
+
+**Sprint 7** delivered the commercial Stripe platform **in application code**: Checkout, webhooks with billing-state sync, Pricing UI, Billing Center (plan changes), capability enforcement helpers, and commercial UX polish. **LIVE Free→Pro PASS**; remaining Live matrix and public launch are still pending.
 
 | Field | Value |
 |-------|-------|
@@ -245,6 +250,8 @@ Root causes resolved during this path (documented in signoff):
 | **Target next commercial release** | **v0.5.0** matrix — Free→Pro Monthly LIVE signed off; remaining transitions pending |
 | **Active program** | **IMMIFIN Beta Launch Program** — Preparing Invite-only Beta |
 | **Sprint 8** | **FROZEN** — Engineering Complete through S8-IIP-011 |
+| **Persistent cache** | **S7A-PERF-003 CLOSED** — R2 + D1 + DO queue + cache interception **validated in Production** |
+| **Public HIT latency** | **S7A-PERF-004 CLOSED** — typical warm HIT is **accepted**; **PERF-005 is not authorized** |
 | **Stripe status** | **Partial LIVE validation** — Free→Pro PASS; Pro→Power **technical** PASS; billing confirmation UX backlog (S7-BILLING-UX-001); other transitions pending |
 | **Production readiness (commercial)** | **Partial** — first LIVE activation validated; do not treat full matrix as complete |
 | **Public Launch** | **Not Approved** |
@@ -265,6 +272,26 @@ Root causes resolved during this path (documented in signoff):
 | **Intelligence S8-IIP-011** | Controlled-beta allowlist + ops + drafted legal — **COMPLETE WITH OPEN PRE-ENABLE ACTIONS** |
 | **Sprint 8 freeze / handoff** | S8-IIP-012 documentation governance |
 | **Beta Launch Program foundation** | BLP-001 — [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md) |
+| **OpenNext persistent cache** | Production R2 incremental cache, D1 tag cache, Durable Object revalidation queue; public HTML/RSC HIT proven (S7A-PERF-003) |
+
+For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache operations: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
+
+---
+
+## Production persistent cache (S7A-PERF-003 / PERF-004)
+
+| Field | Production value |
+|-------|------------------|
+| **Worker** | `immifin` |
+| **Serving version** | `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (100% traffic) |
+| **Git / `origin/main` at cache close** | `3038ddf4c19a8548a621942c865faab0afb7b3dd` |
+| **Architecture** | R2 incremental cache + D1 next-mode tag cache + Durable Object revalidation queue + `enableCacheInterception=true` |
+| **R2** | `immifin-prod-opennext-inc-cache` (validated: 31 objects, ~1.44 MB) |
+| **D1** | `immifin-prod-opennext-tag-cache` (`revalidations` + `_cf_KV`) |
+| **Durable Object** | `NEXT_CACHE_DO_QUEUE` → `DOQueueHandler` (migration **v1** — forward-deploy only; do not remove) |
+| **PERF-003** | **CLOSED** — public HTML/RSC persistent HIT, R2 persistence, D1 `revalidateTag`, auth boundaries, no observed user-specific PII in shared cache, no Worker 1102 |
+| **PERF-004** | **CLOSED** — typical Worker HIT **~100–130 ms**; Clerk signed-out middleware **~1–5 ms** (not the TTFB bottleneck); current latency **acceptable** |
+| **PERF-005** | **Not authorized.** Do not implement Workers Cache for HTML, CDN-in-front-of-Clerk, middleware bypass, or `withRegionalCache` without a new approved workstream. |
 
 ---
 
@@ -295,7 +322,8 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 
 | Item | Value |
 |------|--------|
-| **Repository branch** | `main` |
+| **Repository branch** | `main` (`3038ddf4`) |
+| **Production Worker / version** | `immifin` / `e0855e5f-66ec-4c12-828d-87caeeb4bd44` |
 | **Production URL** | `https://immifin.com` |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
 | **Billing Center** | `/account/billing` |
@@ -313,6 +341,8 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 
 | Version | Date | Task | Description |
 |---------|------|------|-------------|
+| Prior | 2026-07-14 | DOC-EOD / mid-Sprint 7 | Operational snapshot at ~88% backend narrative |
+| Prior | 2026-07-20 | S7-DOC-003 | Concise operational snapshot aligned with Sprint 7 as-built handoff |
 | Prior | 2026-07-25 | S8-IIP-010 | Intelligence readiness audit — CONDITIONAL GO |
 | Prior | 2026-07-25 | PO freeze (interim) | Incorrectly framed S8-IIP-011 as deferred-only |
 | Prior | 2026-07-25 | S8-IIP-012 | Sprint 8 FROZEN; S8-IIP-011 COMPLETE WITH OPEN PRE-ENABLE ACTIONS; handoff |
@@ -324,5 +354,7 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-08-23 | S7-OPS-CLERK-015 | Clerk Production cutover on `immifin.com` (`pk_live_` build); localhost/dev remain Development; production webhook active |
 | Prior | 2026-08-24 | S7-OPS-STRIPE-032 | LIVE Free → Pro Monthly E2E **PASS**; FetchHttpClient transport + LIVE webhook secret correction documented |
 | Prior | 2026-08-24 | S7-OPS-STRIPE-034 | Pro→Power **technical** PASS; customer upgrade UX enhancement required; **S7-BILLING-UX-001** backlog |
-| **Current** | **2026-09-10** | **S7A-DS2-BILLING-FINAL-001** | Billing & Plan Option A locked: current-plan digital card + Billing Details; Free/Pro/Power identities only |
+| Prior | 2026-08-29 | S7A-PERF-CLOSE | PERF-003/004 closed; Production persistent cache and accepted HIT latency recorded |
 | Prior | 2026-09-06 | S7A-LANDING-DS2-BASELINE-001 | Landing Page V7 is the approved source. V2 is the locked exact copy. V3 is the Design System 2.0 working copy. |
+| Prior | 2026-09-10 | S7A-DS2-BILLING-FINAL-001 | Billing & Plan Option A locked: current-plan digital card + Billing Details; Free/Pro/Power identities only |
+| **Current** | **2026-09-15** | **S7A-RELEASE-MERGE-010** | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |

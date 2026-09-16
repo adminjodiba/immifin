@@ -7,8 +7,8 @@
 | **Document** | Google Search Foundation — Strategy & Execution Runbook |
 | **Date** | 2026-08-26 |
 | **Owner** | Product / Marketing documentation |
-| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA REMEDIATED ON LOCALHOST (NOT YET IN PRODUCTION)** |
-| **Next executable step** | **Product Owner localhost review of S7A-SEO-006-FIX. Do not commit, push, deploy, or request indexing until authorized.** |
+| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED (PRODUCTION NOT MANUALLY DEPLOYED)** |
+| **Next executable step** | **Do not start another SEO story. Optional: verify Production metadata after the Git Builds pipeline, if it deploys. Do not request indexing until authorized.** |
 
 This document is the runbook for IMMIFIN’s first formal Google Search indexing and SEO-foundation work. It records locked strategy and the approved execution sequence **before any Search Console, crawl, or ranking work begins**.
 
@@ -32,7 +32,7 @@ Still incomplete:
 - a recorded Search Console coverage / performance baseline
 - ranking or keyword programs
 - remaining SEO-002 items (robots F4, `og:image` F9, public Visa Bulletin discovery)
-- Production deploy of S7A-SEO-006 metadata (localhost validated; not committed)
+- Production verification of S7A-SEO-006 metadata after the Git Builds pipeline (not manually deployed)
 
 Application source includes Next.js metadata routes `app/robots.ts` and `app/sitemap.ts`. Production now serves the approved 12-URL sitemap (S7A-SEO-003 / SEO-004).
 
@@ -537,11 +537,11 @@ No dedicated Google Search Console, analytics, or SEO-foundation document existe
 
 ## Current status
 
-> **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA REMEDIATED ON LOCALHOST (NOT YET IN PRODUCTION)**
+> **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED (PRODUCTION NOT MANUALLY DEPLOYED)**
 
 ## Next executable step
 
-> **Product Owner localhost review of S7A-SEO-006-FIX. Do not commit, push, deploy, or request indexing until authorized.**
+> **Do not start another SEO story. Optional: verify Production metadata after the Git Builds pipeline, if it deploys. Do not request indexing until authorized.**
 
 ---
 
@@ -602,7 +602,7 @@ The **530** on `dev.immifin.com` was a named-tunnel connector failure. The known
 
 - Public Visa Bulletin discovery remains a later story; the dashboard stays auth-gated and off the sitemap.
 - `/login` / `/signup` stay out of the sitemap.
-- robots.txt `Allow: /` (F4) and missing `og:image` (F9) are unchanged. Title duplication (F7) is remediating in S7A-SEO-006-FIX (localhost).
+- robots.txt `Allow: /` (F4) and missing `og:image` (F9) are unchanged. Title duplication (F7) is remediating in S7A-SEO-006 (committed; Production pipeline may deploy).
 - HTTP→HTTPS and www 522 (F5/F6) are **resolved** — see [S7A-SEO-005-DOC](#s7a-seo-005-doc--production-domain-normalization).
 
 ### Confirmations (S7A-SEO-003)
@@ -704,7 +704,7 @@ Always Use HTTPS runs first on HTTP. An HTTP www request therefore uses this acc
 | Field | Value |
 |-------|--------|
 | **Audit** | S7A-SEO-006-AUDIT — **NEEDS REMEDIATION** (no indexing blocker) |
-| **Implementation** | S7A-SEO-006-FIX — localhost validated; **not committed / not in Production** |
+| **Implementation** | S7A-SEO-006-FIX / S7A-SEO-006-RELEASE — localhost validated and committed; Production not manually deployed |
 | **og:image** | **Deferred** |
 | **JSON-LD / Schema.org** | **Deferred** |
 
@@ -745,6 +745,7 @@ Visible hero identity remains **Immigration, Finance & Life in America**. Search
 ### Localhost validation (2026-08-29)
 
 All 12 sitemap paths rendered HTTP 200. No `| Immifin | Immifin`. Canonicals and `index, follow` unchanged. Unsigned `/immigration/visa-bulletin` and `/dashboard` remain non-public (Clerk 404). Sitemap membership, Clerk, cache, and Cloudflare were not changed.
+
 
 ---
 

@@ -124,7 +124,7 @@ Production Deployment
 | **Build gate** | Run `npm run build`; fix failures before merge or push. |
 | **Documentation Update** | Update project status, decisions, and architecture docs when applicable. |
 | **Merge to main** | Merge the feature branch after all gates pass; obtain production approval when required. |
-| **Production Deployment** | Cloudflare runs `npm run deploy` from `main`; verify at `immifin.com`. |
+| **Production Deployment** | Cloudflare Builds: `npx @opennextjs/cloudflare build` then `npx wrangler deploy`; verify at `immifin.com`. |
 
 ---
 
@@ -204,7 +204,7 @@ Merge to main
 Production (auto-deploy from main)
 ```
 
-Pushing to `main` still triggers production deployment on Cloudflare Workers (OpenNext via `npm run deploy`). Feature work must reach `main` only through the gates below.
+Pushing to `main` still triggers production deployment on Cloudflare Workers (OpenNext via `npx @opennextjs/cloudflare build` + `npx wrangler deploy`). Feature work must reach `main` only through the gates below.
 
 ### Development Workflow v2.0 — rules
 
@@ -474,9 +474,10 @@ See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 
 ### OpenNext deployment
 
-- `npm run deploy` = `opennextjs-cloudflare build` + `opennextjs-cloudflare deploy`
+- Cloudflare Builds: `npx @opennextjs/cloudflare build` then `npx wrangler deploy` (Wrangler 4.105.0 OpenNext path, including cache population)
+- Local helper: `npm run deploy` = `opennextjs-cloudflare build` + `opennextjs-cloudflare deploy`
 - Plain `npm run build` is **not** sufficient for Workers
-- Deploy command in dashboard: `echo done`
+- Do **not** restore dashboard `echo done` as the Production deploy command
 
 ### Wrangler deployment
 
@@ -504,6 +505,7 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 | v2.4 | 2026-07-05 | Deployment best practices; Cloudflare Build vs Runtime variables (S5-ENG-004). |
 | v2.5 | 2026-07-10 | Link AI Engineering Framework (`docs/ENGINEERING_FRAMEWORK/`) — S6-DOC-008 |
 | v2.6 | 2026-07-25 | Master Cursor Task Template hierarchy (ENG-STD-001); Product Owner review before commit/push by default |
+| v2.6.1 | 2026-08-29 | S7A-PERF-CLOSE — Cloudflare Builds pipeline is `opennextjs-cloudflare build` + `wrangler deploy`. |
 | v2.7 | 2026-08-29 | Cloudflare development-tunnel recovery (S7A-SEO-003A-DOC); Cursor must not waive `dev.immifin.com` gates; token never in chat |
 
 ---

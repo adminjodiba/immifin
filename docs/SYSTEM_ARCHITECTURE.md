@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-07-25 |
+| **Last Updated** | 2026-09-15 |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -188,7 +188,7 @@ Intelligence Context must compose existing repository/business services and must
 |-------------|---------|-----|-------------------|--------|
 | **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active — Clerk **Development** |
 | **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active — Clerk **Development** |
-| **Production** | Public live site | `https://immifin.com` | GitHub `main` → OpenNext (`npm run deploy`) | Active — Clerk **Production** (S7-OPS-CLERK-015) |
+| **Production** | Public live site | `https://immifin.com` | GitHub `main` → `npx @opennextjs/cloudflare build` + `npx wrangler deploy` | Active — Clerk **Production** (S7-OPS-CLERK-015) |
 | **Preview** | Branch-based pre-production testing | *Planned* | Cloudflare Preview | Planned |
 
 ---
@@ -243,26 +243,32 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `5f40203` — Subscription Foundation + Cloudflare build variable rebuild |
-| **Production build command** | `npm run deploy` |
-| **Production deploy command** | `echo done` |
+| **Latest production commit** | `3038ddf4` — persistent OpenNext cache on Worker `e0855e5f` |
+| **Production build command** | `npx @opennextjs/cloudflare build` |
+| **Production deploy command** | `npx wrangler deploy` |
 
 ### OpenNext vs plain Next.js build
 
 | Command | Purpose |
 |---------|---------|
 | `npm run build` | Next.js only (`next build`) — **not** sufficient for Cloudflare Workers |
-| `opennextjs-cloudflare build` | Next.js + Worker bundle (output in `.open-next/`) |
-| `npm run deploy` | OpenNext build + deploy to Cloudflare |
+| `npx @opennextjs/cloudflare build` | Next.js + Worker bundle (output in `.open-next/`) — **Cloudflare Builds** |
+| `npx wrangler deploy` | Worker deploy; Wrangler 4.105.0 uses the OpenNext path (includes cache population) |
+| `npm run deploy` | Local workstation helper (`opennextjs-cloudflare build` + `deploy`) — **not** the live Builds pair |
 
-Cloudflare’s dashboard runs **`npm run deploy`** as the build command. Deploy is already included in that script, so the separate deploy command is **`echo done`** to avoid double deployment.
+Cloudflare Builds uses **`npx @opennextjs/cloudflare build`** then **`npx wrangler deploy`**. The stale dashboard pair `npm run deploy` + `echo done` is **not** the current Production pipeline.
+
+### Persistent cache (S7A-PERF-003 CLOSED)
+
+Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 next-mode tag cache (`immifin-prod-opennext-tag-cache`), Durable Object `DOQueueHandler` (migration **v1**), and `enableCacheInterception=true`. Clerk middleware still runs **before** cache interception. Warm public HIT latency is **accepted** (S7A-PERF-004). Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Do not remove migration v1; recover by **forward deploy**.
 
 ### Repository config files
 
 | File | Purpose |
 |------|---------|
-| `open-next.config.ts` | OpenNext Cloudflare adapter config |
-| `wrangler.jsonc` | Worker bindings, compatibility flags, public vars |
+| `open-next.config.ts` | OpenNext Cloudflare adapter config (R2 incremental cache, D1 tag cache, DO queue) |
+| `wrangler.jsonc` | Worker bindings, persistent-cache resources, custom worker `main`, Chicago 12:01 cron triggers |
+| `cloudflare/custom-worker.ts` | Scheduled daily Google Sheet sync; `fetch` still delegated to the OpenNext worker |
 
 Production secrets are configured in the **Cloudflare Dashboard** or via **Wrangler Version Secrets** — never in Git. See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
@@ -357,7 +363,7 @@ dev.immifin.com (Cloudflare Tunnel)
         ↓
 git add → commit → push main
         ↓
-Cloudflare Workers (npm run deploy / OpenNext)
+Cloudflare Workers (`npx @opennextjs/cloudflare build` + `npx wrangler deploy`)
         ↓
 immifin.com
 ```
@@ -418,9 +424,9 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 ### Cloudflare deployment rollback
 
 1. Open **Cloudflare Dashboard → Workers & Pages → immifin → Deployments**.
-2. Identify the last known good deployment.
-3. Roll back or promote that deployment to restore `immifin.com`.
-4. Prefer dashboard rollback over force-push to `main`.
+2. Identify a known-good **post–migration v1** deployment (must still declare `DOQueueHandler` / migration **v1**).
+3. Recover by **forward deploy** of that version. **Do not promote a pre-v1 Worker.** Do not remove migration v1.
+4. Prefer this path over force-push to `main`. Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ### Tunnel recreation
 
@@ -707,18 +713,19 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.5 | 2026-07-05 | Subscription Architecture; Development Subscription Mode; deployment docs (S5-ENG-004). |
 | v1.6 | 2026-07-20 | Sprint 7 as-built — Stripe billing platform, capabilities, notifications, dashboards, production status (S7-DOC-005). |
 | v1.7 | 2026-08-23 | Clerk Production cutover for `immifin.com`; localhost/dev remain Development; production webhook noted (S7-OPS-CLERK-015). |
-| v1.7 | 2026-07-25 | S8-IIP-001 — Intelligence Context foundation layer (`lib/intelligence/`); no LLM/chat/API/UI |
-| v1.8 | 2026-07-25 | S8-IIP-002 — Intelligence Request Envelope foundation; in-memory request contract only |
-| v1.9 | 2026-07-25 | S8-IIP-003 — Deterministic Prompt Payload foundation; provider-neutral; no model call |
-| v1.10 | 2026-07-25 | S8-IIP-004 — AI Provider Interface; contracts only; no adapters/SDKs |
-| v1.11 | 2026-07-25 | S8-IIP-005 — Provider Registry and Resolver Foundation; in-memory; no adapters/execution |
-| v1.12 | 2026-07-25 | S8-IIP-006 — OpenAI Provider Adapter Foundation; Responses API; no Service/API/UI |
-| v1.13 | 2026-07-25 | S8-IIP-007 — Intelligence Service and Controlled Provider Bootstrap; internal only |
-| v1.14 | 2026-07-25 | S8-IIP-008 — Authenticated Intelligence API Foundation; Power accessAI; no chat UI |
-| v1.15 | 2026-07-25 | S8-IIP-009 — Power-Plan Intelligence Workspace UI Foundation; single-turn |
-| v1.16 | 2026-07-25 | S8-IIP-010 — Intelligence readiness audit; CONDITIONAL GO; kill switch |
-| v1.17 | 2026-07-25 | S8-IIP-011 — Controlled-beta allowlist + operations runbook |
-| v1.18 | 2026-07-25 | S8-IIP-012 — Sprint 8 FROZEN; PRE-BETA ENABLEMENT PENDING; handoff pointer |
+| v1.8 | 2026-07-25 | S8-IIP-001 — Intelligence Context foundation layer (`lib/intelligence/`); no LLM/chat/API/UI |
+| v1.9 | 2026-07-25 | S8-IIP-002 — Intelligence Request Envelope foundation; in-memory request contract only |
+| v1.10 | 2026-07-25 | S8-IIP-003 — Deterministic Prompt Payload foundation; provider-neutral; no model call |
+| v1.11 | 2026-07-25 | S8-IIP-004 — AI Provider Interface; contracts only; no adapters/SDKs |
+| v1.12 | 2026-07-25 | S8-IIP-005 — Provider Registry and Resolver Foundation; in-memory; no adapters/execution |
+| v1.13 | 2026-07-25 | S8-IIP-006 — OpenAI Provider Adapter Foundation; Responses API; no Service/API/UI |
+| v1.14 | 2026-07-25 | S8-IIP-007 — Intelligence Service and Controlled Provider Bootstrap; internal only |
+| v1.15 | 2026-07-25 | S8-IIP-008 — Authenticated Intelligence API Foundation; Power accessAI; no chat UI |
+| v1.16 | 2026-07-25 | S8-IIP-009 — Power-Plan Intelligence Workspace UI Foundation; single-turn |
+| v1.17 | 2026-07-25 | S8-IIP-010 — Intelligence readiness audit; CONDITIONAL GO; kill switch |
+| v1.18 | 2026-07-25 | S8-IIP-011 — Controlled-beta allowlist + operations runbook |
+| v1.19 | 2026-07-25 | S8-IIP-012 — Sprint 8 FROZEN; PRE-BETA ENABLEMENT PENDING; handoff pointer |
+| v1.20 | 2026-08-29 | S7A-PERF-CLOSE — Production persistent cache + proven Builds pipeline (`opennextjs-cloudflare build` + `wrangler deploy`). |
 
 ---
 
