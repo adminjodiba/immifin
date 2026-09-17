@@ -318,7 +318,7 @@ export function LandingV3ImmigrationMegaMenu({
                     const isAiBuddy = item.href === "/intelligence";
                     const showLeafIcon = section.id !== "visa-bulletin" && !isAiBuddy;
                     const itemClassName = isAiBuddy
-                      ? `${leafClassName} landing-v3-ai-buddy`
+                      ? `${leafClassName} landing-v3-ai-buddy !px-1.5`
                       : leafClassName;
                     const badgeClassName = "landing-v3-tier-badge";
 
@@ -330,23 +330,26 @@ export function LandingV3ImmigrationMegaMenu({
                           </span>
                         ) : null}
                         <span className="flex min-w-0 flex-col items-start">
-                          <span className="inline-flex items-center whitespace-nowrap">
-                            {isAiBuddy ? (
-                              <LandingV3AiBuddyLed>
-                                {item.label}
-                                {item.premiumPreview ? (
-                                  <ProBadge label={tierLabel} className={badgeClassName} />
-                                ) : null}
-                              </LandingV3AiBuddyLed>
-                            ) : (
-                              <>
-                                {item.label}
-                                {item.premiumPreview ? (
-                                  <ProBadge label={tierLabel} className={badgeClassName} />
-                                ) : null}
-                              </>
-                            )}
-                          </span>
+                          {isAiBuddy ? (
+                            <span className="flex max-w-full flex-wrap items-center gap-x-0.5 gap-y-0.5 [&_.landing-v3-ai-buddy-led]:!gap-0.5">
+                              <span className="shrink-0">
+                                <LandingV3AiBuddyLed>{item.label}</LandingV3AiBuddyLed>
+                              </span>
+                              {item.premiumPreview ? (
+                                <ProBadge
+                                  label={tierLabel}
+                                  className={`${badgeClassName} !ml-0 shrink-0`}
+                                />
+                              ) : null}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center whitespace-nowrap">
+                              {item.label}
+                              {item.premiumPreview ? (
+                                <ProBadge label={tierLabel} className={badgeClassName} />
+                              ) : null}
+                            </span>
+                          )}
                           {item.description ? (
                             <span className="mt-0.5 text-[12px] font-normal leading-snug text-slate-500">
                               {item.description}
