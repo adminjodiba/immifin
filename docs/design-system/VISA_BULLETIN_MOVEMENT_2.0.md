@@ -175,7 +175,7 @@ The following v0.4.1 decisions were **not** changed by this redesign:
 | **Cutoff Introduced** | Amber | Cutoff Introduced | `—` (C → dated cutoff; no day count) |
 | **Unavailable / Invalid** | Slate | Unavailable / Invalid | `—` |
 
-`U → Date` = **Now Available**. `C → Date` = **Cutoff Introduced**. Implemented and approved for Production release; deployment pending.
+`U → Date` = **Now Available**. `C → Date` = **Cutoff Introduced**. Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`.
 
 EB category group colors: EB-1 blue · EB-2 emerald · EB-3 amber · EB-4 violet · EB-5 orange · Other slate.
 
