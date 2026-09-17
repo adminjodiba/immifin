@@ -2,13 +2,14 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-09-15 |
-| **Working route** | `/admin` |
+| **Last updated** | 2026-09-17 |
+| **Working route** | `/admin` (legacy; still available) |
 | **DS2 Data Refresh Center** | `/admin/data-refresh` — same shared `AdminDataRefreshCenter` as `/admin` |
 | **User Feedback Review** | `/admin/feedback` — live moderation (Public Review, Private Review, Feedback Pool) |
+| **DS2 Notifications** | `/admin/notifications` — DS2 Notification Control Center |
 | **DS2 mock route** | `/admin/overview` (S7A-DS2-ADMIN-DASHBOARD-MOCK-001) |
-| **Sprint** | Sprint 5 (MVP) through Sprint 7A (feedback + scheduled sheet sync) |
-| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations), S7A-DS2-ADMIN-DASHBOARD-MOCK-001 (overview shell), S7A-DS2-ADMIN-FEEDBACK (review queue) |
+| **Sprint** | Sprint 5 (MVP) through Sprint 7A (feedback + notifications console migration) |
+| **Task** | S5-ADM-001 (MVP), S6-ADM-001 (operations), S7A-DS2-ADMIN-DASHBOARD-MOCK-001 (overview shell), S7A-DS2-ADMIN-FEEDBACK (review queue), S7A-ADMIN-NOTIFICATIONS-MIGRATE-025, S7A-ADMIN-NOTIFICATIONS-UX-REFINE-026, S7A-ADMIN-NEW-BULLETIN-FLOW-027, S7A-ADMIN-OCTOBER-SIMULATION-028 |
 
 ---
 
@@ -57,6 +58,42 @@ Each card shows version, last updated, next recommended refresh, urgency, **How 
 **Visa stamping wait times** and **Visa Bulletin** include an on-card **Data Refresh** button that force-refreshes the Google Sheets cache after the sheet tabs are updated. Archive month remains a separate admin action and is **not** triggered by Data Refresh.
 
 Status bands: **Current**, **Due soon** (≤30 days), **Overdue**.
+
+### Notifications (DS2 Admin Console)
+
+`/admin/notifications` is the operational monthly notification workspace. Campaign state is data-driven from the current Visa Bulletin and the existing summary API — no month is hardcoded. Campaign details stay visible. For an unsent bulletin the administrator works on this page: **Review Audience → Generate Update → Preview → Confirm & Send**. Generate/preview reuse `POST /api/admin/notifications/send-monthly-immigration-update` (`action: preview`). Step 3 shows **Preview Summary** plus **Actual Email Preview** — the production Monthly Immigration Update mapper and template, rendered read-only (sandboxed iframe). Preview does not send email, write campaigns, or write audit logs. Confirm & Send reuses `AdminMonthlyUpdateConfirmModal` and `POST /api/admin/notifications/monthly-immigration-updates/send`. After a successful send, or when the current bulletin is already sent, the UI shows the completed state and does not offer a duplicate bulk send. There is no second Control Center and no navigation to legacy `/admin` for this workflow. Implemented and approved for Production release; deployment pending.
+
+| File | Role |
+|------|------|
+| `app/admin/[section]/page.tsx` | DS2 Admin Dashboard submenu router (`/admin/notifications`) |
+| `components/admin/AdminDashboardNotificationsPane.tsx` | Approved DS2 page chrome |
+| `components/admin/AdminNotifyUserGroup.tsx` | DS2 bulk workflow using existing summary/preview/send APIs |
+| `components/admin/AdminNotifyIndividualUser.tsx` | DS2 individual lookup/preview/send using existing single-user API |
+| `components/admin/AdminMonthlyUpdateControlCenter.tsx` | Legacy `/admin` Control Center (unchanged) |
+| `components/admin/AdminSendMonthlyImmigrationUpdateForm.tsx` | Legacy `/admin` single-user form (unchanged) |
+
+Development-only `AdminNotificationTestForm` and `AdminMonthlyImmigrationReportPreview` are **not** exposed on this route. Legacy `/admin` remains temporarily available.
+
+### Development-only October Visa Bulletin fixture
+
+Localhost can simulate a new October 2026 bulletin **without changing Production Google Sheets or Supabase**.
+
+| Rule | Behavior |
+|------|----------|
+| **Module** | `lib/visaBulletinDevFixture.ts` |
+| **Activation** | `NODE_ENV === "development"` **and** `IMMIFIN_DEV_VISA_BULLETIN_FIXTURE=true` (default OFF) |
+| **Production** | Fixture is ignored even if the flag exists |
+| **Source boundary** | History + current/previous Final Action and Dates for Filing loaders; `getLatestVisaBulletinMonth()` returns `2026-10` when active. Existing notification logic is reused after that |
+| **Bulletin Refreshed** | Fixture-local TEST timestamp (`DEV_VISA_BULLETIN_FIXTURE_REFRESHED_AT`, Oct 10, 2026, 3:20 PM Central). Not a DOS publication date. Not written to `admin_audit_log` |
+| **Campaign Details** | Current vs previous campaign are split. Current Campaign uses only the current bulletin month. Previous Campaign Sent comes from existing `notification_campaigns` rows (read-only) |
+| **Placeholder dates** | Compile placeholders in `DEV_VISA_BULLETIN_FIXTURE_CUTOFFS` — not official DOS October dates. Replace that object when dummy October values are supplied |
+| **Send** | Confirm & Send / single-user send are disabled; APIs return 403. Do not test send. Localhost shares Production Supabase |
+| **Data Refresh** | Refused while the fixture is active (prevents `admin_audit_log` writes) |
+| **Banner** | `/admin/notifications` shows DEVELOPMENT TEST DATA only when the fixture is active |
+
+Preview (`action: preview`) remains read-only. The preview JSON includes the existing summary plus `html` and `text` from the production email template. Do not click Confirm & Send while the fixture is on.
+
+**Production follow-up (not in this task):** `/admin/notifications` “Bulletin Refreshed” still uses the latest `admin_audit_log` row with `action = force_sync_visa_bulletin` when the fixture is OFF. That is a global last-manual-refresh timestamp, not a publication/refresh time associated with the current bulletin month. Do not change Data Refresh architecture or scheduled-sync behavior until a separate task after the Notifications workflow is validated.
 
 ### Future Maintenance (placeholder list)
 

@@ -77,6 +77,8 @@ const movementIcons: Record<MovementType, string> = {
   current: "🔵",
   unavailable: "⚫",
   invalid: "⚫",
+  "now-available": "🟢",
+  "cutoff-introduced": "🟠",
 };
 
 const movementBadgeClasses: Record<VisaBulletinMovementRow["movementLabelStyle"], string> = {
@@ -86,6 +88,8 @@ const movementBadgeClasses: Record<VisaBulletinMovementRow["movementLabelStyle"]
   current: "bg-blue-50 text-blue-800 ring-blue-200",
   unavailable: "bg-slate-100 text-slate-800 ring-slate-300",
   invalid: "bg-slate-100 text-slate-600 ring-slate-200",
+  "now-available": "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  "cutoff-introduced": "bg-amber-50 text-amber-800 ring-amber-200",
 };
 
 const tabExplanations: Record<TabKey, string> = {

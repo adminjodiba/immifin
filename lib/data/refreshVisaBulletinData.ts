@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { isDevVisaBulletinFixtureActive } from "@/lib/visaBulletinDevFixture";
 import { getRequestAuditMetadata, writeAdminAuditLog } from "@/lib/supabase/audit";
 import {
   type GoogleSheetRefreshActor,
@@ -43,6 +44,12 @@ export async function refreshVisaBulletinData(input: {
   message: string;
   metadata: VisaBulletinRefreshMetadata;
 }> {
+  if (isDevVisaBulletinFixtureActive()) {
+    throw new Error(
+      "Visa Bulletin Data Refresh is disabled while the development bulletin fixture is active.",
+    );
+  }
+
   const sheets = await loadAllVisaBulletinSheets({ forceRefresh: true });
   const historyRecords = await getVisaBulletinHistory({}, { forceRefresh: true });
 

@@ -203,6 +203,10 @@ function movementBadgeLabel(movementType: MovementType): string {
       return "Current";
     case "unavailable":
       return "Unavailable";
+    case "now-available":
+      return "Now Available";
+    case "cutoff-introduced":
+      return "Cutoff Introduced";
     case "invalid":
       return "Invalid";
   }
@@ -218,6 +222,10 @@ function movementBadgeClasses(movementType: MovementType): string {
       return "bg-slate-50 text-slate-700 ring-slate-200";
     case "current":
       return "bg-blue-50 text-blue-800 ring-blue-200";
+    case "now-available":
+      return "bg-emerald-50 text-emerald-800 ring-emerald-200";
+    case "cutoff-introduced":
+      return "bg-amber-50 text-amber-800 ring-amber-200";
     default:
       return "bg-slate-100 text-slate-600 ring-slate-200";
   }
@@ -565,6 +573,9 @@ function ChangeDaysCell({ row }: { row: VisaBulletinMovementRow }) {
     return <span className="text-slate-500">—</span>;
   }
   if (row.movementType === "unavailable" || row.movementType === "invalid") {
+    return <span className="text-slate-500">—</span>;
+  }
+  if (row.movementType === "now-available" || row.movementType === "cutoff-introduced") {
     return <span className="text-slate-500">—</span>;
   }
 

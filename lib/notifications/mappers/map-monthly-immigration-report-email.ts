@@ -75,6 +75,10 @@ export function mapMovementTypeToEmailStatus(
       return VISA_BULLETIN_MOVEMENT_STATUSES.ADVANCED;
     case "retrogression":
       return VISA_BULLETIN_MOVEMENT_STATUSES.RETROGRESSED;
+    case "now-available":
+      return VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE;
+    case "cutoff-introduced":
+      return VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED;
     case "no-change":
     case "unavailable":
     case "invalid":
@@ -90,6 +94,48 @@ function movementDaysForEmail(
     return 0;
   }
   return Math.abs(Math.trunc(snapshot.movementDays));
+}
+
+/** Employment email Card 3 waiting-state copy. Dashboard Today’s Focus is unchanged. */
+export const EMPLOYMENT_WAITING_EMAIL_ADVISOR_SUMMARY =
+  "Your Priority Date has not reached the current cutoff yet. IMMIFIN will continue monitoring your progress each month.";
+
+/**
+ * Customer movement-card detail from the existing engine label.
+ * Strips a leading +/− because direction is already shown as Advanced/Retrogressed.
+ * Does not recompute months or mutate movementLabel.
+ */
+export function formatEmploymentEmailMovementDetail(
+  movementType: MovementType | null | undefined,
+  movementLabel: string | null | undefined
+): string {
+  const status = mapMovementTypeToEmailStatus(movementType);
+  if (
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+  ) {
+    return "—";
+  }
+  if (status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED) {
+    return "0 days";
+  }
+
+  const label = movementLabel?.trim() ?? "";
+  if (!label) {
+    return "—";
+  }
+
+  return label.replace(/^[+-]/, "").trim();
+}
+
+function mapEmploymentAdvisorSummary(
+  journey: EmploymentJourneyData
+): string {
+  const todaysFocus = resolveEmploymentTodaysFocus(journey);
+  if (todaysFocus.id === "track-movement") {
+    return EMPLOYMENT_WAITING_EMAIL_ADVISOR_SUMMARY;
+  }
+  return todaysFocus.message;
 }
 
 /**
@@ -175,7 +221,6 @@ function mapEmploymentMonthlyImmigrationReportEmailProps(
   source: EmploymentMonthlyImmigrationReportDashboardSource
 ): MonthlyImmigrationReportEmailProps {
   const { journey } = source;
-  const todaysFocus = resolveEmploymentTodaysFocus(journey);
 
   return {
     journeyType: "employment_gc_waiting",
@@ -191,17 +236,25 @@ function mapEmploymentMonthlyImmigrationReportEmailProps(
     dateForFilingDisplay: journey.datesForFiling.cutoffFormatted,
     dateForFilingStatus: journey.datesForFiling.statusLabel,
     journeyMeaningText: journey.finalAction.meaningMessage,
-    advisorSummaryText: todaysFocus.message,
+    advisorSummaryText: mapEmploymentAdvisorSummary(journey),
     comparisonMonth: source.comparisonMonthLabel,
     finalActionMovementDays: movementDaysForEmail(source.finalActionMovement),
     finalActionMovementStatus: mapMovementTypeToEmailStatus(
       source.finalActionMovement?.movementType
+    ),
+    finalActionMovementDetail: formatEmploymentEmailMovementDetail(
+      source.finalActionMovement?.movementType,
+      source.finalActionMovement?.movementLabel
     ),
     dateForFilingMovementDays: movementDaysForEmail(
       source.datesForFilingMovement
     ),
     dateForFilingMovementStatus: mapMovementTypeToEmailStatus(
       source.datesForFilingMovement?.movementType
+    ),
+    dateForFilingMovementDetail: formatEmploymentEmailMovementDetail(
+      source.datesForFilingMovement?.movementType,
+      source.datesForFilingMovement?.movementLabel
     ),
   };
 }

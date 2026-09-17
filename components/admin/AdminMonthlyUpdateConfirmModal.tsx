@@ -8,6 +8,8 @@ type AdminMonthlyUpdateConfirmModalProps = {
   totalRecipients: number;
   proCount: number;
   powerCount: number;
+  campaignStatus?: string | null;
+  confirmLabel?: string;
   isSubmitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -23,6 +25,8 @@ export function AdminMonthlyUpdateConfirmModal({
   totalRecipients,
   proCount,
   powerCount,
+  campaignStatus,
+  confirmLabel,
   isSubmitting,
   onCancel,
   onConfirm,
@@ -109,12 +113,22 @@ export function AdminMonthlyUpdateConfirmModal({
                 {proCount}
               </dd>
             </div>
-            <div className="flex items-baseline justify-between gap-4 py-1.5">
+            <div
+              className={`flex items-baseline justify-between gap-4 py-1.5${
+                campaignStatus ? " border-b border-slate-200/80" : ""
+              }`}
+            >
               <dt className="text-slate-600">Power</dt>
               <dd className="font-semibold tabular-nums text-slate-900">
                 {powerCount}
               </dd>
             </div>
+            {campaignStatus ? (
+              <div className="flex items-baseline justify-between gap-4 py-1.5">
+                <dt className="text-slate-600">Campaign status</dt>
+                <dd className="font-semibold text-slate-900">{campaignStatus}</dd>
+              </div>
+            ) : null}
           </dl>
 
           <p className="font-medium text-amber-800">
@@ -138,7 +152,9 @@ export function AdminMonthlyUpdateConfirmModal({
             onClick={onConfirm}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Sending…" : "Send Updates"}
+            {isSubmitting
+              ? "Sending…"
+              : confirmLabel || "Send Updates"}
           </button>
         </div>
       </div>

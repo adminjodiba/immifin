@@ -171,7 +171,11 @@ The following v0.4.1 decisions were **not** changed by this redesign:
 | **Retrogressed** | Red | Retrogressed | `-N days ≈ M months` (red) |
 | **No Change** | Slate | No Change | `—` |
 | **Current** | Blue | Current | `Current` |
+| **Now Available** | Emerald | Now Available | `—` (U → dated cutoff; no day count) |
+| **Cutoff Introduced** | Amber | Cutoff Introduced | `—` (C → dated cutoff; no day count) |
 | **Unavailable / Invalid** | Slate | Unavailable / Invalid | `—` |
+
+`U → Date` = **Now Available**. `C → Date` = **Cutoff Introduced**. Implemented and approved for Production release; deployment pending.
 
 EB category group colors: EB-1 blue · EB-2 emerald · EB-3 amber · EB-4 violet · EB-5 orange · Other slate.
 

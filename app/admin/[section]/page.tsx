@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminDashboardDataRefreshPane } from "@/components/admin/AdminDashboardDataRefreshPane";
+import { AdminDashboardNotificationsPane } from "@/components/admin/AdminDashboardNotificationsPane";
 import { AdminDashboardOverviewMock } from "@/components/admin/AdminDashboardOverviewMock";
 import { AdminDashboardPlaceholder } from "@/components/admin/AdminDashboardPlaceholder";
 import { AdminFeedbackReviewQueue } from "@/components/admin/AdminFeedbackReviewQueue";
@@ -49,6 +50,8 @@ export default async function AdminDashboardSectionPage({ params }: AdminSection
         <AdminDashboardDataRefreshPane />
       ) : section === "feedback" ? (
         <AdminFeedbackReviewQueue />
+      ) : section === "notifications" ? (
+        <AdminDashboardNotificationsPane />
       ) : (
         <AdminDashboardPlaceholder sectionId={section} />
       )}

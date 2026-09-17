@@ -34,7 +34,7 @@ export const ADMIN_DASHBOARD_SECTIONS = [
   {
     id: "notifications",
     href: "/admin/notifications",
-    label: "Notifications",
+    label: "Notify User Group",
     description: "Publish updates to users.",
   },
   {

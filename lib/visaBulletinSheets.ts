@@ -7,6 +7,12 @@ import {
   resolveVisaBulletinCsvUrl,
   type VisaBulletinSheetKey,
 } from "@/lib/visaBulletinConfig";
+import {
+  getDevVisaBulletinFixtureHistoryRows,
+  getDevVisaBulletinFixtureSheetRows,
+  isDevVisaBulletinFixtureActive,
+  type DevVisaBulletinSheetName,
+} from "@/lib/visaBulletinDevFixture";
 
 export type VisaBulletinSheetName = Exclude<VisaBulletinSheetKey, "VisaBulletinHistory">;
 
@@ -58,6 +64,10 @@ async function fetchSheetRows(
   sheetName: VisaBulletinSheetName,
   forceRefresh = false,
 ): Promise<BulletinSheetRow[]> {
+  if (isDevVisaBulletinFixtureActive()) {
+    return getDevVisaBulletinFixtureSheetRows(sheetName as DevVisaBulletinSheetName);
+  }
+
   const url = resolveVisaBulletinCsvUrl(sheetName);
   const csvText = await fetchCsvText(url, sheetName, forceRefresh);
   const rows = parseCsvRows(csvText);
@@ -71,6 +81,13 @@ async function fetchSheetRows(
 }
 
 export async function fetchVisaBulletinHistoryCsvRows(forceRefresh = false): Promise<string[][]> {
+  if (isDevVisaBulletinFixtureActive()) {
+    console.info(
+      "[visa-bulletin] development fixture active; using in-memory history, skipping Google Sheet",
+    );
+    return getDevVisaBulletinFixtureHistoryRows();
+  }
+
   const url = resolveVisaBulletinCsvUrl("VisaBulletinHistory");
   const csvText = await fetchCsvText(url, "VisaBulletinHistory", forceRefresh);
   const rows = parseCsvMatrix(csvText);

@@ -15,7 +15,9 @@ export type MovementType =
   | "retrogression"
   | "current"
   | "unavailable"
-  | "invalid";
+  | "invalid"
+  | "now-available"
+  | "cutoff-introduced";
 
 /** UI tone hint for movementLabel (green = forward, red = retrogression, etc.). */
 export type MovementLabelStyle =
@@ -24,7 +26,9 @@ export type MovementLabelStyle =
   | "neutral"
   | "current"
   | "unavailable"
-  | "invalid";
+  | "invalid"
+  | "now-available"
+  | "cutoff-introduced";
 
 export type VisaBulletinMovementRow = {
   category: string;
@@ -78,6 +82,10 @@ function movementLabelStyleForType(movementType: MovementType): MovementLabelSty
       return "unavailable";
     case "invalid":
       return "invalid";
+    case "now-available":
+      return "now-available";
+    case "cutoff-introduced":
+      return "cutoff-introduced";
   }
 }
 
@@ -91,6 +99,10 @@ export function formatMovementLabel(
       return "Current";
     case "unavailable":
       return "Unavailable";
+    case "now-available":
+      return "Now Available";
+    case "cutoff-introduced":
+      return "Cutoff Introduced";
     case "invalid":
       return "Invalid date";
     case "no-change":
@@ -160,6 +172,14 @@ export function compareBulletinMovement(
 
   if (parsedCurrent === parsedPrevious) {
     return buildMovementResult("no-change", 0, 0);
+  }
+
+  if (isIsoDate(parsedCurrent) && parsedPrevious === "U") {
+    return buildMovementResult("now-available", null, null);
+  }
+
+  if (isIsoDate(parsedCurrent) && parsedPrevious === "C") {
+    return buildMovementResult("cutoff-introduced", null, null);
   }
 
   if (isIsoDate(parsedPrevious) && isIsoDate(parsedCurrent)) {

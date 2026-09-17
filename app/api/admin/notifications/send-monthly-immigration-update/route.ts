@@ -1,21 +1,22 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import {
-  renderMonthlyImmigrationReportEmail,
-} from "@/emails/templates/monthly-immigration-report-email";
 import { authErrorResponse } from "@/lib/auth/http";
 import { isAuthError } from "@/lib/auth/errors";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import {
   createNotificationService,
   isNotificationError,
-  mapMonthlyImmigrationReportEmailProps,
   isMonthlyUpdateAssemblyError,
   prepareMonthlyImmigrationUpdateForUser,
+  renderMonthlyImmigrationUpdateFromPrepared,
 } from "@/lib/notifications";
 import { getRequestAuditMetadata, writeAdminAuditLog } from "@/lib/supabase/audit";
 import { getProfileWithRelationsByEmail } from "@/lib/supabase/profiles";
+import {
+  DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
+  isDevVisaBulletinFixtureActive,
+} from "@/lib/visaBulletinDevFixture";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AUDIT_ACTION = "SEND_SINGLE_MONTHLY_IMMIGRATION_UPDATE";
@@ -149,19 +150,33 @@ export async function POST(request: Request) {
     }
 
     if (action === "preview") {
+      const rendered = await renderMonthlyImmigrationUpdateFromPrepared(prepared);
       return NextResponse.json({
         success: true,
         action: "preview",
-        preview: prepared.preview,
+        preview: rendered.preview,
+        html: rendered.html,
+        text: rendered.text,
       });
     }
 
-    const emailProps = mapMonthlyImmigrationReportEmailProps(prepared.source);
-    const rendered = await renderMonthlyImmigrationReportEmail(emailProps);
+    if (isDevVisaBulletinFixtureActive()) {
+      return NextResponse.json(
+        {
+          success: false,
+          action: "send",
+          errorCode: "DEV_VISA_BULLETIN_FIXTURE_SEND_DISABLED",
+          errorMessage: DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
+        },
+        { status: 403 },
+      );
+    }
+
+    const rendered = await renderMonthlyImmigrationUpdateFromPrepared(prepared);
     const notificationService = createNotificationService();
     const result = await notificationService.sendEmail({
       to: profileWithRelations.profile.email,
-      subject: rendered.subject,
+      subject: prepared.preview.subject,
       html: rendered.html,
       text: rendered.text,
       tags: [

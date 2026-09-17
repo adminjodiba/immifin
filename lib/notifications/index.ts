@@ -45,6 +45,8 @@ export {
   mapGreenCardAdvisorSummary,
   mapGreenCardJourneyStatusLabel,
   mapMovementTypeToEmailStatus,
+  formatEmploymentEmailMovementDetail,
+  EMPLOYMENT_WAITING_EMAIL_ADVISOR_SUMMARY,
   type MonthlyImmigrationReportDashboardSource,
   type EmploymentMonthlyImmigrationReportDashboardSource,
   type GreenCardMonthlyImmigrationReportDashboardSource,
@@ -53,6 +55,7 @@ export {
 
 export {
   prepareMonthlyImmigrationUpdateForUser,
+  renderMonthlyImmigrationUpdateFromPrepared,
   findVisaBulletinMovementForProfile,
   campaignUpdateMonthLabelFromKey,
   isMonthlyUpdateAssemblyError,
@@ -60,6 +63,7 @@ export {
   MONTHLY_UPDATE_ASSEMBLY_ERROR,
   type MonthlyImmigrationUpdatePreviewSummary,
   type MonthlyImmigrationUpdatePrepared,
+  type MonthlyImmigrationUpdateRenderedPreview,
 } from "./build-monthly-immigration-report-dashboard-source";
 
 export {

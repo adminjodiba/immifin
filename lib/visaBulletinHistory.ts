@@ -1,7 +1,11 @@
 import { unstable_cache } from "next/cache";
 import { fetchVisaBulletinHistoryCsvRows } from "@/lib/visaBulletinSheets";
 import {
-  normalizeSheetCategory,
+  DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH,
+  isDevVisaBulletinFixtureActive,
+} from "@/lib/visaBulletinDevFixture";
+import {
+  categoryMatchKey,
   normalizeSheetCountry,
   parseBulletinCutoffDate,
 } from "@/lib/visaBulletinData";
@@ -122,10 +126,7 @@ function parseHistoryRow(row: string[]): VisaBulletinHistoryRecord | null {
 
 function matchesQuery(record: VisaBulletinHistoryRecord, query: VisaBulletinHistoryQuery): boolean {
   if (query.category) {
-    const filterCategory = normalizeSheetCategory(query.category);
-    const recordCategory = normalizeSheetCategory(record.category);
-
-    if (normalizeKey(recordCategory) !== normalizeKey(filterCategory)) {
+    if (categoryMatchKey(record.category) !== categoryMatchKey(query.category)) {
       return false;
     }
   }
@@ -168,6 +169,13 @@ const getCachedVisaBulletinHistoryRecords = unstable_cache(
 
 /** Most recent bulletin month in VisaBulletinHistory (YYYY-MM), from uploaded sheet data. */
 export async function getLatestVisaBulletinMonth(): Promise<string | null> {
+  if (isDevVisaBulletinFixtureActive()) {
+    console.info(
+      `[visa-bulletin] development fixture active; latest month=${DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH}`,
+    );
+    return DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH;
+  }
+
   const records = await getCachedVisaBulletinHistoryRecords();
 
   if (records.length === 0) {
@@ -212,9 +220,10 @@ export async function getVisaBulletinHistory(
   query: VisaBulletinHistoryQuery = {},
   options?: { forceRefresh?: boolean },
 ): Promise<VisaBulletinHistoryRecord[]> {
-  const records = options?.forceRefresh
-    ? await loadAllVisaBulletinHistoryRecords(true)
-    : await getCachedVisaBulletinHistoryRecords();
+  const records =
+    isDevVisaBulletinFixtureActive() || options?.forceRefresh
+      ? await loadAllVisaBulletinHistoryRecords(true)
+      : await getCachedVisaBulletinHistoryRecords();
 
   return records.filter((record) => matchesQuery(record, query));
 }

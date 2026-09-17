@@ -7,6 +7,7 @@
 import {
   formatVisaBulletinMovementLabel,
   buildMonthlyImmigrationReportSubject,
+  renderMonthlyImmigrationReportEmail,
 } from "@/emails/templates/monthly-immigration-report-email";
 import { isActiveProfileStatus } from "@/lib/auth/roles";
 import { hasCompleteImmigrationProfile } from "@/lib/dashboard/getPersonalDashboardData";
@@ -24,9 +25,7 @@ import {
 } from "@/lib/notifications/mappers/map-monthly-immigration-report-email";
 import { siteConfig } from "@/lib/site";
 import type { ImmigrationProfile, ProfileWithRelations } from "@/lib/supabase/types";
-import {
-  normalizeSheetCountry,
-} from "@/lib/visaBulletinData";
+import { findMatchingVisaBulletinRow } from "@/lib/visaBulletinData";
 import {
   formatVisaBulletinMonthLong,
   getLatestVisaBulletinMonth,
@@ -92,6 +91,12 @@ export type MonthlyImmigrationUpdatePrepared = {
   preview: MonthlyImmigrationUpdatePreviewSummary;
 };
 
+export type MonthlyImmigrationUpdateRenderedPreview = {
+  preview: MonthlyImmigrationUpdatePreviewSummary;
+  html: string;
+  text: string;
+};
+
 function resolveAppBaseUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (fromEnv) {
@@ -101,11 +106,6 @@ function resolveAppBaseUrl(): string {
     return "http://localhost:3000";
   }
   return siteConfig.url.replace(/\/$/, "");
-}
-
-/** Match sheet categories like EB-2 to profile values like EB2. */
-function categoryMatchKey(category: string): string {
-  return category.trim().toLowerCase().replace(/[-\s]/g, "");
 }
 
 export function findVisaBulletinMovementForProfile(
@@ -118,14 +118,7 @@ export function findVisaBulletinMovementForProfile(
     return null;
   }
 
-  const catKey = categoryMatchKey(category);
-  const countryKey = normalizeSheetCountry(country).toLowerCase();
-
-  const row = rows.find(
-    (entry) =>
-      categoryMatchKey(entry.category) === catKey &&
-      normalizeSheetCountry(entry.country).toLowerCase() === countryKey
-  );
+  const row = findMatchingVisaBulletinRow(rows, category, country);
 
   if (!row) {
     return null;
@@ -363,5 +356,22 @@ export async function prepareMonthlyImmigrationUpdateForUser(
   return {
     source,
     preview: buildPreviewSummary(profile.email, source),
+  };
+}
+
+/**
+ * Render the production Monthly Immigration Update from prepared dashboard source.
+ * Same mapper + template as outbound send. Does not call Resend.
+ */
+export async function renderMonthlyImmigrationUpdateFromPrepared(
+  prepared: MonthlyImmigrationUpdatePrepared,
+): Promise<MonthlyImmigrationUpdateRenderedPreview> {
+  const emailProps = mapMonthlyImmigrationReportEmailProps(prepared.source);
+  const rendered = await renderMonthlyImmigrationReportEmail(emailProps);
+
+  return {
+    preview: prepared.preview,
+    html: rendered.html,
+    text: rendered.text,
   };
 }

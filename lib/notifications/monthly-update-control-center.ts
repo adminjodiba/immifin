@@ -20,6 +20,7 @@ import {
   completeMonthlyUpdateCampaign,
   createSendingMonthlyUpdateCampaign,
   getCompletedMonthlyUpdateCampaign,
+  getLatestCompletedMonthlyUpdateCampaignExcludingMonth,
   getLatestMonthlyUpdateCampaign,
   getSendingMonthlyUpdateCampaign,
   markMonthlyUpdateCampaignFailed,
@@ -28,6 +29,10 @@ import {
 } from "@/lib/notifications/monthly-update-campaigns";
 import { createNotificationService } from "@/lib/notifications/core/notification-factory";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  DEV_VISA_BULLETIN_FIXTURE_REFRESHED_AT,
+  isDevVisaBulletinFixtureActive,
+} from "@/lib/visaBulletinDevFixture";
 import {
   formatVisaBulletinMonthLong,
   getLatestVisaBulletinMonth,
@@ -61,6 +66,11 @@ export type MonthlyUpdateAudienceSummary = {
   exclusionBreakdown: MonthlyUpdateExclusionBreakdown;
   lastSentAt: string | null;
   lastSentBulletinMonth: string | null;
+  /** Completed_at for the current bulletin month only. Null if that month has not been sent. */
+  currentCampaignSentAt: string | null;
+  /** YYYY-MM of the latest completed campaign that is not the current bulletin month. */
+  previousCampaignBulletinMonth: string | null;
+  previousCampaignSentAt: string | null;
   controlStatus: MonthlyUpdateControlStatus;
   campaignStatus: NotificationCampaignStatus | null;
   canSend: boolean;
@@ -141,7 +151,9 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
   const bulletinMonthLabel = bulletinMonthKey
     ? formatVisaBulletinMonthLong(bulletinMonthKey)
     : null;
-  const bulletinRefreshedAt = await getLastVisaBulletinRefreshAt();
+  const bulletinRefreshedAt = isDevVisaBulletinFixtureActive()
+    ? DEV_VISA_BULLETIN_FIXTURE_REFRESHED_AT
+    : await getLastVisaBulletinRefreshAt();
 
   const emptyBreakdown = buildMonthlyUpdateExclusionBreakdown({});
   const audience = bulletinMonthKey
@@ -164,6 +176,9 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
     ? await getSendingMonthlyUpdateCampaign(bulletinMonthKey)
     : null;
   const latestCampaign = await getLatestMonthlyUpdateCampaign();
+  const previousCampaign = bulletinMonthKey
+    ? await getLatestCompletedMonthlyUpdateCampaignExcludingMonth(bulletinMonthKey)
+    : null;
 
   const blockingCampaign = sendingForMonth ?? completedForMonth;
   const controlStatus = toControlStatus(blockingCampaign, {
@@ -210,6 +225,9 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
       (latestCampaign && latestCampaign.status !== "sending"
         ? latestCampaign.bulletin_month
         : null),
+    currentCampaignSentAt: completedForMonth?.completed_at ?? null,
+    previousCampaignBulletinMonth: previousCampaign?.bulletin_month ?? null,
+    previousCampaignSentAt: previousCampaign?.completed_at ?? null,
     controlStatus,
     campaignStatus: blockingCampaign?.status ?? null,
     canSend,

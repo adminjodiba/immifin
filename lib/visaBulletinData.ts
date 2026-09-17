@@ -285,6 +285,29 @@ export function normalizeSheetCategory(category: string): string {
   return trimmed;
 }
 
+/**
+ * Comparison key used by movement matching: EB2 and EB-2 both become "eb2".
+ * Use this for bulletin row lookup — do not compare display labels.
+ */
+export function categoryMatchKey(category: string): string {
+  return category.trim().toLowerCase().replace(/[-\s]/g, "");
+}
+
+export function findMatchingVisaBulletinRow<T extends { category: string; country: string }>(
+  rows: readonly T[],
+  category: string,
+  country: string,
+): T | undefined {
+  const catKey = categoryMatchKey(category);
+  const countryKey = normalizeSheetCountry(country).toLowerCase();
+
+  return rows.find(
+    (entry) =>
+      categoryMatchKey(entry.category) === catKey &&
+      normalizeSheetCountry(entry.country).toLowerCase() === countryKey,
+  );
+}
+
 export function parseBulletinCutoffDate(value: string): BulletinDate | "U" {
   const trimmed = value.trim();
   const upper = trimmed.toUpperCase();
@@ -329,6 +352,75 @@ export async function checkPriorityDate(
   return comparePriorityToBulletin(priorityDate, category, country, "final-action");
 }
 
+type EvaluatedPriorityCutoff = Pick<
+  LivePriorityDateCheck,
+  "status" | "cutoffDate" | "formattedCutoff" | "message"
+>;
+
+/**
+ * Member eligibility against a single bulletin cell.
+ * C → current, U → unavailable, dated cutoff + PD after date → waiting.
+ */
+export function evaluatePriorityAgainstBulletinCutoff(
+  priorityDate: string,
+  cutoffRaw: string,
+): EvaluatedPriorityCutoff {
+  const parsedPriority = new Date(`${priorityDate}T00:00:00`);
+  if (Number.isNaN(parsedPriority.getTime())) {
+    throw new Error("Invalid priority date. Use YYYY-MM-DD.");
+  }
+
+  const cutoff = parseBulletinCutoffDate(cutoffRaw);
+  const formattedCutoff =
+    cutoff === "C"
+      ? formatBulletinDate("C")
+      : cutoff === "U"
+        ? "Unavailable (U)"
+        : typeof cutoff === "string" && /^\d{4}-\d{2}-\d{2}$/.test(cutoff)
+          ? formatBulletinDate(cutoff)
+          : cutoffRaw;
+
+  if (cutoff === "C") {
+    return {
+      status: "current",
+      cutoffDate: "C",
+      formattedCutoff,
+      message: "This category is current. Your priority date may be eligible now.",
+    };
+  }
+
+  if (cutoff === "U") {
+    return {
+      status: "unavailable",
+      cutoffDate: "U",
+      formattedCutoff,
+      message: "Cutoff data is unavailable for this category and country.",
+    };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) {
+    throw new Error(`Could not parse bulletin cutoff date: ${cutoffRaw}`);
+  }
+
+  const cutoffDate = new Date(`${cutoff}T00:00:00`);
+
+  if (parsedPriority <= cutoffDate) {
+    return {
+      status: "eligible",
+      cutoffDate: cutoff,
+      formattedCutoff,
+      message: "Your priority date is on or before the published cutoff date.",
+    };
+  }
+
+  return {
+    status: "waiting",
+    cutoffDate: cutoff,
+    formattedCutoff,
+    message: "Your priority date is after the published cutoff. You are still waiting.",
+  };
+}
+
 export async function comparePriorityToBulletin(
   priorityDate: string,
   category: string,
@@ -340,79 +432,24 @@ export async function comparePriorityToBulletin(
     throw new Error("Invalid priority date. Use YYYY-MM-DD.");
   }
 
-  const sheetCategory = normalizeSheetCategory(category);
-  const sheetCountry = normalizeSheetCountry(country);
   const rows = await getVisaBulletinData(type);
-
-  const row = rows.find(
-    (entry) =>
-      entry.category.toLowerCase() === sheetCategory.toLowerCase() &&
-      entry.country.toLowerCase() === sheetCountry.toLowerCase(),
-  );
+  const row = findMatchingVisaBulletinRow(rows, category, country);
 
   if (!row) {
-    throw new Error(`No bulletin row found for ${sheetCategory} / ${sheetCountry}.`);
+    throw new Error(
+      `No bulletin row found for ${category.trim() || "(empty)"} / ${normalizeSheetCountry(country)}.`,
+    );
   }
 
-  const cutoff = parseBulletinCutoffDate(row.finalActionDate);
-  const formattedCutoff =
-    cutoff === "C"
-      ? formatBulletinDate("C")
-      : cutoff === "U"
-        ? "Unavailable (U)"
-        : typeof cutoff === "string" && /^\d{4}-\d{2}-\d{2}$/.test(cutoff)
-          ? formatBulletinDate(cutoff)
-          : row.finalActionDate;
-
-  if (cutoff === "C") {
-    return {
-      status: "current",
-      priorityDate,
-      category: row.category,
-      country: row.country,
-      cutoffDate: "C",
-      formattedCutoff,
-      message: "This category is current. Your priority date may be eligible now.",
-    };
-  }
-
-  if (cutoff === "U") {
-    return {
-      status: "unavailable",
-      priorityDate,
-      category: row.category,
-      country: row.country,
-      cutoffDate: "U",
-      formattedCutoff,
-      message: "Cutoff data is unavailable for this category and country.",
-    };
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) {
-    throw new Error(`Could not parse bulletin cutoff date: ${row.finalActionDate}`);
-  }
-
-  const cutoffDate = new Date(`${cutoff}T00:00:00`);
-
-  if (parsedPriority <= cutoffDate) {
-    return {
-      status: "eligible",
-      priorityDate,
-      category: row.category,
-      country: row.country,
-      cutoffDate: cutoff,
-      formattedCutoff,
-      message: "Your priority date is on or before the published cutoff date.",
-    };
-  }
+  const evaluated = evaluatePriorityAgainstBulletinCutoff(
+    priorityDate,
+    row.finalActionDate,
+  );
 
   return {
-    status: "waiting",
     priorityDate,
     category: row.category,
     country: row.country,
-    cutoffDate: cutoff,
-    formattedCutoff,
-    message: "Your priority date is after the published cutoff. You are still waiting.",
+    ...evaluated,
   };
 }

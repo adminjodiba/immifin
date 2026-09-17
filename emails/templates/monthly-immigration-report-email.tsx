@@ -18,6 +18,8 @@ export const VISA_BULLETIN_MOVEMENT_STATUSES = {
   ADVANCED: "advanced",
   UNCHANGED: "unchanged",
   RETROGRESSED: "retrogressed",
+  NOW_AVAILABLE: "now-available",
+  CUTOFF_INTRODUCED: "cutoff-introduced",
 } as const;
 
 export type VisaBulletinMovementStatus =
@@ -58,8 +60,11 @@ export type EmploymentMonthlyImmigrationReportEmailProps =
     comparisonMonth: string;
     finalActionMovementDays: number;
     finalActionMovementStatus: VisaBulletinMovementStatus;
+    /** Customer-facing movement detail (existing label, sign stripped). */
+    finalActionMovementDetail: string;
     dateForFilingMovementDays: number;
     dateForFilingMovementStatus: VisaBulletinMovementStatus;
+    dateForFilingMovementDetail: string;
   };
 
 export type GreenCardMonthlyImmigrationReportEmailProps =
@@ -275,6 +280,10 @@ export function resolveMovementStatusColor(
       return STATUS_COLOR.positive;
     case VISA_BULLETIN_MOVEMENT_STATUSES.RETROGRESSED:
       return STATUS_COLOR.negative;
+    case VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE:
+      return STATUS_COLOR.positive;
+    case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
+      return STATUS_COLOR.waiting;
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return STATUS_COLOR.neutral;
     default:
@@ -290,6 +299,10 @@ export function formatVisaBulletinMovementIndicator(
       return "▲ Advanced";
     case VISA_BULLETIN_MOVEMENT_STATUSES.RETROGRESSED:
       return "▼ Retrogressed";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE:
+      return "Now Available";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
+      return "Cutoff Introduced";
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return "▬ No Movement";
     default:
@@ -301,8 +314,12 @@ export function formatVisaBulletinMovementDays(
   status: VisaBulletinMovementStatus,
   days: number
 ): string {
-  if (status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED) {
-    return "0 days";
+  if (
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+  ) {
+    return status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ? "0 days" : "—";
   }
   return `${Math.abs(Math.trunc(days))} days`;
 }
@@ -316,6 +333,10 @@ export function formatVisaBulletinMovementStatusText(
       return "Advanced";
     case VISA_BULLETIN_MOVEMENT_STATUSES.RETROGRESSED:
       return "Retrogressed";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE:
+      return "Now Available";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
+      return "Cutoff Introduced";
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return "No Movement";
     default:
@@ -329,7 +350,11 @@ export function formatVisaBulletinMovementLabel(
   days: number
 ): string {
   const statusText = formatVisaBulletinMovementStatusText(status);
-  if (status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED) {
+  if (
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+  ) {
     return statusText;
   }
   return `${statusText} · ${formatVisaBulletinMovementDays(status, days)}`;
@@ -447,10 +472,7 @@ function EmploymentJourneyCards(
                 )}
               </Text>
               <Text style={movementDaysStyleLast}>
-                {formatVisaBulletinMovementDays(
-                  props.finalActionMovementStatus,
-                  props.finalActionMovementDays
-                )}
+                {props.finalActionMovementDetail.trim()}
               </Text>
             </Column>
             <Column style={threeColRightStyle}>
@@ -469,10 +491,7 @@ function EmploymentJourneyCards(
                 )}
               </Text>
               <Text style={movementDaysStyleLast}>
-                {formatVisaBulletinMovementDays(
-                  props.dateForFilingMovementStatus,
-                  props.dateForFilingMovementDays
-                )}
+                {props.dateForFilingMovementDetail.trim()}
               </Text>
             </Column>
           </Row>
@@ -721,8 +740,8 @@ export function buildMonthlyImmigrationReportPlainText(
     "",
     "THIS MONTH'S VISA BULLETIN MOVEMENT",
     `Compared with: ${props.comparisonMonth.trim()}`,
-    `Final Action: ${formatVisaBulletinMovementLabel(props.finalActionMovementStatus, props.finalActionMovementDays)}`,
-    `Date for Filing: ${formatVisaBulletinMovementLabel(props.dateForFilingMovementStatus, props.dateForFilingMovementDays)}`,
+    `Final Action: ${formatVisaBulletinMovementStatusText(props.finalActionMovementStatus)} · ${props.finalActionMovementDetail.trim()}`,
+    `Date for Filing: ${formatVisaBulletinMovementStatusText(props.dateForFilingMovementStatus)} · ${props.dateForFilingMovementDetail.trim()}`,
     "",
     "WHAT THIS MEANS FOR YOU",
     props.advisorSummaryText.trim(),

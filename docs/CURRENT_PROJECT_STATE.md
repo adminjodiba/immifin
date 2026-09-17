@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-15 (S7A-RELEASE-CLOSEOUT-011 — Sprint 7A go-live documentation closeout; not pushed / not deployed)  
+**Last Updated:** 2026-09-17 (S7A-ADMIN-NOTIFICATIONS-RELEASE-PREP-040 — Notifications work implemented and approved for Production release; deployment pending.)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -167,13 +167,14 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 
 | Field | Value |
 |-------|-------|
-| **Status** | Overview remains a DS2 mock/foundation pane. **User Feedback** and **Data Refresh Center** are live admin functions in this release. |
+| **Status** | Overview remains a DS2 mock/foundation pane. **User Feedback** and **Data Refresh Center** are operational. **Notifications** is implemented and approved for Production release; deployment pending. |
 | **Approved visual** | `public/images/immifin-admin-dashboard-ds2-approved-reference.png` |
 | **Mock route** | `/admin/overview` — presentation only; do not treat as a metrics migration |
-| **Working pages** | `/admin` and `/admin/data-refresh` (shared Data Refresh Center); `/admin/feedback` (review queue) |
+| **Working pages** | `/admin` (legacy, still available); `/admin/data-refresh` (shared Data Refresh Center); `/admin/feedback` (review queue); `/admin/notifications` (approved DS2 Notifications page) |
 | **Information architecture** | Admin stays inside My Immifin. Authorized admins see expandable **Admin Dashboard**: Overview, User Management, User Feedback, Data Refresh Center, Notifications, Content Management, System Logs, Settings |
 | **Authorization** | Same `requireAdmin()` / `isAdminRole(profiles.role)` as `/admin` |
-| **Still mock-only** | Overview metrics, User Management, Notifications, Content Management, System Logs, Settings |
+| **Still mock-only** | Overview metrics, User Management, Content Management, System Logs, Settings |
+| **Notifications migration** | Implemented and approved for Production release; deployment pending. `/admin/notifications` is the operational monthly workspace: Review Audience → Generate Update → Preview → Confirm & Send. Campaign Details distinguish current vs previous bulletin campaigns using the existing summary API. Group workflow is **Notify User Group**; individual workflow is **Notify Individual User**. Existing Sprint 6 Notification Platform business logic, APIs, and database tables are reused. Duplicate bulk send is not offered when the current bulletin is already sent. A development Visa Bulletin fixture (`IMMIFIN_DEV_VISA_BULLETIN_FIXTURE`, default OFF, ignored unless `NODE_ENV=development`) can simulate a bulletin month for testing without writing Google Sheets or Supabase; send remains disabled while it is active. Fixture-local Bulletin Refreshed is TEST data only. Development test/preview tools are not exposed on this route. Legacy `/admin` remains temporarily available. Production Bulletin Refreshed still means last `force_sync_visa_bulletin` audit time — follow-up after workflow validation; do not change Data Refresh here. |
 
 ## User Feedback Review Queue (S7A-DS2-ADMIN-FEEDBACK)
 

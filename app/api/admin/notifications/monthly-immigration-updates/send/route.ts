@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 import { authErrorResponse } from "@/lib/auth/http";
 import { isAuthError } from "@/lib/auth/errors";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import {
+  DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
+  isDevVisaBulletinFixtureActive,
+} from "@/lib/visaBulletinDevFixture";
 import { sendMonthlyImmigrationUpdatesBulk } from "@/lib/notifications/monthly-update-control-center";
 import { getRequestAuditMetadata, writeAdminAuditLog } from "@/lib/supabase/audit";
 
@@ -17,6 +21,17 @@ const RESOURCE = "/api/admin/notifications/monthly-immigration-updates/send";
 export async function POST(request: Request) {
   try {
     const actor = await requireAdmin();
+
+    if (isDevVisaBulletinFixtureActive()) {
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode: "DEV_VISA_BULLETIN_FIXTURE_SEND_DISABLED",
+          errorMessage: DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
+        },
+        { status: 403 },
+      );
+    }
 
     let body: RequestBody = {};
     try {

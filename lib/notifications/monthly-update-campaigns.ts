@@ -110,6 +110,28 @@ export async function getLatestMonthlyUpdateCampaign(): Promise<NotificationCamp
   return data ? mapCampaign(data) : null;
 }
 
+/** Latest completed campaign whose bulletin_month is not the current month. Read-only. */
+export async function getLatestCompletedMonthlyUpdateCampaignExcludingMonth(
+  bulletinMonth: string,
+): Promise<NotificationCampaignRecord | null> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("notification_campaigns")
+    .select("*")
+    .eq("campaign_type", MONTHLY_IMMIGRATION_UPDATE_CAMPAIGN_TYPE)
+    .in("status", ["completed", "completed_with_failures"])
+    .neq("bulletin_month", bulletinMonth)
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load previous completed campaign: ${error.message}`);
+  }
+
+  return data ? mapCampaign(data) : null;
+}
+
 export async function createSendingMonthlyUpdateCampaign(
   input: CreateSendingCampaignInput
 ): Promise<NotificationCampaignRecord> {

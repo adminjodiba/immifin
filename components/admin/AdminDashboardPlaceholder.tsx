@@ -7,7 +7,10 @@ import {
 export function AdminDashboardPlaceholder({
   sectionId,
 }: {
-  sectionId: Exclude<AdminDashboardSectionId, "overview" | "data-refresh" | "feedback">;
+  sectionId: Exclude<
+    AdminDashboardSectionId,
+    "overview" | "data-refresh" | "feedback" | "notifications"
+  >;
 }) {
   const section = getAdminDashboardSection(sectionId);
 
