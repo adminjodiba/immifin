@@ -8,7 +8,7 @@
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { jsonFetcher, visaBulletinSwrOptions } from "@/lib/swr";
 import { bulletinDateTypeTabClassName } from "@/lib/visa/bulletinDateTypeTabs";
@@ -339,8 +339,10 @@ function getSectionTitle(bulletinMonthLabel: string | null): string {
 
 export function VisaBulletinDashboard2({
   bulletinMonthLabel,
+  children,
 }: {
   bulletinMonthLabel: string | null;
+  children?: ReactNode;
 }) {
   const [mobileTab, setMobileTab] = useState<TabKey>("final-action");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -611,6 +613,8 @@ export function VisaBulletinDashboard2({
               ))}
             </div>
           </section>
+
+          {children}
 
           <p className="rounded-xl border border-slate-200/60 bg-white/60 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
             This dashboard is for informational purposes only and does not constitute legal advice.

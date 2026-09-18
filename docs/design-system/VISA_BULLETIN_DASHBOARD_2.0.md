@@ -3,12 +3,12 @@
 | Field | Value |
 |-------|-------|
 | **Title** | Visa Bulletin Dashboard Design System 2.0 |
-| **Version** | v1.2 |
+| **Status** | **Approved — promoted to official implementation** |
 | **Sprint** | Sprint 5 / Sprint 7A |
-| **Task ID** | S5-008 / S7A-SEO-VB-002 |
+| **Task ID** | S5-008 / S7A-SEO-VB-002 / S7A-SEO-VB-005 |
 | **Last Updated** | 2026-09-18 |
 | **Owner** | Technical Architecture (CTO) |
-| **Status** | **Approved — promoted to official implementation** |
+| **Version** | v1.3 |
 
 **Related documentation:** [DESIGN_SYSTEM_2.0.md](./DESIGN_SYSTEM_2.0.md) · [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) · [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) · [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) · [../CURRENT_PROJECT_STATE.md](../CURRENT_PROJECT_STATE.md) · [../ROADMAP_v2.md](../ROADMAP_v2.md)
 
@@ -43,7 +43,8 @@ The redesign applies the Sprint 5 commercial SaaS visual language to the Visa Bu
 | **Dual-panel desktop layout** | Final Action Dates and Dates for Filing shown **side by side** on `xl`+ screens |
 | **Mobile / tablet fallback** | Below `xl`: tab switcher between Final Action Dates and Dates for Filing (single table) |
 | **Related Tools footer** | Three linked cards with icons and chevrons (matches History / Movement pattern) |
-| **Legal disclaimer** | Compact informational footer below Related Tools |
+| **Search-understanding copy** | Compact “Understanding the Visa Bulletin” section **below** Related Tools — does not move the dashboard |
+| **Legal disclaimer** | Compact informational footer below the understanding section |
 
 ### Section header and filters
 
@@ -94,6 +95,7 @@ The redesign applies the Sprint 5 commercial SaaS visual language to the Visa Bu
 │ …                             │ …                                        │
 ├───────────────────────────────┴──────────────────────────────────────────┤
 │ Related Tools (3 cards)                                                    │
+│ Understanding the Visa Bulletin (compact explainer, below the product)     │
 │ Disclaimer                                                                 │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -163,8 +165,9 @@ The Dashboard 2 mockup was built incrementally through reviewed Sprint 5 UX iter
 
 | File | Role |
 |------|------|
-| `app/immigration/visa-bulletin/page.tsx` | **Production** server page — metadata, bulletin month prop from history sheet |
-| `components/VisaBulletinDashboard2.tsx` | **Production** DS 2.0 client UI |
+| `app/immigration/visa-bulletin/page.tsx` | **Production** server page — evergreen search metadata, bulletin month prop, understanding copy |
+| `components/VisaBulletinDashboard2.tsx` | **Production** DS 2.0 client UI — dashboard first; slots understanding copy after Related Tools |
+| `components/VisaBulletinUnderstanding.tsx` | Compact server-rendered explainer (S7A-SEO-VB-005). No data fetch. |
 | `app/immigration/visa-bulletin-dashboard-2/page.tsx` | Redirect to production route |
 | `lib/immigration-menu.ts` | Immigration nav — links to `/immigration/visa-bulletin` |
 
@@ -191,11 +194,23 @@ The Dashboard 2 mockup was built incrementally through reviewed Sprint 5 UX iter
 |--------|--------|
 | **Production page** | `app/immigration/visa-bulletin/page.tsx` now renders `VisaBulletinDashboard2` |
 | **Bulletin month** | Server-fetched via `getLatestVisaBulletinMonth()` passed as `bulletinMonthLabel` prop |
-| **User-facing name** | Page title uses **Visa Bulletin Dashboard** |
+| **User-facing name** | Visible H1 remains **Visa Bulletin Dashboard**. Search metadata (S7A-SEO-VB-005) is evergreen: **Employment-Based Visa Bulletin: EB-1, EB-2 & EB-3 \| Immifin** |
 | **Mock route** | `visa-bulletin-dashboard-2` → permanent redirect to production |
 | **Deploy** | Pushed to `main` on GitHub (`ddcd8bf`); Cloudflare auto-deploy from `main` |
 
 S5-008 documents both the **design approval** and the **production promotion** executed after review.
+
+## Search-understanding content (S7A-SEO-VB-005)
+
+The public Current Visa Bulletin page stays **product-first**. Returning users still reach the live dashboard immediately.
+
+| Rule | Behavior |
+|------|----------|
+| **Page order** | H1 → dashboard → Related Tools → Understanding the Visa Bulletin → existing legal disclaimer |
+| **Copy** | Compact Product Owner-approved explainer only. Not a second landing page. Not above the dashboard. |
+| **HTML** | Understanding copy is server-rendered (not SWR / API / auth). Tables remain client-fetched. |
+| **Metadata** | Evergreen title/description via `createMetadata()`. No bulletin month in `<title>`. Canonical and `index, follow` unchanged. No JSON-LD. No `og:image` in this task. |
+| **Auth / data** | Public READ, Pro History/Movement, Google Sheets pipeline, filters, grouping, Favorites, and Related Tools unchanged. |
 
 ---
 
@@ -221,3 +236,4 @@ S5-008 documents both the **design approval** and the **production promotion** e
 | v1.0 | 2026-07-06 | S5-008 | Document Visa Bulletin Dashboard DS 2.0 approval and deliverables |
 | v1.1 | 2026-07-06 | S5-008 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin` |
 | v1.2 | 2026-09-18 | S7A-SEO-VB-002 | Canonical route is public READ; same dashboard, same data pipeline |
+| v1.3 | 2026-09-18 | S7A-SEO-VB-005 | Compact Understanding the Visa Bulletin section below Related Tools; evergreen search metadata |
