@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|-------|
 | **Title** | Visa Bulletin Dashboard Design System 2.0 |
-| **Version** | v1.1 |
-| **Sprint** | Sprint 5 |
-| **Task ID** | S5-008 |
-| **Last Updated** | 2026-07-06 |
+| **Version** | v1.2 |
+| **Sprint** | Sprint 5 / Sprint 7A |
+| **Task ID** | S5-008 / S7A-SEO-VB-002 |
+| **Last Updated** | 2026-09-18 |
 | **Owner** | Technical Architecture (CTO) |
 | **Status** | **Approved — promoted to official implementation** |
 
@@ -25,7 +25,7 @@ This document records what was delivered, what changed from the v0.4.1 productio
 | **Production route (official)** | `/immigration/visa-bulletin` |
 | **Former mockup route** | `/immigration/visa-bulletin-dashboard-2` → redirects to production |
 | **Promotion status** | ✅ **Promoted — DS 2.0 live on production route** |
-| **Subscription tier** | Free (no `PremiumFeaturePreview` gating) |
+| **Subscription tier** | Public READ of the existing dashboard (S7A-SEO-VB-002). No `PremiumFeaturePreview` gating. History / Movement remain Pro. |
 | **Architecture preserved** | API/data layer, SWR client pattern, Final Action + Dates for Filing data types |
 
 ---
@@ -220,3 +220,4 @@ S5-008 documents both the **design approval** and the **production promotion** e
 |---------|------|------|-------------|
 | v1.0 | 2026-07-06 | S5-008 | Document Visa Bulletin Dashboard DS 2.0 approval and deliverables |
 | v1.1 | 2026-07-06 | S5-008 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin` |
+| v1.2 | 2026-09-18 | S7A-SEO-VB-002 | Canonical route is public READ; same dashboard, same data pipeline |

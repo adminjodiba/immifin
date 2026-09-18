@@ -13,10 +13,6 @@ import {
 } from "@/lib/notifications";
 import { getRequestAuditMetadata, writeAdminAuditLog } from "@/lib/supabase/audit";
 import { getProfileWithRelationsByEmail } from "@/lib/supabase/profiles";
-import {
-  DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
-  isDevVisaBulletinFixtureActive,
-} from "@/lib/visaBulletinDevFixture";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AUDIT_ACTION = "SEND_SINGLE_MONTHLY_IMMIGRATION_UPDATE";
@@ -158,18 +154,6 @@ export async function POST(request: Request) {
         html: rendered.html,
         text: rendered.text,
       });
-    }
-
-    if (isDevVisaBulletinFixtureActive()) {
-      return NextResponse.json(
-        {
-          success: false,
-          action: "send",
-          errorCode: "DEV_VISA_BULLETIN_FIXTURE_SEND_DISABLED",
-          errorMessage: DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
-        },
-        { status: 403 },
-      );
     }
 
     const rendered = await renderMonthlyImmigrationUpdateFromPrepared(prepared);

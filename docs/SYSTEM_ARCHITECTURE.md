@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-15 (S7A-RELEASE-CLOSEOUT-011) |
+| **Last Updated** | 2026-09-18 (S7A-SEO-VB-002 — Current Visa Bulletin public READ) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -532,7 +532,7 @@ Application features
 
 | Tier | Role |
 |------|------|
-| **Free** | Manual tools, public dashboards, basic calculators |
+| **Free** | Manual tools, public-read Current Visa Bulletin Dashboard, basic calculators |
 | **Pro** | Personalization, automation, saved profile, Visa Bulletin History, Movement Tracker, email alerts |
 | **Power** | Everything in Pro + AI, multiple profiles, advanced intelligence |
 
@@ -641,7 +641,7 @@ Optional Notifications (campaign inputs from dashboard state)
 | **Authentication** | Protected workspace routes |
 | **Profile** | Personalization and saved immigration details |
 | **Journey Engine** | Stage-specific cards and timelines |
-| **Visa Bulletin** | Current / history / movement context |
+| **Visa Bulletin** | Current bulletin is public READ at `/immigration/visa-bulletin`. History / movement remain authenticated Pro surfaces. |
 | **Capabilities** | Pro/Power gates and Premium Feature Discovery |
 | **Notifications** | Journey-aware email content sourced from the same dashboard model |
 

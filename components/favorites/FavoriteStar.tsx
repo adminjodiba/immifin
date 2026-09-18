@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useLoginRequired } from "@/components/auth/LoginRequiredProvider";
 import { FavoritesLimitDialog, FavoritesProGateDialog } from "@/components/favorites/FavoritesDialog";
 import { useFavoriteHref, useFavorites } from "@/lib/hooks/useFavorites";
 
@@ -39,6 +40,7 @@ export function FavoriteStar({
   className,
 }: FavoriteStarProps) {
   const { isLoaded, isSignedIn } = useAuth();
+  const { showLoginRequired } = useLoginRequired();
   const href = useFavoriteHref(pageHref);
   const { canManageFavorites, accessLocked, isFavorite, toggleFavorite, isLoading } = useFavorites();
   const [showProGate, setShowProGate] = useState(false);
@@ -62,7 +64,12 @@ export function FavoriteStar({
       return;
     }
 
-    if (!isSignedIn || !canUseFavorites) {
+    if (!isSignedIn) {
+      showLoginRequired(href);
+      return;
+    }
+
+    if (!canUseFavorites) {
       setShowProGate(true);
       return;
     }

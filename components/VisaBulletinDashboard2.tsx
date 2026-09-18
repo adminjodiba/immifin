@@ -5,7 +5,7 @@
  * Visual language aligned with Visa Bulletin Movement Tracker (Sprint 5).
  */
 
-import Link from "next/link";
+import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { useMemo, useState } from "react";
@@ -575,7 +575,7 @@ export function VisaBulletinDashboard2({
             </h2>
             <div className="grid gap-2 sm:grid-cols-3">
               {relatedTools.map((tool) => (
-                <Link
+                <ProtectedLink
                   key={tool.href}
                   href={tool.href}
                   className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition hover:border-brand-200 hover:shadow-md"
@@ -607,7 +607,7 @@ export function VisaBulletinDashboard2({
                       strokeLinejoin="round"
                     />
                   </svg>
-                </Link>
+                </ProtectedLink>
               ))}
             </div>
           </section>

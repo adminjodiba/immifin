@@ -1,10 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { fetchVisaBulletinHistoryCsvRows } from "@/lib/visaBulletinSheets";
 import {
-  DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH,
-  isDevVisaBulletinFixtureActive,
-} from "@/lib/visaBulletinDevFixture";
-import {
   categoryMatchKey,
   normalizeSheetCountry,
   parseBulletinCutoffDate,
@@ -169,13 +165,6 @@ const getCachedVisaBulletinHistoryRecords = unstable_cache(
 
 /** Most recent bulletin month in VisaBulletinHistory (YYYY-MM), from uploaded sheet data. */
 export async function getLatestVisaBulletinMonth(): Promise<string | null> {
-  if (isDevVisaBulletinFixtureActive()) {
-    console.info(
-      `[visa-bulletin] development fixture active; latest month=${DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH}`,
-    );
-    return DEV_VISA_BULLETIN_FIXTURE_CURRENT_MONTH;
-  }
-
   const records = await getCachedVisaBulletinHistoryRecords();
 
   if (records.length === 0) {
@@ -220,10 +209,9 @@ export async function getVisaBulletinHistory(
   query: VisaBulletinHistoryQuery = {},
   options?: { forceRefresh?: boolean },
 ): Promise<VisaBulletinHistoryRecord[]> {
-  const records =
-    isDevVisaBulletinFixtureActive() || options?.forceRefresh
-      ? await loadAllVisaBulletinHistoryRecords(true)
-      : await getCachedVisaBulletinHistoryRecords();
+  const records = options?.forceRefresh
+    ? await loadAllVisaBulletinHistoryRecords(true)
+    : await getCachedVisaBulletinHistoryRecords();
 
   return records.filter((record) => matchesQuery(record, query));
 }

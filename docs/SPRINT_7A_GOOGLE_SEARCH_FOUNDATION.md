@@ -7,8 +7,8 @@
 | **Document** | Google Search Foundation — Strategy & Execution Runbook |
 | **Date** | 2026-08-26 |
 | **Owner** | Product / Marketing documentation |
-| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED. SOURCE SITEMAP UPDATED FOR SPRINT 7A (PRODUCTION SITEMAP NOT YET THIS RELEASE)** |
-| **Next executable step** | **Do not start another SEO story. After Product Owner approves push/deploy, verify Production `sitemap.xml` includes `/about/what-users-say`. Do not request indexing until authorized.** |
+| **Status** | **PHASE A — SITEMAP SUBMITTED; DOMAIN NORMALIZATION COMPLETE; PUBLIC METADATA COMMITTED.** Production GSC (2026-09-17) discovered **14** public URLs. Source after S7A-SEO-VB-002 lists **15** (adds `/immigration/visa-bulletin`). That 15th URL is not Production-live until this change is committed and deployed. |
+| **Next executable step** | **S7A-SEO-VB-002 localhost is pending Product Owner Git/deploy approval.** Do not request indexing of `/immigration/visa-bulletin` until Production serves it as HTTP 200. |
 
 This document is the runbook for IMMIFIN’s first formal Google Search indexing and SEO-foundation work. It records locked strategy and the approved execution sequence **before any Search Console, crawl, or ranking work begins**.
 

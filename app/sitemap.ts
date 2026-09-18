@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site";
 
 /**
- * Public, crawlable, canonical URLs only (S7A-SEO-003).
- * lastModified is omitted: request-time `new Date()` is not a real content-change date.
+ * Public, crawlable, canonical URLs only (S7A-SEO-003 / S7A-SEO-VB-002).
+ * 15 URLs. lastModified is omitted: request-time `new Date()` is not a real content-change date.
  */
 const PUBLIC_SITEMAP_PATHS = [
   "",
@@ -14,6 +14,7 @@ const PUBLIC_SITEMAP_PATHS = [
   "/immigration/h1b-wage-level-estimator",
   "/immigration/h1b-lottery-odds-calculator",
   "/immigration/visa-stamping-wait-map",
+  "/immigration/visa-bulletin",
   "/about",
   "/about/what-users-say",
   "/privacy",

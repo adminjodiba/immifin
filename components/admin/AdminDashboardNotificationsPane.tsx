@@ -1,17 +1,8 @@
 import { AdminNotifyIndividualUser } from "@/components/admin/AdminNotifyIndividualUser";
 import { AdminNotifyUserGroup } from "@/components/admin/AdminNotifyUserGroup";
 import { ADMIN_DASHBOARD_NAV_LABEL } from "@/lib/admin/admin-dashboard-nav";
-import {
-  DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE,
-  isDevVisaBulletinFixtureActive,
-} from "@/lib/visaBulletinDevFixture";
 
 export function AdminDashboardNotificationsPane() {
-  const fixtureActive = isDevVisaBulletinFixtureActive();
-  const sendLockedReason = fixtureActive
-    ? DEV_VISA_BULLETIN_FIXTURE_SEND_BLOCKED_MESSAGE
-    : null;
-
   return (
     <div className="ds2-admin-overview ds2-admin-notify">
       <nav className="ds2-admin-overview-breadcrumb" aria-label="Breadcrumb">
@@ -27,14 +18,6 @@ export function AdminDashboardNotificationsPane() {
           </li>
         </ol>
       </nav>
-
-      {fixtureActive ? (
-        <aside className="ds2-admin-notify-fixture-banner" role="status">
-          <p className="ds2-admin-notify-fixture-banner-label">DEVELOPMENT TEST DATA</p>
-          <p>October 2026 Visa Bulletin simulation is active.</p>
-          <p>Production Visa Bulletin data is not being modified.</p>
-        </aside>
-      ) : null}
 
       <header className="ds2-admin-overview-header">
         <div>
@@ -52,8 +35,8 @@ export function AdminDashboardNotificationsPane() {
         </div>
       </header>
 
-      <AdminNotifyUserGroup sendLockedReason={sendLockedReason} />
-      <AdminNotifyIndividualUser sendLockedReason={sendLockedReason} />
+      <AdminNotifyUserGroup />
+      <AdminNotifyIndividualUser />
     </div>
   );
 }

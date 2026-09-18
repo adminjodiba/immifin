@@ -1,6 +1,11 @@
 export const runtime = "nodejs";
 export const revalidate = 86400;
 
+/**
+ * Public GET of current Visa Bulletin facts only (Final Action / Dates for Filing).
+ * Middleware allowlists this exact path. History, movement, and admin APIs stay protected.
+ */
+
 import { NextResponse } from "next/server";
 import {
   getVisaBulletinData,

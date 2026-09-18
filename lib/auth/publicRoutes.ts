@@ -1,6 +1,7 @@
 /**
  * Routes that do not require authentication (middleware).
- * Public exploration surfaces per BUSINESS_MODEL.md — landing, pricing, manual calculators.
+ * Public exploration surfaces — landing, pricing, manual calculators, and
+ * public-read Current Visa Bulletin (`/immigration/visa-bulletin`).
  */
 
 export const PUBLIC_ROUTE_PATTERNS = [
@@ -20,6 +21,12 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/immigration/h1b-wage-level-estimator(.*)",
   "/immigration/h1b-lottery-odds-calculator(.*)",
   "/immigration/visa-stamping-wait-map(.*)",
+  // Exact Current Visa Bulletin path only. Do NOT use (.*) — that would also
+  // match History and Movement, which must remain Clerk-protected.
+  "/immigration/visa-bulletin",
+  // Exact current-bulletin GET only. Do NOT use (.*) — that would also match
+  // /api/visa-bulletin-history and /api/visa-bulletin-movement.
+  "/api/visa-bulletin",
   "/api/visa-stamping-wait-times(.*)",
   "/api/check-priority-date(.*)",
   "/login(.*)",
@@ -39,6 +46,11 @@ export const PUBLIC_ROUTE_PATTERNS = [
 
 function normalizePathname(path: string): string {
   return path.split("?")[0]?.split("#")[0] ?? path;
+}
+
+/** Canonical Current Visa Bulletin Dashboard — public READ, exact path only. */
+export function isPublicCurrentVisaBulletinPath(path: string): boolean {
+  return normalizePathname(path) === "/immigration/visa-bulletin";
 }
 
 /** Manual immigration calculators and the calculators index (Free tier — BUSINESS_MODEL §13). */

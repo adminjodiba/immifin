@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-17 (S7A-ADMIN-NOTIFICATIONS-RELEASE-CLOSE-043 — Notifications Production deployed and verified. Commit `2e229f215c25c86104578768662d5f4f3788e58d`.)  
+**Last Updated:** 2026-09-18 (S7A-SEO-VB-002 — Current Visa Bulletin Dashboard is public READ at `/immigration/visa-bulletin`. Localhost only; not committed, not deployed.)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -108,7 +108,20 @@ Production already validated the persistent-cache bindings (S7A-PERF-003 / PERF-
 
 ### SEO / Google Search Foundation
 
-Source `app/sitemap.ts` lists crawlable public URLs only, including `/about/what-users-say`. It does **not** list auth, admin, internal, mock, or `/about/share-feedback` (that page is `noindex`). Production still serves the previously submitted 12-URL sitemap until this release is deployed. Do not request indexing until authorized. Runbook: [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md).
+Source `app/sitemap.ts` lists **15** crawlable public URLs, including `/about/what-users-say`, `/life`, `/pricing`, and the Current Visa Bulletin Dashboard (`/immigration/visa-bulletin`). It does **not** list History, Movement, dashboard, profile, admin, Intelligence, mock routes, or `/about/share-feedback` (`noindex`).
+
+Production Google Search Console (2026-09-17) discovered the previous **14** public URLs after sitemap refresh. The 15th URL (`/immigration/visa-bulletin`) is in source after S7A-SEO-VB-002 and is **not Production-live until this change is committed and deployed**. History and Movement remain Clerk-protected and stay off the sitemap. Runbook: [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md).
+
+### Current Visa Bulletin public READ (S7A-SEO-VB-002)
+
+| Field | Value |
+|-------|-------|
+| **Canonical route** | `/immigration/visa-bulletin` |
+| **Access** | **PUBLIC READ** — anonymous visitors, Googlebot, Free, Pro, and Power all receive the existing Current Visa Bulletin Dashboard (HTTP 200) |
+| **Data** | Existing Google Sheets pipeline via `getVisaBulletinData()` and `GET /api/visa-bulletin` (exact path only) |
+| **Still protected** | History, Movement, Priority Date tracking, saved profile, personalized dashboard, alerts, Intelligence, admin |
+| **Favorites** | Account-required; unsigned click uses existing Login Required |
+| **Sitemap** | Included in source (15 URLs). Not Production-indexed until deploy |
 
 ### Security remediation (code-level, this branch)
 
@@ -174,7 +187,7 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 | **Information architecture** | Admin stays inside My Immifin. Authorized admins see expandable **Admin Dashboard**: Overview, User Management, User Feedback, Data Refresh Center, Notifications, Content Management, System Logs, Settings |
 | **Authorization** | Same `requireAdmin()` / `isAdminRole(profiles.role)` as `/admin` |
 | **Still mock-only** | Overview metrics, User Management, Content Management, System Logs, Settings |
-| **Notifications migration** | Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`. `/admin/notifications` is the operational monthly workspace: Review Audience → Generate Update → Preview → Confirm & Send. Campaign Details distinguish current vs previous bulletin campaigns using the existing summary API. Group workflow is **Notify User Group**; individual workflow is **Notify Individual User**. Existing Sprint 6 Notification Platform business logic, APIs, and database tables are reused. Duplicate bulk send is not offered when the current bulletin is already sent. A development Visa Bulletin fixture (`IMMIFIN_DEV_VISA_BULLETIN_FIXTURE`, default OFF, ignored unless `NODE_ENV=development`) can simulate a bulletin month for testing without writing Google Sheets or Supabase; send remains disabled while it is active. Fixture-local Bulletin Refreshed is TEST data only. Development test/preview tools are not exposed on this route. Legacy `/admin` remains temporarily available. Production Bulletin Refreshed still means last `force_sync_visa_bulletin` audit time — follow-up after workflow validation; do not change Data Refresh here. |
+| **Notifications migration** | Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`. `/admin/notifications` is the operational monthly workspace: Review Audience → Generate Update → Preview → Confirm & Send. Campaign Details distinguish current vs previous bulletin campaigns using the existing summary API. Group workflow is **Notify User Group**; individual workflow is **Notify Individual User**. Existing Sprint 6 Notification Platform business logic, APIs, and database tables are reused. Duplicate bulk send is not offered when the current bulletin is already sent. Development test/preview tools are not exposed on this route. Legacy `/admin` remains temporarily available. Production Bulletin Refreshed still means last `force_sync_visa_bulletin` audit time — follow-up after workflow validation; do not change Data Refresh here. |
 | **Follow-up (non-blocking)** | Authenticated Production `/admin/notifications` currently shows Current Bulletin September 2026 and Previous Bulletin July 2026. Observation only — not classified as a defect without investigation. |
 
 ## User Feedback Review Queue (S7A-DS2-ADMIN-FEEDBACK)

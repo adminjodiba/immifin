@@ -5,10 +5,14 @@
  * This helper only answers: should signed-out navigation skip Login Required?
  *
  * Keep this list limited to routes that already return HTTP 200 unsigned.
- * Do not add Visa Bulletin, /immigration landing, Finance, or Insurance here.
+ * Do not add /immigration landing, History, Movement, Finance, or Insurance here.
  */
 
-import { isPublicCalculatorPath, isPublicLandingPath } from "@/lib/auth/publicRoutes";
+import {
+  isPublicCalculatorPath,
+  isPublicCurrentVisaBulletinPath,
+  isPublicLandingPath,
+} from "@/lib/auth/publicRoutes";
 
 function normalizePathname(path: string): string {
   return path.split("?")[0]?.split("#")[0] ?? path;
@@ -26,6 +30,10 @@ export function isPublicNavigationPath(path: string): boolean {
   }
 
   if (pathname === "/pricing") {
+    return true;
+  }
+
+  if (isPublicCurrentVisaBulletinPath(pathname)) {
     return true;
   }
 

@@ -30,10 +30,6 @@ import {
 import { createNotificationService } from "@/lib/notifications/core/notification-factory";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import {
-  DEV_VISA_BULLETIN_FIXTURE_REFRESHED_AT,
-  isDevVisaBulletinFixtureActive,
-} from "@/lib/visaBulletinDevFixture";
-import {
   formatVisaBulletinMonthLong,
   getLatestVisaBulletinMonth,
 } from "@/lib/visaBulletinHistory";
@@ -151,9 +147,7 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
   const bulletinMonthLabel = bulletinMonthKey
     ? formatVisaBulletinMonthLong(bulletinMonthKey)
     : null;
-  const bulletinRefreshedAt = isDevVisaBulletinFixtureActive()
-    ? DEV_VISA_BULLETIN_FIXTURE_REFRESHED_AT
-    : await getLastVisaBulletinRefreshAt();
+  const bulletinRefreshedAt = await getLastVisaBulletinRefreshAt();
 
   const emptyBreakdown = buildMonthlyUpdateExclusionBreakdown({});
   const audience = bulletinMonthKey
