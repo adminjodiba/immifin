@@ -4,15 +4,15 @@
 |-------|-------|
 | **Document** | Public Discovery and Authenticated Tool Access |
 | **Story** | S7-PUBLIC-002 |
-| **Date** | 2026-08-26; Current Visa Bulletin public READ recorded 2026-09-18 (S7A-SEO-VB-002) |
-| **Status** | **PARTIALLY IMPLEMENTED** — Current Visa Bulletin Dashboard is public READ (`S7A-SEO-VB-002`, localhost pending PO Git/deploy). Remaining S7-PUBLIC calculator/auth-gate stories are not this task. |
-| **Production** | `https://immifin.com` (LIVE). Source sitemap is 15 URLs after S7A-SEO-VB-002; Production still serves 14 until this change is deployed. |
+| **Date** | 2026-08-26; Visa Bulletin public search / private dashboard recorded 2026-09-18 (S7A-SEO-VB-DYNAMIC-005) |
+| **Status** | **PARTIALLY IMPLEMENTED** — 15 public Visa Bulletin search pages; Current Visa Bulletin Dashboard is login-required (`S7A-SEO-VB-DYNAMIC-005`, localhost pending PO Git/deploy). Remaining S7-PUBLIC calculator/auth-gate stories are not this task. |
+| **Production** | `https://immifin.com` (LIVE). Source sitemap is 29 URLs after S7A-SEO-VB-DYNAMIC-005; Production still serves the previously submitted set until this change is deployed. |
 | **Prior audit** | S7-PUBLIC-001 (read-only) · S7A-SEO-VB-001 (Visa Bulletin architecture) |
 | **Related** | [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) |
 
 This document is the **canonical visitor-access architecture** for IMMIFIN.
 
-**S7A-SEO-VB-002 Product Owner lock:** `/immigration/visa-bulletin` is the single Current Visa Bulletin Dashboard. Anonymous visitors and Googlebot may **READ** that existing dashboard. Do **not** create a second public Visa Bulletin page. History, Movement, Priority Date tracking, saved profiles, alerts, Intelligence, and admin remain protected.
+**S7A-SEO-VB-DYNAMIC-005 Product Owner lock:** `/immigration/visa-bulletin` is the full Current Visa Bulletin Dashboard and **requires login**. Public Visa Bulletin search pages exist only at `/immigration/visa-bulletin/{category}/{country}` for EB-1 / EB-2 / EB-3 × India / China / Mexico / Philippines / Rest of the World. Those pages use one dynamic template and the deterministic public answer layer. They expose limited current / previous / movement / recent-history context and are public information pages, not personalized product dashboards. History, Movement, tracking, personalization, and alerts remain premium / protected.
 
 Entitlement capabilities (what Free / Pro / Power *include*) remain in [BUSINESS_MODEL.md](./BUSINESS_MODEL.md). This document defines **who may browse vs who may use**, and how Search Console / existing URLs are protected.
 
@@ -49,7 +49,7 @@ Architectural form:
 
 These principles apply to future navigation, Pricing, authentication, SEO, tool landing pages, subscription gating, mobile, and Intelligence experiences.
 
-**Not fully implemented.** S7A-SEO-VB-002 made Current Visa Bulletin **public READ** on the existing canonical URL. Calculators remain anonymously usable (SEO constraint). Pricing is in the About menu and sitemap. History / Movement remain Clerk-protected.
+**Not fully implemented.** S7A-SEO-VB-DYNAMIC-005 made the 15 category/country Visa Bulletin search pages public and returned the parent dashboard plus `/api/visa-bulletin` to login-required access. Calculators remain anonymously usable (SEO constraint). Pricing is in the About menu and sitemap. History / Movement remain Clerk-protected.
 
 ---
 
@@ -83,7 +83,8 @@ IMMIFIN must not conflate SEO accessibility with application authorization.
 ### Use (authenticated for Free tools)
 
 - Running an immigration calculator
-- Viewing the actual IMMIFIN Current Visa Bulletin Dashboard is **public READ** (S7A-SEO-VB-002)
+- Viewing the actual IMMIFIN Current Visa Bulletin Dashboard requires login
+- Reading public Visa Bulletin search pages (limited current facts for a category/country combination)
 - Personalized functionality, saved profiles, authenticated workflows
 - Visa Bulletin History, Movement Tracker, and Priority Date tracking remain authenticated Pro capabilities
 
@@ -145,15 +146,17 @@ These are **separate**. They must never be mixed conceptually or in UX.
 
 | Surface | Access |
 |---------|--------|
-| **Current Visa Bulletin Dashboard** | **PUBLIC READ** at `/immigration/visa-bulletin` (S7A-SEO-VB-002). Same existing dashboard. No second page. |
-| **Favorites / account actions on that page** | Authenticated. Unsigned click uses Login Required. |
+| **Current Visa Bulletin Dashboard** | **LOGIN REQUIRED** at `/immigration/visa-bulletin`. Existing full dashboard. Not a public search landing page. |
+| **Public Visa Bulletin search pages** | **PUBLIC** at `/immigration/visa-bulletin/{category}/{country}` — exactly 15 canonical combinations. One dynamic template + deterministic answer layer. Limited current/previous/movement/recent-history context. |
+| **Current bulletin API** | **LOGIN REQUIRED** at `GET /api/visa-bulletin`. Public search pages read server-side lib/data directly. |
+| **Favorites / account actions on the dashboard** | Authenticated. Unsigned click uses Login Required. |
 | **Visa Bulletin History** | **Pro** — remains Clerk-protected |
 | **Visa Bulletin Movement Tracker** | **Pro** — remains Clerk-protected |
 | **Priority Date tracking / personalized dashboard** | **Pro** — remains Clerk-protected |
 
-There is **one** Current Visa Bulletin URL. Anonymous visitors and Googlebot receive HTTP 200 with the published bulletin table. Do not create a separate SEO/marketing Visa Bulletin page.
+Public search pages are legitimate public information pages. They are not personalized product dashboards. The matcher is two-segment only; never `visa-bulletin(.*)`.
 
-**Implemented locally in S7A-SEO-VB-002.** Production remains 14 sitemap URLs until this change is deployed. History and Movement stay off the sitemap.
+**Implemented locally in S7A-SEO-VB-DYNAMIC-005.** Source sitemap is 29 URLs (parent removed; 15 search URLs added). Production remains on the previously submitted set until this change is deployed. History and Movement stay off the sitemap.
 
 ---
 
@@ -304,9 +307,10 @@ Do **not** start these from this documentation story.
 | **S7-PUBLIC-004** | Free Plan Messaging | $0, account required, no credit card, Create Free Account CTA. No routing changes |
 | **S7-PUBLIC-005** | Public Navigation Alignment | Align middleware-public routes, `ProtectedLink`, and direct URLs. Must not reduce current crawlability |
 | **S7-PUBLIC-006** | Account Gate Conversion Experience | Build on Login Modal WIP: Create Free Account, Sign In, no credit card, Pricing compare, return-to-tool, remove home bounce |
-| **S7-PUBLIC-007** | Public Discovery Architecture | Remaining authenticated-tool discovery (calculators). Current Visa Bulletin public READ was implemented in **S7A-SEO-VB-002** on the existing dashboard URL. |
-| **S7A-SEO-VB-002** | Current Visa Bulletin public READ | Existing `/immigration/visa-bulletin` dashboard is HTTP 200 unsigned; source sitemap 15 URLs. History/Movement remain protected. **Localhost pending PO Git/deploy.** |
-| **S7A-SEO-003** | Sitemap and Search Console Alignment | Production GSC (2026-09-17) discovered **14** public URLs. Source after S7A-SEO-VB-002 is **15**. Do not add History, Movement, dashboard, profile, or admin. |
+| **S7-PUBLIC-007** | Public Discovery Architecture | Remaining authenticated-tool discovery (calculators). Visa Bulletin public search / private dashboard cutover is **S7A-SEO-VB-DYNAMIC-005**. |
+| **S7A-SEO-VB-002** | Current Visa Bulletin public READ | Historical: existing dashboard was temporarily public READ. Superseded by **S7A-SEO-VB-DYNAMIC-005**. |
+| **S7A-SEO-VB-DYNAMIC-005** | Public search / private product cutover | Parent + `/api/visa-bulletin` login-required; 15 public search URLs; sitemap 29. History/Movement remain protected. **Localhost pending PO Git/deploy.** |
+| **S7A-SEO-003** | Sitemap and Search Console Alignment | Production GSC (2026-09-17) discovered **14** public URLs. Source after S7A-SEO-VB-DYNAMIC-005 is **29**. Do not add History, Movement, private dashboard, profile, or admin. |
 
 ---
 
@@ -331,7 +335,7 @@ Intelligence remains Power-gated per the Business Model. This architecture only 
 | Risk | Mitigation |
 |------|------------|
 | Clerk-protecting current calculator URLs | Forbidden without SEO migration approval (Rule 3); use Option B |
-| Sitemap continuing to list 404 Visa Bulletin | S7A-SEO-VB-002 adds the route only after it is public 200. History/Movement stay off sitemap. |
+| Sitemap listing the private Visa Bulletin dashboard | S7A-SEO-VB-DYNAMIC-005 removes the parent and adds only the 15 public 200 search URLs. History/Movement stay off sitemap. |
 | Mixing Account Gate with Pro upgrade modal | Separate components and copy (§6) |
 | Login Modal WIP overwritten | S7-PUBLIC-006 extends it; other stories must not restyle it |
 | Nav still blocking public calculator URLs | S7-PUBLIC-005; Rule 5 |
@@ -344,6 +348,7 @@ Intelligence remains Power-gated per the Business Model. This architecture only 
 
 | Version | Date | Story | Description |
 |---------|------|-------|-------------|
+| v1.4 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Parent dashboard login-required; 15 public search pages; sitemap 29 |
 | v1.3 | 2026-09-18 | S7A-SEO-VB-002 | Current Visa Bulletin Dashboard is public READ on the existing canonical URL |
 | v1.1 | 2026-08-27 | S7A-PUBLIC-AUTH-REG-001 | Explicit Join IMMIFIN / Sign In CTAs must use canonical `/signup` and `/login`, never Login Required gating |
 | v1.0 | 2026-08-26 | S7-PUBLIC-002 | Initial approved public discovery vs authenticated Use architecture |

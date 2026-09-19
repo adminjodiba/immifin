@@ -13,6 +13,7 @@ import {
   loadAllVisaBulletinSheets,
   VISA_BULLETIN_SHEETS_CACHE_TAG,
 } from "@/lib/visaBulletinSheets";
+import { listPublicVisaBulletinCombinations } from "@/lib/visaBulletinPublicSlugs";
 
 const PUBLIC_BULLETIN_PATHS = [
   "/api/visa-bulletin",
@@ -26,10 +27,17 @@ const PUBLIC_BULLETIN_PATHS = [
   "/visa-bulletin",
 ] as const;
 
+export function listVisaBulletinRevalidatePaths(): string[] {
+  return [
+    ...PUBLIC_BULLETIN_PATHS,
+    ...listPublicVisaBulletinCombinations().map((combination) => combination.canonicalPath),
+  ];
+}
+
 function invalidateVisaBulletinCaches(): void {
   revalidateTag(VISA_BULLETIN_SHEETS_CACHE_TAG);
   revalidateTag(VISA_BULLETIN_HISTORY_CACHE_TAG);
-  for (const path of PUBLIC_BULLETIN_PATHS) {
+  for (const path of listVisaBulletinRevalidatePaths()) {
     revalidatePath(path);
   }
 }

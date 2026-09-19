@@ -5,10 +5,10 @@
 | **Title** | Visa Bulletin Dashboard Design System 2.0 |
 | **Status** | **Approved — promoted to official implementation** |
 | **Sprint** | Sprint 5 / Sprint 7A |
-| **Task ID** | S5-008 / S7A-SEO-VB-002 / S7A-SEO-VB-005 |
+| **Task ID** | S5-008 / S7A-SEO-VB-002 / S7A-SEO-VB-005 / S7A-SEO-VB-DYNAMIC-005 |
 | **Last Updated** | 2026-09-18 |
 | **Owner** | Technical Architecture (CTO) |
-| **Version** | v1.3 |
+| **Version** | v1.4 |
 
 **Related documentation:** [DESIGN_SYSTEM_2.0.md](./DESIGN_SYSTEM_2.0.md) · [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) · [VISA_BULLETIN_HISTORY_2.0.md](./VISA_BULLETIN_HISTORY_2.0.md) · [VISA_BULLETIN_MOVEMENT_2.0.md](./VISA_BULLETIN_MOVEMENT_2.0.md) · [../CURRENT_PROJECT_STATE.md](../CURRENT_PROJECT_STATE.md) · [../ROADMAP_v2.md](../ROADMAP_v2.md)
 
@@ -25,7 +25,7 @@ This document records what was delivered, what changed from the v0.4.1 productio
 | **Production route (official)** | `/immigration/visa-bulletin` |
 | **Former mockup route** | `/immigration/visa-bulletin-dashboard-2` → redirects to production |
 | **Promotion status** | ✅ **Promoted — DS 2.0 live on production route** |
-| **Subscription tier** | Public READ of the existing dashboard (S7A-SEO-VB-002). No `PremiumFeaturePreview` gating. History / Movement remain Pro. |
+| **Subscription tier** | Login-required Current Visa Bulletin Dashboard (S7A-SEO-VB-DYNAMIC-005). No `PremiumFeaturePreview` gating. History / Movement remain Pro. Public search lives on the 15 category/country URLs, not this dashboard. |
 | **Architecture preserved** | API/data layer, SWR client pattern, Final Action + Dates for Filing data types |
 
 ---
@@ -194,7 +194,7 @@ The Dashboard 2 mockup was built incrementally through reviewed Sprint 5 UX iter
 |--------|--------|
 | **Production page** | `app/immigration/visa-bulletin/page.tsx` now renders `VisaBulletinDashboard2` |
 | **Bulletin month** | Server-fetched via `getLatestVisaBulletinMonth()` passed as `bulletinMonthLabel` prop |
-| **User-facing name** | Visible H1 remains **Visa Bulletin Dashboard**. Search metadata (S7A-SEO-VB-005) is evergreen: **Employment-Based Visa Bulletin: EB-1, EB-2 & EB-3 \| Immifin** |
+| **User-facing name** | Visible H1 remains **Visa Bulletin Dashboard**. Parent metadata is product-appropriate (**Current Visa Bulletin**, `noindex`) after S7A-SEO-VB-DYNAMIC-005. Public search metadata lives on the 15 category/country pages. |
 | **Mock route** | `visa-bulletin-dashboard-2` → permanent redirect to production |
 | **Deploy** | Pushed to `main` on GitHub (`ddcd8bf`); Cloudflare auto-deploy from `main` |
 
@@ -202,15 +202,16 @@ S5-008 documents both the **design approval** and the **production promotion** e
 
 ## Search-understanding content (S7A-SEO-VB-005)
 
-The public Current Visa Bulletin page stays **product-first**. Returning users still reach the live dashboard immediately.
+The Current Visa Bulletin Dashboard stays **product-first** for signed-in users. Public search is a separate 15-URL layer.
 
 | Rule | Behavior |
 |------|----------|
 | **Page order** | H1 → dashboard → Related Tools → Understanding the Visa Bulletin → existing legal disclaimer |
 | **Copy** | Compact Product Owner-approved explainer only. Not a second landing page. Not above the dashboard. |
 | **HTML** | Understanding copy is server-rendered (not SWR / API / auth). Tables remain client-fetched. |
-| **Metadata** | Evergreen title/description via `createMetadata()`. No bulletin month in `<title>`. Canonical and `index, follow` unchanged. No JSON-LD. No `og:image` in this task. |
-| **Auth / data** | Public READ, Pro History/Movement, Google Sheets pipeline, filters, grouping, Favorites, and Related Tools unchanged. |
+| **Parent metadata** | Product title **Current Visa Bulletin**. `noindex, nofollow`. Not the public search landing page. Not in sitemap. |
+| **Public search** | One dynamic template at `/immigration/visa-bulletin/[category]/[country]`. Limited current/previous/movement/recent-history context plus Explore graph. |
+| **Auth / data** | Dashboard login-required. `/api/visa-bulletin` login-required. Public search reads server-side lib/data. Pro History/Movement, filters, grouping, Favorites, and Related Tools unchanged. |
 
 ---
 
@@ -237,3 +238,4 @@ The public Current Visa Bulletin page stays **product-first**. Returning users s
 | v1.1 | 2026-07-06 | S5-008 | Record production promotion — DS 2.0 live on `/immigration/visa-bulletin` |
 | v1.2 | 2026-09-18 | S7A-SEO-VB-002 | Canonical route is public READ; same dashboard, same data pipeline |
 | v1.3 | 2026-09-18 | S7A-SEO-VB-005 | Compact Understanding the Visa Bulletin section below Related Tools; evergreen search metadata |
+| v1.4 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Dashboard login-required; public search is the 15 category/country pages; parent `noindex` |

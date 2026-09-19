@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-18 (S7A-SEO-VB-002 — Current Visa Bulletin Dashboard is public READ at `/immigration/visa-bulletin`. Localhost only; not committed, not deployed.)  
+**Last Updated:** 2026-09-18 (S7A-SEO-VB-DYNAMIC-005 — Current Visa Bulletin Dashboard is login-required; 15 public search pages + sitemap 29. Localhost only; not committed, not deployed.)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -108,20 +108,22 @@ Production already validated the persistent-cache bindings (S7A-PERF-003 / PERF-
 
 ### SEO / Google Search Foundation
 
-Source `app/sitemap.ts` lists **15** crawlable public URLs, including `/about/what-users-say`, `/life`, `/pricing`, and the Current Visa Bulletin Dashboard (`/immigration/visa-bulletin`). It does **not** list History, Movement, dashboard, profile, admin, Intelligence, mock routes, or `/about/share-feedback` (`noindex`).
+Source `app/sitemap.ts` lists **29** crawlable public URLs: the previous static marketing/calculator set **without** the private Current Visa Bulletin Dashboard, plus the **15** canonical public Visa Bulletin search URLs from `lib/visaBulletinPublicSlugs.ts`. It does **not** list `/immigration/visa-bulletin`, History, Movement, dashboard, profile, admin, Intelligence, mock routes, or `/about/share-feedback` (`noindex`).
 
-Production Google Search Console (2026-09-17) discovered the previous **14** public URLs after sitemap refresh. The 15th URL (`/immigration/visa-bulletin`) is in source after S7A-SEO-VB-002 and is **not Production-live until this change is committed and deployed**. History and Movement remain Clerk-protected and stay off the sitemap. Runbook: [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md).
+Production Google Search Console (2026-09-17) still reflects the previously submitted public set. The 29-URL source sitemap is **not Production-live until this change is committed and deployed**. History and Movement remain Clerk-protected and stay off the sitemap. Runbook: [SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md](./SPRINT_7A_GOOGLE_SEARCH_FOUNDATION.md).
 
-### Current Visa Bulletin public READ (S7A-SEO-VB-002)
+### Visa Bulletin public search / private product (S7A-SEO-VB-DYNAMIC-005)
 
 | Field | Value |
 |-------|-------|
-| **Canonical route** | `/immigration/visa-bulletin` |
-| **Access** | **PUBLIC READ** — anonymous visitors, Googlebot, Free, Pro, and Power all receive the existing Current Visa Bulletin Dashboard (HTTP 200) |
-| **Data** | Existing Google Sheets pipeline via `getVisaBulletinData()` and `GET /api/visa-bulletin` (exact path only) |
+| **Private product** | `/immigration/visa-bulletin` — full Current Visa Bulletin Dashboard; **login required** |
+| **Private product API** | `GET /api/visa-bulletin` — login required; signed-in dashboard SWR continues to use it |
+| **Public search** | `/immigration/visa-bulletin/{category}/{country}` — exactly 15 canonical combinations (EB-1 / EB-2 / EB-3 × India / China / Mexico / Philippines / Rest of the World) |
+| **Template** | One dynamic Server Component + deterministic `getPublicVisaBulletinAnswer()` |
+| **Public context** | Limited current / previous / movement / recent-history facts. Not a personalized product dashboard |
 | **Still protected** | History, Movement, Priority Date tracking, saved profile, personalized dashboard, alerts, Intelligence, admin |
-| **Favorites** | Account-required; unsigned click uses existing Login Required |
-| **Sitemap** | Included in source (15 URLs). Not Production-indexed until deploy |
+| **Matcher** | Two-segment only. Never `visa-bulletin(.*)` |
+| **Sitemap** | 29 URLs. Parent removed. 15 search URLs added from the slug model. Not Production-indexed until deploy |
 
 ### Security remediation (code-level, this branch)
 
@@ -484,3 +486,4 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-10 | S7A-DS2-BILLING-FINAL-001 | Billing & Plan Option A locked: current-plan digital card + Billing Details; Free/Pro/Power identities only |
 | Prior | 2026-09-15 | S7A-RELEASE-MERGE-010 | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |
 | **Current** | **2026-09-15** | **S7A-RELEASE-CLOSEOUT-011** | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
+| Local | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. Not committed. |

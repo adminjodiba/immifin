@@ -7,12 +7,18 @@ import {
   getLatestVisaBulletinMonth,
 } from "@/lib/visaBulletinHistory";
 
-export const metadata = createMetadata({
-  title: "Employment-Based Visa Bulletin: EB-1, EB-2 & EB-3",
-  description:
-    "View the current employment-based Visa Bulletin, including Final Action Dates and Dates for Filing for EB-1, EB-2, and EB-3 by country.",
-  path: "/immigration/visa-bulletin",
-});
+export const metadata = {
+  ...createMetadata({
+    title: "Current Visa Bulletin",
+    description:
+      "View the current employment-based Visa Bulletin Dashboard, including Final Action Dates and Dates for Filing.",
+    path: "/immigration/visa-bulletin",
+  }),
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ImmigrationVisaBulletinPage() {
   const latestMonth = await getLatestVisaBulletinMonth();

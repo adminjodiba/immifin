@@ -2,8 +2,9 @@ export const runtime = "nodejs";
 export const revalidate = 86400;
 
 /**
- * Public GET of current Visa Bulletin facts only (Final Action / Dates for Filing).
- * Middleware allowlists this exact path. History, movement, and admin APIs stay protected.
+ * Authenticated GET of current Visa Bulletin facts (Final Action / Dates for Filing).
+ * Middleware requires login on this exact path. History, Movement, and admin APIs stay protected.
+ * Public search pages read server-side lib/data functions and do not use this route.
  */
 
 import { NextResponse } from "next/server";

@@ -1,7 +1,9 @@
 /**
  * Routes that do not require authentication (middleware).
  * Public exploration surfaces — landing, pricing, manual calculators, and
- * public-read Current Visa Bulletin (`/immigration/visa-bulletin`).
+ * public Visa Bulletin search children (`/immigration/visa-bulletin/:category/:country`).
+ * The Current Visa Bulletin Dashboard (`/immigration/visa-bulletin`) and
+ * `GET /api/visa-bulletin` require login. Never use visa-bulletin(.*).
  */
 
 export const PUBLIC_ROUTE_PATTERNS = [
@@ -21,12 +23,10 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/immigration/h1b-wage-level-estimator(.*)",
   "/immigration/h1b-lottery-odds-calculator(.*)",
   "/immigration/visa-stamping-wait-map(.*)",
-  // Exact Current Visa Bulletin path only. Do NOT use (.*) — that would also
-  // match History and Movement, which must remain Clerk-protected.
-  "/immigration/visa-bulletin",
-  // Exact current-bulletin GET only. Do NOT use (.*) — that would also match
-  // /api/visa-bulletin-history and /api/visa-bulletin-movement.
-  "/api/visa-bulletin",
+  // Two-segment public search pages only: /immigration/visa-bulletin/{category}/{country}.
+  // Do NOT use (.*) or a trailing-slash prefix — extra segments must stay denied.
+  // The exact parent `/immigration/visa-bulletin` is a private product dashboard.
+  "/immigration/visa-bulletin/:category/:country",
   "/api/visa-stamping-wait-times(.*)",
   "/api/check-priority-date(.*)",
   "/login(.*)",
@@ -48,9 +48,21 @@ function normalizePathname(path: string): string {
   return path.split("?")[0]?.split("#")[0] ?? path;
 }
 
-/** Canonical Current Visa Bulletin Dashboard — public READ, exact path only. */
+/** Exact Current Visa Bulletin Dashboard path (private product). Not a public-access flag. */
 export function isPublicCurrentVisaBulletinPath(path: string): boolean {
   return normalizePathname(path) === "/immigration/visa-bulletin";
+}
+
+const PUBLIC_VISA_BULLETIN_SEARCH_PATH =
+  /^\/immigration\/visa-bulletin\/[^/]+\/[^/]+\/?$/;
+
+/**
+ * Public Visa Bulletin search children — exactly two path segments.
+ * `/immigration/visa-bulletin/eb2/india` is public; History/Movement are not.
+ * Invalid slugs still match so Next.js `notFound()` can run.
+ */
+export function isPublicVisaBulletinSearchPath(path: string): boolean {
+  return PUBLIC_VISA_BULLETIN_SEARCH_PATH.test(normalizePathname(path));
 }
 
 /** Manual immigration calculators and the calculators index (Free tier — BUSINESS_MODEL §13). */

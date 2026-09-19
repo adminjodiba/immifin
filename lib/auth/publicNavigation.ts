@@ -10,8 +10,8 @@
 
 import {
   isPublicCalculatorPath,
-  isPublicCurrentVisaBulletinPath,
   isPublicLandingPath,
+  isPublicVisaBulletinSearchPath,
 } from "@/lib/auth/publicRoutes";
 
 function normalizePathname(path: string): string {
@@ -33,7 +33,7 @@ export function isPublicNavigationPath(path: string): boolean {
     return true;
   }
 
-  if (isPublicCurrentVisaBulletinPath(pathname)) {
+  if (isPublicVisaBulletinSearchPath(pathname)) {
     return true;
   }
 

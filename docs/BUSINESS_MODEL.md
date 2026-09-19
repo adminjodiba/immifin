@@ -3,9 +3,9 @@
 | Field | Value |
 |-------|-------|
 | **Title** | IMMIFIN Business Model |
-| **Version** | v2.6 |
-| **Sprint** | Sprint 7A (Current Visa Bulletin public READ) |
-| **Task ID** | S7-DOC-009 / S7A-SEO-VB-002 |
+| **Version** | v2.7 |
+| **Sprint** | Sprint 7A (Visa Bulletin public search / private dashboard) |
+| **Task ID** | S7-DOC-009 / S7A-SEO-VB-DYNAMIC-005 |
 | **Last Updated** | 2026-09-18 |
 | **Owner** | Product Strategy / Technical Architecture |
 | **Status** | Official — single source of truth for subscription tiers, capabilities, and monetization philosophy |
@@ -71,7 +71,8 @@ Detailed feature access: [§3 Feature Matrix](#3-feature-matrix).
 
 | Feature | Free | Pro | Power |
 |---------|------|------|------|
-| Current Visa Bulletin Dashboard | ✅ Public READ | ✅ | ✅ |
+| Current Visa Bulletin Dashboard | ✅ Account required | ✅ | ✅ |
+| Public Visa Bulletin search pages | Public (15 category/country URLs) | Public | Public |
 | GC Wait Calculator | Manual cutoff date entry | Automatic from current bulletin | Automatic from current bulletin |
 | Citizenship Calculator | Manual | Manual + profile aware | Manual + profile aware |
 | Save Immigration Profile | ❌ | ✅ | ✅ |
@@ -395,7 +396,7 @@ Free is for **exploration** with public tools and manual calculator input. Savin
 
 | Layer | Tier | Examples |
 |-------|------|----------|
-| **Exploration** | Public READ + Free | Current Visa Bulletin Dashboard is publicly readable without an account. Other Free tools (account/security/contact, manual calculators) remain as implemented. |
+| **Exploration** | Public READ + Free | Public Visa Bulletin search pages are readable without an account. The full Current Visa Bulletin Dashboard requires login. Other Free tools (account/security/contact, manual calculators) remain as implemented. |
 | **Data entry & automation** | Pro | Save immigration profile, personalized dashboard, notifications, history, movement tracker, auto-populated calculators |
 | **Intelligence** | Power | AI recommendations and assistant |
 
@@ -403,7 +404,8 @@ Free is for **exploration** with public tools and manual calculator input. Savin
 
 - Account identity (Profile) and Security
 - Contact phone (account contact)
-- Current Visa Bulletin Dashboard (public READ at `/immigration/visa-bulletin`; no account required to view published bulletin facts. Favorites and other account actions still require sign-in.)
+- Current Visa Bulletin Dashboard (login required at `/immigration/visa-bulletin`. Favorites and other account actions still require sign-in.)
+- Public Visa Bulletin search pages (15 canonical category/country URLs; limited current/previous/movement/recent-history context; not a personalized dashboard)
 - Citizenship Calculator (manual)
 - Green Card Wait Calculator (manual)
 - Pricing, About, public landings
@@ -582,3 +584,4 @@ These principles apply to all subscription-gated surfaces. See also [PRODUCT_VIS
 | v2.4 | 2026-07-25 | S8-IIP-008 | Note server-side `accessAI` enforcement on Authenticated Intelligence API (no chat UI) |
 | v2.5 | 2026-07-25 | S8-IIP-009 | Note Power Intelligence Workspace UI at `/intelligence` (single-turn) |
 | v2.6 | 2026-09-18 | S7A-SEO-VB-002 | Current Visa Bulletin Dashboard is public READ; History / Movement remain Pro |
+| v2.7 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Dashboard login-required; 15 public category/country search pages; History / Movement remain Pro |

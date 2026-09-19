@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-18 (S7A-SEO-VB-002 — Current Visa Bulletin public READ) |
+| **Last Updated** | 2026-09-18 (S7A-SEO-VB-DYNAMIC-005 — Visa Bulletin public search / private dashboard) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -532,7 +532,7 @@ Application features
 
 | Tier | Role |
 |------|------|
-| **Free** | Manual tools, public-read Current Visa Bulletin Dashboard, basic calculators |
+| **Free** | Manual tools, login-required Current Visa Bulletin Dashboard, public Visa Bulletin search pages, basic calculators |
 | **Pro** | Personalization, automation, saved profile, Visa Bulletin History, Movement Tracker, email alerts |
 | **Power** | Everything in Pro + AI, multiple profiles, advanced intelligence |
 
@@ -641,7 +641,7 @@ Optional Notifications (campaign inputs from dashboard state)
 | **Authentication** | Protected workspace routes |
 | **Profile** | Personalization and saved immigration details |
 | **Journey Engine** | Stage-specific cards and timelines |
-| **Visa Bulletin** | Current bulletin is public READ at `/immigration/visa-bulletin`. History / movement remain authenticated Pro surfaces. |
+| **Visa Bulletin** | Full Current Visa Bulletin Dashboard at `/immigration/visa-bulletin` requires login. Public search pages exist for EB-1 / EB-2 / EB-3 × India / China / Mexico / Philippines / Rest of the World. History / movement remain authenticated Pro surfaces. |
 | **Capabilities** | Pro/Power gates and Premium Feature Discovery |
 | **Notifications** | Journey-aware email content sourced from the same dashboard model |
 
@@ -741,6 +741,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.20 | 2026-08-29 | S7A-PERF-CLOSE — Production persistent cache + proven Builds pipeline (`opennextjs-cloudflare build` + `wrangler deploy`). |
 | v1.21 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — custom Worker + DST-safe Chicago crons + `DAILY_SHEET_SYNC_SECRET` recorded; not Production-deployed. |
 | v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
+| v1.23 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 — parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. |
 
 ---
 
