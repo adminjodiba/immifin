@@ -1,20 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
+import Link from "next/link";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
+import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
 import {
   chargeabilityOptions,
   employmentCategoryOptions,
   type LivePriorityDateCheck,
 } from "@/lib/visaBulletinData";
-import { CalculatorProAutoPopulationHint } from "@/components/CalculatorProAutoPopulationHint";
-import { CalculatorProfilePrefillHint } from "@/components/CalculatorProfilePrefillHint";
-import { RelatedImmigrationResources } from "@/components/RelatedImmigrationResources";
-import { useImmigrationProfileDefaults } from "@/lib/hooks/useImmigrationProfileDefaults";
-
-const PAGE_HREF = "/calculators/green-card-wait-time";
-const PAGE_TITLE = "Green Card Calculator";
+import { getPublicVisaBulletinCanonicalPath } from "@/lib/visaBulletinPublicSlugs";
 
 const categoryOptions = employmentCategoryOptions.filter(
   (option) => option.value !== "EB4" && option.value !== "EB5",
@@ -37,7 +32,7 @@ const statusStyles = {
   waiting: {
     container: "border-amber-200 bg-gradient-to-br from-amber-50 to-white",
     dot: "bg-amber-500",
-    label: "Still waiting",
+    label: "Still Waiting",
   },
   unavailable: {
     container: "border-slate-200 bg-gradient-to-br from-slate-50 to-white",
@@ -46,21 +41,55 @@ const statusStyles = {
   },
 } as const;
 
-function StatusBanner({ result }: { result: LivePriorityDateCheck }) {
-  const styles = statusStyles[result.status];
+const statusMeanings: Record<LivePriorityDateCheck["status"], string> = {
+  current:
+    "The Visa Bulletin lists this category and country as Current. A Final Action Date cutoff is not being applied in the published chart. This is Visa Bulletin status only and does not mean USCIS has approved a Green Card.",
+  eligible:
+    "Your priority date is on or before the published Final Action Date. The current Final Action chart has reached your priority date. This does not by itself mean your Green Card is approved.",
+  waiting:
+    "Your priority date is later than the published Final Action Date. You remain behind the current cutoff. IMMIFIN does not estimate how many months or years this will take because Visa Bulletin cutoffs can move forward, remain unchanged, or retrogress.",
+  unavailable:
+    "The published Final Action chart lists visa numbers as unavailable for this combination. IMMIFIN does not treat Unavailable as a calendar date and does not estimate a future wait from it.",
+};
 
-  return (
-    <div className={`rounded-lg border p-4 ${styles.container}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-        Priority date status
-      </p>
-      <div className="mt-1.5 flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${styles.dot}`} aria-hidden="true" />
-        <p className="text-lg font-semibold text-slate-900">{styles.label}</p>
-      </div>
-      <p className="mt-2 text-sm text-slate-600 lg:whitespace-nowrap">{result.message}</p>
-    </div>
-  );
+function categoryLinkLabel(category: string): string {
+  switch (category) {
+    case "EB1":
+      return "EB-1";
+    case "EB2":
+      return "EB-2";
+    case "EB3":
+      return "EB-3";
+    default:
+      return category;
+  }
+}
+
+function countryLinkLabel(country: string): string {
+  switch (country) {
+    case "all":
+      return "Rest of the World";
+    case "china":
+      return "China";
+    case "india":
+      return "India";
+    case "mexico":
+      return "Mexico";
+    case "philippines":
+      return "Philippines";
+    default:
+      return country;
+  }
+}
+
+function getContextualVisaBulletinPath(category: string, country: string): string | null {
+  if (!category || !country) {
+    return null;
+  }
+
+  const categorySlug = category.toLowerCase();
+  const countrySlug = country === "all" ? "rest-of-the-world" : country;
+  return getPublicVisaBulletinCanonicalPath(categorySlug, countrySlug);
 }
 
 function ResultCard({
@@ -71,7 +100,7 @@ function ResultCard({
 }: {
   label: string;
   value: string;
-  description: string;
+  description?: string;
   highlight?: boolean;
 }) {
   return (
@@ -84,12 +113,12 @@ function ResultCard({
     >
       <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">{label}</p>
       <p className="mt-1 text-base font-semibold leading-snug text-slate-900">{value}</p>
-      <p className="mt-1.5 text-sm text-slate-600 lg:whitespace-nowrap">{description}</p>
+      {description ? <p className="mt-1.5 text-sm text-slate-600">{description}</p> : null}
     </div>
   );
 }
 
-export function GreenCardWaitTimeCalculator() {
+export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode }) {
   const { defaults, loaded, autoPopulationEnabled, showProAutoPopulationHint } =
     useImmigrationProfileDefaults();
   const [category, setCategory] = useState("");
@@ -103,6 +132,7 @@ export function GreenCardWaitTimeCalculator() {
 
   const savedGreenCardIssueDate =
     loaded && defaults?.greenCardIssueDate ? defaults.greenCardIssueDate : null;
+  const contextualVisaBulletinPath = getContextualVisaBulletinPath(category, country);
 
   async function runCheck(cat: string, ctry: string, date: string) {
     setLoading(true);
@@ -157,12 +187,7 @@ export function GreenCardWaitTimeCalculator() {
     setCountry((current) => current || profileCountry);
     setPriorityDate((current) => current || profilePriority);
 
-    if (
-      !defaults.greenCardIssueDate &&
-      profileCategory &&
-      profileCountry &&
-      profilePriority
-    ) {
+    if (!defaults.greenCardIssueDate && profileCategory && profileCountry && profilePriority) {
       void runCheck(profileCategory, profileCountry, profilePriority);
     }
   }, [loaded, autoPopulationEnabled, defaults]);
@@ -180,225 +205,223 @@ export function GreenCardWaitTimeCalculator() {
   }
 
   return (
-    <>
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-2.5">
-          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-start gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">{PAGE_TITLE}</h1>
-              <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
-            </div>
-            <p className="mt-1 max-w-3xl text-sm text-slate-600">
-              Compare your priority date to the latest visa bulletin cutoff for your category and country.
-            </p>
-          </div>
+    <div className="space-y-5">
+      {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
+      {prefilledFromProfile && autoPopulationEnabled ? (
+        <div
+          className="mb-6 rounded-xl border border-brand-200 bg-brand-50/60 px-4 py-3 text-sm text-slate-700"
+          role="status"
+        >
+          <p className="font-medium text-slate-900">Loaded from your immigration profile</p>
+          <p className="mt-1 text-slate-600">
+            Values were prefilled automatically. Change any field and click Check My Status to run a
+            different scenario.
+          </p>
         </div>
-        <DashboardCloseAction />
-      </header>
+      ) : null}
 
-      <div className="mt-3 space-y-5">
-        {showProAutoPopulationHint ? <CalculatorProAutoPopulationHint /> : null}
-        {prefilledFromProfile && autoPopulationEnabled ? <CalculatorProfilePrefillHint /> : null}
+      <form onSubmit={handleCalculate} aria-label="Employment-based Green Card wait time calculator">
+        <div className="overflow-hidden rounded-[1.25rem] border border-slate-200/80 bg-white shadow-sm lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <section
+            className="border-b border-slate-200 p-4 sm:p-5 lg:border-b-0 lg:border-r"
+            aria-labelledby="green-card-input-heading"
+          >
+            <h2 id="green-card-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Your information
+            </h2>
 
-        <form onSubmit={handleCalculate} aria-label="Green card calculator">
-          <div className="overflow-hidden rounded-[1.25rem] border border-slate-200/80 bg-white shadow-sm lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <section
-              className="border-b border-slate-200 p-4 sm:p-5 lg:border-b-0 lg:border-r"
-              aria-labelledby="green-card-input-heading"
-            >
-              <h2 id="green-card-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Your information
-              </h2>
-
-              <div className="mt-3 space-y-4">
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-slate-900">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    name="category"
-                    required
-                    value={category}
-                    onChange={(event) => {
-                      setCategory(event.target.value);
-                      setPrefilledFromProfile(false);
-                      setResult(null);
-                      setError(null);
-                    }}
-                    className={inputClassName}
-                  >
-                    <option value="">Select a category</option>
-                    {categoryOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-slate-900">
-                    Country of chargeability
-                  </label>
-                  <select
-                    id="country"
-                    name="country"
-                    required
-                    value={country}
-                    onChange={(event) => {
-                      setCountry(event.target.value);
-                      setPrefilledFromProfile(false);
-                      setResult(null);
-                      setError(null);
-                    }}
-                    className={inputClassName}
-                  >
-                    <option value="">Select a country</option>
-                    {chargeabilityOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="priority-date" className="block text-sm font-medium text-slate-900">
-                    Priority date
-                  </label>
-                  <input
-                    type="date"
-                    id="priority-date"
-                    name="priorityDate"
-                    required
-                    max={maxDate}
-                    value={priorityDate}
-                    onChange={(event) => {
-                      setPriorityDate(event.target.value);
-                      setPrefilledFromProfile(false);
-                      setResult(null);
-                      setError(null);
-                    }}
-                    className={inputClassName}
-                  />
-                  <p className="mt-1 text-xs text-slate-500">
-                    The priority date listed on your I-140, I-130, or PERM approval notice.
-                  </p>
-                </div>
+            <div className="mt-3 space-y-4">
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-slate-900">
+                  Employment Category
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  required
+                  value={category}
+                  onChange={(event) => {
+                    setCategory(event.target.value);
+                    setPrefilledFromProfile(false);
+                    setResult(null);
+                    setError(null);
+                  }}
+                  className={inputClassName}
+                >
+                  <option value="">Select a category</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">EB-1, EB-2, or EB-3</p>
               </div>
 
-              <button
-                type="submit"
-                className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
-                disabled={!canCalculate || loading}
-              >
-                {loading ? "Checking…" : "Calculate"}
-              </button>
-            </section>
-
-            <section
-              className="bg-slate-50/50 p-4 sm:p-5"
-              aria-labelledby="green-card-result-heading"
-              aria-live="polite"
-            >
-              <h2 id="green-card-result-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Your result
-              </h2>
-
-              {savedGreenCardIssueDate && !loading && !error && !result ? (
-                <div
-                  className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5"
-                  role="status"
+              <div>
+                <label htmlFor="country" className="block text-sm font-medium text-slate-900">
+                  Country of Chargeability
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  value={country}
+                  onChange={(event) => {
+                    setCountry(event.target.value);
+                    setPrefilledFromProfile(false);
+                    setResult(null);
+                    setError(null);
+                  }}
+                  className={inputClassName}
                 >
-                  <p className="text-sm font-semibold text-emerald-950">
-                    You already have a Green Card based on your saved profile.
-                  </p>
-                  <p className="mt-1.5 text-sm text-emerald-900">
-                    Green card issue date:{" "}
-                    <span className="font-medium">
-                      {new Date(`${savedGreenCardIssueDate}T00:00:00`).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </p>
-                </div>
-              ) : loading ? (
-                <div className="mt-3 flex min-h-[12rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-4 py-6 text-center">
-                  <p className="text-sm font-medium text-slate-700">Checking priority date…</p>
-                </div>
-              ) : error ? (
-                <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
-                  {error}
-                </div>
-              ) : !result ? (
-                <div className="mt-3 flex min-h-[12rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-4 py-6 text-center">
-                  <p className="text-sm font-medium text-slate-700">Results will appear here</p>
-                  <p className="mt-1 max-w-[16rem] text-xs text-slate-500">
-                    Choose category, country, and priority date, then tap Calculate.
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  <StatusBanner result={result} />
-                  <ResultCard
-                    label="Bulletin cutoff"
-                    value={result.formattedCutoff}
-                    description={`Final action date for ${result.category} (${result.country}).`}
-                    highlight
-                  />
-                  <ResultCard
-                    label="Your priority date"
-                    value={new Date(`${result.priorityDate}T00:00:00`).toLocaleDateString("en-US", {
+                  <option value="">Select a country</option>
+                  {chargeabilityOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  The country that counts for Visa Bulletin chargeability, usually your country of
+                  birth.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="priority-date" className="block text-sm font-medium text-slate-900">
+                  Priority Date
+                </label>
+                <input
+                  type="date"
+                  id="priority-date"
+                  name="priorityDate"
+                  required
+                  max={maxDate}
+                  value={priorityDate}
+                  onChange={(event) => {
+                    setPriorityDate(event.target.value);
+                    setPrefilledFromProfile(false);
+                    setResult(null);
+                    setError(null);
+                  }}
+                  className={inputClassName}
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  The priority date listed on your I-140, I-130, or PERM approval notice.
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Used only to compare with the current Final Action Date.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
+              disabled={!canCalculate || loading}
+            >
+              {loading ? "Checking…" : "Check My Status"}
+            </button>
+          </section>
+
+          <section
+            className="bg-slate-50/50 p-4 sm:p-5"
+            aria-labelledby="green-card-result-heading"
+            aria-live="polite"
+          >
+            <h2 id="green-card-result-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Your result
+            </h2>
+
+            {savedGreenCardIssueDate && !loading && !error && !result ? (
+              <div
+                className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5"
+                role="status"
+              >
+                <p className="text-sm font-semibold text-emerald-950">
+                  You already have a Green Card based on your saved profile.
+                </p>
+                <p className="mt-1.5 text-sm text-emerald-900">
+                  Green card issue date:{" "}
+                  <span className="font-medium">
+                    {new Date(`${savedGreenCardIssueDate}T00:00:00`).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
                     })}
-                    description="Compared against the latest published visa bulletin data."
-                  />
+                  </span>
+                </p>
+              </div>
+            ) : loading ? (
+              <div className="mt-3 flex min-h-[12rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-4 py-6 text-center">
+                <p className="text-sm font-medium text-slate-700">Checking priority date…</p>
+              </div>
+            ) : error ? (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+                {error}
+              </div>
+            ) : !result ? (
+              <div className="mt-3 flex min-h-[12rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-4 py-6 text-center">
+                <p className="text-sm font-medium text-slate-700">
+                  Enter your category, country, and priority date, then check your current status.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <ResultCard
+                  label="Your priority date"
+                  value={new Date(`${result.priorityDate}T00:00:00`).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                />
+                <ResultCard
+                  label="Current Final Action Date"
+                  value={result.formattedCutoff}
+                  highlight
+                />
+                <div className={`rounded-lg border p-4 ${statusStyles[result.status].container}`}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Current status
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span
+                      className={`h-2 w-2 rounded-full ${statusStyles[result.status].dot}`}
+                      aria-hidden="true"
+                    />
+                    <p className="text-lg font-semibold text-slate-900">
+                      {statusStyles[result.status].label}
+                    </p>
+                  </div>
                 </div>
-              )}
-            </section>
-          </div>
-        </form>
-
-        <RelatedImmigrationResources
-          resources={[
-            {
-              title: "Visa Bulletin Dashboard",
-              description:
-                "View the latest employment-based visa bulletin dates and priority date cutoffs.",
-              href: "/immigration/visa-bulletin",
-            },
-            {
-              title: "Citizenship Eligibility Calculator",
-              description: "Estimate when you may apply for U.S. citizenship.",
-              href: "/calculators/citizenship-eligibility",
-            },
-          ]}
-        />
-
-        <div className="flex gap-2.5 rounded-[1.25rem] border border-amber-200/80 bg-amber-50/80 p-4">
-          <span className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-          </span>
-          <p className="text-sm text-amber-950/80">
-            <strong className="font-semibold text-amber-950">Disclaimer:</strong> This calculator
-            uses published visa bulletin cutoffs for informational purposes only. It does not
-            constitute legal advice. Final action dates can change monthly and depend on your
-            specific case details.
-          </p>
+                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                    What this means
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                    {statusMeanings[result.status]}
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
-      </div>
-    </>
+      </form>
+
+      {children}
+
+      {contextualVisaBulletinPath ? (
+        <p className="px-1 text-sm text-slate-600">
+          <Link
+            href={contextualVisaBulletinPath}
+            className="font-medium text-brand-700 underline-offset-2 hover:underline"
+          >
+            See the current {categoryLinkLabel(category)} {countryLinkLabel(country)} Visa Bulletin
+          </Link>
+        </p>
+      ) : null}
+    </div>
   );
 }
