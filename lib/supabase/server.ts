@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { applyWriteFreezeGuard } from "@/lib/supabase/writeFreezeGuard";
 
 let supabaseAdminClient: SupabaseClient | null = null;
 
@@ -18,12 +19,14 @@ function getSupabaseConfig() {
 export function createSupabaseAdminClient(): SupabaseClient {
   const { url, serviceRoleKey } = getSupabaseConfig();
 
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  return applyWriteFreezeGuard(
+    createClient(url, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }),
+  );
 }
 
 export function getSupabaseAdminClient(): SupabaseClient {

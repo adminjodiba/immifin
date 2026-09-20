@@ -277,6 +277,7 @@ See [DEVELOPER_SETUP.md § Release checklist](./DEVELOPER_SETUP.md#release-check
 - **Never commit immediately after coding** without review, testing, documentation, and release gates.
 - **Never skip documentation.** Update applicable docs as part of Definition of Done.
 - **Never commit secrets.** No `.env.local`, API keys, or credentials in git.
+- **`IMMIFIN_WRITE_FREEZE` is a dormant operational safety flag.** Default **off**. It blocks application Supabase mutations and returns 503 on verified Clerk/Stripe webhooks so providers retry. Enable or disable only with a separately approved cutover/maintenance window. Do not store the Production value in git.
 - **Keep the repository clean** before ending a session.
 - **Infrastructure changes require `SYSTEM_ARCHITECTURE.md` updates.**
 - **Architectural decisions require `TECHNICAL_DECISIONS.md` and/or `PROJECT_DECISIONS.md` updates.**

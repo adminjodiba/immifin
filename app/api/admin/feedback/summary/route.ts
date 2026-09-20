@@ -9,12 +9,17 @@ import {
   getAdminFeedbackStatusCounts,
   isAdminFeedbackReviewError,
 } from "@/lib/feedback/adminFeedbackReview";
+import { isWriteFreezeEnabled } from "@/lib/platform/writeFreeze";
 
 export async function GET() {
   try {
     await requireAdmin();
     const counts = await getAdminFeedbackStatusCounts();
-    return NextResponse.json({ success: true, counts });
+    return NextResponse.json({
+      success: true,
+      counts,
+      writeFreeze: isWriteFreezeEnabled(),
+    });
   } catch (error: unknown) {
     if (isAdminFeedbackReviewError(error)) {
       return NextResponse.json({ success: false, error: error.message }, { status: error.status });

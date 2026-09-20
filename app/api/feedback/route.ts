@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
+import { isWriteFrozenError } from "@/lib/platform/writeFreeze";
 import { requireUser } from "@/lib/auth/requireUser";
 import {
   isFeedbackServiceError,
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       return jsonError(error.message, error.status);
     }
 
-    if (isAuthError(error)) {
+    if (isAuthError(error) || isWriteFrozenError(error)) {
       return authErrorResponse(error);
     }
 

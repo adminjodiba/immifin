@@ -8,6 +8,7 @@
 //   GOOGLE_SERVICE_ACCOUNT_KEY
 //   VISA_BULLETIN_GOOGLE_SHEET_ID
 //   DAILY_SHEET_SYNC_SECRET
+//   IMMIFIN_WRITE_FREEZE
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "immifin",

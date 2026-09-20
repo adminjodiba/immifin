@@ -245,6 +245,7 @@ Set in Cloudflare Dashboard or Wrangler Version Secrets. Never commit values to 
 | `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` | Development Subscription Mode | `false` (unset) — **Build Variable when enabled** |
 | `VISA_BULLETIN_*` | Bulletin CSV overrides | Committed defaults in `lib/visaBulletinConfig.ts` |
 | `DAILY_SHEET_SYNC_SECRET` | Bearer secret for scheduled `POST /api/internal/daily-sheet-sync` | Runtime (secret). Name only — never document the value. Required before cron is useful. |
+| `IMMIFIN_WRITE_FREEZE` | Temporary operational write freeze for approved cutover/maintenance. Default **off** (absent/false). Set `true` or `1` only when approved. Runtime — not a Build variable. Do not enable in this capability-deploy. | Runtime |
 
 ### Local development
 

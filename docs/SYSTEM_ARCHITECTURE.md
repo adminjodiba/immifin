@@ -326,6 +326,7 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
 | `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
 | `DAILY_SHEET_SYNC_SECRET` | Bearer secret for `POST /api/internal/daily-sheet-sync` (Worker cron). Name only — never document the value. | Yes |
+| `IMMIFIN_WRITE_FREEZE` | Temporary operational write freeze. Runtime only. Default **off**. Enabled only when the value is `true` or `1`. Blocks application Supabase mutations; verified Clerk/Stripe webhooks return 503 so providers retry. Enable only with an approved cutover/maintenance window. | No |
 
 ### Stripe (required for commercial Checkout / webhooks)
 
@@ -742,6 +743,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.21 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — custom Worker + DST-safe Chicago crons + `DAILY_SHEET_SYNC_SECRET` recorded; not Production-deployed. |
 | v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
 | v1.23 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 — parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. |
+| v1.24 | 2026-09-20 | S7A-SUPABASE-CUTOVER-FREEZE-002 — runtime `IMMIFIN_WRITE_FREEZE` (default off) blocks application Supabase writes; verified webhooks return 503. |
 
 ---
 

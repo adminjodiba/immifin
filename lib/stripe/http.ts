@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { authErrorResponse } from "@/lib/auth/http";
 import { isAuthError } from "@/lib/auth/errors";
+import { createWriteFreezeResponse, isWriteFrozenError } from "@/lib/platform/writeFreeze";
 import {
   isStripeCatalogError,
   isStripeCheckoutError,
@@ -14,6 +15,10 @@ import {
 } from "@/lib/stripe/errors";
 
 export function stripeErrorResponse(error: unknown): NextResponse {
+  if (isWriteFrozenError(error)) {
+    return createWriteFreezeResponse();
+  }
+
   if (isAuthError(error)) {
     return authErrorResponse(error);
   }
@@ -49,6 +54,10 @@ export function stripeErrorResponse(error: unknown): NextResponse {
 }
 
 export function stripeWebhookErrorResponse(error: unknown): NextResponse {
+  if (isWriteFrozenError(error)) {
+    return createWriteFreezeResponse();
+  }
+
   if (isStripeWebhookSignatureError(error)) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
