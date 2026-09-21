@@ -106,10 +106,11 @@ Runtime lookup is allowed only when **all** of the following are true:
 
 | Gate | Rule | Failure code |
 |------|------|----------------|
-| HUD active | Exactly one `zip_crosswalk_versions` row with `status = 'active'` | `UNAVAILABLE_DATASET_INACTIVE` if 0; `UNAVAILABLE_DATASET_INCOMPATIBLE` if >1 |
-| OFLC active | Exactly one `wage_datasets` row with `status = 'active'` | same |
-| Pairing | That HUD version and OFLC dataset are an approved compatible pair | `UNAVAILABLE_DATASET_INCOMPATIBLE` |
-| Official rows | HUD version is the official ZIP–County load; OFLC dataset is official All Industries geography | `UNAVAILABLE_DATASET_INCOMPATIBLE` |
+| HUD active | Exactly one `zip_crosswalk_versions` row with `status = 'active'` | `UNAVAILABLE_DATASET_INACTIVE` if 0 or >1 |
+| OFLC active | Exactly one `wage_datasets` row with `status = 'active'` and `data_source = All Industries` | `UNAVAILABLE_DATASET_INACTIVE` if 0 or >1. Unrelated active OFLC data sources do not satisfy this gate. |
+| Pairing | That required active HUD version and that required active All Industries OFLC dataset match the centrally approved compatibility policy | `UNAVAILABLE_DATASET_INCOMPATIBLE` |
+
+Active-cardinality failure (`0` or `>1` on either required side) is `UNAVAILABLE_DATASET_INACTIVE`. `UNAVAILABLE_DATASET_INCOMPATIBLE` applies only after exactly one required active HUD version and exactly one required active All Industries OFLC dataset exist, but that pair does not match the approved compatibility policy.
 
 Current Dev state (imported, **not active**) does **not** satisfy the active gate. A future runtime must fail closed until Product Owner activation. This contract does not authorize activation.
 
@@ -367,8 +368,8 @@ Stable machine-readable codes. Do not reuse for wage-level or SOC errors.
 | `UNAVAILABLE_TERRITORY_UNJOINED` | Official FIPS exist but OFLC GU/VI (or equivalent) localities expose no joinable `county_fips` |
 | `COUNTY_UNMAPPED` | Submitted official-for-ZIP county does not map to OFLC |
 | `PARTIAL_OFFICIAL_COUNTY_UNMAPPED` | Some official HUD counties map and others do not — see §18 |
-| `UNAVAILABLE_DATASET_INACTIVE` | HUD and/or OFLC is not exactly one active version |
-| `UNAVAILABLE_DATASET_INCOMPATIBLE` | Active versions are not an approved pair, or the one-FIPS-one-area invariant is broken |
+| `UNAVAILABLE_DATASET_INACTIVE` | Active-cardinality failure: cannot establish exactly one authoritative active dataset on either required side (0 or >1 active HUD; 0 or >1 active All Industries OFLC). Unrelated OFLC data sources do not count. |
+| `UNAVAILABLE_DATASET_INCOMPATIBLE` | Exactly one required active HUD version and exactly one required active All Industries OFLC dataset exist, but they do not match the approved compatibility policy (HUD 2026 Q2 + OFLC 2026–27 / All Industries); or the one-FIPS-one-area invariant is broken |
 
 ---
 
