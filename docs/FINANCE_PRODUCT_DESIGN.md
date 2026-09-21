@@ -559,7 +559,74 @@ The property-tax benchmark represents **assessed / taxable value**, not purchase
 
 Sales tax initially shows **percentage / rate**. No fixed spending benchmark has yet been approved.
 
-**No A-vs-B comparison belongs in Calculator #2.** Comparison belongs in Calculator #3.
+### Two-location tax comparison (Pro / Power)
+
+Calculator #2 supports a **TAX-ONLY** comparison between **exactly two** locations using the **same** standardized IMMIFIN benchmarks for both locations.
+
+| Layer | Two-location tax comparison |
+|-------|-----------------------------|
+| **SEO Public** | No location comparison |
+| **Free** | No location comparison |
+| **Pro** | May compare **exactly two** locations at the tax level |
+| **Power** | Same deterministic two-location tax comparison as Pro, plus IMMIFIN AI may explain and reason about the tax differences |
+
+**Maximum comparison locations: TWO.** A third location must not be implemented.
+
+The comparison must use the same approved benchmarks for both locations:
+
+- $100,000 Reference Income
+- IMMIFIN $500K Reference Home
+
+This is strictly a **tax** comparison. It must **NOT** become a personalized salary / location financial comparison.
+
+#### Tax comparison content
+
+The two-location comparison may include:
+
+- Federal income tax
+- Payroll taxes
+- State income tax
+- Applicable county / local income tax
+- Total estimated income + payroll taxes
+- Estimated after-tax income
+
+Sales tax:
+
+- State sales-tax rate
+- Applicable local sales-tax components
+- Combined sales-tax rate
+
+Property tax:
+
+- Applicable property-tax rate / jurisdiction detail
+- Estimated annual property tax on the IMMIFIN $500K Reference Home
+- Estimated monthly property tax
+
+Federal and payroll components should remain visible for completeness and benchmark consistency even where they are unchanged between the two locations.
+
+#### Power AI
+
+Power uses the **same deterministic tax comparison** as Pro.
+
+Power AI may answer questions such as:
+
+- Why are taxes different between these two locations?
+- Which tax components create the largest difference?
+- Why is property tax higher in one location?
+- How do state and local taxes contribute to the difference?
+- Explain the tax structure of each location.
+
+AI does **NOT** independently calculate authoritative tax values. It reasons over the deterministic IMMIFIN tax results.
+
+#### Visual-reference artifact
+
+If an approved Pro visual reference visually shows more than two locations, that is an **image-generation artifact**.
+
+- The **product requirement** controls implementation
+- Calculator #2 supports a **maximum of TWO** comparison locations
+- Any third location appearing in a generated reference image is **non-authoritative** and must not be implemented
+
+Do not modify the PNG.
 
 ### Important tax-engine note
 
@@ -597,22 +664,44 @@ Exact tax calculation methodology is **NOT YET DECIDED**.
 | More precise local tax information | No | No | Yes | Yes |
 | Historical tax-rate information | No | No | Yes | Yes |
 | Save locations / tax lookup | No | No | Yes | Yes |
+| Two-location tax comparison | No | No | Yes | Yes |
+| Compare $100K Reference Income tax burden | No | No | Yes | Yes |
+| Compare $500K Reference Home property tax | No | No | Yes | Yes |
 | AI explanation of tax structure | No | No | No | Yes |
 | AI tax questions | No | No | No | Yes |
+| AI explanation of tax differences | No | No | No | Yes |
 
 ### Boundary
 
 ```text
-#2 = "Tell me about taxes HERE."
+#2 = "Compare taxes between exactly two locations using standardized IMMIFIN benchmarks."
+#3 = "Compare two personalized salary/location financial scenarios."
 ```
 
-Do not include:
+Calculator #2 comparison is **TAX-ONLY**.
+
+It must **NOT** compare:
+
+- Different user salaries
+- Personalized take-home scenarios
+- Housing expenses
+- Food costs
+- Transportation costs
+- Utilities
+- Childcare
+- Overall cost of living
+- Household savings
+- Savings rates
+- General financial position
+
+Those belong to Calculator #3 and/or Calculator #7.
+
+Do not include in Calculator #2 (single-location or comparison):
 
 - Actual personalized salary
 - Personalized take-home
 - Living expenses
 - Savings
-- Location A vs Location B financial comparison
 
 ---
 
@@ -1145,3 +1234,4 @@ No existing canonical document was modified to force alignment.
 |---------|------|------|-------------|
 | v0.1 | 2026-09-18 | FIN-DESIGN-001 | Initial canonical Finance product/UX design specification. Documentation only. Implementation not started. |
 | v0.1 | 2026-09-18 | FIN-DESIGN-001A | Added source-of-truth clarification: this document is authoritative for approved Finance V1 catalog, tier, and UX decisions; §29 broader platform conflicts remain unresolved. |
+| v0.1 | 2026-09-18 | FIN-DESIGN-002A | Calculator #2: Pro/Power may compare taxes between exactly two locations using standardized IMMIFIN benchmarks. Public/Free have no location comparison. |
