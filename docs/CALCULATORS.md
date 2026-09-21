@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-07-09 |
+| **Last updated** | 2026-09-21 |
 | **Sprint** | Sprint 5 |
 | **Catalog source** | `lib/data/calculators.ts` |
 | **Navigation rule** | `.cursor/rules/calculator-navigation.mdc` |
@@ -48,7 +48,7 @@ Public routes (no sign-in required): H-1B tools and the visa stamping wait map a
 
 ## H-1B calculator pair (Sprint 5)
 
-Educational estimators — **not legal advice** and not official USCIS/DOL output.
+Educational estimators — **not legal advice** and not official USCIS/DOL output. They are **not** the future official OFLC wage-geography lookup. That lookup, when implemented, must follow **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008): keep all official HUD ZIP-to-county rows; do not use `BUS_RATIO` / `RES_RATIO` / `TOT_RATIO` to pick an area; ask for work-location county only when official counties resolve to more than one OFLC area.
 
 ### H-1B Wage Level Estimator
 
@@ -117,3 +117,5 @@ Listed on `/calculators` for roadmap visibility — no `href`, not navigable:
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 calculator deliverables |
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Production status |
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Dataset freshness tracked for H-1B / bulletin data |
+| [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008 | Approved official HUD ZIP → OFLC geographic-resolution policy (not implemented) |
+| [H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md) | GEO-RESOLUTION-DESIGN-002 runtime contract (not implemented) |
