@@ -29,6 +29,9 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/immigration/visa-bulletin/:category/:country",
   "/api/visa-stamping-wait-times(.*)",
   "/api/check-priority-date(.*)",
+  // Official H-1B worksite geography lookup. Same Free/public entitlement as
+  // the existing H-1B calculator pages. Auth is not invented here.
+  "/api/h1b/worksite-geography(.*)",
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",
