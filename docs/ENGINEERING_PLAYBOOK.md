@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN Engineering Playbook |
 | **Purpose** | This document defines how software is planned, implemented, reviewed, tested, documented, and released for the Immifin platform. |
-| **Last Updated** | 2026-09-15 |
+| **Last Updated** | 2026-09-20 |
 | **Owner** | Technical Architecture (CTO) |
 
 ---
@@ -277,7 +277,9 @@ See [DEVELOPER_SETUP.md § Release checklist](./DEVELOPER_SETUP.md#release-check
 - **Never commit immediately after coding** without review, testing, documentation, and release gates.
 - **Never skip documentation.** Update applicable docs as part of Definition of Done.
 - **Never commit secrets.** No `.env.local`, API keys, or credentials in git.
-- **`IMMIFIN_WRITE_FREEZE` is a dormant operational safety flag.** Default **off**. It blocks application Supabase mutations and returns 503 on verified Clerk/Stripe webhooks so providers retry. Enable or disable only with a separately approved cutover/maintenance window. Do not store the Production value in git.
+- **`IMMIFIN_WRITE_FREEZE` is a controlled Production write-freeze capability.** Normal state is **off / disabled**. It blocks application Supabase mutations and returns 503 on verified Clerk/Stripe webhooks so providers retry. Enable only during an explicitly approved maintenance or cutover window. Sequence: enable → deploy runtime config → prove freeze → maintain → verify Production → disable → prove writes resumed. Do not use casually. Do not store the Production value in git.
+- **Never relink this repository's Supabase CLI to Production.** The working repo stays linked to Dev `vnhn...toxs`. Production work uses an explicit Production-targeted operator procedure (`--project-ref` / isolated workdir), never a casual `supabase link` to `pmkx...ysdv`.
+- **Never apply Production migrations from a casual Dev-linked `db push`.** **DEV APPLY** = test/verify on `vnhn...toxs`. **PRODUCTION APPLY** = separately approved controlled operation targeting `pmkx...ysdv`. A local migration file is not authorization to apply it to Production. **021 is currently unapplied on both databases**; next eligible apply is Dev only.
 - **Keep the repository clean** before ending a session.
 - **Infrastructure changes require `SYSTEM_ARCHITECTURE.md` updates.**
 - **Architectural decisions require `TECHNICAL_DECISIONS.md` and/or `PROJECT_DECISIONS.md` updates.**
@@ -470,8 +472,10 @@ See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 
 | Type | Cloudflare location | When to use |
 |------|---------------------|-------------|
-| **Build Variables** | Builds & deployments → Build variables | `NEXT_PUBLIC_*`, anything affecting client UI |
-| **Runtime Variables / Secrets** | Variables and Secrets → Production | Server secrets, API keys |
+| **Build Variables** | Settings → Build → Build variables and secrets (Production / `main` trigger) | `NEXT_PUBLIC_*`, anything affecting client UI |
+| **Runtime Variables / Secrets** | Settings → Variables and Secrets | Server secrets, API keys |
+
+`NEXT_PUBLIC_SUPABASE_URL` is **both** a Production Build variable and a Production runtime secret. Changing the Build value requires a same-commit **Retry build** (or a later `main` push). `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Current deployed code requires the Production **legacy `service_role` JWT**, not `sb_secret_`. Production Supabase is `pmkx...ysdv`. Localhost stays on Dev `vnhn...toxs`.
 
 ### OpenNext deployment
 
@@ -509,6 +513,7 @@ Production showed Coming Soon on `/pricing` while localhost showed Development S
 | v2.6.1 | 2026-08-29 | S7A-PERF-CLOSE — Cloudflare Builds pipeline is `opennextjs-cloudflare build` + `wrangler deploy`. |
 | v2.7 | 2026-08-29 | Cloudflare development-tunnel recovery (S7A-SEO-003A-DOC); Cursor must not waive `dev.immifin.com` gates; token never in chat |
 | v2.8 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — Sprint 7A go-live documentation closeout; push/deploy remain Product Owner gated |
+| v2.9 | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — Production Supabase split, write-freeze runbook, Dev vs Production migration rule |
 
 ---
 

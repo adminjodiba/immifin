@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-18 (S7A-SEO-VB-DYNAMIC-005 — Visa Bulletin public search / private dashboard) |
+| **Last Updated** | 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — Production website on `pmkx...ysdv`; localhost/CLI on `vnhn...toxs`) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -48,7 +48,7 @@ If infrastructure debugging exceeds 15 minutes, pause and update this document w
 
 | Principle | Meaning |
 |-----------|---------|
-| **Local is isolated from Production** | `localhost:3000` and `.env.local` never share production secrets or data by default. |
+| **Local is isolated from Production** | `localhost:3000` and `.env.local` use Dev Supabase `vnhn...toxs`. They must not be pointed at Production `pmkx...ysdv`. |
 | **Development never impacts Production** | The Cloudflare Tunnel and local dev server do not deploy to `immifin.com`. |
 | **Production requires review** | Changes reaching `main` should pass release gates before they affect live users. |
 | **Secrets never go into Git** | API keys, service role keys, and webhook secrets live in `.env.local` or the Cloudflare dashboard only. |
@@ -88,7 +88,9 @@ Prod["immifin.com"]
 
 Clerk["Clerk Authentication"]
 
-Supabase["Supabase Database"]
+SupabaseDev["Supabase Dev vnhn"]
+
+SupabaseProd["Supabase Production pmkx"]
 
 Stripe["Stripe Billing"]
 
@@ -108,13 +110,14 @@ GitHub --> CFWorkers
 
 CFWorkers --> Prod
 
+Local --> SupabaseDev
 Dev --> Clerk
-Dev --> Supabase
+Dev --> SupabaseDev
 Dev --> Stripe
 Dev --> Resend
 
 Prod --> Clerk
-Prod --> Supabase
+Prod --> SupabaseProd
 Prod --> Stripe
 Prod --> Resend
 ```
@@ -176,7 +179,7 @@ Intelligence Context must compose existing repository/business services and must
 | **dev.immifin.com** | Public HTTPS URL routed through the tunnel to localhost |
 | **immifin.com** | Production domain served by Cloudflare Workers (OpenNext) |
 | **Clerk Authentication** | Identity provider — signup, login, sessions, webhooks |
-| **Supabase Database** | Application Postgres — profiles, subscriptions, webhook ledger, audit data |
+| **Supabase Database** | Two projects: Dev `vnhn...toxs` (localhost / CLI) and Production `pmkx...ysdv` (`immifin.com`) |
 | **Stripe** | Payments, customers, subscriptions, invoices (money plane) |
 | **Resend** | Transactional / campaign email delivery |
 
@@ -186,10 +189,41 @@ Intelligence Context must compose existing repository/business services and must
 
 | Environment | Purpose | URL | Deployment Method | Status |
 |-------------|---------|-----|-------------------|--------|
-| **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active — Clerk **Development** |
-| **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active — Clerk **Development** |
-| **Production** | Public live site | `https://immifin.com` | GitHub `main` → `npx @opennextjs/cloudflare build` + `npx wrangler deploy` | Active — Clerk **Production** (S7-OPS-CLERK-015) |
+| **Local Development** | Day-to-day coding and local testing | `http://localhost:3000` | `npm run dev` | Active — Clerk **Development**; Supabase **Dev `vnhn...toxs`** |
+| **Development (Tunnel)** | HTTPS dev access, Clerk webhooks, shared testing | `https://dev.immifin.com` | Cloudflare Tunnel | Active — Clerk **Development**; Supabase **Dev `vnhn...toxs`** |
+| **Production** | Public live site | `https://immifin.com` | GitHub `main` → `npx @opennextjs/cloudflare build` + `npx wrangler deploy` | Active — Clerk **Production**; Supabase **Production `pmkx...ysdv`** (S7A-SUPABASE-PROD-CUTOVER) |
 | **Preview** | Branch-based pre-production testing | *Planned* | Cloudflare Preview | Planned |
+
+### Supabase environment split (S7A-SUPABASE-PROD-CUTOVER — CLOSED)
+
+| Surface | Supabase project | Masked ref |
+|---------|------------------|------------|
+| `immifin.com` Cloudflare Worker | `immifin production` | `pmkx...ysdv` |
+| localhost `.env.local` and `dev.immifin.com` | `immifin Dev` | `vnhn...toxs` |
+| This repository's Supabase CLI link | **Dev only** | `vnhn...toxs` |
+
+Do **not** relink the normal working repository to Production. Production-targeted SQL, copies, or migrations must use an explicit `--project-ref` / operator workdir against `pmkx...ysdv` under a separately approved task.
+
+**DEV APPLY** — test and verify migrations on `vnhn...toxs` from this linked repo.  
+**PRODUCTION APPLY** — separately approved controlled operation targeting `pmkx...ysdv`. A migration must not be applied to Production merely because the file exists locally.
+
+Schema at cutover close: **001–020** applied on both projects. **021** (`20260919160000_021_oflc_wage_platform.sql`) is **unapplied** on both. Next eligible 021 apply is Dev only.
+
+### Production write freeze
+
+Runtime secret `IMMIFIN_WRITE_FREEZE` on Worker `immifin`. Enabled only when the value is `true` or `1`. Default **off**. Current Production state: **disabled**. Local `.env.local`: **absent**.
+
+Approved-maintenance sequence only:
+
+1. Enable Production freeze.  
+2. Deploy the runtime configuration.  
+3. Prove freeze is active.  
+4. Perform maintenance.  
+5. Verify Production.  
+6. Disable freeze.  
+7. Prove normal writes resumed.
+
+Do not enable this casually. See [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) and [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ---
 
@@ -243,7 +277,7 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `3038ddf4` — persistent OpenNext cache on Worker `e0855e5f` |
+| **Latest production commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` — live Worker `dd334fb3` after Supabase cutover |
 | **Production build command** | `npx @opennextjs/cloudflare build` |
 | **Production deploy command** | `npx wrangler deploy` |
 
@@ -294,7 +328,7 @@ Production secrets are configured in the **Cloudflare Dashboard** or via **Wrang
 | **Cloudflare Workers (OpenNext)** | Production hosting | Builds and serves `immifin.com` via Worker | Active |
 | **Cloudflare Tunnel** | Dev HTTPS access | Routes `dev.immifin.com` → localhost | Active |
 | **Clerk** | Authentication and identity | Signup, login, sessions, webhook sync to Supabase — **Production instance on `immifin.com`**; Development instance for localhost / `dev.immifin.com` | Active / Production instance cutover complete (S7-OPS-CLERK-015); protected-route E2E pending |
-| **Supabase** | Application database | Profiles, immigration data, subscriptions, Stripe webhook ledger | Active / Production Validated |
+| **Supabase** | Application database | Two projects. `immifin.com` → Production `pmkx...ysdv`. Localhost / CLI → Dev `vnhn...toxs`. | Active / **cutover complete** (S7A-SUPABASE-PROD-CUTOVER) |
 | **Stripe** | Payments and subscription objects | Checkout, customers, subscriptions, invoices, webhooks | **Implemented in app** — Live validation pending |
 | **Resend** | Email delivery | Notification Platform provider | Active / Production Validated |
 | **Google Sheets** | Visa Bulletin and Visa Stamping source | Admin Data Refresh plus scheduled daily Worker sync (12:01 AM America/Chicago; not Production-live until next deploy) | Active |
@@ -320,13 +354,13 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client key — **must be `pk_live_` at production build time** for `immifin.com`; localhost uses `pk_test_` via `.env.local` | No |
 | `CLERK_SECRET_KEY` | Clerk server key (`sk_live_` on Worker `immifin`; Development secrets stay local/tunnel) | Yes |
 | `CLERK_WEBHOOK_SECRET` / `CLERK_WEBHOOK_SIGNING_SECRET` | Production Clerk webhook verification (`https://immifin.com/api/webhooks/clerk`) | Yes |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | No |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role | Yes |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production project URL (`pmkx...ysdv`). **Build variable and runtime secret.** Rebuild after Build-variable changes. | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production service role. Runtime secret. Current deployed code requires the **legacy `service_role` JWT** (Bearer-compatible), not `sb_secret_`. | Yes |
 | `GOOGLE_SHEET_ID` | Google Spreadsheet ID (admin archive) | No |
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
 | `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
 | `DAILY_SHEET_SYNC_SECRET` | Bearer secret for `POST /api/internal/daily-sheet-sync` (Worker cron). Name only — never document the value. | Yes |
-| `IMMIFIN_WRITE_FREEZE` | Temporary operational write freeze. Runtime only. Default **off**. Enabled only when the value is `true` or `1`. Blocks application Supabase mutations; verified Clerk/Stripe webhooks return 503 so providers retry. Enable only with an approved cutover/maintenance window. | No |
+| `IMMIFIN_WRITE_FREEZE` | Production write freeze. Runtime only. Current state **disabled**. Enable `true`/`1` only for an approved maintenance window. Blocks application Supabase mutations; verified Clerk/Stripe webhooks return 503. | No |
 
 ### Stripe (required for commercial Checkout / webhooks)
 
@@ -458,8 +492,8 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 ### Supabase recovery
 
 - Use Supabase dashboard backups and point-in-time recovery for production data.
-- Re-apply migrations from `supabase/migrations/` when rebuilding a project (includes Stripe webhook foundation migration when rebuilding commercial env).
-- Verify connection strings and service role key after recovery.
+- Re-apply migrations from `supabase/migrations/` when rebuilding a project (includes Stripe webhook foundation migration when rebuilding commercial env). Apply **Dev first**. Production apply is a separately approved operation against `pmkx...ysdv`.
+- Verify connection strings and service role key after recovery. Production currently uses the legacy `service_role` JWT.
 
 ### Stripe recovery
 
@@ -703,8 +737,8 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 - [ ] Separate Production Environment
 - [x] Separate Clerk Development Instance (localhost / `dev.immifin.com`)
 - [x] Separate Clerk Production Instance (`immifin.com` — S7-OPS-CLERK-015)
-- [ ] Separate Supabase Development Project
-- [ ] Separate Supabase Production Project
+- [x] Separate Supabase Development Project (`vnhn...toxs` — localhost + CLI)
+- [x] Separate Supabase Production Project (`pmkx...ysdv` — `immifin.com`; S7A-SUPABASE-PROD-CUTOVER)
 - [ ] Live Stripe commercial cutover (operational validation)
 - [ ] Customer Portal (payment method / invoices)
 - [ ] GitHub Actions
@@ -744,6 +778,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
 | v1.23 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 — parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. |
 | v1.24 | 2026-09-20 | S7A-SUPABASE-CUTOVER-FREEZE-002 — runtime `IMMIFIN_WRITE_FREEZE` (default off) blocks application Supabase writes; verified webhooks return 503. |
+| v1.25 | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` on Production `pmkx...ysdv`; localhost/CLI remain Dev `vnhn...toxs`; freeze disabled; 021 unapplied. |
 
 ---
 

@@ -1,6 +1,6 @@
 # Immifin — Deployment Guide
 
-**Last updated:** 2026-09-15 (S7A-RELEASE-CLOSEOUT-011 — release packaged, not deployed)  
+**Last updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` uses Production Supabase `pmkx...ysdv`)  
 **Production domain:** https://immifin.com
 
 > **Authoritative deployment reference:** [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)  
@@ -49,8 +49,10 @@ Wrangler 4.105.0 uses the OpenNext deploy path (including cache population). The
 
 | Type | When evaluated | Example |
 |------|----------------|---------|
-| **Build Variables** | During `opennextjs-cloudflare build` | `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` |
-| **Runtime Secrets** | Each Worker request | `CLERK_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| **Build Variables** | During `opennextjs-cloudflare build` | `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL` |
+| **Runtime Secrets** | Each Worker request | `CLERK_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `IMMIFIN_WRITE_FREEZE` |
+
+`NEXT_PUBLIC_SUPABASE_URL` is also a Production runtime secret. Live `immifin.com` uses Production Supabase `pmkx...ysdv`. Localhost stays on Dev `vnhn...toxs`. Details: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) and [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md).
 
 See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) for the full variable list and [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md) for the pricing page incident.
 

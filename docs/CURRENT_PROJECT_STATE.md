@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-18 (S7A-SEO-VB-DYNAMIC-005 — Current Visa Bulletin Dashboard is login-required; 15 public search pages + sitemap 29. Localhost only; not committed, not deployed.)  
+**Last Updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` uses Production Supabase `pmkx...ysdv`; localhost and the CLI remain Dev `vnhn...toxs`)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -426,9 +426,45 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 3. Continue remaining Stripe **LIVE** matrix (interval changes, Downgrade to Free / end-of-period in LIVE).  
 4. Prepare invite-only IMMIFIN beta cohort and support readiness.  
 5. Enable Intelligence only after Pre-Beta Enablement Gate + PO approval.  
-6. Collect real-user feedback before new feature sprints.
+6. Collect real-user feedback before new feature sprints.  
+7. **H1B wage platform (021):** when a later task authorizes it, apply `supabase/migrations/20260919160000_021_oflc_wage_platform.sql` to **Dev only**. Do not apply 021 to Production until after Dev verification and a separate Production approval.
 
-Do **not** begin Sprint 9 automatically.
+Do **not** begin Sprint 9 automatically. Do **not** apply 021 from this closeout.
+
+---
+
+## Supabase Production cutover (S7A-SUPABASE-PROD-CUTOVER) — CLOSED
+
+The Dev → Production Supabase cutover is **complete**. Isolation is proven. The previous live-site-on-Dev blocker is **closed**.
+
+| Field | Value |
+|-------|-------|
+| **Source commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` |
+| **Live Worker** | `immifin` / `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` |
+| **`immifin.com`** | Production Supabase **`pmkx...ysdv`** (`immifin production`) |
+| **localhost / `dev.immifin.com`** | Dev Supabase **`vnhn...toxs`** (`immifin Dev`) via `.env.local` |
+| **Supabase CLI link (this repo)** | **Dev `vnhn...toxs` only.** Do not relink the working repository to Production. |
+| **Write freeze** | Production `IMMIFIN_WRITE_FREEZE` **disabled**. Local flag **absent**. |
+| **Isolation proof** | Authenticated live Admin page load updated Production `profiles.last_seen_at`. Corresponding Dev `last_seen_at` unchanged. |
+| **Dev data** | Retained intact for rollback. Do not delete or archive Dev. |
+| **Schema** | **001–020** applied on Dev and Production. **021 unapplied** on both. No H-1B wage tables yet. |
+
+Verified operational row counts at cutover close (exact `count(*)`):
+
+| Table | Count |
+|-------|-------|
+| `profiles` | 5 |
+| `immigration_profiles` | 5 |
+| `subscriptions` | 5 |
+| `stripe_webhook_events` | 16 |
+| `user_feedback` | 2 |
+| `notification_campaigns` | 2 |
+| `admin_audit_log` | 21 |
+| `admin_role_changes` | 1 |
+
+**H1B resume:** schema file `supabase/migrations/20260919160000_021_oflc_wage_platform.sql` exists locally. Next eligible apply is **Dev only**. Production apply is a later separately approved operation. Do not apply 021 or load OFLC/HUD from this closeout.
+
+Architecture and operator rules: [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
 ---
 
@@ -449,9 +485,10 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Item | Value |
 |------|--------|
 | **Repository branch (local release)** | `release/s7a-go-live` (`2334374`) — not tracking a remote; not pushed |
-| **GitHub `main` / current Production git** | `3038ddf4` (persistent-cache close) until this release is pushed |
-| **Production Worker / version** | `immifin` / `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (unchanged until deploy) |
-| **Production URL** | `https://immifin.com` |
+| **GitHub `main` / live cutover commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` |
+| **Production Worker / version** | `immifin` / `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` |
+| **Production URL** | `https://immifin.com` → Production Supabase `pmkx...ysdv` |
+| **Localhost / CLI Supabase** | Dev `vnhn...toxs` — do not relink this repo to Production |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
 | **Billing Center** | `/account/billing` |
 | **Intelligence** | `/intelligence` (Power + beta allowlist; not publicly enabled) |
@@ -485,5 +522,6 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-06 | S7A-LANDING-DS2-BASELINE-001 | Landing Page V7 is the approved source. V2 is the locked exact copy. V3 is the Design System 2.0 working copy. |
 | Prior | 2026-09-10 | S7A-DS2-BILLING-FINAL-001 | Billing & Plan Option A locked: current-plan digital card + Billing Details; Free/Pro/Power identities only |
 | Prior | 2026-09-15 | S7A-RELEASE-MERGE-010 | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |
-| **Current** | **2026-09-15** | **S7A-RELEASE-CLOSEOUT-011** | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
+| Prior | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
 | Local | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. Not committed. |
+| **Current** | **2026-09-20** | **S7A-SUPABASE-PROD-CUTOVER-CLOSE-001** | `immifin.com` on Production Supabase `pmkx...ysdv`; localhost + CLI remain Dev `vnhn...toxs`; 021 unapplied; H1B resume is Dev-only |

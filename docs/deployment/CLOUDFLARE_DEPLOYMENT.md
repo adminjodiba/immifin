@@ -1,10 +1,11 @@
 # Cloudflare Deployment Guide
 
-**Last updated:** 2026-09-15 (S7A-RELEASE-CLOSEOUT-011 — next deploy not yet authorized)  
+**Last updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — live site on Production Supabase)  
 **Production domain:** https://immifin.com  
 **Worker name:** `immifin`  
-**Serving version:** `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (100%)  
-**Git / `origin/main`:** `3038ddf4c19a8548a621942c865faab0afb7b3dd`
+**Serving version:** `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` (100%)  
+**Git / `origin/main`:** `9eee4f8a38ae67bb9cf651db383a164d7790483c`  
+**Live Supabase:** Production `pmkx...ysdv`
 
 This document is the authoritative guide for IMMIFIN production deployment on Cloudflare Workers via OpenNext.
 
@@ -230,8 +231,8 @@ Set in Cloudflare Dashboard or Wrangler Version Secrets. Never commit values to 
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client key | **Build** |
 | `CLERK_SECRET_KEY` | Clerk server key | Runtime (secret) |
 | `CLERK_WEBHOOK_SECRET` | Webhook verification | Runtime (secret) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | **Build** |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role | Runtime (secret) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL (`pmkx...ysdv`) | **Build and runtime secret.** Rebuild after Build changes. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production service role | Runtime (secret). Current code requires the **legacy `service_role` JWT**, not `sb_secret_`. |
 | `GOOGLE_SHEET_ID` | Google Spreadsheet ID | Runtime |
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Runtime (secret) |
 | `GOOGLE_PRIVATE_KEY` | Service account key | Runtime (secret) |
@@ -245,7 +246,28 @@ Set in Cloudflare Dashboard or Wrangler Version Secrets. Never commit values to 
 | `NEXT_PUBLIC_DEV_SUBSCRIPTION_MODE` | Development Subscription Mode | `false` (unset) — **Build Variable when enabled** |
 | `VISA_BULLETIN_*` | Bulletin CSV overrides | Committed defaults in `lib/visaBulletinConfig.ts` |
 | `DAILY_SHEET_SYNC_SECRET` | Bearer secret for scheduled `POST /api/internal/daily-sheet-sync` | Runtime (secret). Name only — never document the value. Required before cron is useful. |
-| `IMMIFIN_WRITE_FREEZE` | Temporary operational write freeze for approved cutover/maintenance. Default **off** (absent/false). Set `true` or `1` only when approved. Runtime — not a Build variable. Do not enable in this capability-deploy. | Runtime |
+| `IMMIFIN_WRITE_FREEZE` | Production write freeze. Runtime — not a Build variable. Current state **disabled**. Set `true` or `1` only during an approved maintenance window. | Runtime |
+
+### Production Supabase cutover (closed)
+
+`immifin.com` uses Production Supabase `pmkx...ysdv`. Localhost and this repository's Supabase CLI remain Dev `vnhn...toxs`. Do not relink the working repo to Production.
+
+Same-commit Production rebuild after a Build-variable change: Cloudflare Dashboard → Workers & Pages → `immifin` → Deployments → View Build History → **Retry build** for the approved commit. Wrangler OAuth cannot trigger Workers Builds (403). Do not improvise a source `wrangler deploy` for that rebuild.
+
+### Write-freeze runbook
+
+Normal state: **off / disabled**.
+
+Approved window only:
+
+1. Enable Production `IMMIFIN_WRITE_FREEZE=true` (Settings → Variables and Secrets → Deploy, or `wrangler versions secret put` + `versions deploy`).
+2. Prove freeze is active.
+3. Perform the approved maintenance.
+4. Verify Production reads/state.
+5. Set `IMMIFIN_WRITE_FREEZE=false` (or remove) and Deploy.
+6. Prove normal writes resumed.
+
+Do not enable casually. Do not document secret values.
 
 ### Local development
 
@@ -278,8 +300,8 @@ After changing **Build Variables** (especially `NEXT_PUBLIC_*`):
 1. Confirm the variable is set under **Build variables** (not only runtime)
 2. Trigger a new build:
    - Push a commit to `main`, or
-   - Use Cloudflare Dashboard → Retry deployment, or
-   - Empty commit: `git commit --allow-empty -m "chore: rebuild production"`
+   - Cloudflare Dashboard → Workers & Pages → `immifin` → Deployments → View Build History → **Retry build** of the approved commit (required for a same-commit Production Build-variable change), or
+   - Empty commit: `git commit --allow-empty -m "chore: rebuild production"` (only when a new commit is explicitly authorized)
 
 Runtime variable changes alone do **not** rebuild client bundles or prerendered pages.
 

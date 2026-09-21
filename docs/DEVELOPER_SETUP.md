@@ -69,24 +69,28 @@ CLERK_WEBHOOK_SIGNING_SECRET=whsec_...
 In `.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://<dev-project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Confirm the project matches the environment where migrations were applied.
+Localhost **must** use Dev Supabase `vnhn...toxs`. Do **not** point `.env.local` at Production `pmkx...ysdv`. `immifin.com` is the Production project.
 
 ### 6. Log in to Supabase CLI
 
+This repository stays linked to **Dev `vnhn...toxs`**. Do **not** relink it to Production.
+
 ```powershell
 npx supabase login
-npx supabase link --project-ref <your-project-ref>
+npx supabase link --project-ref <dev-project-ref>
 ```
 
-Apply migrations when needed:
+**DEV APPLY** — test and verify on Dev from this linked repo:
 
 ```powershell
 npx supabase db push
 ```
+
+**PRODUCTION APPLY** is a separately approved controlled operation targeting `pmkx...ysdv`. Do not apply Production migrations by relinking this repo or by treating a local migration file as authorization. **021 is unapplied on both databases**; the next eligible apply is Dev only.
 
 ### 7. Log in and configure Cloudflared
 
