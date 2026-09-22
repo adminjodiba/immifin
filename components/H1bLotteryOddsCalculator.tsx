@@ -7,6 +7,7 @@ import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
 import {
   calculateH1bLotteryOdds,
+  formatSignedPercentagePoints,
   parseWageLevelParam,
   type LotteryOddsResult,
   type LotteryWageLevelSelection,
@@ -62,7 +63,8 @@ export function H1bLotteryOddsCalculator() {
               <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
             </div>
             <p className="mt-1 max-w-3xl text-sm text-slate-600">
-              Estimate your H-1B lottery odds using wage level and U.S. master&apos;s cap eligibility.
+              Compare DHS modeled H-1B selection estimates by wage level. These are modeled
+              estimates, not a prediction of your individual result.
             </p>
           </div>
         </div>
@@ -79,7 +81,10 @@ export function H1bLotteryOddsCalculator() {
               <h2 id="lottery-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Your information
               </h2>
-              <p className="mt-1 text-xs text-slate-500">Demo assumptions only — not official USCIS selection data.</p>
+              <p className="mt-1 text-xs text-slate-500">
+                DHS modeled estimates based on DHS modeling assumptions — not a guarantee of
+                individual selection.
+              </p>
 
               <div className="mt-3 space-y-4">
                 <div>
@@ -167,12 +172,12 @@ export function H1bLotteryOddsCalculator() {
                 <div className="mt-3 space-y-4">
                   <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-4 text-center">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
-                      Final estimated odds
+                      DHS Modeled Selection Estimate
                     </p>
-                    <p className="mt-1 text-4xl font-bold text-emerald-950">{result.finalEstimatedOdds}%</p>
+                    <p className="mt-1 text-4xl font-bold text-emerald-950">{result.modeledEstimate.toFixed(2)}%</p>
                     <p className="mt-2 text-sm text-emerald-900">
                       Wage Level {result.wageLevel}
-                      {result.usMastersEligible ? " · U.S. master&apos;s eligible" : ""}
+                      {result.usMastersEligible ? " · Advanced-degree exemption eligible" : ""}
                     </p>
                   </div>
 
@@ -180,41 +185,27 @@ export function H1bLotteryOddsCalculator() {
                     <table className="w-full text-left text-sm">
                       <tbody>
                         <tr className="border-b border-slate-100">
-                          <td className="px-3 py-2.5 text-slate-600">Wage-weighted regular estimate</td>
+                          <td className="px-3 py-2.5 text-slate-600">DHS modeled wage-level selection estimate</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-900">
-                            {result.wageWeightedRegularEstimate}%
+                            {result.modeledEstimate.toFixed(2)}%
                           </td>
                         </tr>
                         <tr className="border-b border-slate-100">
-                          <td className="px-3 py-2.5 text-slate-600">U.S. master&apos;s cap eligible</td>
+                          <td className="px-3 py-2.5 text-slate-600">Advanced-degree exemption eligibility</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-900">
-                            {result.usMastersEligible ? "Yes" : "No"}
+                            {result.usMastersEligible ? "Advanced-degree exemption eligible" : "Not applied"}
                           </td>
                         </tr>
                         <tr className="border-b border-slate-100">
-                          <td className="px-3 py-2.5 text-slate-600">Estimated master&apos;s cap boost</td>
+                          <td className="px-3 py-2.5 text-slate-600">DHS modeled random-selection baseline</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-900">
-                            {result.mastersCapBoost > 0
-                              ? `+${result.mastersCapBoost.toFixed(1)} percentage points`
-                              : "—"}
-                          </td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="px-3 py-2.5 text-slate-600">Final estimated odds</td>
-                          <td className="px-3 py-2.5 text-right font-semibold text-emerald-800">
-                            {result.finalEstimatedOdds}%
-                          </td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="px-3 py-2.5 text-slate-600">Traditional random lottery estimate</td>
-                          <td className="px-3 py-2.5 text-right font-semibold text-slate-900">
-                            {result.traditionalRandomEstimate}%
+                            {result.randomBaseline.toFixed(2)}%
                           </td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2.5 text-slate-600">Estimated advantage over traditional</td>
+                          <td className="px-3 py-2.5 text-slate-600">Difference from modeled random baseline</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-emerald-800">
-                            +{result.advantageOverTraditional} percentage points
+                            {formatSignedPercentagePoints(result.differenceFromBaseline)}
                           </td>
                         </tr>
                       </tbody>

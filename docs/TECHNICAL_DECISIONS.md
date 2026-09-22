@@ -117,6 +117,7 @@ Local Dev implementation. Functionally closed on localhost. Not Production-deplo
 - `lib/h1b/wageLevelEstimator.ts` remains for shared types/helpers used by the official estimator. Do not reconnect the old demo `estimateH1bWageLevel` entry point or demo wage tables.
 - Ordinary hourly result table renders Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) as separate columns. The ×2,080 calculation remains only in `formatOfficialWageDisplay.ts`.
 - Lottery Odds handoff is `/immigration/h1b-lottery-odds-calculator?wageLevel={I|II|III|IV}` from the canonical Wage route only.
+- Lottery calculation lives in `lib/h1b/h1bLotteryOdds.ts`. Approved constants are `DHS_MODELED_SELECTION_ESTIMATES` (I 15.29 / II 30.58 / III 45.87 / IV 61.16) and `DHS_MODELED_RANDOM_BASELINE` 29.59. Master's eligibility does not modify the modeled estimate. The retired demo boost (`US_MASTERS_CAP_BOOST = 8`) and `MAX_DISPLAYED_ODDS = 95` must not return.
 - Production schema apply of migration 021 is a later separately approved operation and is not part of this local close.
 
 ---

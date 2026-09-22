@@ -1,5 +1,14 @@
 /**
- * H-1B Lottery Odds Calculator — mock assumptions (educational only).
+ * H-1B Lottery Selection Estimate.
+ *
+ * The percentages below are DHS modeled wage-level selection estimates and a
+ * DHS modeled random-selection baseline, adopted by IMMIFIN. They are not
+ * individualized predictions, official USCIS selection odds, or a guarantee
+ * that any specific beneficiary will be selected.
+ *
+ * IMMIFIN does not invent a combined wage-level × master's percentage.
+ * Advanced-degree exemption eligibility is communicated separately and does
+ * not change the modeled wage-level estimate.
  */
 
 import type { WageLevel } from "@/lib/h1b/wageLevelEstimator";
@@ -7,16 +16,16 @@ import type { WageLevel } from "@/lib/h1b/wageLevelEstimator";
 export type LotteryWageLevelSelection = WageLevel | "unknown";
 export type UsMastersEligibility = "no" | "yes";
 
-export const WAGE_LEVEL_LOTTERY_ODDS: Record<WageLevel, number> = {
-  I: 15.3,
-  II: 30.6,
-  III: 45.9,
-  IV: 61.2,
+/** DHS modeled wage-level selection estimates adopted by IMMIFIN. */
+export const DHS_MODELED_SELECTION_ESTIMATES: Record<WageLevel, number> = {
+  I: 15.29,
+  II: 30.58,
+  III: 45.87,
+  IV: 61.16,
 };
 
-export const TRADITIONAL_RANDOM_LOTTERY_ODDS = 29.6;
-export const US_MASTERS_CAP_BOOST = 8;
-export const MAX_DISPLAYED_ODDS = 95;
+/** DHS modeled random-selection baseline adopted by IMMIFIN. */
+export const DHS_MODELED_RANDOM_BASELINE = 29.59;
 
 export type LotteryOddsInput = {
   wageLevel: LotteryWageLevelSelection;
@@ -26,53 +35,53 @@ export type LotteryOddsInput = {
 export type LotteryOddsResult = {
   wageLevel: WageLevel;
   usMastersEligible: boolean;
-  wageWeightedRegularEstimate: number;
-  mastersCapBoost: number;
-  finalEstimatedOdds: number;
-  traditionalRandomEstimate: number;
-  advantageOverTraditional: number;
+  modeledEstimate: number;
+  randomBaseline: number;
+  differenceFromBaseline: number;
   reasoning: string[];
 };
 
-function roundOneDecimal(value: number): number {
-  return Number(value.toFixed(1));
+function roundTwoDecimals(value: number): number {
+  return Number(value.toFixed(2));
 }
 
-/** Apply master's cap boost and cap final odds at 95%. */
+/** Format a signed percentage-point difference without a leading "+-" bug. */
+export function formatSignedPercentagePoints(value: number): string {
+  const rounded = roundTwoDecimals(value);
+  if (rounded === 0) {
+    return "0.00 percentage points";
+  }
+  if (rounded > 0) {
+    return `+${rounded.toFixed(2)} percentage points`;
+  }
+  return `−${Math.abs(rounded).toFixed(2)} percentage points`;
+}
+
 export function calculateH1bLotteryOdds(input: LotteryOddsInput): LotteryOddsResult | null {
   if (input.wageLevel === "unknown") {
     return null;
   }
 
-  const wageWeightedRegularEstimate = WAGE_LEVEL_LOTTERY_ODDS[input.wageLevel];
+  const modeledEstimate = DHS_MODELED_SELECTION_ESTIMATES[input.wageLevel];
   const usMastersEligible = input.usMastersEligible === "yes";
-  const mastersCapBoost = usMastersEligible ? US_MASTERS_CAP_BOOST : 0;
-  const finalEstimatedOdds = roundOneDecimal(
-    Math.min(MAX_DISPLAYED_ODDS, wageWeightedRegularEstimate + mastersCapBoost),
-  );
-  const advantageOverTraditional = roundOneDecimal(
-    finalEstimatedOdds - TRADITIONAL_RANDOM_LOTTERY_ODDS,
-  );
+  const differenceFromBaseline = roundTwoDecimals(modeledEstimate - DHS_MODELED_RANDOM_BASELINE);
 
   const reasoning = [
-    `Wage-weighted regular estimate for Level ${input.wageLevel}: ${wageWeightedRegularEstimate}%.`,
+    `DHS modeled wage-level selection estimate for Level ${input.wageLevel}: ${modeledEstimate.toFixed(2)}%.`,
     usMastersEligible
-      ? `U.S. master's cap eligible: Yes (+${US_MASTERS_CAP_BOOST.toFixed(1)} percentage points in this demo model).`
-      : "U.S. master's cap eligible: No.",
-    `Final estimated odds combine wage-weighting${usMastersEligible ? " and master's boost" : ""}, capped at ${MAX_DISPLAYED_ODDS}%.`,
-    `Traditional random lottery estimate: ${TRADITIONAL_RANDOM_LOTTERY_ODDS}%.`,
-    `Estimated advantage over traditional random lottery: +${advantageOverTraditional} percentage points.`,
-    "These odds use sample weighted-selection assumptions and should be updated when final USCIS/DHS selection data is available.",
+      ? "Advanced-degree exemption eligible. A qualifying U.S. master's degree or higher provides an additional selection opportunity through the advanced-degree exemption process. DHS does not publish a separate wage-level-specific percentage that IMMIFIN can reliably add to the modeled estimate above."
+      : "Advanced-degree exemption is not being applied.",
+    `DHS modeled random-selection baseline: ${DHS_MODELED_RANDOM_BASELINE.toFixed(2)}%.`,
+    `Difference from modeled random baseline: ${formatSignedPercentagePoints(differenceFromBaseline)}.`,
+    "These percentages are DHS modeled estimates based on DHS modeling assumptions. They are not guarantees of individual selection. Actual outcomes depend on the actual registration and beneficiary population and the selection process.",
   ];
 
   return {
     wageLevel: input.wageLevel,
     usMastersEligible,
-    wageWeightedRegularEstimate,
-    mastersCapBoost,
-    finalEstimatedOdds,
-    traditionalRandomEstimate: TRADITIONAL_RANDOM_LOTTERY_ODDS,
-    advantageOverTraditional,
+    modeledEstimate,
+    randomBaseline: DHS_MODELED_RANDOM_BASELINE,
+    differenceFromBaseline,
     reasoning,
   };
 }

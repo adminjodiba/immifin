@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-22 (H1BWAGE-CLOSE-023 — H-1B Wage Level Estimator functionally closed on localhost; local checkpoint only; not Production-deployed; Immigration visual redesign deferred until after SCO/SEO)  
+**Last Updated:** 2026-09-22 (H1BLOTTERY-IMPL-002 — DHS modeled lottery estimates implemented locally; awaiting Product Owner localhost review; not committed)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -473,6 +473,13 @@ Verified operational row counts at cutover close (exact `count(*)`):
 - Ordinary hourly table: Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) are separate columns. Annual equivalent is an IMMIFIN `hourly × 2,080` calculation, not an OFLC-published annual wage.
 - Special-wage handling remains safe. H-1B Wage ↔ Lottery Odds handoff remains locked.
 - Visual redesign is deferred until the Immigration-wide redesign after SCO/SEO.
+
+**H-1B Lottery Odds (local Dev — H1BLOTTERY-IMPL-002, awaiting Product Owner localhost review):**
+
+- Replaced the Sprint 5 demo table with Product Owner-approved DHS modeled estimates: I 15.29%, II 30.58%, III 45.87%, IV 61.16%; random baseline 29.59%.
+- Master's Yes no longer adds +8 or any other numerical boost. Advanced-degree exemption eligibility is communicated separately.
+- The 95% display cap is removed. Signed difference formatting no longer prefixes every value with `+`.
+- Not committed. Not pushed. Not Production-deployed.
 
 Production apply of 021 remains a later separately approved operation.
 

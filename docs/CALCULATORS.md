@@ -84,8 +84,8 @@ Official geography still follows **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECIS
 |------|--------|
 | **Route** | `/immigration/h1b-lottery-odds-calculator` |
 | **Logic** | `lib/h1b/h1bLotteryOdds.ts` |
-| **Inputs** | Wage level (I–IV or “I don't know”), U.S. master's cap eligibility |
-| **Output** | Demo odds estimate, wage-weighted comparison vs traditional lottery |
+| **Inputs** | Wage level (I–IV or “I don't know”), U.S. master's degree or higher (Yes / No) |
+| **Output** | DHS modeled wage-level selection estimate vs DHS modeled random-selection baseline. Master's Yes communicates advanced-degree exemption eligibility only; it does not change the modeled percentage. |
 | **Cross-tool** | Accepts `?wageLevel={I\|II\|III\|IV}` from the Wage Estimator. “Estimate my wage level” CTA when wage level is unknown. |
 
 ### Data scripts (maintenance)

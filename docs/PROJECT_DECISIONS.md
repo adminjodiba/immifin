@@ -423,6 +423,30 @@ The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 o
 
 ---
 
+## Decision 012 — DHS modeled H-1B lottery selection estimates (H1BLOTTERY-IMPL-002)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The H-1B Lottery Odds Calculator uses Product Owner-approved DHS modeled wage-level selection estimates and a DHS modeled random-selection baseline. The prior demo table, +8 master's boost, and 95% display cap are retired. |
+| **Date** | 2026-09-22 |
+| **Status** | Accepted — local Dev implementation pending Product Owner localhost review. Not Production-deployed. |
+| **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
+
+**Approved product rules:**
+
+1. DHS modeled estimates: Level I 15.29%, II 30.58%, III 45.87%, IV 61.16%.
+2. DHS modeled random-selection baseline: 29.59%.
+3. Difference = wage-level modeled estimate − 29.59, shown with correct signed formatting.
+4. U.S. master's Yes / No remains an input. Yes does not add, multiply, or otherwise change the displayed DHS wage-level estimate.
+5. Master's Yes communicates advanced-degree exemption eligibility only. IMMIFIN does not invent a Level × Master's combined percentage.
+6. The 95% display cap is removed.
+7. These values are modeled estimates, not individualized or official USCIS selection odds.
+8. Wage → Lottery `?wageLevel={I\|II\|III\|IV}` and Lottery → `/immigration/h1b-wage-level-estimator` remain locked.
+9. Broader Immigration visual redesign remains deferred.
+10. This implementation is local until a separately approved commit/push/deploy.
+
+---
+
 ## Future Decisions
 
 *(No entries yet. Add new decisions here as they are accepted.)*

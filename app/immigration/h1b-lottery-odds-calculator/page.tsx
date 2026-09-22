@@ -6,7 +6,7 @@ import { createMetadata } from "@/lib/metadata";
 export const metadata = createMetadata({
   title: "H-1B Lottery Odds Calculator",
   description:
-    "Estimate your H-1B lottery odds using wage level and U.S. master's cap eligibility.",
+    "Compare DHS modeled H-1B selection estimates by wage level. Modeled estimates, not a prediction of individual selection.",
   path: "/immigration/h1b-lottery-odds-calculator",
 });
 
