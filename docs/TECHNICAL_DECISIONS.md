@@ -102,17 +102,22 @@ Official OFLC wage lookup follows **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECI
 - Frontend consumes `POST /api/h1b/worksite-geography`. It must not recreate resolver logic or submit `area_code` as authority.
 - County FIPS remains internal. The frontend never independently determines county → OFLC area.
 
-## H-1B official wage and occupation APIs (H1BWAGE-CHECKPOINT-019)
+## H-1B official wage and occupation APIs (H1BWAGE-CHECKPOINT-019 + H1BWAGE-CLOSE-023)
 
-Local Dev implementation. Not Production-deployed. Migration 021 remains unapplied on Production.
+Local Dev implementation. Functionally closed on localhost. Not Production-deployed. Migration 021 remains unapplied on Production.
 
 - Runtime selects the **ACTIVE** All Industries `wage_datasets` row. Dataset UUID and wage year are never hardcoded as lookup authority.
 - `GET /api/h1b/official-occupations?q=` searches ACTIVE `oflc_occupations` only (case-insensitive title, useful SOC prefix, limit 25, deterministic ranking). It does not search the 722-title seed.
 - `POST /api/h1b/official-wage` accepts only `soc_code`, `zip`, and optional `county_fips`. Unknown fields including `area_code` are rejected.
 - The wage handler re-runs authoritative server-side geography, validates the official SOC, and loads the exact wage record. No closest-area or closest-SOC fallback.
 - Annual equivalent (`hourly × 2,080`) is computed only in `lib/h1b/wage/client/formatOfficialWageDisplay.ts`. The wage API does not annualize.
-- Legacy demo engine (`lib/h1b/wageLevelEstimator.ts`) and the 722 SOC seed remain on disk and are disconnected from the active page.
-- Production schema apply of migration 021 is a later separately approved operation and is not part of this checkpoint.
+- Canonical page `components/H1bWageLevelEstimator.tsx` is the approved V2 estimator promoted onto the original route. Temporary V2 route/component are removed.
+- Recovered estimation lives in `lib/h1b/wage/v2/estimateOfficialWageLevel.ts`. Official wages are the amounts; salary/experience/education scoring is unchanged from approved V2.
+- The 722 SOC seed is **enrichment only** (group, Common Job Titles, Typical H-1B) keyed by official SOC. It is not the occupation search source.
+- `lib/h1b/wageLevelEstimator.ts` remains for shared types/helpers used by the official estimator. Do not reconnect the old demo `estimateH1bWageLevel` entry point or demo wage tables.
+- Ordinary hourly result table renders Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) as separate columns. The ×2,080 calculation remains only in `formatOfficialWageDisplay.ts`.
+- Lottery Odds handoff is `/immigration/h1b-lottery-odds-calculator?wageLevel={I|II|III|IV}` from the canonical Wage route only.
+- Production schema apply of migration 021 is a later separately approved operation and is not part of this local close.
 
 ---
 

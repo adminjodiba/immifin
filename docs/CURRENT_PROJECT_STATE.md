@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-22 (H1BWAGE-CHECKPOINT-019 — official H-1B wage platform is a functionally approved **local Dev** baseline; not Production-deployed; Immigration visual redesign deferred until after SCO/SEO)  
+**Last Updated:** 2026-09-22 (H1BWAGE-CLOSE-023 — H-1B Wage Level Estimator functionally closed on localhost; local checkpoint only; not Production-deployed; Immigration visual redesign deferred until after SCO/SEO)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -427,7 +427,7 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 4. Prepare invite-only IMMIFIN beta cohort and support readiness.  
 5. Enable Intelligence only after Pre-Beta Enablement Gate + PO approval.  
 6. Collect real-user feedback before new feature sprints.  
-7. **H1B official wage platform:** local functional baseline approved (CHECKPOINT-019). Do **not** apply 021 to Production until a separate Production approval. Do **not** treat the current H-1B page as the final Immigration visual design.
+7. **H1B official wage platform:** Product Owner approved the final canonical estimator (H1BWAGE-CLOSE-023). Local checkpoint only. Do **not** apply 021 to Production until a separate Production approval. Do **not** treat the current H-1B page as the final Immigration visual design. Do **not** push or deploy from this close.
 
 Do **not** begin Sprint 9 automatically. Do **not** apply 021 to Production from this checkpoint.
 
@@ -462,15 +462,17 @@ Verified operational row counts at cutover close (exact `count(*)`):
 | `admin_audit_log` | 21 |
 | `admin_role_changes` | 1 |
 
-**H1B official wage platform (local Dev only — H1BWAGE-CHECKPOINT-019):**
+**H1B official wage platform (local Dev only — H1BWAGE-CLOSE-023):**
 
-- Geography foundation and UI complete locally.
-- Official wage API (`POST /api/h1b/official-wage`) complete locally.
-- Official occupation API (`GET /api/h1b/official-occupations`) complete locally.
-- Official UI integration complete locally at `/immigration/h1b-wage-level-estimator`.
-- Annual-equivalent presentation (`hourly × 2,080`) complete locally.
-- Product Owner approved the **functional** baseline. Visual redesign is deferred until the Immigration-wide redesign after SCO/SEO.
-- This functionality is **not** Production-deployed.
+- Product Owner approved the final canonical calculator on localhost. Functionally closed. Local checkpoint only. Not pushed. Not Production-deployed.
+- Canonical route: `/immigration/h1b-wage-level-estimator`. Temporary `/immigration/h1b-wage-level-estimator-v2` is removed.
+- Official occupation API (`GET /api/h1b/official-occupations`) remains authoritative. Occupation details, Common Job Titles, and technical details remain.
+- Authoritative Worksite ZIP replaced City/State. Geography remains ZIP → county → OFLC area (AUTO / CHOICE_REQUIRED / UNAVAILABLE).
+- Official wage API (`POST /api/h1b/official-wage`) remains authoritative. Demo wage amounts stay retired.
+- Salary, experience, education, estimation, salary-position comparison, and reasoning remain.
+- Ordinary hourly table: Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) are separate columns. Annual equivalent is an IMMIFIN `hourly × 2,080` calculation, not an OFLC-published annual wage.
+- Special-wage handling remains safe. H-1B Wage ↔ Lottery Odds handoff remains locked.
+- Visual redesign is deferred until the Immigration-wide redesign after SCO/SEO.
 
 Production apply of 021 remains a later separately approved operation.
 
@@ -535,4 +537,6 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
 | Local | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. Not committed. |
 | Prior | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 | `immifin.com` on Production Supabase `pmkx...ysdv`; localhost + CLI remain Dev `vnhn...toxs` |
-| **Current** | **2026-09-22** | **H1BWAGE-CHECKPOINT-019** | Official H-1B wage platform functionally approved on **local Dev**; 021 on Dev only; Production 021 unapplied; visual redesign deferred until after SCO/SEO |
+| Prior | 2026-09-22 | H1BWAGE-CHECKPOINT-019 | Official H-1B wage platform functionally approved on **local Dev**; 021 on Dev only; Production 021 unapplied; visual redesign deferred until after SCO/SEO |
+| Prior | 2026-09-22 | H1BWAGE-V2-021 | Approved V2 estimator promoted to canonical `/immigration/h1b-wage-level-estimator`; temporary V2 removed; **local Dev** only; not Production-deployed |
+| **Current** | **2026-09-22** | **H1BWAGE-CLOSE-023** | H-1B Wage Level Estimator functionally closed on localhost; four-column hourly table; local checkpoint only; not pushed; not Production-deployed |

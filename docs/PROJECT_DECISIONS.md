@@ -373,6 +373,56 @@ The Product Owner approved the official-data functional state and stopped furthe
 
 ---
 
+## Decision 010 — Approved V2 H-1B Wage Estimator is canonical (H1BWAGE-V2-021)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The Product Owner approved the H-1B Wage Level Estimator V2 as the final functional calculator. That approved V2 experience is now the only implementation, served from the original canonical route `/immigration/h1b-wage-level-estimator`. The temporary V2 route is removed. |
+| **Date** | 2026-09-22 |
+| **Status** | Accepted — local Dev. Not Production-deployed. |
+| **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
+
+**Reason:**
+
+The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 official lookup remains the data foundation. Recovered Production-style estimation (occupation details, Common Job Titles, salary, experience, education, reasoning, salary-position comparison, Lottery Odds handoff) is the approved user experience. City/State location logic and demo wage amounts stay retired.
+
+**Approved product rules:**
+
+1. Canonical user-facing route is `/immigration/h1b-wage-level-estimator` only.
+2. Temporary `/immigration/h1b-wage-level-estimator-v2` is removed. It was localhost/internal comparison only and was never sitemap/canonical/public-nav.
+3. Official occupations remain the search source. Seed metadata may enrich official SOC records only.
+4. Worksite ZIP remains the location input. City/State does not return. Geography outcomes remain AUTO / CHOICE_REQUIRED / UNAVAILABLE.
+5. Official OFLC wages remain authoritative. Demo wage amounts do not return.
+6. Salary, experience, education, estimation logic, salary-position comparison, and reasoning remain as approved in V2.
+7. Special-wage handling remains safe: ordinary hourly ×2080 presentation; Annual Wage not ×2080; High Wage / No Leveled Wage not fabricated.
+8. H-1B Wage → Lottery Odds handoff (`?wageLevel=`) and the manual Lottery Odds path remain required.
+9. Broader Immigration visual redesign remains deferred until after SCO/SEO.
+10. This is local Dev until a separately approved push/deploy.
+
+---
+
+## Decision 011 — H-1B Wage Level Estimator functionally closed (H1BWAGE-CLOSE-023)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The Product Owner approved the final canonical H-1B Wage Level Estimator on localhost. The workstream is functionally closed with a local checkpoint only. Ordinary hourly results show Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) as separate columns. |
+| **Date** | 2026-09-22 |
+| **Status** | Accepted — local Dev functional close. Not Production-deployed. |
+| **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
+
+**Approved final state:**
+
+1. Production-style estimator experience + official occupations + authoritative Worksite ZIP + official OFLC wages + Lottery Odds integration.
+2. Canonical route is `/immigration/h1b-wage-level-estimator` only. Temporary V2 is removed.
+3. Official hourly wage and IMMIFIN annual equivalent (`hourly × 2,080`) are separate columns. The annual equivalent is not an OFLC-published annual wage.
+4. City/State location logic and demo wage amounts stay retired.
+5. Special-wage handling remains safe. PWD / legal-wage-obligation claims remain forbidden.
+6. H-1B Wage ↔ Lottery Odds handoff remains locked.
+7. Broader Immigration visual redesign remains deferred until after SCO/SEO.
+8. This closure is a **local commit only**. It is not pushed or deployed unless a later approved task says so.
+
+---
+
 ## Future Decisions
 
 *(No entries yet. Add new decisions here as they are accepted.)*
@@ -391,4 +441,4 @@ The Product Owner approved the official-data functional state and stopped furthe
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure and environments |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow and engineering rules |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build, deploy, and secrets |
-| [CALCULATORS.md](./CALCULATORS.md) | Live H-1B Wage official OFLC baseline + remaining educational Lottery Odds estimator |
+| [CALCULATORS.md](./CALCULATORS.md) | Product Owner-approved final H-1B Wage Estimator on the canonical route + educational Lottery Odds estimator |

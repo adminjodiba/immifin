@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
-import {
-  WorksiteGeographyLookup,
-  type WorksiteGeographyAuthority,
-} from "@/components/h1b/WorksiteGeographyLookup";
+import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
+import { WorksiteGeographyLookup, type WorksiteGeographyAuthority } from "@/components/h1b/WorksiteGeographyLookup";
 import {
   fetchOfficialOccupations,
   OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY,
@@ -15,199 +13,222 @@ import {
 } from "@/lib/h1b/occupations/client/officialOccupationSearchClient";
 import {
   ANNUAL_EQUIVALENT_DISCLAIMER,
+  NO_LEVELED_WAGE_COPY,
+  formatOfficialWageAmount,
   officialWageDisplayRows,
   officialWageDisplayUnit,
-  officialWageInputsChanged,
-  shouldShowAnnualEquivalent,
   shouldShowNoLeveledCopy,
-  NO_LEVELED_WAGE_COPY,
 } from "@/lib/h1b/wage/client/formatOfficialWageDisplay";
 import {
   fetchOfficialWage,
   OFFICIAL_WAGE_CHOICE_COPY,
   OFFICIAL_WAGE_NETWORK_COPY,
   OFFICIAL_WAGE_UNAVAILABLE_COPY,
-  type OfficialWageClientResponse,
   type OfficialWageClientWage,
 } from "@/lib/h1b/wage/client/officialWageLookupClient";
+import {
+  estimateOfficialWageLevel,
+  type OfficialEstimatorResult,
+} from "@/lib/h1b/wage/v2/estimateOfficialWageLevel";
+import { formatCurrency, type EducationLevel, type ExperienceRange, type SalaryPosition } from "@/lib/h1b/wageLevelEstimator";
+import {
+  getOccupationByCode,
+  getOccupationKeywords,
+  getOccupationMatchConfidence,
+  isTypicalH1BOccupation,
+  type MatchConfidence,
+  type OccupationSearchResult,
+  type SocOccupationEntry,
+} from "@/lib/services/occupationService";
 
 const PAGE_HREF = "/immigration/h1b-wage-level-estimator";
 const PAGE_TITLE = "H-1B Wage Level Estimator";
-const OCCUPATION_SEARCH_DEBOUNCE_MS = 250;
-const cardClassName =
-  "rounded-[1.75rem] bg-white p-6 shadow-[0_10px_28px_-20px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70 sm:p-8";
+const LOTTERY_CALCULATOR_HREF = "/immigration/h1b-lottery-odds-calculator";
 const inputClassName =
-  "block h-12 w-full rounded-2xl border border-slate-200/90 bg-white py-3 pl-11 pr-11 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/12";
+  "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
+const labelClassName = "block text-sm font-medium text-slate-900";
 
-function StepHeading({
-  step,
-  title,
-  description,
-  connect,
-}: {
-  step: number;
+type SelectedOfficialOccupation = {
+  socCode: string;
   title: string;
-  description: string;
-  connect?: boolean;
-}) {
+  metadata: SocOccupationEntry | undefined;
+};
+
+function salaryPositionLabel(position: SalaryPosition): string {
+  return position === "Near" ? "In range" : position;
+}
+
+function salaryPositionClassName(position: SalaryPosition): string {
+  switch (position) {
+    case "Above":
+      return "font-semibold text-emerald-700";
+    case "Below":
+      return "font-semibold text-red-700";
+    case "Near":
+      return "font-semibold text-orange-600";
+  }
+}
+
+function confidenceBadgeClassName(confidence: MatchConfidence): string {
+  switch (confidence) {
+    case "High":
+      return "bg-emerald-50 text-emerald-800 ring-emerald-200";
+    case "Medium":
+      return "bg-amber-50 text-amber-900 ring-amber-200";
+    default:
+      return "bg-slate-100 text-slate-700 ring-slate-200";
+  }
+}
+
+function ConfidenceBadge({ confidence }: { confidence: MatchConfidence }) {
   return (
-    <div className="relative flex items-start gap-3.5">
-      {connect ? (
-        <span
-          className="absolute left-4 top-8 hidden h-[calc(100%+2.75rem)] w-px bg-slate-200/90 sm:block"
-          aria-hidden="true"
-        />
-      ) : null}
-      <span className="relative z-10 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
-        {step}
-      </span>
-      <div className="min-w-0 pt-0.5">
-        <h3 className="text-[15px] font-semibold tracking-tight text-[#0B1F3A]">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
-      </div>
-    </div>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${confidenceBadgeClassName(confidence)}`}
+    >
+      {confidence}
+    </span>
   );
+}
+
+function TypicalH1bBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-800 ring-1 ring-brand-200">
+      Typical H-1B
+    </span>
+  );
+}
+
+function formatKeywordLabel(keyword: string): string {
+  return keyword
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function toSelectedOccupation(row: OfficialOccupationClientRow): SelectedOfficialOccupation {
+  return {
+    socCode: row.soc_code,
+    title: row.title,
+    metadata: getOccupationByCode(row.soc_code),
+  };
 }
 
 function SelectedOccupationCard({
   occupation,
-  onClear,
+  matchResult,
 }: {
-  occupation: OfficialOccupationClientRow;
-  onClear: () => void;
+  occupation: SelectedOfficialOccupation;
+  matchResult: OccupationSearchResult | null;
 }) {
+  const keywords = getOccupationKeywords(occupation.socCode).slice(0, 6);
+  const isTypical = isTypicalH1BOccupation(occupation.socCode);
+
   return (
-    <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-brand-200/80 bg-brand-50/80 px-4 py-3.5">
-      <div className="min-w-0 border-l-2 border-brand-500 pl-3">
-        <p className="text-[15px] font-semibold text-[#0B1F3A]">{occupation.title}</p>
-        <p className="mt-0.5 text-sm text-slate-500">SOC {occupation.soc_code}</p>
+    <div className="mt-2 rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50/60 to-white p-3 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+        Selected Occupation
+      </p>
+      <p className="mt-1 text-sm font-semibold text-slate-900">{occupation.title}</p>
+      {occupation.metadata ? (
+        <p className="mt-0.5 text-xs text-slate-500">{occupation.metadata.group}</p>
+      ) : null}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {matchResult ? <ConfidenceBadge confidence={matchResult.matchConfidence} /> : null}
+        {isTypical ? <TypicalH1bBadge /> : null}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Selected
-        </span>
-        <button
-          type="button"
-          onClick={onClear}
-          className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-white hover:text-slate-700"
-          aria-label="Clear selected occupation"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <p className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-700">
+        <span aria-hidden="true">✓</span>
+        Official occupation selected
+      </p>
+      {keywords.length > 0 ? (
+        <div className="mt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            Common job titles
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {keywords.map((keyword) => (
+              <span
+                key={keyword}
+                className="rounded-md bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200"
+              >
+                {formatKeywordLabel(keyword)}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      <details className="mt-2">
+        <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700">
+          Show technical details
+        </summary>
+        <p className="mt-1.5 text-xs text-slate-600">
+          Official SOC Code: <span className="font-mono font-medium text-slate-800">{occupation.socCode}</span>
+        </p>
+        <p className="mt-1 text-xs text-slate-600">
+          Official title: <span className="font-medium text-slate-800">{occupation.title}</span>
+        </p>
+      </details>
     </div>
   );
 }
 
 function OccupationSearchOption({
-  occupation,
+  row,
+  query,
   onSelect,
 }: {
-  occupation: OfficialOccupationClientRow;
-  onSelect: (occupation: OfficialOccupationClientRow) => void;
+  row: OfficialOccupationClientRow;
+  query: string;
+  onSelect: (row: OfficialOccupationClientRow) => void;
 }) {
+  const metadata = getOccupationByCode(row.soc_code);
+  const matchResult = metadata ? getOccupationMatchConfidence(query, metadata) : null;
+  const isTypical = isTypicalH1BOccupation(row.soc_code);
+
   return (
     <li role="option" aria-selected="false">
       <button
         type="button"
-        className="w-full px-4 py-3 text-left transition-colors hover:bg-brand-50"
-        onClick={() => onSelect(occupation)}
+        className="w-full px-3 py-2.5 text-left transition-colors hover:bg-brand-50"
+        onClick={() => onSelect(row)}
       >
-        <span className="block text-sm font-semibold text-slate-900">{occupation.title}</span>
-        <span className="mt-0.5 block text-xs text-slate-500">SOC {occupation.soc_code}</span>
+        <span className="block text-sm font-semibold text-slate-900">{row.title}</span>
+        {metadata ? <span className="mt-0.5 block text-xs text-slate-500">{metadata.group}</span> : null}
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {matchResult ? <ConfidenceBadge confidence={matchResult.matchConfidence} /> : null}
+          {isTypical ? <TypicalH1bBadge /> : null}
+        </div>
       </button>
     </li>
   );
 }
 
-function formatEffectiveRange(start: string, end: string): string {
-  return `${start} – ${end}`;
-}
-
-function officialColumnHeading(wage: OfficialWageClientWage): string {
-  const unit = officialWageDisplayUnit(wage.label);
-  if (unit === "hour") return "Official Hourly Rate";
-  if (unit === "year") return "Official Annual Rate";
-  return "Published value";
-}
-
-function ResultEmptyState() {
-  return (
-    <div className="flex min-h-[10rem] flex-col items-center justify-center rounded-2xl bg-slate-50/90 px-6 py-8 text-center">
-      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-200/80">
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-        </svg>
-      </span>
-      <p className="mt-3 text-sm font-semibold text-[#0B1F3A]">Published wages will appear here</p>
-      <p className="mt-1 max-w-[18rem] text-sm leading-6 text-slate-500">
-        Select an occupation, resolve the worksite ZIP, then look up published wages.
-      </p>
-    </div>
-  );
-}
-
-function SourcePanel({ source }: { source: NonNullable<OfficialWageClientResponse["source"]> }) {
-  const items: Array<{ label: string; value: ReactNode }> = [
-    { label: "Source", value: "U.S. Department of Labor OFLC" },
-    { label: "Wage year", value: source.wage_year },
-  ];
-  if (source.bls_survey) {
-    items.push({ label: "Survey", value: source.bls_survey });
-  }
-  if (source.soc_version) {
-    items.push({ label: "SOC", value: source.soc_version });
-  }
-  items.push({
-    label: "Effective period",
-    value: formatEffectiveRange(source.effective_start, source.effective_end),
-  });
-
-  return (
-    <div className="rounded-xl bg-slate-50/90 px-4 py-3.5">
-      <p className="text-sm font-semibold tracking-tight text-[#0B1F3A]">Source Information</p>
-      <p className="mt-0.5 text-xs leading-5 text-slate-500">Details about the official data used for this result.</p>
-      <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {items.map((item) => (
-          <div key={item.label} className="min-w-0">
-            <dt className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">{item.label}</dt>
-            <dd className="mt-1 text-[13px] font-medium text-slate-700">{item.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
-}
-
 export function H1bWageLevelEstimator() {
   const [occupationQuery, setOccupationQuery] = useState("");
-  const [selectedOccupation, setSelectedOccupation] = useState<OfficialOccupationClientRow | null>(null);
   const [occupationMatches, setOccupationMatches] = useState<OfficialOccupationClientRow[]>([]);
-  const [occupationLoading, setOccupationLoading] = useState(false);
-  const [occupationError, setOccupationError] = useState<string | null>(null);
+  const [occupationSearchError, setOccupationSearchError] = useState<string | null>(null);
+  const [occupationSearching, setOccupationSearching] = useState(false);
+  const [selectedOccupation, setSelectedOccupation] = useState<SelectedOfficialOccupation | null>(null);
+  const [selectedMatchResult, setSelectedMatchResult] = useState<OccupationSearchResult | null>(null);
   const [showOccupationList, setShowOccupationList] = useState(false);
   const [geography, setGeography] = useState<WorksiteGeographyAuthority>({
     ready: false,
     zip: "",
     countyFips: null,
   });
-  const [wageLookup, setWageLookup] = useState<OfficialWageClientResponse | null>(null);
-  const [wageMessage, setWageMessage] = useState<string | null>(null);
-  const [wageLoading, setWageLoading] = useState(false);
+  const [annualSalary, setAnnualSalary] = useState("");
+  const [experience, setExperience] = useState<ExperienceRange>("4-6");
+  const [education, setEducation] = useState<EducationLevel>("Master");
+  const [result, setResult] = useState<OfficialEstimatorResult | null>(null);
+  const [officialWage, setOfficialWage] = useState<OfficialWageClientWage | null>(null);
+  const [resultError, setResultError] = useState<string | null>(null);
+  const [estimating, setEstimating] = useState(false);
   const occupationPickerRef = useRef<HTMLDivElement>(null);
-  const wageInputsRef = useRef({ socCode: null as string | null, zip: "", countyFips: null as string | null });
+  const searchSeqRef = useRef(0);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        occupationPickerRef.current &&
-        !occupationPickerRef.current.contains(event.target as Node)
-      ) {
+      if (occupationPickerRef.current && !occupationPickerRef.current.contains(event.target as Node)) {
         setShowOccupationList(false);
       }
     }
@@ -218,441 +239,523 @@ export function H1bWageLevelEstimator() {
 
   useEffect(() => {
     const query = occupationQuery.trim();
-    if (!query || selectedOccupation) {
+    if (!query || selectedOccupation?.title === occupationQuery) {
       setOccupationMatches([]);
-      setOccupationLoading(false);
-      setOccupationError(null);
+      setOccupationSearchError(null);
+      setOccupationSearching(false);
       return;
     }
 
-    const requestSeq = window.setTimeout(async () => {
-      setOccupationLoading(true);
-      setOccupationError(null);
-      const result = await fetchOfficialOccupations(query);
-      if (result.ok) {
-        if (result.data.outcome === "UNAVAILABLE") {
+    const seq = ++searchSeqRef.current;
+    setOccupationSearching(true);
+    const timeout = window.setTimeout(() => {
+      void (async () => {
+        const response = await fetchOfficialOccupations(query);
+        if (seq !== searchSeqRef.current) return;
+        setOccupationSearching(false);
+        if (!response.ok) {
           setOccupationMatches([]);
-          setOccupationError(OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY);
-        } else {
-          setOccupationMatches(result.data.results);
-          setOccupationError(null);
+          setOccupationSearchError(
+            response.kind === "network"
+              ? OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY
+              : OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY,
+          );
+          return;
         }
-      } else {
-        setOccupationMatches([]);
-        setOccupationError(
-          result.kind === "network"
-            ? OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY
-            : OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY,
-        );
-      }
-      setOccupationLoading(false);
-    }, OCCUPATION_SEARCH_DEBOUNCE_MS);
+        if (response.data.outcome !== "AUTO") {
+          setOccupationMatches([]);
+          setOccupationSearchError(OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY);
+          return;
+        }
+        setOccupationSearchError(null);
+        setOccupationMatches(response.data.results);
+      })();
+    }, 250);
 
-    return () => window.clearTimeout(requestSeq);
+    return () => window.clearTimeout(timeout);
   }, [occupationQuery, selectedOccupation]);
 
-  function clearWageResult() {
-    setWageLookup(null);
-    setWageMessage(null);
-  }
-
-  function clearOccupation() {
-    setSelectedOccupation(null);
-    setOccupationQuery("");
+  function selectOccupation(row: OfficialOccupationClientRow) {
+    const selected = toSelectedOccupation(row);
+    const matchResult = selected.metadata
+      ? getOccupationMatchConfidence(occupationQuery, selected.metadata)
+      : null;
+    setSelectedOccupation(selected);
+    setSelectedMatchResult(matchResult);
+    setOccupationQuery(row.title);
     setShowOccupationList(false);
-    setOccupationMatches([]);
-    setOccupationError(null);
-    clearWageResult();
-    wageInputsRef.current = { ...wageInputsRef.current, socCode: null };
+    setResult(null);
+    setOfficialWage(null);
+    setResultError(null);
   }
 
-  function selectOccupation(occupation: OfficialOccupationClientRow) {
-    setSelectedOccupation(occupation);
-    setOccupationQuery(occupation.title);
-    setShowOccupationList(false);
-    setOccupationMatches([]);
-    setOccupationError(null);
-    clearWageResult();
-    wageInputsRef.current = {
-      ...wageInputsRef.current,
-      socCode: occupation.soc_code,
-    };
-  }
-
-  function handleGeographyAuthority(next: WorksiteGeographyAuthority) {
-    const previous = wageInputsRef.current;
-    const changed = officialWageInputsChanged(previous, {
-      socCode: selectedOccupation?.soc_code ?? null,
-      zip: next.zip,
-      countyFips: next.countyFips,
-    });
+  function handleGeographyChange(next: WorksiteGeographyAuthority) {
     setGeography(next);
-    wageInputsRef.current = {
-      socCode: selectedOccupation?.soc_code ?? null,
-      zip: next.zip,
-      countyFips: next.countyFips,
-    };
-    if (changed) {
-      clearWageResult();
-    }
+    setResult(null);
+    setOfficialWage(null);
+    setResultError(null);
   }
 
-  const lookupEnabled = Boolean(selectedOccupation && geography.ready && !wageLoading);
-
-  async function handleLookup(event: FormEvent) {
+  async function handleEstimate(event: FormEvent) {
     event.preventDefault();
-    if (!selectedOccupation || !geography.ready || wageLoading) {
-      return;
-    }
 
-    setWageLoading(true);
-    clearWageResult();
-
-    const result = await fetchOfficialWage({
-      socCode: selectedOccupation.soc_code,
-      zip: geography.zip,
-      countyFips: geography.countyFips,
-    });
-
-    setWageLoading(false);
-
-    if (!result.ok) {
-      setWageMessage(
-        result.kind === "network" ? OFFICIAL_WAGE_NETWORK_COPY : OFFICIAL_WAGE_UNAVAILABLE_COPY,
+    const salary = Number(annualSalary);
+    if (!selectedOccupation) {
+      setResult(null);
+      setOfficialWage(null);
+      setResultError(
+        "Occupation not found. Search and select an official occupation, or try a common title like Software Engineer.",
       );
       return;
     }
 
-    if (result.data.outcome === "CHOICE_REQUIRED") {
-      setWageMessage(OFFICIAL_WAGE_CHOICE_COPY);
+    if (!geography.ready || !geography.zip || !Number.isFinite(salary) || salary <= 0) {
       return;
     }
 
-    if (result.data.outcome !== "AUTO" || !result.data.wage) {
-      setWageMessage(OFFICIAL_WAGE_UNAVAILABLE_COPY);
+    setEstimating(true);
+    setResult(null);
+    setOfficialWage(null);
+    setResultError(null);
+
+    const wageResult = await fetchOfficialWage({
+      socCode: selectedOccupation.socCode,
+      zip: geography.zip,
+      countyFips: geography.countyFips,
+    });
+
+    setEstimating(false);
+
+    if (!wageResult.ok) {
+      setResultError(
+        wageResult.kind === "network" ? OFFICIAL_WAGE_NETWORK_COPY : OFFICIAL_WAGE_UNAVAILABLE_COPY,
+      );
       return;
     }
 
-    setWageLookup(result.data);
+    if (wageResult.data.outcome === "CHOICE_REQUIRED") {
+      setResultError(OFFICIAL_WAGE_CHOICE_COPY);
+      return;
+    }
+
+    if (wageResult.data.outcome !== "AUTO" || !wageResult.data.wage) {
+      setResultError(OFFICIAL_WAGE_UNAVAILABLE_COPY);
+      return;
+    }
+
+    const wage = wageResult.data.wage;
+    const wageAreaName = wageResult.data.geography.resolved_area?.area_name ?? "the resolved official wage area";
+    setOfficialWage(wage);
+    setResult(
+      estimateOfficialWageLevel({
+        socCode: selectedOccupation.socCode,
+        officialTitle: selectedOccupation.title,
+        annualSalary: salary,
+        experience,
+        education,
+        wageAreaName,
+        wage,
+      }),
+    );
   }
 
-  const wage = wageLookup?.wage ?? null;
-  const source = wageLookup?.source ?? null;
-  const wageRows = wage ? officialWageDisplayRows(wage) : [];
-  const showAnnualEquivalent = wage ? shouldShowAnnualEquivalent(wage) : false;
-
   return (
-    <div className="-mx-4 bg-[#E8EEF6] px-4 py-6 sm:-mx-6 sm:px-6 sm:py-7 lg:-mx-8 lg:px-8">
+    <>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-start gap-2">
-            <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#0B1F3A] sm:text-[2rem] sm:leading-tight">
-              {PAGE_TITLE}
-            </h1>
-            <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-start gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">{PAGE_TITLE}</h1>
+              <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
+            </div>
+            <p className="mt-1 max-w-3xl text-sm text-slate-600">
+              Estimate your likely H-1B wage level using an official occupation, worksite ZIP, salary, experience, and education.
+            </p>
           </div>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Look up published OFLC wages for an official occupation and worksite ZIP.
-          </p>
         </div>
-        <Link
-          href="/"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-300/90 bg-white px-4 text-sm font-medium text-slate-600 transition-colors hover:border-slate-400 hover:text-[#0B1F3A] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-        >
-          Close
-        </Link>
+        <DashboardCloseAction />
       </header>
 
-      <div className="mt-8 space-y-6">
-        <form onSubmit={handleLookup} aria-label="H-1B published wage lookup">
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(28rem,0.92fr)_minmax(0,1.18fr)]">
+      <div className="mt-3 space-y-4">
+        <form onSubmit={handleEstimate} aria-label="H-1B wage level estimator">
+          <div className="rounded-[1.25rem] border border-slate-200/80 bg-white shadow-sm lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
             <section
-              className={`${cardClassName} lg:sticky lg:top-6`}
-              aria-labelledby="h1b-input-heading"
+              className="border-b border-slate-200 p-4 sm:p-5 lg:border-b-0 lg:border-r"
+              aria-labelledby="h1b-v2-input-heading"
             >
-              <h2 id="h1b-input-heading" className="sr-only">
-                Occupation and worksite
+              <h2 id="h1b-v2-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Your information
               </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Official OFLC wages for the resolved worksite. The wage level is an IMMIFIN estimate, not a DOL determination.
+              </p>
 
-              <div className="space-y-10">
+              <div className="mt-3 space-y-4">
                 <div ref={occupationPickerRef} className="relative">
-                  <StepHeading
-                    step={1}
-                    title="Select Occupation"
-                    description="Search for an official occupation using the current OFLC dataset."
-                    connect
+                  <label htmlFor="occupation-search-v2" className={labelClassName}>
+                    Search occupation / job title
+                  </label>
+                  <input
+                    id="occupation-search-v2"
+                    name="occupationSearch"
+                    type="text"
+                    required
+                    autoComplete="off"
+                    value={occupationQuery}
+                    onChange={(event) => {
+                      setOccupationQuery(event.target.value);
+                      setSelectedOccupation(null);
+                      setSelectedMatchResult(null);
+                      setShowOccupationList(true);
+                      setOccupationSearching(Boolean(event.target.value.trim()));
+                      setOccupationSearchError(null);
+                      setResult(null);
+                      setOfficialWage(null);
+                      setResultError(null);
+                    }}
+                    onFocus={() => setShowOccupationList(true)}
+                    placeholder="Software Engineer"
+                    className={inputClassName}
+                    role="combobox"
+                    aria-expanded={showOccupationList}
+                    aria-controls="occupation-search-list-v2"
+                    aria-autocomplete="list"
                   />
-                  <div className="relative mt-4">
-                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400" aria-hidden="true">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                      </svg>
-                    </span>
-                    <label htmlFor="occupation-search" className="sr-only">
-                      Search occupation
-                    </label>
-                    <input
-                      id="occupation-search"
-                      name="occupationSearch"
-                      type="text"
-                      required
-                      autoComplete="off"
-                      value={occupationQuery}
-                      onChange={(event) => {
-                        setOccupationQuery(event.target.value);
-                        setSelectedOccupation(null);
-                        setShowOccupationList(true);
-                        clearWageResult();
-                        wageInputsRef.current = { ...wageInputsRef.current, socCode: null };
-                      }}
-                      onFocus={() => {
-                        if (!selectedOccupation) {
-                          setShowOccupationList(true);
-                        }
-                      }}
-                      placeholder="Software Developers"
-                      className={inputClassName}
-                      role="combobox"
-                      aria-expanded={showOccupationList}
-                      aria-controls="occupation-search-list"
-                      aria-autocomplete="list"
-                    />
-                    {occupationQuery ? (
-                      <button
-                        type="button"
-                        onClick={clearOccupation}
-                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-700"
-                        aria-label="Clear occupation search"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    ) : null}
-                  </div>
                   {showOccupationList && occupationMatches.length > 0 ? (
                     <ul
-                      id="occupation-search-list"
+                      id="occupation-search-list-v2"
                       role="listbox"
-                      className="absolute z-20 mt-1.5 max-h-56 w-full overflow-auto rounded-2xl bg-white py-1 shadow-xl ring-1 ring-slate-200/80"
+                      className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-md"
                     >
-                      {occupationMatches.map((occupation) => (
+                      {occupationMatches.map((row) => (
                         <OccupationSearchOption
-                          key={occupation.soc_code}
-                          occupation={occupation}
+                          key={row.soc_code}
+                          row={row}
+                          query={occupationQuery}
                           onSelect={selectOccupation}
                         />
                       ))}
                     </ul>
                   ) : null}
-                  {occupationLoading ? (
-                    <p className="mt-3 text-sm text-slate-500" aria-live="polite">
-                      Searching official occupations…
-                    </p>
-                  ) : null}
                   {selectedOccupation && !showOccupationList ? (
-                    <SelectedOccupationCard occupation={selectedOccupation} onClear={clearOccupation} />
+                    <SelectedOccupationCard occupation={selectedOccupation} matchResult={selectedMatchResult} />
                   ) : null}
-                  {showOccupationList && occupationQuery.trim() && !occupationLoading && occupationMatches.length === 0 && !occupationError ? (
-                    <p className="mt-3 text-sm text-amber-700">No matching occupations. Try a different keyword.</p>
+                  {occupationSearching ? (
+                    <p className="mt-1 text-xs text-slate-500">Searching official occupations…</p>
                   ) : null}
-                  {occupationError ? (
-                    <p className="mt-3 text-sm text-amber-700" role="status">
-                      {occupationError}
-                    </p>
+                  {occupationSearchError ? <p className="mt-1 text-xs text-amber-700">{occupationSearchError}</p> : null}
+                  {showOccupationList && occupationQuery && !occupationSearching && occupationMatches.length === 0 && !occupationSearchError ? (
+                    <p className="mt-1 text-xs text-amber-700">No matching occupations. Try a different keyword.</p>
                   ) : null}
                 </div>
 
                 <div>
-                  <StepHeading
-                    step={2}
-                    title="Enter Worksite ZIP"
-                    description="Use the worksite ZIP to determine the official wage area."
-                  />
-                  <div className="mt-4">
-                    <WorksiteGeographyLookup onAuthorityChange={handleGeographyAuthority} />
+                  <p className={labelClassName}>Worksite ZIP Code</p>
+                  <div className="mt-1.5">
+                    <WorksiteGeographyLookup onAuthorityChange={handleGeographyChange} />
                   </div>
                 </div>
 
                 <div>
-                  <button
-                    type="submit"
-                    disabled={!lookupEnabled}
-                    className="flex h-[3.25rem] w-full items-center justify-center gap-2.5 rounded-2xl bg-brand-600 px-5 text-[15px] font-semibold text-white shadow-[0_10px_20px_-12px_rgba(37,99,235,0.65)] transition-colors hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:bg-brand-400 disabled:shadow-none"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                    </svg>
-                    {wageLoading ? "Looking up published wages…" : "Look up published wages"}
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </button>
-                  <p className="mt-3 flex items-center justify-center gap-1.5 text-xs leading-5 text-slate-400">
-                    <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                    </svg>
-                    Uses official U.S. Department of Labor OFLC data
-                  </p>
+                  <label htmlFor="annual-salary-v2" className={labelClassName}>
+                    Annual salary
+                  </label>
+                  <input
+                    id="annual-salary-v2"
+                    name="annualSalary"
+                    type="number"
+                    required
+                    min={1}
+                    step={1}
+                    value={annualSalary}
+                    onChange={(event) => {
+                      setAnnualSalary(event.target.value);
+                      setResult(null);
+                      setOfficialWage(null);
+                      setResultError(null);
+                    }}
+                    placeholder="135000"
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="experience-v2" className={labelClassName}>
+                      Years of experience
+                    </label>
+                    <select
+                      id="experience-v2"
+                      name="experience"
+                      required
+                      value={experience}
+                      onChange={(event) => {
+                        setExperience(event.target.value as ExperienceRange);
+                        setResult(null);
+                        setOfficialWage(null);
+                        setResultError(null);
+                      }}
+                      className={inputClassName}
+                    >
+                      <option value="0-1">0-1</option>
+                      <option value="2-3">2-3</option>
+                      <option value="4-6">4-6</option>
+                      <option value="7-10">7-10</option>
+                      <option value="10+">10+</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="education-v2" className={labelClassName}>
+                      Highest education
+                    </label>
+                    <select
+                      id="education-v2"
+                      name="education"
+                      required
+                      value={education}
+                      onChange={(event) => {
+                        setEducation(event.target.value as EducationLevel);
+                        setResult(null);
+                        setOfficialWage(null);
+                        setResultError(null);
+                      }}
+                      className={inputClassName}
+                    >
+                      <option value="Bachelor">Bachelor</option>
+                      <option value="Master">Master</option>
+                      <option value="PhD">PhD</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              <button
+                type="submit"
+                disabled={!geography.ready || estimating}
+                className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
+              >
+                {estimating ? "Looking up official wages…" : "Estimate Wage Level"}
+              </button>
             </section>
 
             <section
-              className={`min-w-0 ${cardClassName}`}
-              aria-labelledby="h1b-result-heading"
+              className="bg-slate-50/50 p-4 sm:p-5"
+              aria-labelledby="h1b-v2-result-heading"
               aria-live="polite"
             >
-              <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A]/[0.06] text-[#0B1F3A]" aria-hidden="true">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                  </svg>
-                </span>
-                <div>
-                  <h2 id="h1b-result-heading" className="text-lg font-semibold tracking-tight text-[#0B1F3A]">
-                    Published OFLC Wage Information
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-500">
-                    Official wage data for the selected occupation and worksite.
+              <h2 id="h1b-v2-result-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Your estimate
+              </h2>
+
+              {!result && !resultError && !officialWage ? (
+                <div className="mt-3 flex min-h-[12rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-4 py-6 text-center">
+                  <p className="text-sm font-medium text-slate-700">Results will appear here</p>
+                  <p className="mt-1 max-w-[16rem] text-xs text-slate-500">
+                    Enter your job details and tap Estimate Wage Level.
                   </p>
                 </div>
-              </div>
-
-              {!wage && !wageMessage && !wageLoading ? <div className="mt-6"><ResultEmptyState /></div> : null}
-
-              {wageLoading ? (
-                <p className="mt-6 text-sm text-slate-600">Looking up published OFLC wages…</p>
-              ) : null}
-
-              {wageMessage ? (
-                <div className="mt-6 rounded-2xl bg-amber-50 px-4 py-3.5 ring-1 ring-amber-200/80" role="alert">
-                  <p className="text-sm font-semibold text-amber-950">{wageMessage}</p>
+              ) : resultError && !officialWage ? (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4" role="alert">
+                  <p className="text-sm font-semibold text-amber-950">{resultError}</p>
                 </div>
-              ) : null}
-
-              {wage ? (
-                <div className="mt-6 space-y-4">
-                  <div className="flex flex-col gap-3 rounded-xl bg-[#F4F7FB] px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xl font-semibold tracking-tight text-[#0B1F3A]">{wage.occupation_title}</p>
-                      <p className="mt-1 text-sm text-slate-500">SOC {wage.soc_code}</p>
+              ) : result && result.ok ? (
+                <div className="mt-3 space-y-4">
+                  <div className="rounded-lg border border-brand-200 bg-gradient-to-br from-brand-50/80 to-white p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                      Estimated Wage Level
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <p className="text-2xl font-bold text-slate-900">Level {result.estimatedLevel}</p>
+                      <p className="text-sm text-slate-600">
+                        Confidence:{" "}
+                        <span className="font-semibold text-slate-900">{result.confidence}</span>
+                      </p>
                     </div>
-                    {wageLookup?.geography.resolved_area?.area_name ? (
-                      <div className="max-w-sm sm:text-right">
-                        <p className="flex items-start gap-1.5 text-sm font-medium text-slate-800 sm:justify-end">
-                          <svg className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                          </svg>
-                          {wageLookup.geography.resolved_area.area_name}
-                        </p>
-                        <p className="mt-1 flex items-center gap-2 text-xs text-slate-500 sm:justify-end">
-                          <span>Wage Area</span>
-                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-                            AUTO
-                          </span>
-                        </p>
-                      </div>
-                    ) : null}
+                    <p className="mt-2 text-xs text-slate-500">
+                      IMMIFIN estimate based on the information you entered. Not an official DOL Prevailing Wage Determination.
+                    </p>
                   </div>
 
-                  {wage.label ? (
-                    <p className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-                      {wage.label}
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                    <p>
+                      <span className="font-medium text-slate-900">Selected occupation:</span> {result.occupation.title}
                     </p>
+                    {getOccupationByCode(result.occupation.code) ? (
+                      <p className="mt-0.5 text-xs text-slate-500">{getOccupationByCode(result.occupation.code)?.group}</p>
+                    ) : null}
+                    <p className="mt-1.5">
+                      <span className="font-medium text-slate-900">Official wage area:</span> {result.locationLabel}
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                    <table className="w-full min-w-[36rem] text-left text-sm">
+                      <thead className="border-b border-slate-200 bg-slate-50/80">
+                        <tr>
+                          <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            Wage level
+                          </th>
+                          {result.usedAnnualEquivalent ? (
+                            <>
+                              <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                Official wage
+                                <span className="mt-0.5 block font-medium">(Hourly rate)</span>
+                              </th>
+                              <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                Annual equivalent
+                                <span className="mt-0.5 block font-medium">(2,080 hours)</span>
+                              </th>
+                            </>
+                          ) : (
+                            <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                              Official wage
+                            </th>
+                          )}
+                          <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            Your salary position
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.salaryComparison.map((row) => (
+                          <tr key={row.level} className="border-b border-slate-100 last:border-0">
+                            <td className="px-3 py-2 font-medium text-slate-900">Level {row.level}</td>
+                            {result.usedAnnualEquivalent ? (
+                              <>
+                                <td className="whitespace-nowrap px-3 py-2 text-slate-700">
+                                  {formatOfficialWageAmount(row.officialHourly, "hour")}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-2 text-slate-700">
+                                  {formatCurrency(row.annualWage)}
+                                </td>
+                              </>
+                            ) : (
+                              <td className="px-3 py-2 text-slate-700">{formatCurrency(row.annualWage)}</td>
+                            )}
+                            <td className={`px-3 py-2 ${salaryPositionClassName(row.position)}`}>
+                              {salaryPositionLabel(row.position)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {result.usedAnnualEquivalent ? (
+                    <p className="text-xs text-slate-500">{ANNUAL_EQUIVALENT_DISCLAIMER}</p>
                   ) : null}
 
-                  {wageRows.length > 0 ? (
-                    <div className="overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-18px_rgba(11,31,58,0.45)] ring-1 ring-slate-200/70">
-                      <div className="overflow-x-auto">
-                        <table className="w-full min-w-[32rem] text-left">
-                          <thead className="bg-[#0B1F3A] text-white">
-                            <tr>
-                              <th className="px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.12em]">
-                                Wage Level
-                              </th>
-                              <th className="border-l border-white/10 px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.12em]">
-                                {officialColumnHeading(wage)}
-                                {officialWageDisplayUnit(wage.label) !== "unspecified" ? (
-                                  <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-slate-300">
-                                    (OFLC)
-                                  </span>
-                                ) : null}
-                              </th>
-                              {showAnnualEquivalent ? (
-                                <th className="border-l border-white/10 px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.12em]">
-                                  Annual Equivalent
-                                  <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-slate-300">
-                                    (IMMIFIN calculation)
-                                  </span>
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Reasoning</p>
+                    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-600">
+                      {result.reasoning.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Link
+                      href={`${LOTTERY_CALCULATOR_HREF}?wageLevel=${result.estimatedLevel}`}
+                      className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800"
+                    >
+                      Use this wage level in H-1B Lottery Odds Calculator
+                    </Link>
+                    <Link
+                      href={LOTTERY_CALCULATOR_HREF}
+                      className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                    >
+                      Calculate lottery odds manually
+                    </Link>
+                  </div>
+                </div>
+              ) : officialWage ? (
+                <div className="mt-3 space-y-4">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4" role="status">
+                    <p className="text-sm font-semibold text-amber-950">
+                      {result && !result.ok ? result.message : OFFICIAL_WAGE_UNAVAILABLE_COPY}
+                    </p>
+                    {shouldShowNoLeveledCopy(officialWage) ? (
+                      <p className="mt-2 text-sm text-amber-900">{NO_LEVELED_WAGE_COPY}</p>
+                    ) : null}
+                    {officialWageDisplayUnit(officialWage.label) === "unspecified" ? (
+                      <p className="mt-2 text-sm text-amber-900">
+                        Official Level I–IV values are not available for this record. IMMIFIN does not invent missing wage levels.
+                      </p>
+                    ) : null}
+                  </div>
+                  {officialWageDisplayRows(officialWage).length > 0 ? (
+                    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                      <table className="w-full min-w-[28rem] text-left text-sm">
+                        <thead className="border-b border-slate-200 bg-slate-50/80">
+                          <tr>
+                            <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                              Wage level
+                            </th>
+                            {officialWageDisplayUnit(officialWage.label) === "hour" ? (
+                              <>
+                                <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                  Official wage
+                                  <span className="mt-0.5 block font-medium">(Hourly rate)</span>
                                 </th>
+                                <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                  Annual equivalent
+                                  <span className="mt-0.5 block font-medium">(2,080 hours)</span>
+                                </th>
+                              </>
+                            ) : (
+                              <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                Official wage
+                              </th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {officialWageDisplayRows(officialWage).map((row) => (
+                            <tr key={row.key} className="border-b border-slate-100 last:border-0">
+                              <td className="px-3 py-2 font-medium text-slate-900">{row.label}</td>
+                              <td className="whitespace-nowrap px-3 py-2 text-slate-700">{row.official}</td>
+                              {row.annualEquivalent ? (
+                                <td className="whitespace-nowrap px-3 py-2 text-slate-700">{row.annualEquivalent}</td>
                               ) : null}
                             </tr>
-                          </thead>
-                          <tbody>
-                            {wageRows.map((row, index) => {
-                              const isAverage = row.key === "average";
-                              return (
-                                <tr
-                                  key={row.key}
-                                  className={`${isAverage ? "bg-[#F3F7FB]" : "bg-white"} ${index > 0 ? "border-t border-slate-100" : ""}`}
-                                >
-                                  <td className={`px-5 py-4 text-[#0B1F3A] ${isAverage ? "font-semibold" : "font-medium"}`}>
-                                    {row.label}
-                                  </td>
-                                  <td className={`px-5 py-4 tabular-nums text-slate-700 ${isAverage ? "font-semibold text-[#0B1F3A]" : ""}`}>
-                                    {row.official}
-                                  </td>
-                                  {showAnnualEquivalent ? (
-                                    <td className={`px-5 py-4 tabular-nums ${isAverage ? "font-semibold text-[#0B1F3A]" : "font-semibold text-slate-900"}`}>
-                                      {row.annualEquivalent}
-                                    </td>
-                                  ) : null}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   ) : null}
-
-                  {showAnnualEquivalent ? (
-                    <div className="flex items-start gap-2.5 rounded-xl bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-950">
-                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                      </svg>
-                      <p>{ANNUAL_EQUIVALENT_DISCLAIMER}</p>
-                    </div>
-                  ) : null}
-
-                  {shouldShowNoLeveledCopy(wage) ? (
-                    <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
-                      {NO_LEVELED_WAGE_COPY}
-                    </p>
-                  ) : null}
-
-                  {source ? <SourcePanel source={source} /> : null}
+                  <Link
+                    href={LOTTERY_CALCULATOR_HREF}
+                    className="flex min-h-[40px] items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                  >
+                    Calculate lottery odds manually
+                  </Link>
                 </div>
               ) : null}
             </section>
           </div>
         </form>
 
-        <div className="flex items-start gap-3 px-1 py-1">
-          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        <div className="flex gap-2.5 rounded-[1.25rem] border border-amber-200/80 bg-amber-50/80 p-4">
+          <span className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
           </span>
-          <p className="text-sm leading-6 text-slate-500">
-            This tool shows published OFLC wage data. IMMIFIN does not issue a Prevailing Wage
-            Determination, choose the wage level that applies to a specific position, or determine an
-            employer&apos;s legal wage obligation.
+          <p className="text-sm text-amber-950/80">
+            <strong className="font-semibold text-amber-950">Disclaimer:</strong> This tool provides an
+            educational IMMIFIN estimate only. It does not issue a Prevailing Wage Determination and does not
+            determine which wage level legally applies to a position. H-1B wage level classification depends on
+            the official LCA, SOC code, worksite location, job duties, education, experience, supervision, and
+            employer wage documentation. {ANNUAL_EQUIVALENT_DISCLAIMER} IMMIFIN does not provide legal advice.
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
