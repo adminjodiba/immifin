@@ -4,7 +4,7 @@
 
 This document is **not** a changelog, backlog, or status report. For those, see [CHANGELOG.md](./CHANGELOG.md), [SPRINT_BACKLOG.md](./SPRINT_BACKLOG.md), and [PROJECT_STATUS.md](./PROJECT_STATUS.md).
 
-**Last updated:** 2026-09-21
+**Last updated:** 2026-09-22
 
 ---
 
@@ -345,6 +345,34 @@ Read-only analysis (zero database mutations) of official imported, non-active De
 
 ---
 
+## Decision 009 — Official OFLC All Industries H-1B wage page (H1BWAGE-CHECKPOINT-019)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The live H-1B Wage page uses official OFLC All Industries data: official occupation search, authoritative ZIP/county geography, and exact official wage lookup. Ordinary hourly values may show an IMMIFIN annual equivalent of `hourly × 2,080`. The current page is the **functionally approved baseline**, not the final Immigration visual design. |
+| **Date** | 2026-09-22 |
+| **Status** | Accepted — local Dev functional baseline. Not Production-deployed. |
+| **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
+
+**Reason:**
+
+The Product Owner approved the official-data functional state and stopped further page-specific visual polish. Immigration navigation, common page shell, H-1B Wage, H-1B Lottery Odds, and related Immigration tools will be redesigned together after the current SCO/SEO workstream.
+
+**Approved product rules:**
+
+1. Official OFLC All Industries is the foundation for the active page.
+2. Official occupation search (848 titles from the ACTIVE dataset) replaces the 722-title seed for the active page. The 722 seed remains on disk until a later cleanup.
+3. Browser geographic authority is `zip` + optional `county_fips`. `area_code` is never browser authority.
+4. Published wage levels are displayed. IMMIFIN does not choose which wage level legally applies to a user's position.
+5. Ordinary hourly official values may show an annual equivalent of `hourly × 2,080` (40 hours × 52 weeks).
+6. Annual equivalent is an IMMIFIN presentation-only calculation. It is not stored and is not an OFLC-published annual wage.
+7. Official **Annual Wage** records are already annual and must not be multiplied by 2,080.
+8. **High Wage** and **No Leveled Wage** values are not fabricated. Null levels stay null.
+9. IMMIFIN does not issue a Prevailing Wage Determination or determine an employer's legal wage obligation.
+10. Final Immigration visual redesign is deferred until after the SCO/SEO workstream.
+
+---
+
 ## Future Decisions
 
 *(No entries yet. Add new decisions here as they are accepted.)*
@@ -363,4 +391,4 @@ Read-only analysis (zero database mutations) of official imported, non-active De
 | [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) | Infrastructure and environments |
 | [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) | Workflow and engineering rules |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build, deploy, and secrets |
-| [CALCULATORS.md](./CALCULATORS.md) | Existing educational H-1B Wage Level Estimator (distinct from official OFLC lookup) |
+| [CALCULATORS.md](./CALCULATORS.md) | Live H-1B Wage official OFLC baseline + remaining educational Lottery Odds estimator |

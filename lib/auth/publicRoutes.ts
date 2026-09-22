@@ -32,6 +32,12 @@ export const PUBLIC_ROUTE_PATTERNS = [
   // Official H-1B worksite geography lookup. Same Free/public entitlement as
   // the existing H-1B calculator pages. Auth is not invented here.
   "/api/h1b/worksite-geography(.*)",
+  // Official H-1B OFLC wage lookup. Same Free/public entitlement as
+  // the existing H-1B calculator pages. Auth is not invented here.
+  "/api/h1b/official-wage(.*)",
+  // Official H-1B OFLC occupation search. Same Free/public entitlement as
+  // the existing H-1B calculator pages. Auth is not invented here.
+  "/api/h1b/official-occupations(.*)",
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",

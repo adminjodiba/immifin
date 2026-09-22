@@ -1,6 +1,6 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` uses Production Supabase `pmkx...ysdv`; localhost and the CLI remain Dev `vnhn...toxs`)  
+**Last Updated:** 2026-09-22 (H1BWAGE-CHECKPOINT-019 — official H-1B wage platform is a functionally approved **local Dev** baseline; not Production-deployed; Immigration visual redesign deferred until after SCO/SEO)  
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -427,9 +427,9 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 4. Prepare invite-only IMMIFIN beta cohort and support readiness.  
 5. Enable Intelligence only after Pre-Beta Enablement Gate + PO approval.  
 6. Collect real-user feedback before new feature sprints.  
-7. **H1B wage platform (021):** when a later task authorizes it, apply `supabase/migrations/20260919160000_021_oflc_wage_platform.sql` to **Dev only**. Do not apply 021 to Production until after Dev verification and a separate Production approval.
+7. **H1B official wage platform:** local functional baseline approved (CHECKPOINT-019). Do **not** apply 021 to Production until a separate Production approval. Do **not** treat the current H-1B page as the final Immigration visual design.
 
-Do **not** begin Sprint 9 automatically. Do **not** apply 021 from this closeout.
+Do **not** begin Sprint 9 automatically. Do **not** apply 021 to Production from this checkpoint.
 
 ---
 
@@ -447,7 +447,7 @@ The Dev → Production Supabase cutover is **complete**. Isolation is proven. Th
 | **Write freeze** | Production `IMMIFIN_WRITE_FREEZE` **disabled**. Local flag **absent**. |
 | **Isolation proof** | Authenticated live Admin page load updated Production `profiles.last_seen_at`. Corresponding Dev `last_seen_at` unchanged. |
 | **Dev data** | Retained intact for rollback. Do not delete or archive Dev. |
-| **Schema** | **001–020** applied on Dev and Production. **021 unapplied** on both. No H-1B wage tables yet. |
+| **Schema** | **001–020** applied on Dev and Production. **021 applied on Dev only.** **021 unapplied on Production.** Production has no H-1B wage tables. |
 
 Verified operational row counts at cutover close (exact `count(*)`):
 
@@ -462,7 +462,17 @@ Verified operational row counts at cutover close (exact `count(*)`):
 | `admin_audit_log` | 21 |
 | `admin_role_changes` | 1 |
 
-**H1B resume:** schema file `supabase/migrations/20260919160000_021_oflc_wage_platform.sql` exists locally. Next eligible apply is **Dev only**. Production apply is a later separately approved operation. Do not apply 021 or load OFLC/HUD from this closeout.
+**H1B official wage platform (local Dev only — H1BWAGE-CHECKPOINT-019):**
+
+- Geography foundation and UI complete locally.
+- Official wage API (`POST /api/h1b/official-wage`) complete locally.
+- Official occupation API (`GET /api/h1b/official-occupations`) complete locally.
+- Official UI integration complete locally at `/immigration/h1b-wage-level-estimator`.
+- Annual-equivalent presentation (`hourly × 2,080`) complete locally.
+- Product Owner approved the **functional** baseline. Visual redesign is deferred until the Immigration-wide redesign after SCO/SEO.
+- This functionality is **not** Production-deployed.
+
+Production apply of 021 remains a later separately approved operation.
 
 Architecture and operator rules: [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
@@ -524,4 +534,5 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-15 | S7A-RELEASE-MERGE-010 | origin/main persistent-cache/SEO reconciled into Sprint 7A go-live release |
 | Prior | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 | Final Sprint 7A as-built closeout; push/deploy still pending Product Owner approval |
 | Local | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 | Parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. Not committed. |
-| **Current** | **2026-09-20** | **S7A-SUPABASE-PROD-CUTOVER-CLOSE-001** | `immifin.com` on Production Supabase `pmkx...ysdv`; localhost + CLI remain Dev `vnhn...toxs`; 021 unapplied; H1B resume is Dev-only |
+| Prior | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 | `immifin.com` on Production Supabase `pmkx...ysdv`; localhost + CLI remain Dev `vnhn...toxs` |
+| **Current** | **2026-09-22** | **H1BWAGE-CHECKPOINT-019** | Official H-1B wage platform functionally approved on **local Dev**; 021 on Dev only; Production 021 unapplied; visual redesign deferred until after SCO/SEO |

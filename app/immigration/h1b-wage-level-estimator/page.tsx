@@ -5,7 +5,7 @@ import { createMetadata } from "@/lib/metadata";
 export const metadata = createMetadata({
   title: "H-1B Wage Level Estimator",
   description:
-    "Estimate your likely H-1B wage level using occupation, location, salary, experience, and education.",
+    "Look up published OFLC wages for an official occupation and worksite ZIP.",
   path: "/immigration/h1b-wage-level-estimator",
 });
 
