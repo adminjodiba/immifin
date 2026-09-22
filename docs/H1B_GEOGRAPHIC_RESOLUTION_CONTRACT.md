@@ -3,14 +3,14 @@
 | Field | Value |
 |-------|-------|
 | **Document ID** | **GEO-RESOLUTION-DESIGN-002** |
-| **Role** | Authoritative **technical contract** for future ZIP → county → OFLC-area runtime |
+| **Role** | Authoritative **technical contract** for ZIP → county → OFLC-area runtime, plus the frozen county-choice UX contract |
 | **Product decision (input)** | [GEO-RESOLUTION-DECISION-001](./PROJECT_DECISIONS.md#decision-008--geo-resolution-decision-001-hud-zip--oflc-geographic-resolution) — Decision 008 |
-| **Status** | Approved design — **runtime not implemented** |
+| **Status** | Approved — resolver and public API implemented locally; **GEO-RESOLUTION-UX-011 county-choice UX frozen**; UI not implemented |
 | **Date** | 2026-09-21 |
 | **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
 | **Owner** | Technical Architecture (CTO) |
 
-This document defines the future resolver contract. It does not implement an API, UI, schema, or loader.
+This document is the single source of truth for official worksite geographic resolution. County-choice UX is frozen in §27. This document does **not** implement UI, wage lookup, SOC lookup, or a Production dataset activation.
 
 GEO-RESOLUTION-DECISION-001 remains the authoritative **product** decision. If this contract and Decision 001 ever conflict on policy, Decision 001 wins and this contract must be revised.
 
@@ -28,13 +28,16 @@ It does **not** select a wage level, SOC, or legal obligation.
 |-------|-----------|
 | **Backend resolver** | Sole authority for ZIP normalization, HUD row selection, FIPS mapping, classification, county validation, reason codes, and provenance |
 | **Frontend** | Collects ZIP (text) and, when required, a work-location `county_fips`; renders the resolver result; never chooses an OFLC area on its own |
-| **Client-supplied `area_code`** | Not an input. Ignored if present |
+| **Client-supplied `area_code`** | Not an input. The implemented API **rejects** it as an unsupported field. It must never be submitted as authority |
 
-Logical operation (not an implemented route):
+Implemented public adapter:
 
 ```text
-resolveGeography({ zip, county_fips? }) → GeographyResolution
+POST /api/h1b/worksite-geography
+  { zip, county_fips? } → product-facing GeographyResolution
 ```
+
+The route is an adapter only. `resolveWorksiteGeography()` remains the geographic authority.
 
 ---
 
@@ -463,16 +466,17 @@ It is published OFLC **wage-record** metadata. After this resolver returns an `a
 
 ## 22. Frontend responsibilities
 
+The frozen county-choice UX contract is **§27 (GEO-RESOLUTION-UX-011)**. Summary:
+
 - Collect worksite ZIP as **text** (do not coerce to number).
-- Call the backend resolver. Do not classify locally from cached HUD dumps.
-- `AUTO`: proceed; no county control.
-- `CHOICE_REQUIRED`: ask “Which county is the work location?”; submit `zip` + `county_fips` only.
-- Show county + state; area name is secondary context.
-- `UNAVAILABLE`: safe unavailable / manual-resolution UI (copy later).
+- Call `POST /api/h1b/worksite-geography`. Do not classify locally from cached HUD dumps.
+- `AUTO`: continue automatically; do **not** ask for county.
+- `CHOICE_REQUIRED`: show county choices; submit `zip` + `county_fips` only.
+- `UNAVAILABLE`: fail safely; do not guess.
 - Never send `area_code` as authority.
 - Never apply Scenario B/C/D.
 - Never claim a Prevailing Wage Determination.
-- Do not start localhost or implement UI under this document.
+- Do not implement UI under this documentation task.
 
 ---
 
@@ -507,7 +511,7 @@ Responses and future UI must not claim that IMMIFIN:
 
 ## 25. Concrete examples
 
-Logical payloads. Not an implemented API. UUIDs omitted.
+Logical payloads. Implemented wire field names and UX rules are in §27. UUIDs omitted.
 
 ### 25.1 ZIP `77433` — AUTO
 
@@ -608,7 +612,176 @@ Fail closed. Do not AUTO to Houston by dropping `00048`.
 
 ## 26. Implementation status
 
-Not implemented. No route, UI, migration, or activation is authorized by this document.
+| Layer | Status |
+|-------|--------|
+| Backend resolver | Implemented locally (GEO-RESOLUTION-CHECKPOINT-007, HEAD family `a65063f`) |
+| Dev dataset activation | HUD 2026 Q2 + OFLC 2026-27 All Industries **active in Dev** (GEO-RESOLUTION-OPS-008). Production untouched and inactive. |
+| Public API | Implemented locally: `POST /api/h1b/worksite-geography` (GEO-RESOLUTION-API-009 / CHECKPOINT-010, `0a97c0d`) |
+| County-choice UX contract | **Frozen** in §27 (GEO-RESOLUTION-UX-011) |
+| UI / county picker | **Not implemented.** Not authorized by this document. |
+| Wage / SOC / GeoLvl lookup | **Not implemented.** |
+
+This document does not authorize UI implementation, Production activation, push, or deploy.
+
+---
+
+## 27. County-choice UX contract (GEO-RESOLUTION-UX-011)
+
+Frozen frontend/backend interaction contract for `POST /api/h1b/worksite-geography`.
+
+This section freezes **behavior** before H-1B Wage UI work. Exact unavailable-state wording may be refined during UI implementation. The rules below may not be weakened by the UI.
+
+The frontend consumes the API. It must **not** recreate HUD interpretation, county identity, OFLC mapping, AUTO / CHOICE_REQUIRED / UNAVAILABLE classification, or final wage-area resolution.
+
+### 27.1 Frozen flow
+
+```text
+User enters worksite ZIP
+        |
+        v
+POST /api/h1b/worksite-geography
+        |
+        +----------------------+--------------------+
+        |                      |                    |
+        v                      v                    v
+      AUTO              CHOICE_REQUIRED        UNAVAILABLE
+        |                      |                    |
+        |                Show county choices        |
+        |                County Name + State        |
+        |                Wage Area underneath       |
+        |                      |                    |
+        |                User chooses county        |
+        |                      |                    |
+        |                Submit zip + county_fips   |
+        |                      |                    |
+        +-----------+----------+                    |
+                    |                               |
+                    v                               v
+           Backend resolves              Safe unavailable state
+           official OFLC area            No guessing
+                    |                    No wage-area assumption
+                    v
+             Later wage-lookup flow
+             (not this contract)
+```
+
+Trust `outcome`. Do **not** infer CHOICE_REQUIRED from `official_county_count > 1`.
+
+### 27.2 Implemented request wire contract
+
+`POST /api/h1b/worksite-geography` accepts JSON only.
+
+| Wire field | Required | Type | Role |
+|------------|----------|------|------|
+| `zip` | Yes | string | Worksite ZIP text. Do not send a number. |
+| `county_fips` | No | string | Internal work-location county identity. Required to complete `CHOICE_REQUIRED`. |
+
+Any other field is a request-contract error (HTTP 400), including:
+
+`area_code`, HUD version / year / quarter, OFLC dataset ID / wage year / data source, `BUS_RATIO` / `RES_RATIO` / `TOT_RATIO`, GeoLvl, city, state, county name, area name.
+
+The API does **not** silently ignore `area_code`. It rejects it.
+
+### 27.3 Implemented response wire contract
+
+A valid request that the resolver processed returns **HTTP 200**, including `UNAVAILABLE` domain outcomes. HTTP 400/413 are request-shape failures only.
+
+| Wire field | Type | UX use |
+|------------|------|--------|
+| `outcome` | `AUTO` \| `CHOICE_REQUIRED` \| `UNAVAILABLE` | Branch the UI. Backend authority. |
+| `reason_code` | string | Domain reason. Not user-facing FIPS. |
+| `normalized_zip` | string | Canonical ZIP after backend normalization. |
+| `selected_county_fips` | string \| null | Internal. Set after a valid county submission. Never display. |
+| `official_county_count` | number | Diagnostics / provenance. Not a choice trigger. |
+| `mapped_county_count` | number | Diagnostics. Not a choice trigger. |
+| `unmapped_county_count` | number | Diagnostics. |
+| `distinct_area_count` | number | Diagnostics. Not a choice trigger. |
+| `resolved_area` | `{ area_code, area_name }` \| null | Display `area_name` as wage-area context when present. Never submit `area_code`. |
+| `choice_options` | array | `CHOICE_REQUIRED` picker source. |
+| `mapped_counties` | array | Official mapped county context. Do not use to invent a picker when `outcome` is `AUTO`. |
+| `unmapped_official_counties` | array | Unavailable / fail-closed context. Do not display `county_fips`. |
+
+Each `choice_options` / `mapped_counties` item:
+
+| Wire field | Type | UX use |
+|------------|------|--------|
+| `county_fips` | string | **Internal identity only.** Never show to the user. This is what the frontend submits after a choice. |
+| `county_display_name` | string | Primary label county portion (published OFLC name, e.g. `Coke County`). |
+| `state_display_name` | string | Primary label state portion (published OFLC name, e.g. `Texas`). |
+| `area_code` | string | **Not user-facing identity. Not submission authority.** |
+| `area_name` | string | Secondary explanatory wage-area context. |
+
+Internal provenance (dataset UUIDs, package SHAs, contract IDs) is **not** exposed on this API.
+
+### 27.4 AUTO
+
+When `outcome` is `AUTO`:
+
+- Do **not** ask the user to select a county.
+- Continue automatically with `resolved_area`.
+- Do not expose unnecessary geographic complexity.
+- Multi-county HUD rows that share one OFLC area remain AUTO (example: `77031` → Fort Bend + Harris → `26420`). Frontend must not open a picker because `official_county_count` or `mapped_counties.length` is greater than 1.
+
+### 27.5 CHOICE_REQUIRED
+
+When `outcome` is `CHOICE_REQUIRED`:
+
+IMMIFIN must ask the user to select the correct county / worksite location.
+
+Render **one control per `choice_options` item**. Do not rank, filter, drop BUS=0 rows, or default a county.
+
+**Conceptual primary label:** County Name + State.
+
+Product Owner example: `Coke County, TX`.
+
+**Implemented composition:** `{county_display_name}, {state_display_name}` from the option, as published by the backend (validated example: `Coke County, Texas`). The current API does **not** expose a two-letter state abbreviation. The frontend must not invent `TX` from `Texas`.
+
+**Conceptual secondary context:** Wage Area Name.
+
+Product Owner example: `Wage area: Hill Country Region of Texas nonmetropolitan area`.
+
+**Implemented field:** `area_name` on that same option. Display as explanatory context only.
+
+Never display `county_fips` or `area_code` as selection text.
+
+### 27.6 After the user chooses a county
+
+Submit **only**:
+
+```json
+{ "zip": "<same worksite ZIP text>", "county_fips": "<chosen option.county_fips>" }
+```
+
+to the same `POST /api/h1b/worksite-geography`.
+
+The frontend must **not** submit `area_code`. The backend re-resolves ZIP + `county_fips` to the official OFLC area.
+
+A valid second step returns `AUTO` with `selected_county_fips` and `resolved_area` (example: `76945` + `48451` → `41660` San Angelo, TX). A county that is not official for that ZIP returns `UNAVAILABLE` / `INVALID_COUNTY_FOR_ZIP` (example: `76945` + `48201`).
+
+### 27.7 UNAVAILABLE
+
+When `outcome` is `UNAVAILABLE`:
+
+- Fail safely.
+- Do not guess a county.
+- Do not guess or invent an OFLC area.
+- Do not treat `mapped_counties` as an implicit AUTO fallback.
+- Show a clear user-facing unavailable state.
+
+Exact copy may be refined during UI implementation. The fail-closed behavior is frozen now.
+
+### 27.8 Display vs authority (do not conflate)
+
+| Concept | User-facing? | Authority submitted back? | Wire field |
+|---------|--------------|---------------------------|------------|
+| County name | Yes — primary | No | `county_display_name` |
+| State | Yes — primary | No | `state_display_name` |
+| Wage area name | Yes — secondary context | No | `area_name` / `resolved_area.area_name` |
+| County FIPS | **No** | **Yes**, after a choice | `county_fips` / `selected_county_fips` |
+| OFLC area code | **No** | **No** | `area_code` / `resolved_area.area_code` |
+| Worksite ZIP | Yes — collected as text | **Yes** | `zip` |
+
+County FIPS may exist in API payloads, frontend internal state, backend resolution, safe logs, and database records. It must not appear as user-facing selection text.
 
 ---
 

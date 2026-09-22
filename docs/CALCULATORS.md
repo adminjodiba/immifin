@@ -117,5 +117,5 @@ Listed on `/calculators` for roadmap visibility — no `href`, not navigable:
 | [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) | Sprint 5 calculator deliverables |
 | [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) | Production status |
 | [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) | Dataset freshness tracked for H-1B / bulletin data |
-| [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008 | Approved official HUD ZIP → OFLC geographic-resolution policy (not implemented) |
-| [H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md) | GEO-RESOLUTION-DESIGN-002 runtime contract (not implemented) |
+| [PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008 | Approved official HUD ZIP → OFLC geographic-resolution policy |
+| [H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md) | GEO-RESOLUTION-DESIGN-002 runtime contract + GEO-RESOLUTION-UX-011 county-choice UX freeze (UI not implemented) |

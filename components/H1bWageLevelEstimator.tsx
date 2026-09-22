@@ -13,6 +13,7 @@ import {
   type ExperienceRange,
   type SalaryPosition,
 } from "@/lib/h1b/wageLevelEstimator";
+import { WorksiteGeographyLookup } from "@/components/h1b/WorksiteGeographyLookup";
 import {
   formatOccupationTitle,
   getOccupationByCode,
@@ -176,6 +177,7 @@ export function H1bWageLevelEstimator() {
   const [experience, setExperience] = useState<ExperienceRange>("4-6");
   const [education, setEducation] = useState<EducationLevel>("Master");
   const [result, setResult] = useState<EstimatorResult | null>(null);
+  const [geographyReady, setGeographyReady] = useState(false);
   const occupationPickerRef = useRef<HTMLDivElement>(null);
 
   const occupationMatches = searchOccupations(occupationQuery);
@@ -219,7 +221,7 @@ export function H1bWageLevelEstimator() {
       return;
     }
 
-    if (!workCity.trim() || !state || !Number.isFinite(salary) || salary <= 0) {
+    if (!geographyReady || !workCity.trim() || !state || !Number.isFinite(salary) || salary <= 0) {
       return;
     }
 
@@ -321,6 +323,8 @@ export function H1bWageLevelEstimator() {
                     <p className="mt-1 text-xs text-amber-700">No matching occupations. Try a different keyword.</p>
                   ) : null}
                 </div>
+
+                <WorksiteGeographyLookup onResolvedChange={setGeographyReady} />
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
@@ -435,6 +439,7 @@ export function H1bWageLevelEstimator() {
 
               <button
                 type="submit"
+                disabled={!geographyReady}
                 className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
               >
                 Estimate Wage Level

@@ -93,13 +93,14 @@ Full rules: [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) §8 · Decision
 
 ## H-1B official wage geography
 
-Future official OFLC wage lookup must follow **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008). The authoritative runtime contract is **GEO-RESOLUTION-DESIGN-002** ([H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md)).
+Future official OFLC wage lookup must follow **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECISIONS.md](./PROJECT_DECISIONS.md) Decision 008). The authoritative runtime and county-choice UX contract is [H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md) (DESIGN-002 + UX-011).
 
 - Preserve every official HUD ZIP-to-county row. Do not silently drop a county because of `BUS_RATIO`, `RES_RATIO`, or `TOT_RATIO`.
 - Auto-resolve only when those official counties map to **one** OFLC area, including multi-county / single-area ZIPs.
 - If official counties map to more than one OFLC area, obtain the work-location county from the user.
 - GeoLvl is published wage-record metadata. It is not a geographic-resolution input.
-- This convention is policy only. The runtime is not implemented here.
+- Frontend consumes `POST /api/h1b/worksite-geography`. It must not recreate resolver logic or submit `area_code` as authority.
+- UI / county picker is not implemented here.
 
 ---
 

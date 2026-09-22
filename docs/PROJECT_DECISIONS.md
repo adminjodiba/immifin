@@ -155,7 +155,7 @@ This document is **not** a changelog, backlog, or status report. For those, see 
 | **Date** | 2026-09-21 |
 | **Status** | **Accepted** |
 | **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
-| **Implementation** | **Not implemented.** This decision records product policy only. Runtime contract: [GEO-RESOLUTION-DESIGN-002](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md). |
+| **Implementation** | Resolver + Dev activation + public API implemented locally. County-choice UX frozen in [GEO-RESOLUTION-UX-011](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md#27-county-choice-ux-contract-geo-resolution-ux-011). **UI not implemented.** |
 
 **Approved product principle:**
 
@@ -192,7 +192,7 @@ When a future runtime looks up published OFLC wage geography from a worksite ZIP
 12. **GeoLvl must not participate** in ZIP / county / OFLC geographic resolution.
 13. GeoLvl remains metadata on the published OFLC wage record and must be preserved when displaying that wage record.
 
-This decision does **not** implement the runtime, the county-choice UI, or the unavailable-state wording.
+This decision does **not** implement the county-choice UI or final unavailable-state wording. Runtime, API, and UX-interaction rules live in [H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md](./H1B_GEOGRAPHIC_RESOLUTION_CONTRACT.md).
 
 ### Dataset invariant (analyzed official Dev geography)
 
