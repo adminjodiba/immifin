@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildOfficialOccupationSearchPath } from "@/lib/h1b/occupations/client/officialOccupationSearchClient";
+import {
+  buildOfficialOccupationSearchPath,
+  parseOfficialOccupationSearchResponse,
+} from "@/lib/h1b/occupations/client/officialOccupationSearchClient";
 
 describe("officialOccupationSearchClient", () => {
   it("builds a GET path with only q", () => {
@@ -17,5 +20,26 @@ describe("officialOccupationSearchClient", () => {
     assert.equal(params.get("q"), "15-1252");
     assert.equal(params.has("area_code"), false);
     assert.equal(params.has("dataset_id"), false);
+  });
+
+  it("parses approved display enrichment without requiring reason_code", () => {
+    const parsed = parseOfficialOccupationSearchResponse({
+      outcome: "AUTO",
+      results: [
+        {
+          soc_code: "15-1252",
+          title: "Software Developers",
+          group: "Computer & Mathematical Occupations",
+          common_job_titles: ["software engineer"],
+          typical_h1b: true,
+          match_confidence: "High",
+        },
+      ],
+    });
+    assert.equal(parsed?.outcome, "AUTO");
+    assert.equal(parsed?.results[0]?.soc_code, "15-1252");
+    assert.equal(parsed?.results[0]?.typical_h1b, true);
+    assert.equal(parsed?.results[0]?.match_confidence, "High");
+    assert.equal(parsed ? "reason_code" in parsed : true, false);
   });
 });

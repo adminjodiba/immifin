@@ -4,6 +4,7 @@ import {
   buildWorksiteGeographyRequestBody,
   formatCountyChoicePrimaryLabel,
   formatWageAreaContext,
+  parseWorksiteGeographyResponse,
   userFacingGeographyMessage,
   WORKSITE_GEOGRAPHY_INVALID_ZIP_COPY,
   WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
@@ -57,5 +58,54 @@ describe("worksiteGeographyClient", () => {
       userFacingGeographyMessage("UNAVAILABLE_TERRITORY_UNJOINED"),
       WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
     );
+  });
+
+  it("parses AUTO area_name without requiring area_code", () => {
+    const parsed = parseWorksiteGeographyResponse({
+      outcome: "AUTO",
+      reason_code: "AUTO_SINGLE_AREA",
+      normalized_zip: "77433",
+      selected_county_fips: "48201",
+      resolved_area: { area_name: "Houston-Pasadena-The Woodlands, TX" },
+      choice_options: [],
+    });
+    assert.equal(parsed?.outcome, "AUTO");
+    assert.equal(parsed?.resolved_area?.area_name, "Houston-Pasadena-The Woodlands, TX");
+    assert.equal(parsed ? "area_code" in (parsed.resolved_area ?? {}) : true, false);
+    assert.equal(formatWageAreaContext(parsed?.resolved_area?.area_name ?? ""), "Wage area: Houston-Pasadena-The Woodlands, TX");
+  });
+
+  it("parses CHOICE_REQUIRED county labels without area_code", () => {
+    const parsed = parseWorksiteGeographyResponse({
+      outcome: "CHOICE_REQUIRED",
+      reason_code: "CHOICE_MULTIPLE_AREAS",
+      normalized_zip: "76945",
+      selected_county_fips: null,
+      resolved_area: null,
+      choice_options: [
+        {
+          county_fips: "48081",
+          county_display_name: "Coke County",
+          state_display_name: "Texas",
+          area_name: "Hill Country Region of Texas nonmetropolitan area",
+        },
+        {
+          county_fips: "48451",
+          county_display_name: "Tom Green County",
+          state_display_name: "Texas",
+          area_name: "San Angelo, TX",
+        },
+      ],
+    });
+    assert.equal(parsed?.choice_options.length, 2);
+    assert.equal(
+      formatCountyChoicePrimaryLabel(parsed!.choice_options[0]!),
+      "Coke County, Texas",
+    );
+    assert.equal(
+      formatWageAreaContext(parsed!.choice_options[0]!.area_name),
+      "Wage area: Hill Country Region of Texas nonmetropolitan area",
+    );
+    assert.equal("area_code" in parsed!.choice_options[0]!, false);
   });
 });

@@ -72,5 +72,6 @@ describe("official occupation search display enrichment", () => {
     assert.ok(body.results[0]?.common_job_titles.includes("software developer"));
     assert.equal(JSON.stringify(body).includes("runtime-selected-id"), false);
     assert.equal(JSON.stringify(body).includes("matchScore"), false);
+    assert.equal("reason_code" in body, false);
   });
 });

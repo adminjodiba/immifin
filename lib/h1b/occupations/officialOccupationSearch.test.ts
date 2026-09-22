@@ -157,8 +157,10 @@ describe("handleOfficialOccupationSearchRequest", () => {
       store(),
     );
     assert.equal(response.status, 200);
-    const body = (await response.json()) as { results: { soc_code: string }[] };
+    const body = (await response.json()) as { outcome: string; results: { soc_code: string }[] };
     assert.equal(body.results[0]?.soc_code, "15-1252");
+    assert.equal("reason_code" in body, false);
+    assert.equal(body.outcome, "AUTO");
   });
 
   it("returns a controlled 400 for excessive query length", async () => {

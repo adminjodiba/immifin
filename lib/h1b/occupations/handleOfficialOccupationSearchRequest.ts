@@ -35,7 +35,6 @@ export async function handleOfficialOccupationSearchRequest(
     const result = await searchOfficialOccupations(normalized, store);
     const body: OfficialOccupationSearchDisplayResponse = {
       outcome: result.outcome,
-      reason_code: result.reason_code,
       results: result.results.map((row) => ({
         soc_code: row.soc_code,
         title: row.title,

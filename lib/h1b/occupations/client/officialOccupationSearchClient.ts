@@ -17,7 +17,6 @@ export type OfficialOccupationClientRow = {
 
 export type OfficialOccupationClientResponse = {
   outcome: "AUTO" | "UNAVAILABLE";
-  reason_code: string;
   results: OfficialOccupationClientRow[];
 };
 
@@ -52,16 +51,17 @@ function isOccupationRow(value: unknown): value is OfficialOccupationClientRow {
   return true;
 }
 
-function parseResponse(value: unknown): OfficialOccupationClientResponse | null {
+export function parseOfficialOccupationSearchResponse(
+  value: unknown,
+): OfficialOccupationClientResponse | null {
   if (typeof value !== "object" || value === null) return null;
   const row = value as Record<string, unknown>;
   if (row.outcome !== "AUTO" && row.outcome !== "UNAVAILABLE") return null;
-  if (typeof row.reason_code !== "string" || !Array.isArray(row.results)) return null;
+  if (!Array.isArray(row.results)) return null;
   const results = row.results.filter(isOccupationRow);
   if (results.length !== row.results.length) return null;
   return {
     outcome: row.outcome,
-    reason_code: row.reason_code,
     results,
   };
 }
@@ -85,7 +85,7 @@ export async function fetchOfficialOccupations(query: string): Promise<OfficialO
     return { ok: false, kind: "validation", status: response.status };
   }
 
-  const data = parseResponse(payload);
+  const data = parseOfficialOccupationSearchResponse(payload);
   if (!data) {
     return { ok: false, kind: "unavailable", status: response.status };
   }

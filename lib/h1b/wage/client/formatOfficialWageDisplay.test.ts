@@ -17,7 +17,6 @@ function wage(overrides: Partial<OfficialWageClientWage> = {}): OfficialWageClie
   return {
     soc_code: "15-1252",
     occupation_title: "Software Developers",
-    geo_level: 1,
     label: null,
     level1: 42.2,
     level2: 53.05,
@@ -80,7 +79,6 @@ describe("formatOfficialWageDisplay", () => {
     const high = wage({
       soc_code: "29-1022",
       occupation_title: "Oral and Maxillofacial Surgeons",
-      geo_level: 4,
       label: "High Wage",
       level1: null,
       level2: null,
@@ -101,7 +99,6 @@ describe("formatOfficialWageDisplay", () => {
     const empty = wage({
       soc_code: "11-1031",
       occupation_title: "Legislators",
-      geo_level: 4,
       label: "No Leveled Wage",
       level1: null,
       level2: null,

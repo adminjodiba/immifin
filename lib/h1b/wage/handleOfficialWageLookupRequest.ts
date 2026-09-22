@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { WorksiteGeographyResolver } from "@/lib/h1b/geo/api/handleWorksiteGeographyRequest";
 import { lookupOfficialWage } from "@/lib/h1b/wage/lookupOfficialWage";
+import { toOfficialWagePublicResponse } from "@/lib/h1b/wage/toOfficialWageResponse";
 import type { OfficialWageLookupStore } from "@/lib/h1b/wage/officialWageLookup.types";
 import type { OfficialWageLookupApiErrorBody } from "@/lib/h1b/wage/officialWageLookup.types";
 import {
@@ -33,7 +34,7 @@ export async function handleOfficialWageLookupRequest(
       store,
     });
 
-    return NextResponse.json(result, {
+    return NextResponse.json(toOfficialWagePublicResponse(result), {
       status: 200,
       headers: { "Cache-Control": NO_STORE },
     });

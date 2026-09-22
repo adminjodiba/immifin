@@ -252,6 +252,8 @@ describe("lookupOfficialWage", () => {
     assert.equal(result.reason_code, WAGE_LOOKUP_REASON.AUTO_OFFICIAL_WAGE);
     assert.deepEqual(keys, [{ datasetId: "runtime-selected-id", areaCode: "26420", socCode: "15-1252" }]);
     assert.equal(result.wage?.level1, 42.2);
+    assert.equal(result.wage?.geo_level, 1);
+    assert.equal(result.geography.resolved_area?.area_code, "26420");
     assert.equal(result.source?.data_source, "All Industries");
     assert.equal("id" in (result.source ?? {}), false);
   });
@@ -491,6 +493,81 @@ describe("handleOfficialWageLookupRequest", () => {
       "effective_start",
       "effective_end",
     ]);
+  });
+
+  it("public HTTP response omits area_code and geo_level while keeping official amounts", async () => {
+    const response = await handleOfficialWageLookupRequest(
+      jsonRequest({ soc_code: "15-1252", zip: "77433" }),
+      async () => resolution(),
+      store(),
+    );
+    assert.equal(response.status, 200);
+    const body = await readJson(response);
+    const text = JSON.stringify(body);
+    assert.equal(text.includes("area_code"), false);
+    assert.equal(text.includes("geo_level"), false);
+    const wage = body.wage as Record<string, unknown>;
+    const geography = body.geography as Record<string, unknown>;
+    const resolved = geography.resolved_area as Record<string, unknown>;
+    assert.equal(resolved.area_name, "Houston-Pasadena-The Woodlands, TX");
+    assert.equal("area_code" in resolved, false);
+    assert.equal(wage.soc_code, "15-1252");
+    assert.equal(wage.occupation_title, "Software Developers");
+    assert.equal(wage.level1, 42.2);
+    assert.equal(wage.level2, 53.05);
+    assert.equal(wage.level3, 63.89);
+    assert.equal(wage.level4, 74.74);
+    assert.equal(wage.average, 64.01);
+    assert.equal("geo_level" in wage, false);
+    const source = body.source as Record<string, unknown>;
+    assert.equal(source.wage_year, "2026-27");
+    assert.equal(source.data_source, "All Industries");
+    assert.equal(source.bls_survey, "BLS May 2025 OEWS");
+    assert.equal(source.soc_version, "2018 SOC");
+    assert.equal(source.effective_start, "2026-07-01");
+    assert.equal(source.effective_end, "2027-06-30");
+  });
+
+  it("public CHOICE_REQUIRED response omits area_code from choice options", async () => {
+    const response = await handleOfficialWageLookupRequest(
+      jsonRequest({ soc_code: "15-1252", zip: "76945" }),
+      async () =>
+        resolution({
+          outcome: "CHOICE_REQUIRED",
+          reasonCode: GEOGRAPHY_REASON.CHOICE_MULTIPLE_AREAS,
+          zipRaw: "76945",
+          zipNormalized: "76945",
+          resolvedArea: null,
+          choiceOptions: [
+            {
+              countyFips: "48081",
+              countyDisplayName: "Coke County",
+              stateAb: "TX",
+              stateDisplayName: "Texas",
+              areaCode: "4800004",
+              areaName: "Hill Country Region of Texas nonmetropolitan area",
+            },
+            {
+              countyFips: "48451",
+              countyDisplayName: "Tom Green County",
+              stateAb: "TX",
+              stateDisplayName: "Texas",
+              areaCode: "41660",
+              areaName: "San Angelo, TX",
+            },
+          ],
+        }),
+      store(),
+    );
+    const body = await readJson(response);
+    assert.equal(body.outcome, "CHOICE_REQUIRED");
+    assert.equal(JSON.stringify(body).includes("area_code"), false);
+    const options = body.choice_options as Array<Record<string, unknown>>;
+    assert.equal(options[0]?.county_fips, "48081");
+    assert.equal(options[0]?.county_display_name, "Coke County");
+    assert.equal(options[0]?.state_display_name, "Texas");
+    assert.equal(options[0]?.area_name, "Hill Country Region of Texas nonmetropolitan area");
+    assert.equal("area_code" in options[0]!, false);
   });
 });
 

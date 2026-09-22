@@ -193,10 +193,16 @@ describe("handleWorksiteGeographyRequest", () => {
     assert.equal(body.reason_code, GEOGRAPHY_REASON.AUTO_SINGLE_AREA);
     assert.equal(body.normalized_zip, "77433");
     assert.deepEqual(body.resolved_area, {
-      area_code: "26420",
       area_name: "Houston-Pasadena-The Woodlands, TX",
     });
     assert.equal(body.selected_county_fips, null);
+    assert.equal(JSON.stringify(body).includes("area_code"), false);
+    assert.equal("official_county_count" in body, false);
+    assert.equal("mapped_county_count" in body, false);
+    assert.equal("unmapped_county_count" in body, false);
+    assert.equal("distinct_area_count" in body, false);
+    assert.equal("mapped_counties" in body, false);
+    assert.equal("unmapped_official_counties" in body, false);
   });
 
   it("CASE 12: CHOICE_REQUIRED response shape", async () => {
@@ -258,7 +264,17 @@ describe("handleWorksiteGeographyRequest", () => {
     const options = body.choice_options as Array<Record<string, unknown>>;
     assert.equal(options.length, 2);
     assert.equal(options[0]?.county_fips, "48081");
+    assert.equal(options[0]?.county_display_name, "Coke County");
+    assert.equal(options[0]?.state_display_name, "Texas");
+    assert.equal(options[0]?.area_name, "Hill Country Region of Texas nonmetropolitan area");
     assert.equal(options[1]?.county_fips, "48451");
+    assert.equal(options[1]?.county_display_name, "Tom Green County");
+    assert.equal(options[1]?.state_display_name, "Texas");
+    assert.equal(options[1]?.area_name, "San Angelo, TX");
+    assert.equal(JSON.stringify(body).includes("area_code"), false);
+    assert.equal("official_county_count" in body, false);
+    assert.equal("mapped_counties" in body, false);
+    assert.equal("unmapped_official_counties" in body, false);
   });
 
   it("CASE 13: UNAVAILABLE response shape", async () => {
@@ -286,6 +302,14 @@ describe("handleWorksiteGeographyRequest", () => {
     assert.equal(body.outcome, "UNAVAILABLE");
     assert.equal(body.reason_code, GEOGRAPHY_REASON.UNAVAILABLE_TERRITORY_UNJOINED);
     assert.equal(body.resolved_area, null);
+    assert.equal(JSON.stringify(body).includes("area_code"), false);
+    assert.equal(JSON.stringify(body).includes("unmapped_class"), false);
+    assert.equal("official_county_count" in body, false);
+    assert.equal("mapped_county_count" in body, false);
+    assert.equal("unmapped_county_count" in body, false);
+    assert.equal("distinct_area_count" in body, false);
+    assert.equal("mapped_counties" in body, false);
+    assert.equal("unmapped_official_counties" in body, false);
   });
 
   it("CASE 14: INVALID_ZIP is a domain 200, not an uncontrolled 500", async () => {

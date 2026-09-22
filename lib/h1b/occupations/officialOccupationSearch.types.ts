@@ -33,7 +33,6 @@ export type OfficialOccupationSearchResponse = {
 
 export type OfficialOccupationSearchDisplayResponse = {
   outcome: "AUTO" | "UNAVAILABLE";
-  reason_code: OccupationSearchReasonCode;
   results: OfficialOccupationSearchDisplayResult[];
 };
 

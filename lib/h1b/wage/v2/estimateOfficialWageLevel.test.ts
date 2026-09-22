@@ -13,7 +13,6 @@ function houstonSoftwareHourly(overrides: Partial<OfficialWageClientWage> = {}):
   return {
     soc_code: "15-1252",
     occupation_title: "Software Developers",
-    geo_level: 1,
     label: null,
     level1: 42.2,
     level2: 53.05,

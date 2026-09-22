@@ -1,6 +1,10 @@
 import type { GeographyOutcome, GeographyReasonCode } from "@/lib/h1b/geo/geographyResolution.types";
 import type { WorksiteGeographyApiCountyOption } from "@/lib/h1b/geo/api/worksiteGeographyApi.types";
 
+export type OfficialWageInternalChoiceOption = WorksiteGeographyApiCountyOption & {
+  area_code: string;
+};
+
 export const OFLC_ALL_INDUSTRIES_DATA_SOURCE = "All Industries";
 
 export const OFFICIAL_SOC_CODE_RE = /^\d{2}-\d{4}$/;
@@ -56,8 +60,23 @@ export type OfficialWageLookupApiResponse = {
     selected_county_fips: string | null;
     resolved_area: { area_code: string; area_name: string } | null;
   };
-  choice_options: WorksiteGeographyApiCountyOption[];
+  choice_options: OfficialWageInternalChoiceOption[];
   wage: OfficialWageRecordView | null;
+  source: OfficialWageSourceMetadata | null;
+};
+
+export type OfficialWagePublicWageView = Omit<OfficialWageRecordView, "geo_level">;
+
+export type OfficialWagePublicApiResponse = {
+  outcome: GeographyOutcome;
+  reason_code: WageLookupReasonCode;
+  geography: {
+    normalized_zip: string;
+    selected_county_fips: string | null;
+    resolved_area: { area_name: string } | null;
+  };
+  choice_options: WorksiteGeographyApiCountyOption[];
+  wage: OfficialWagePublicWageView | null;
   source: OfficialWageSourceMetadata | null;
 };
 

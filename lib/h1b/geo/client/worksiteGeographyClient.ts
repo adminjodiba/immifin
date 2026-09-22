@@ -17,7 +17,7 @@ export type WorksiteGeographyClientResponse = {
   reason_code: string;
   normalized_zip: string;
   selected_county_fips: string | null;
-  resolved_area: { area_code: string; area_name: string } | null;
+  resolved_area: { area_name: string } | null;
   choice_options: WorksiteGeographyClientChoice[];
 };
 
@@ -70,7 +70,7 @@ function isChoiceOption(value: unknown): value is WorksiteGeographyClientChoice 
   );
 }
 
-function parseResponse(value: unknown): WorksiteGeographyClientResponse | null {
+export function parseWorksiteGeographyResponse(value: unknown): WorksiteGeographyClientResponse | null {
   if (typeof value !== "object" || value === null) return null;
   const row = value as Record<string, unknown>;
   if (
@@ -85,7 +85,7 @@ function parseResponse(value: unknown): WorksiteGeographyClientResponse | null {
   }
   const resolved =
     row.resolved_area && typeof row.resolved_area === "object"
-      ? (row.resolved_area as { area_code?: unknown; area_name?: unknown })
+      ? (row.resolved_area as { area_name?: unknown })
       : null;
   const choice_options = Array.isArray(row.choice_options)
     ? row.choice_options.filter(isChoiceOption)
@@ -97,9 +97,7 @@ function parseResponse(value: unknown): WorksiteGeographyClientResponse | null {
     selected_county_fips:
       typeof row.selected_county_fips === "string" ? row.selected_county_fips : null,
     resolved_area:
-      resolved && typeof resolved.area_code === "string" && typeof resolved.area_name === "string"
-        ? { area_code: resolved.area_code, area_name: resolved.area_name }
-        : null,
+      resolved && typeof resolved.area_name === "string" ? { area_name: resolved.area_name } : null,
     choice_options,
   };
 }
@@ -132,7 +130,7 @@ export async function fetchWorksiteGeography(input: {
     return { ok: false, kind: "validation", status: response.status };
   }
 
-  const data = parseResponse(payload);
+  const data = parseWorksiteGeographyResponse(payload);
   if (!data) {
     return { ok: false, kind: "unavailable_payload", status: response.status };
   }

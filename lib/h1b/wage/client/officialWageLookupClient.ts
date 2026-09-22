@@ -7,7 +7,6 @@
 export type OfficialWageClientWage = {
   soc_code: string;
   occupation_title: string;
-  geo_level: number;
   label: string | null;
   level1: number | null;
   level2: number | null;
@@ -31,7 +30,7 @@ export type OfficialWageClientResponse = {
   geography: {
     normalized_zip: string;
     selected_county_fips: string | null;
-    resolved_area: { area_code: string; area_name: string } | null;
+    resolved_area: { area_name: string } | null;
   };
   wage: OfficialWageClientWage | null;
   source: OfficialWageClientSource | null;
@@ -77,7 +76,6 @@ function parseWage(value: unknown): OfficialWageClientWage | null {
   if (
     typeof row.soc_code !== "string" ||
     typeof row.occupation_title !== "string" ||
-    typeof row.geo_level !== "number" ||
     !(row.label === null || typeof row.label === "string") ||
     !isFiniteNumberOrNull(row.level1) ||
     !isFiniteNumberOrNull(row.level2) ||
@@ -90,7 +88,6 @@ function parseWage(value: unknown): OfficialWageClientWage | null {
   return {
     soc_code: row.soc_code,
     occupation_title: row.occupation_title,
-    geo_level: row.geo_level,
     label: row.label,
     level1: row.level1,
     level2: row.level2,
@@ -141,7 +138,7 @@ function parseResponse(value: unknown): OfficialWageClientResponse | null {
   if (typeof geo.normalized_zip !== "string") return null;
   const resolved =
     geo.resolved_area && typeof geo.resolved_area === "object"
-      ? (geo.resolved_area as { area_code?: unknown; area_name?: unknown })
+      ? (geo.resolved_area as { area_name?: unknown })
       : null;
   const wage = parseWage(row.wage);
   if (row.wage !== null && wage === null) return null;
@@ -155,9 +152,7 @@ function parseResponse(value: unknown): OfficialWageClientResponse | null {
       selected_county_fips:
         typeof geo.selected_county_fips === "string" ? geo.selected_county_fips : null,
       resolved_area:
-        resolved && typeof resolved.area_code === "string" && typeof resolved.area_name === "string"
-          ? { area_code: resolved.area_code, area_name: resolved.area_name }
-          : null,
+        resolved && typeof resolved.area_name === "string" ? { area_name: resolved.area_name } : null,
     },
     wage,
     source,
