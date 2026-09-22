@@ -151,4 +151,39 @@ describe("estimateOfficialWageLevel", () => {
     assert.equal(computeConfidence("III", "7-10", "PhD"), "High");
     assert.equal(computeConfidence("IV", "0-1", "Bachelor"), "Low");
   });
+
+  it("preserves approved salary/experience/education parity against 77433 official wages", () => {
+    const cases: Array<{
+      salary: number;
+      experience: "0-1" | "2-3" | "4-6" | "7-10" | "10+";
+      education: "Bachelor" | "Master" | "PhD" | "Other";
+      level: "I" | "II" | "III" | "IV";
+      confidence: "Low" | "Medium" | "High";
+    }> = [
+      { salary: 80000, experience: "0-1", education: "Bachelor", level: "I", confidence: "Medium" },
+      { salary: 100000, experience: "2-3", education: "Bachelor", level: "I", confidence: "Medium" },
+      { salary: 120000, experience: "2-3", education: "Master", level: "II", confidence: "High" },
+      { salary: 140000, experience: "4-6", education: "Master", level: "III", confidence: "High" },
+      { salary: 185000, experience: "4-6", education: "Master", level: "IV", confidence: "Medium" },
+      { salary: 185000, experience: "10+", education: "PhD", level: "IV", confidence: "High" },
+      { salary: 185000, experience: "0-1", education: "Other", level: "IV", confidence: "Low" },
+      { salary: 155458, experience: "7-10", education: "Bachelor", level: "III", confidence: "High" },
+    ];
+
+    for (const row of cases) {
+      const result = estimateOfficialWageLevel({
+        socCode: "15-1252",
+        officialTitle: "Software Developers",
+        annualSalary: row.salary,
+        experience: row.experience,
+        education: row.education,
+        wageAreaName: "Houston-Pasadena-The Woodlands, TX",
+        wage: houstonSoftwareHourly(),
+      });
+      assert.equal(result.ok, true, `${row.salary} ${row.experience} ${row.education}`);
+      if (!result.ok) continue;
+      assert.equal(result.estimatedLevel, row.level, `${row.salary} ${row.experience} ${row.education} level`);
+      assert.equal(result.confidence, row.confidence, `${row.salary} ${row.experience} ${row.education} confidence`);
+    }
+  });
 });

@@ -11,7 +11,7 @@
  * not change the modeled wage-level estimate.
  */
 
-import type { WageLevel } from "@/lib/h1b/wageLevelEstimator";
+import type { WageLevel } from "@/lib/h1b/wage/estimatorDisplay.types";
 
 export type LotteryWageLevelSelection = WageLevel | "unknown";
 export type UsMastersEligibility = "no" | "yes";

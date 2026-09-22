@@ -1,23 +1,31 @@
 /**
- * Recovered Production wage-level estimation (e228b2e / lib/h1b/wageLevelEstimator.ts)
- * adapted to official OFLC wage records. Demo city/state tables are not used.
+ * SERVER-ONLY — recovered Production wage-level estimation.
+ * Do not import from client components or browser clients.
+ *
+ * Recovered from e228b2e / lib/h1b/wageLevelEstimator.ts and adapted to official
+ * OFLC wage records. Demo city/state tables are not used. Algorithm is frozen.
  */
 
 import {
   ANNUAL_EQUIVALENT_HOURS,
   annualEquivalentFromHourly,
   officialWageDisplayUnit,
+  type OfficialWageDisplayRecord,
 } from "@/lib/h1b/wage/client/formatOfficialWageDisplay";
-import type { OfficialWageClientWage } from "@/lib/h1b/wage/client/officialWageLookupClient";
-import {
-  salaryToWageLevel,
-  type Confidence,
-  type EducationLevel,
-  type ExperienceRange,
-  type SalaryPosition,
-  type WageLevel,
-  type WageLevelThresholds,
-} from "@/lib/h1b/wageLevelEstimator";
+import type {
+  Confidence,
+  EducationLevel,
+  ExperienceRange,
+  SalaryPosition,
+  WageLevel,
+} from "@/lib/h1b/wage/estimatorDisplay.types";
+
+type WageLevelThresholds = {
+  level1: number;
+  level2: number;
+  level3: number;
+  level4: number;
+};
 
 export type OfficialEstimatorInput = {
   socCode: string;
@@ -26,7 +34,7 @@ export type OfficialEstimatorInput = {
   experience: ExperienceRange;
   education: EducationLevel;
   wageAreaName: string;
-  wage: OfficialWageClientWage;
+  wage: OfficialWageDisplayRecord;
 };
 
 export type OfficialSalaryComparisonRow = {
@@ -58,6 +66,20 @@ export type OfficialEstimatorResult = OfficialEstimatorSuccess | OfficialEstimat
 
 export const OFFICIAL_WAGE_NOT_LEVELED_COPY =
   "The official source did not publish a complete Level I–IV wage set for this record, so IMMIFIN cannot estimate a wage level.";
+
+/** Map annual salary to prevailing wage level using level thresholds. Algorithm frozen. */
+function salaryToWageLevel(salary: number, thresholds: WageLevelThresholds): WageLevel {
+  if (salary < thresholds.level2) {
+    return "I";
+  }
+  if (salary < thresholds.level3) {
+    return "II";
+  }
+  if (salary < thresholds.level4) {
+    return "III";
+  }
+  return "IV";
+}
 
 function salaryPosition(salary: number, levelWage: number): SalaryPosition {
   const ratio = salary / levelWage;
@@ -137,7 +159,7 @@ export function computeConfidence(
   return "Medium";
 }
 
-export function officialWageToAnnualThresholds(wage: OfficialWageClientWage): {
+export function officialWageToAnnualThresholds(wage: OfficialWageDisplayRecord): {
   thresholds: WageLevelThresholds;
   usedAnnualEquivalent: boolean;
   hourly: { level1: number | null; level2: number | null; level3: number | null; level4: number | null };

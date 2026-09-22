@@ -11,35 +11,25 @@ import {
   OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY,
   type OfficialOccupationClientRow,
 } from "@/lib/h1b/occupations/client/officialOccupationSearchClient";
+import type { OfficialOccupationDisplayMatchConfidence } from "@/lib/h1b/occupations/officialOccupationDisplay.types";
 import {
   ANNUAL_EQUIVALENT_DISCLAIMER,
   NO_LEVELED_WAGE_COPY,
+  formatCurrency,
   formatOfficialWageAmount,
   officialWageDisplayRows,
   officialWageDisplayUnit,
   shouldShowNoLeveledCopy,
 } from "@/lib/h1b/wage/client/formatOfficialWageDisplay";
 import {
-  fetchOfficialWage,
-  OFFICIAL_WAGE_CHOICE_COPY,
-  OFFICIAL_WAGE_NETWORK_COPY,
-  OFFICIAL_WAGE_UNAVAILABLE_COPY,
-  type OfficialWageClientWage,
-} from "@/lib/h1b/wage/client/officialWageLookupClient";
-import {
-  estimateOfficialWageLevel,
-  type OfficialEstimatorResult,
-} from "@/lib/h1b/wage/v2/estimateOfficialWageLevel";
-import { formatCurrency, type EducationLevel, type ExperienceRange, type SalaryPosition } from "@/lib/h1b/wageLevelEstimator";
-import {
-  getOccupationByCode,
-  getOccupationKeywords,
-  getOccupationMatchConfidence,
-  isTypicalH1BOccupation,
-  type MatchConfidence,
-  type OccupationSearchResult,
-  type SocOccupationEntry,
-} from "@/lib/services/occupationService";
+  fetchOfficialEstimate,
+  OFFICIAL_ESTIMATE_CHOICE_COPY,
+  OFFICIAL_ESTIMATE_NETWORK_COPY,
+  OFFICIAL_ESTIMATE_UNAVAILABLE_COPY,
+  type OfficialEstimateClientResultView,
+  type OfficialEstimateClientWage,
+} from "@/lib/h1b/wage/client/officialEstimateClient";
+import type { EducationLevel, ExperienceRange, SalaryPosition } from "@/lib/h1b/wage/estimatorDisplay.types";
 
 const PAGE_HREF = "/immigration/h1b-wage-level-estimator";
 const PAGE_TITLE = "H-1B Wage Level Estimator";
@@ -51,7 +41,10 @@ const labelClassName = "block text-sm font-medium text-slate-900";
 type SelectedOfficialOccupation = {
   socCode: string;
   title: string;
-  metadata: SocOccupationEntry | undefined;
+  group: string | null;
+  commonJobTitles: string[];
+  typicalH1b: boolean;
+  matchConfidence: OfficialOccupationDisplayMatchConfidence | null;
 };
 
 function salaryPositionLabel(position: SalaryPosition): string {
@@ -69,7 +62,7 @@ function salaryPositionClassName(position: SalaryPosition): string {
   }
 }
 
-function confidenceBadgeClassName(confidence: MatchConfidence): string {
+function confidenceBadgeClassName(confidence: OfficialOccupationDisplayMatchConfidence): string {
   switch (confidence) {
     case "High":
       return "bg-emerald-50 text-emerald-800 ring-emerald-200";
@@ -80,7 +73,7 @@ function confidenceBadgeClassName(confidence: MatchConfidence): string {
   }
 }
 
-function ConfidenceBadge({ confidence }: { confidence: MatchConfidence }) {
+function ConfidenceBadge({ confidence }: { confidence: OfficialOccupationDisplayMatchConfidence }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${confidenceBadgeClassName(confidence)}`}
@@ -109,44 +102,36 @@ function toSelectedOccupation(row: OfficialOccupationClientRow): SelectedOfficia
   return {
     socCode: row.soc_code,
     title: row.title,
-    metadata: getOccupationByCode(row.soc_code),
+    group: row.group,
+    commonJobTitles: row.common_job_titles,
+    typicalH1b: row.typical_h1b,
+    matchConfidence: row.match_confidence,
   };
 }
 
-function SelectedOccupationCard({
-  occupation,
-  matchResult,
-}: {
-  occupation: SelectedOfficialOccupation;
-  matchResult: OccupationSearchResult | null;
-}) {
-  const keywords = getOccupationKeywords(occupation.socCode).slice(0, 6);
-  const isTypical = isTypicalH1BOccupation(occupation.socCode);
-
+function SelectedOccupationCard({ occupation }: { occupation: SelectedOfficialOccupation }) {
   return (
     <div className="mt-2 rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50/60 to-white p-3 shadow-sm">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
         Selected Occupation
       </p>
       <p className="mt-1 text-sm font-semibold text-slate-900">{occupation.title}</p>
-      {occupation.metadata ? (
-        <p className="mt-0.5 text-xs text-slate-500">{occupation.metadata.group}</p>
-      ) : null}
+      {occupation.group ? <p className="mt-0.5 text-xs text-slate-500">{occupation.group}</p> : null}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {matchResult ? <ConfidenceBadge confidence={matchResult.matchConfidence} /> : null}
-        {isTypical ? <TypicalH1bBadge /> : null}
+        {occupation.matchConfidence ? <ConfidenceBadge confidence={occupation.matchConfidence} /> : null}
+        {occupation.typicalH1b ? <TypicalH1bBadge /> : null}
       </div>
       <p className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-700">
         <span aria-hidden="true">✓</span>
         Official occupation selected
       </p>
-      {keywords.length > 0 ? (
+      {occupation.commonJobTitles.length > 0 ? (
         <div className="mt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             Common job titles
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {keywords.map((keyword) => (
+            {occupation.commonJobTitles.map((keyword) => (
               <span
                 key={keyword}
                 className="rounded-md bg-white px-2 py-0.5 text-xs text-slate-700 ring-1 ring-slate-200"
@@ -174,17 +159,11 @@ function SelectedOccupationCard({
 
 function OccupationSearchOption({
   row,
-  query,
   onSelect,
 }: {
   row: OfficialOccupationClientRow;
-  query: string;
   onSelect: (row: OfficialOccupationClientRow) => void;
 }) {
-  const metadata = getOccupationByCode(row.soc_code);
-  const matchResult = metadata ? getOccupationMatchConfidence(query, metadata) : null;
-  const isTypical = isTypicalH1BOccupation(row.soc_code);
-
   return (
     <li role="option" aria-selected="false">
       <button
@@ -193,10 +172,10 @@ function OccupationSearchOption({
         onClick={() => onSelect(row)}
       >
         <span className="block text-sm font-semibold text-slate-900">{row.title}</span>
-        {metadata ? <span className="mt-0.5 block text-xs text-slate-500">{metadata.group}</span> : null}
+        {row.group ? <span className="mt-0.5 block text-xs text-slate-500">{row.group}</span> : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          {matchResult ? <ConfidenceBadge confidence={matchResult.matchConfidence} /> : null}
-          {isTypical ? <TypicalH1bBadge /> : null}
+          {row.match_confidence ? <ConfidenceBadge confidence={row.match_confidence} /> : null}
+          {row.typical_h1b ? <TypicalH1bBadge /> : null}
         </div>
       </button>
     </li>
@@ -209,7 +188,6 @@ export function H1bWageLevelEstimator() {
   const [occupationSearchError, setOccupationSearchError] = useState<string | null>(null);
   const [occupationSearching, setOccupationSearching] = useState(false);
   const [selectedOccupation, setSelectedOccupation] = useState<SelectedOfficialOccupation | null>(null);
-  const [selectedMatchResult, setSelectedMatchResult] = useState<OccupationSearchResult | null>(null);
   const [showOccupationList, setShowOccupationList] = useState(false);
   const [geography, setGeography] = useState<WorksiteGeographyAuthority>({
     ready: false,
@@ -219,8 +197,8 @@ export function H1bWageLevelEstimator() {
   const [annualSalary, setAnnualSalary] = useState("");
   const [experience, setExperience] = useState<ExperienceRange>("4-6");
   const [education, setEducation] = useState<EducationLevel>("Master");
-  const [result, setResult] = useState<OfficialEstimatorResult | null>(null);
-  const [officialWage, setOfficialWage] = useState<OfficialWageClientWage | null>(null);
+  const [result, setResult] = useState<OfficialEstimateClientResultView | null>(null);
+  const [officialWage, setOfficialWage] = useState<OfficialEstimateClientWage | null>(null);
   const [resultError, setResultError] = useState<string | null>(null);
   const [estimating, setEstimating] = useState(false);
   const occupationPickerRef = useRef<HTMLDivElement>(null);
@@ -276,12 +254,7 @@ export function H1bWageLevelEstimator() {
   }, [occupationQuery, selectedOccupation]);
 
   function selectOccupation(row: OfficialOccupationClientRow) {
-    const selected = toSelectedOccupation(row);
-    const matchResult = selected.metadata
-      ? getOccupationMatchConfidence(occupationQuery, selected.metadata)
-      : null;
-    setSelectedOccupation(selected);
-    setSelectedMatchResult(matchResult);
+    setSelectedOccupation(toSelectedOccupation(row));
     setOccupationQuery(row.title);
     setShowOccupationList(false);
     setResult(null);
@@ -318,45 +291,36 @@ export function H1bWageLevelEstimator() {
     setOfficialWage(null);
     setResultError(null);
 
-    const wageResult = await fetchOfficialWage({
+    const estimateResult = await fetchOfficialEstimate({
       socCode: selectedOccupation.socCode,
       zip: geography.zip,
       countyFips: geography.countyFips,
+      annualSalary: salary,
+      experience,
+      education,
     });
 
     setEstimating(false);
 
-    if (!wageResult.ok) {
+    if (!estimateResult.ok) {
       setResultError(
-        wageResult.kind === "network" ? OFFICIAL_WAGE_NETWORK_COPY : OFFICIAL_WAGE_UNAVAILABLE_COPY,
+        estimateResult.kind === "network" ? OFFICIAL_ESTIMATE_NETWORK_COPY : OFFICIAL_ESTIMATE_UNAVAILABLE_COPY,
       );
       return;
     }
 
-    if (wageResult.data.outcome === "CHOICE_REQUIRED") {
-      setResultError(OFFICIAL_WAGE_CHOICE_COPY);
+    if (estimateResult.data.outcome === "CHOICE_REQUIRED") {
+      setResultError(OFFICIAL_ESTIMATE_CHOICE_COPY);
       return;
     }
 
-    if (wageResult.data.outcome !== "AUTO" || !wageResult.data.wage) {
-      setResultError(OFFICIAL_WAGE_UNAVAILABLE_COPY);
+    if (estimateResult.data.outcome !== "AUTO" || !estimateResult.data.wage) {
+      setResultError(OFFICIAL_ESTIMATE_UNAVAILABLE_COPY);
       return;
     }
 
-    const wage = wageResult.data.wage;
-    const wageAreaName = wageResult.data.geography.resolved_area?.area_name ?? "the resolved official wage area";
-    setOfficialWage(wage);
-    setResult(
-      estimateOfficialWageLevel({
-        socCode: selectedOccupation.socCode,
-        officialTitle: selectedOccupation.title,
-        annualSalary: salary,
-        experience,
-        education,
-        wageAreaName,
-        wage,
-      }),
-    );
+    setOfficialWage(estimateResult.data.wage);
+    setResult(estimateResult.data.result);
   }
 
   return (
@@ -410,7 +374,6 @@ export function H1bWageLevelEstimator() {
                     onChange={(event) => {
                       setOccupationQuery(event.target.value);
                       setSelectedOccupation(null);
-                      setSelectedMatchResult(null);
                       setShowOccupationList(true);
                       setOccupationSearching(Boolean(event.target.value.trim()));
                       setOccupationSearchError(null);
@@ -436,14 +399,13 @@ export function H1bWageLevelEstimator() {
                         <OccupationSearchOption
                           key={row.soc_code}
                           row={row}
-                          query={occupationQuery}
                           onSelect={selectOccupation}
                         />
                       ))}
                     </ul>
                   ) : null}
                   {selectedOccupation && !showOccupationList ? (
-                    <SelectedOccupationCard occupation={selectedOccupation} matchResult={selectedMatchResult} />
+                    <SelectedOccupationCard occupation={selectedOccupation} />
                   ) : null}
                   {occupationSearching ? (
                     <p className="mt-1 text-xs text-slate-500">Searching official occupations…</p>
@@ -586,8 +548,8 @@ export function H1bWageLevelEstimator() {
                     <p>
                       <span className="font-medium text-slate-900">Selected occupation:</span> {result.occupation.title}
                     </p>
-                    {getOccupationByCode(result.occupation.code) ? (
-                      <p className="mt-0.5 text-xs text-slate-500">{getOccupationByCode(result.occupation.code)?.group}</p>
+                    {result.occupation.group ? (
+                      <p className="mt-0.5 text-xs text-slate-500">{result.occupation.group}</p>
                     ) : null}
                     <p className="mt-1.5">
                       <span className="font-medium text-slate-900">Official wage area:</span> {result.locationLabel}
@@ -678,7 +640,7 @@ export function H1bWageLevelEstimator() {
                 <div className="mt-3 space-y-4">
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-4" role="status">
                     <p className="text-sm font-semibold text-amber-950">
-                      {result && !result.ok ? result.message : OFFICIAL_WAGE_UNAVAILABLE_COPY}
+                      {result && !result.ok ? result.message : OFFICIAL_ESTIMATE_UNAVAILABLE_COPY}
                     </p>
                     {shouldShowNoLeveledCopy(officialWage) ? (
                       <p className="mt-2 text-sm text-amber-900">{NO_LEVELED_WAGE_COPY}</p>

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import {
+  createEmptyOfficialOccupationDisplayEnricher,
+  type OfficialOccupationDisplayEnricher,
+} from "@/lib/h1b/occupations/officialOccupationDisplayEnrichment";
 import { searchOfficialOccupations } from "@/lib/h1b/occupations/searchOfficialOccupations";
 import type {
   OfficialOccupationSearchApiErrorBody,
+  OfficialOccupationSearchDisplayResponse,
   OfficialOccupationSearchStore,
 } from "@/lib/h1b/occupations/officialOccupationSearch.types";
 import {
@@ -21,14 +26,24 @@ function jsonError(message: string, status: number): NextResponse<OfficialOccupa
 export async function handleOfficialOccupationSearchRequest(
   request: Request,
   store: OfficialOccupationSearchStore,
+  enricher: OfficialOccupationDisplayEnricher = createEmptyOfficialOccupationDisplayEnricher(),
 ): Promise<NextResponse> {
   try {
     const url = new URL(request.url);
     const rawQuery = url.searchParams.get("q") ?? "";
     const normalized = validateOfficialOccupationSearchQuery(rawQuery);
     const result = await searchOfficialOccupations(normalized, store);
+    const body: OfficialOccupationSearchDisplayResponse = {
+      outcome: result.outcome,
+      reason_code: result.reason_code,
+      results: result.results.map((row) => ({
+        soc_code: row.soc_code,
+        title: row.title,
+        ...enricher.enrich({ socCode: row.soc_code, query: normalized }),
+      })),
+    };
 
-    return NextResponse.json(result, {
+    return NextResponse.json(body, {
       status: 200,
       headers: { "Cache-Control": NO_STORE },
     });

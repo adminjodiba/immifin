@@ -1,4 +1,11 @@
-import type { OfficialWageClientWage } from "@/lib/h1b/wage/client/officialWageLookupClient";
+export type OfficialWageDisplayRecord = {
+  label: string | null;
+  level1: number | null;
+  level2: number | null;
+  level3: number | null;
+  level4: number | null;
+  average: number | null;
+};
 
 export type OfficialWageDisplayUnit = "hour" | "year" | "unspecified";
 
@@ -47,7 +54,15 @@ export type OfficialWageDisplayRow = {
   annualEquivalent: string | null;
 };
 
-export function officialWageDisplayRows(wage: OfficialWageClientWage): OfficialWageDisplayRow[] {
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function officialWageDisplayRows(wage: OfficialWageDisplayRecord): OfficialWageDisplayRow[] {
   const unit = officialWageDisplayUnit(wage.label);
   const showAnnualEquivalent = unit === "hour";
   const candidates: Array<{ key: string; label: string; value: number | null }> = [
@@ -72,12 +87,12 @@ export function officialWageDisplayRows(wage: OfficialWageClientWage): OfficialW
   });
 }
 
-export function shouldShowAnnualEquivalent(wage: OfficialWageClientWage): boolean {
+export function shouldShowAnnualEquivalent(wage: OfficialWageDisplayRecord): boolean {
   if (officialWageDisplayUnit(wage.label) !== "hour") return false;
   return [wage.level1, wage.level2, wage.level3, wage.level4, wage.average].some((value) => value !== null);
 }
 
-export function shouldShowNoLeveledCopy(wage: OfficialWageClientWage): boolean {
+export function shouldShowNoLeveledCopy(wage: OfficialWageDisplayRecord): boolean {
   return (
     wage.label === "No Leveled Wage" &&
     wage.level1 === null &&

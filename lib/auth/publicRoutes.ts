@@ -38,6 +38,9 @@ export const PUBLIC_ROUTE_PATTERNS = [
   // Official H-1B OFLC occupation search. Same Free/public entitlement as
   // the existing H-1B calculator pages. Auth is not invented here.
   "/api/h1b/official-occupations(.*)",
+  // Official H-1B IMMIFIN estimate. Same Free/public entitlement as
+  // the existing H-1B calculator pages. Auth is not invented here.
+  "/api/h1b/official-estimate(.*)",
   "/login(.*)",
   "/signup(.*)",
   "/api/webhooks(.*)",

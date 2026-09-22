@@ -18,10 +18,23 @@ export type OfficialOccupationSearchResult = {
   title: string;
 };
 
+export type OfficialOccupationSearchDisplayResult = OfficialOccupationSearchResult & {
+  group: string | null;
+  common_job_titles: string[];
+  typical_h1b: boolean;
+  match_confidence: "High" | "Medium" | "Low" | null;
+};
+
 export type OfficialOccupationSearchResponse = {
   outcome: "AUTO" | "UNAVAILABLE";
   reason_code: OccupationSearchReasonCode;
   results: OfficialOccupationSearchResult[];
+};
+
+export type OfficialOccupationSearchDisplayResponse = {
+  outcome: "AUTO" | "UNAVAILABLE";
+  reason_code: OccupationSearchReasonCode;
+  results: OfficialOccupationSearchDisplayResult[];
 };
 
 export type OfficialOccupationSearchApiErrorBody = {

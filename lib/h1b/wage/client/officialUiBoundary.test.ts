@@ -19,9 +19,13 @@ describe("official H-1B wage UI boundary", () => {
       assert.equal(page.includes(token), false, token);
     }
     assert.equal(page.includes("fetchOfficialOccupations"), true);
-    assert.equal(page.includes("fetchOfficialWage"), true);
+    assert.equal(page.includes("fetchOfficialEstimate"), true);
+    assert.equal(page.includes("fetchOfficialWage"), false);
     assert.equal(page.includes("WorksiteGeographyLookup"), true);
-    assert.equal(page.includes("estimateOfficialWageLevel"), true);
+    assert.equal(page.includes("estimateOfficialWageLevel"), false);
+    assert.equal(page.includes("occupationService"), false);
+    assert.equal(page.includes("wageLevelEstimator"), false);
+    assert.equal(page.includes("socOccupations"), false);
     assert.equal(page.includes("Estimate Wage Level"), true);
     assert.equal(page.includes("/immigration/h1b-lottery-odds-calculator"), true);
     assert.equal(page.includes("wageLevel="), true);
