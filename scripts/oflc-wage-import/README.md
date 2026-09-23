@@ -22,7 +22,7 @@ npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target dev --write
 # Authorized Dev resume of remaining wage rows into an existing failed dataset.
 npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target dev --write --resume --offset 418000
 
-# Production no-write / dry-run. Uses --project-ref. Does not relink this repo.
+# Production no-write / dry-run. Uses --linked --project-ref. Does not relink this repo.
 npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target production
 npm run oflc:load:prod:dry-run
 
@@ -36,7 +36,7 @@ npm run oflc:load:prod:dry-run
 | `--target` | Approved identity | Execution |
 |---|---|---|
 | `dev` | `immifin Dev` / `vnhn...toxs` | `--linked` (this repo stays Dev-linked) |
-| `production` | `immifin production` / `pmkx...ysdv` | `--project-ref` only. Never `supabase link`. |
+| `production` | `immifin production` / `pmkx...ysdv` | `db query --linked --project-ref`. Never `supabase link`. |
 
 `--target` is required. Credentials alone never select Production.
 

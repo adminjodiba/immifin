@@ -5,7 +5,9 @@ import {
   buildProductionMigrationListArgs,
   buildSupabaseQueryArgs,
   commandContainsLink,
+  commandContainsLinkSubcommand,
   commandUsesLinkedFlag,
+  isSupportedProductionQueryArgs,
   resolveDbTarget,
 } from "./dbExecution";
 import {
@@ -203,19 +205,47 @@ describe("dbExecution abstraction", () => {
     assert.equal(built.args.includes("--project-ref"), false);
   });
 
-  it("builds Production query args with --project-ref and never --linked", () => {
+  it("builds Production read/query args as db query --linked --project-ref --file", () => {
     const built = buildSupabaseQueryArgs({
+      kind: "production",
+      projectRef: PROD_REF,
+      filePath: "x.sql",
+      mode: "read",
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) throw new Error("expected args");
+    assert.deepEqual(built.args, ["db", "query", "--linked", "--project-ref", PROD_REF, "--file", "x.sql"]);
+    assert.equal(isSupportedProductionQueryArgs(built.args, PROD_REF), true);
+    assert.equal(commandUsesLinkedFlag(built.args), true);
+    assert.equal(commandContainsLinkSubcommand(built.args), false);
+    assert.equal(commandContainsLink(built.args), false);
+  });
+
+  it("builds Production write args with the same targeting shape as read", () => {
+    const readArgs = buildSupabaseQueryArgs({
+      kind: "production",
+      projectRef: PROD_REF,
+      filePath: "x.sql",
+      mode: "read",
+    });
+    const writeArgs = buildSupabaseQueryArgs({
       kind: "production",
       projectRef: PROD_REF,
       filePath: "x.sql",
       mode: "write",
     });
-    assert.equal(built.ok, true);
-    if (!built.ok) throw new Error("expected args");
-    assert.equal(commandUsesLinkedFlag(built.args), false);
-    assert.equal(commandContainsLink(built.args), false);
-    assert.equal(built.args.includes("--project-ref"), true);
-    assert.equal(built.args.includes("link"), false);
+    assert.equal(readArgs.ok && writeArgs.ok, true);
+    if (!readArgs.ok || !writeArgs.ok) throw new Error("expected args");
+    assert.deepEqual(writeArgs.args, readArgs.args);
+    assert.equal(isSupportedProductionQueryArgs(writeArgs.args, PROD_REF), true);
+  });
+
+  it("treats --linked as a query flag and forbids the link subcommand", () => {
+    assert.equal(commandUsesLinkedFlag(["db", "query", "--linked", "--project-ref", PROD_REF]), true);
+    assert.equal(commandContainsLinkSubcommand(["db", "query", "--linked", "--project-ref", PROD_REF]), false);
+    assert.equal(commandContainsLinkSubcommand(["link", "--project-ref", PROD_REF]), true);
+    assert.equal(commandContainsLink(["link", "--project-ref", PROD_REF]), true);
+    assert.equal(isSupportedProductionQueryArgs(["link", "--project-ref", PROD_REF], PROD_REF), false);
   });
 
   it("rejects Production execution args for a Dev ref", () => {
@@ -259,6 +289,28 @@ describe("Production preflight and activation lock", () => {
       parsedOk: true,
     });
     assert.equal(result.ok, true);
+  });
+
+  it("blocks writes when source SHA or counts fail", () => {
+    const shaFail = evaluateProductionPreflight({
+      oflcTablesPresent: [
+        "wage_datasets",
+        "oflc_occupations",
+        "oflc_areas",
+        "oflc_area_localities",
+        "oflc_wage_records",
+      ],
+      migration021Present: true,
+      activeAllIndustriesCount: 0,
+      activeSameShaCount: 0,
+      sourceValidated: true,
+      shaOk: false,
+      countsOk: false,
+      parsedOk: true,
+    });
+    assert.equal(shaFail.ok, false);
+    assert.ok(shaFail.issues.includes("source_sha_failed"));
+    assert.ok(shaFail.issues.includes("source_counts_failed"));
   });
 
   it("refuses a same-SHA ACTIVE conflict and missing schema", () => {
@@ -333,6 +385,29 @@ describe("Production resume gates", () => {
     const result = evaluateWageResume({ ...base, confirmProduction: true });
     assert.equal(result.ok, true);
     assert.equal(result.resumeOffset, 418000);
+  });
+
+  it("uses the corrected Production query/write shape when resume is authorized", () => {
+    const result = evaluateWageResume({ ...base, confirmProduction: true });
+    const writeArgs = buildSupabaseQueryArgs({
+      kind: "production",
+      projectRef: PROD_REF,
+      filePath: "resume.sql",
+      mode: "write",
+    });
+    assert.equal(result.ok, true);
+    assert.equal(writeArgs.ok, true);
+    if (!writeArgs.ok) throw new Error("expected args");
+    assert.deepEqual(writeArgs.args, [
+      "db",
+      "query",
+      "--linked",
+      "--project-ref",
+      PROD_REF,
+      "--file",
+      "resume.sql",
+    ]);
+    assert.equal(commandContainsLinkSubcommand(writeArgs.args), false);
   });
 });
 

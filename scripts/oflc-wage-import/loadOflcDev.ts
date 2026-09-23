@@ -6,8 +6,9 @@
  *   npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target dev --write
  *   npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target production --write --confirm-production
  *
- * Default is no-write. Production writes require all gates and never use --linked.
- * Never activates. Never runs supabase link.
+ * Default is no-write. Production writes require all gates.
+ * Production SQL uses db query --linked --project-ref. Never runs supabase link.
+ * Never activates.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
@@ -273,7 +274,7 @@ function main(): void {
     console.log(`Repository CLI link (must remain Dev): ${linked.name} ${maskProjectRef(linked.id)}`);
   }
   if (resolved.target.kind === "production") {
-    console.log("Production execution uses --project-ref. Repository is not relinked.");
+    console.log("Production execution uses --linked --project-ref. Repository is not relinked.");
   }
 
   const guard = assertLoaderTarget({

@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { LoadBatch, LoadPlan } from "./loadPlan";
 import { resumeWouldWriteParents } from "./resumeOflcDev";
+import { buildSupabaseQueryArgs } from "./dbExecution";
 import type {
   OflcAreaLocalityRecord,
   OflcAreaRecord,
@@ -199,11 +200,20 @@ function runAuthorizedWrite(sql: string): void {
 export function executeProjectRefWrite(sql: string, projectRef: string): void {
   const safeSql = assertAuthorizedWriteSql(sql);
   const file = join(tmpdir(), `immifin-oflc-load-write-${Date.now()}-${Math.random().toString(16).slice(2)}.sql`);
+  const built = buildSupabaseQueryArgs({
+    kind: "production",
+    projectRef,
+    filePath: file,
+    mode: "write",
+  });
+  if (!built.ok) {
+    throw new Error("Authorized Production write args were rejected.");
+  }
   writeFileSync(file, safeSql, "utf8");
   try {
     const result = spawnSync(
       "npx",
-      ["--yes", "supabase", "db", "query", "--project-ref", projectRef, "--file", file],
+      ["--yes", "supabase", ...built.args],
       { encoding: "utf8", shell: true }
     );
     if (result.status !== 0) {

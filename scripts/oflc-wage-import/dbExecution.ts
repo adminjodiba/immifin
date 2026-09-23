@@ -1,7 +1,9 @@
 /**
  * Testable Supabase CLI execution boundary.
- * Dev uses --linked. Production uses --project-ref only.
- * Never emits supabase link. Never prints secrets.
+ * Dev uses db query --linked.
+ * Production uses db query --linked --project-ref <verified-prod-ref>.
+ * "--linked" is a Management API query flag. It is not supabase link.
+ * Never emits the link subcommand. Never prints secrets.
  */
 
 import type { TargetKind } from "./targetGuard";
@@ -32,16 +34,37 @@ function namesEqual(actual: string, expected: string): boolean {
   return actual.trim().toLowerCase() === expected.trim().toLowerCase();
 }
 
-export function commandContainsLink(args: readonly string[]): boolean {
+/** True only for the `supabase link` subcommand. `--linked` is a query flag, not a relink. */
+export function commandContainsLinkSubcommand(args: readonly string[]): boolean {
   return args.some((arg) => arg === "link" || arg.startsWith("link="));
 }
 
+export function commandContainsLink(args: readonly string[]): boolean {
+  return commandContainsLinkSubcommand(args);
+}
+
+/** True for the `db query --linked` Management API flag. Not a repository relink. */
 export function commandUsesLinkedFlag(args: readonly string[]): boolean {
   return args.includes("--linked");
 }
 
 export function commandUsesProjectRefFlag(args: readonly string[]): boolean {
   return args.includes("--project-ref");
+}
+
+export function isSupportedProductionQueryArgs(args: readonly string[], projectRef: string): boolean {
+  const ref = projectRef.trim();
+  const refIndex = args.indexOf("--project-ref");
+  return (
+    args[0] === "db" &&
+    args[1] === "query" &&
+    commandUsesLinkedFlag(args) &&
+    commandUsesProjectRefFlag(args) &&
+    args.includes("--file") &&
+    refIndex >= 0 &&
+    args[refIndex + 1] === ref &&
+    !commandContainsLinkSubcommand(args)
+  );
 }
 
 export function buildSupabaseQueryArgs(input: {
@@ -63,12 +86,12 @@ export function buildSupabaseQueryArgs(input: {
   const args =
     input.kind === "dev"
       ? ["db", "query", "--linked", "--file", input.filePath]
-      : ["db", "query", "--project-ref", ref, "--file", input.filePath];
+      : ["db", "query", "--linked", "--project-ref", ref, "--file", input.filePath];
 
-  if (input.kind === "production" && commandUsesLinkedFlag(args)) {
-    return { ok: false, args: [], issues: ["production_must_not_use_linked"] };
+  if (input.kind === "production" && !isSupportedProductionQueryArgs(args, ref)) {
+    return { ok: false, args: [], issues: ["production_query_requires_linked_and_project_ref"] };
   }
-  if (commandContainsLink(args)) {
+  if (commandContainsLinkSubcommand(args)) {
     return { ok: false, args: [], issues: ["supabase_link_forbidden"] };
   }
   return { ok: true, args };
@@ -80,8 +103,8 @@ export function buildProductionInspectArgs(projectRef: string): { ok: true; args
     return { ok: false, issues: ["production_inspect_requires_production_ref"] };
   }
   const args = ["inspect", "db", "table-stats", "--project-ref", ref];
-  if (commandUsesLinkedFlag(args) || commandContainsLink(args)) {
-    return { ok: false, issues: ["production_must_not_use_linked"] };
+  if (commandUsesLinkedFlag(args) || commandContainsLinkSubcommand(args)) {
+    return { ok: false, issues: ["production_inspect_must_not_relink"] };
   }
   return { ok: true, args };
 }
@@ -92,8 +115,8 @@ export function buildProductionMigrationListArgs(projectRef: string): { ok: true
     return { ok: false, issues: ["production_migration_list_requires_production_ref"] };
   }
   const args = ["migration", "list", "--project-ref", ref];
-  if (commandUsesLinkedFlag(args) || commandContainsLink(args)) {
-    return { ok: false, issues: ["production_must_not_use_linked"] };
+  if (commandUsesLinkedFlag(args) || commandContainsLinkSubcommand(args)) {
+    return { ok: false, issues: ["production_inspect_must_not_relink"] };
   }
   return { ok: true, args };
 }
