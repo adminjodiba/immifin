@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { enforceAbuseGate, type CheckAbuseGateInput } from "@/lib/abuse/checkAbuseGate";
 import type { OfficialOccupationDisplayEnricher } from "@/lib/h1b/occupations/officialOccupationDisplayEnrichment";
 import type { WorksiteGeographyResolver } from "@/lib/h1b/geo/api/handleWorksiteGeographyRequest";
 import { lookupOfficialWage } from "@/lib/h1b/wage/lookupOfficialWage";
@@ -27,16 +28,25 @@ function jsonError(message: string, status: number): NextResponse<OfficialEstima
   );
 }
 
+export type OfficialEstimateHandlerOptions = {
+  abuse?: Omit<CheckAbuseGateInput, "request" | "routeGroup">;
+};
+
 export async function handleOfficialEstimateRequest(
   request: Request,
   resolveWorksiteGeography: WorksiteGeographyResolver,
   store: OfficialWageLookupStore,
   enricher: OfficialOccupationDisplayEnricher,
+  options?: OfficialEstimateHandlerOptions,
 ): Promise<NextResponse> {
   try {
     assertOfficialEstimateContentType(request);
     const body = await readOfficialEstimateJsonBody(request);
     const accepted = validateOfficialEstimateRequest(body);
+    const denied = await enforceAbuseGate(request, "h1b_estimate", options?.abuse);
+    if (denied) {
+      return denied;
+    }
     const wageLookup = await lookupOfficialWage(
       {
         socCode: accepted.socCode,

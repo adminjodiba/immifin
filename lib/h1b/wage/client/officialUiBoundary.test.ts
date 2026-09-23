@@ -26,6 +26,8 @@ describe("official H-1B wage UI boundary", () => {
     assert.equal(page.includes("occupationService"), false);
     assert.equal(page.includes("wageLevelEstimator"), false);
     assert.equal(page.includes("socOccupations"), false);
+    assert.equal(page.includes("checkAbuseGate"), false);
+    assert.equal(page.includes("enforceAbuseGate"), false);
     assert.equal(page.includes("Estimate Wage Level"), true);
     assert.equal(page.includes("/immigration/h1b-lottery-odds-calculator"), true);
     assert.equal(page.includes("wageLevel="), true);
@@ -46,5 +48,16 @@ describe("official H-1B wage UI boundary", () => {
     assert.equal(page.includes("$95,202"), false);
     assert.equal(page.includes("annual equivalent"), false);
     assert.equal(page.includes("Use this wage level in H-1B Lottery Odds Calculator"), true);
+  });
+
+  it("throttled UX preserves occupation, ZIP, salary, experience, and education", () => {
+    const estimator = readFileSync(join(process.cwd(), "components/H1bWageLevelEstimator.tsx"), "utf8");
+    assert.equal(estimator.includes("officialEstimateFailureCopy"), true);
+    assert.equal(estimator.includes("occupationSearchShouldPause"), true);
+    assert.equal(estimator.includes("OFFICIAL_OCCUPATION_SEARCH_THROTTLED_COPY"), true);
+    assert.equal(estimator.includes('setOccupationQuery("")'), false);
+    assert.equal(estimator.includes('setAnnualSalary("")'), false);
+    const geo = readFileSync(join(process.cwd(), "components/h1b/WorksiteGeographyLookup.tsx"), "utf8");
+    assert.equal(geo.includes("WORKSITE_GEOGRAPHY_THROTTLED_COPY"), true);
   });
 });

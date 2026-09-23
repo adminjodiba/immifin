@@ -62,13 +62,32 @@ export type OfficialEstimateClientResponse = {
 
 export type OfficialEstimateClientResult =
   | { ok: true; data: OfficialEstimateClientResponse }
-  | { ok: false; kind: "validation" | "unavailable" | "network"; status?: number };
+  | {
+      ok: false;
+      kind: "validation" | "unavailable" | "network" | "throttled";
+      status?: number;
+      retryAfterSeconds?: number;
+    };
 
 export const OFFICIAL_ESTIMATE_NETWORK_COPY = "Unable to look up published wages. Please try again.";
 export const OFFICIAL_ESTIMATE_UNAVAILABLE_COPY =
   "Published wages are not available for this occupation and worksite.";
 export const OFFICIAL_ESTIMATE_CHOICE_COPY =
   "This worksite ZIP needs a county selection before published wages can be shown.";
+export const OFFICIAL_ESTIMATE_THROTTLED_COPY =
+  "Too many requests. Please wait a moment and try again.";
+
+export function officialEstimateFailureCopy(
+  kind: "validation" | "unavailable" | "network" | "throttled",
+): string {
+  if (kind === "network") {
+    return OFFICIAL_ESTIMATE_NETWORK_COPY;
+  }
+  if (kind === "throttled") {
+    return OFFICIAL_ESTIMATE_THROTTLED_COPY;
+  }
+  return OFFICIAL_ESTIMATE_UNAVAILABLE_COPY;
+}
 
 export type OfficialEstimateRequestInput = {
   socCode: string;
@@ -295,6 +314,17 @@ export async function fetchOfficialEstimate(
     payload = await response.json();
   } catch {
     return { ok: false, kind: response.ok ? "unavailable" : "validation", status: response.status };
+  }
+
+  if (response.status === 429) {
+    const retryAfter = Number(response.headers.get("Retry-After"));
+    return {
+      ok: false,
+      kind: "throttled",
+      status: 429,
+      retryAfterSeconds:
+        Number.isInteger(retryAfter) && retryAfter > 0 ? Math.min(retryAfter, 120) : undefined,
+    };
   }
 
   if (!response.ok) {

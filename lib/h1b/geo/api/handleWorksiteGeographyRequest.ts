@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceAbuseGate, type CheckAbuseGateInput } from "@/lib/abuse/checkAbuseGate";
 import { toWorksiteGeographyResponse } from "@/lib/h1b/geo/api/toWorksiteGeographyResponse";
 import type { WorksiteGeographyApiErrorBody } from "@/lib/h1b/geo/api/worksiteGeographyApi.types";
 import {
@@ -25,6 +26,10 @@ export type WorksiteGeographyResolver = (
   input: ResolveGeographyInput,
 ) => Promise<GeographyResolution>;
 
+export type WorksiteGeographyHandlerOptions = {
+  abuse?: Omit<CheckAbuseGateInput, "request" | "routeGroup">;
+};
+
 /**
  * Thin HTTP adapter. Request-contract validation only.
  * Geographic authority is entirely delegated to the injected resolver.
@@ -32,11 +37,16 @@ export type WorksiteGeographyResolver = (
 export async function handleWorksiteGeographyRequest(
   request: Request,
   resolveWorksiteGeography: WorksiteGeographyResolver,
+  options?: WorksiteGeographyHandlerOptions,
 ): Promise<NextResponse> {
   try {
     assertWorksiteGeographyContentType(request);
     const body = await readWorksiteGeographyJsonBody(request);
     const accepted = validateWorksiteGeographyRequest(body);
+    const denied = await enforceAbuseGate(request, "h1b_geo", options?.abuse);
+    if (denied) {
+      return denied;
+    }
 
     const resolution = await resolveWorksiteGeography({
       zip: accepted.zip,

@@ -7,7 +7,10 @@ import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseActio
 import { WorksiteGeographyLookup, type WorksiteGeographyAuthority } from "@/components/h1b/WorksiteGeographyLookup";
 import {
   fetchOfficialOccupations,
+  nextOccupationSearchThrottleUntilMs,
+  occupationSearchShouldPause,
   OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY,
+  OFFICIAL_OCCUPATION_SEARCH_THROTTLED_COPY,
   OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY,
   type OfficialOccupationClientRow,
 } from "@/lib/h1b/occupations/client/officialOccupationSearchClient";
@@ -23,8 +26,8 @@ import {
 } from "@/lib/h1b/wage/client/formatOfficialWageDisplay";
 import {
   fetchOfficialEstimate,
+  officialEstimateFailureCopy,
   OFFICIAL_ESTIMATE_CHOICE_COPY,
-  OFFICIAL_ESTIMATE_NETWORK_COPY,
   OFFICIAL_ESTIMATE_UNAVAILABLE_COPY,
   type OfficialEstimateClientResultView,
   type OfficialEstimateClientWage,
@@ -201,8 +204,18 @@ export function H1bWageLevelEstimator() {
   const [officialWage, setOfficialWage] = useState<OfficialEstimateClientWage | null>(null);
   const [resultError, setResultError] = useState<string | null>(null);
   const [estimating, setEstimating] = useState(false);
+  const [estimateThrottledUntilMs, setEstimateThrottledUntilMs] = useState(0);
   const occupationPickerRef = useRef<HTMLDivElement>(null);
   const searchSeqRef = useRef(0);
+  const occupationThrottleUntilRef = useRef(0);
+
+  useEffect(() => {
+    if (estimateThrottledUntilMs <= Date.now()) {
+      return;
+    }
+    const timer = window.setTimeout(() => setEstimateThrottledUntilMs(0), estimateThrottledUntilMs - Date.now());
+    return () => window.clearTimeout(timer);
+  }, [estimateThrottledUntilMs]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -225,6 +238,11 @@ export function H1bWageLevelEstimator() {
     }
 
     const seq = ++searchSeqRef.current;
+    if (occupationSearchShouldPause(occupationThrottleUntilRef.current, Date.now())) {
+      setOccupationSearching(false);
+      setOccupationSearchError(OFFICIAL_OCCUPATION_SEARCH_THROTTLED_COPY);
+      return;
+    }
     setOccupationSearching(true);
     const timeout = window.setTimeout(() => {
       void (async () => {
@@ -233,6 +251,14 @@ export function H1bWageLevelEstimator() {
         setOccupationSearching(false);
         if (!response.ok) {
           setOccupationMatches([]);
+          if (response.kind === "throttled") {
+            occupationThrottleUntilRef.current = nextOccupationSearchThrottleUntilMs(
+              response.retryAfterSeconds,
+              Date.now(),
+            );
+            setOccupationSearchError(OFFICIAL_OCCUPATION_SEARCH_THROTTLED_COPY);
+            return;
+          }
           setOccupationSearchError(
             response.kind === "network"
               ? OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY
@@ -303,9 +329,12 @@ export function H1bWageLevelEstimator() {
     setEstimating(false);
 
     if (!estimateResult.ok) {
-      setResultError(
-        estimateResult.kind === "network" ? OFFICIAL_ESTIMATE_NETWORK_COPY : OFFICIAL_ESTIMATE_UNAVAILABLE_COPY,
-      );
+      if (estimateResult.kind === "throttled") {
+        setEstimateThrottledUntilMs(
+          Date.now() + (estimateResult.retryAfterSeconds ?? 30) * 1000,
+        );
+      }
+      setResultError(officialEstimateFailureCopy(estimateResult.kind));
       return;
     }
 
@@ -499,7 +528,7 @@ export function H1bWageLevelEstimator() {
 
               <button
                 type="submit"
-                disabled={!geography.ready || estimating}
+                disabled={!geography.ready || estimating || estimateThrottledUntilMs > Date.now()}
                 className="btn-primary mt-4 w-full min-h-[40px] rounded-lg px-4 py-2 shadow-sm disabled:opacity-50"
               >
                 {estimating ? "Looking up official wages…" : "Estimate Wage Level"}

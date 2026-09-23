@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceAbuseGate, type CheckAbuseGateInput } from "@/lib/abuse/checkAbuseGate";
 import {
   createEmptyOfficialOccupationDisplayEnricher,
   type OfficialOccupationDisplayEnricher,
@@ -23,15 +24,24 @@ function jsonError(message: string, status: number): NextResponse<OfficialOccupa
   );
 }
 
+export type OfficialOccupationSearchHandlerOptions = {
+  abuse?: Omit<CheckAbuseGateInput, "request" | "routeGroup">;
+};
+
 export async function handleOfficialOccupationSearchRequest(
   request: Request,
   store: OfficialOccupationSearchStore,
   enricher: OfficialOccupationDisplayEnricher = createEmptyOfficialOccupationDisplayEnricher(),
+  options?: OfficialOccupationSearchHandlerOptions,
 ): Promise<NextResponse> {
   try {
     const url = new URL(request.url);
     const rawQuery = url.searchParams.get("q") ?? "";
     const normalized = validateOfficialOccupationSearchQuery(rawQuery);
+    const denied = await enforceAbuseGate(request, "h1b_occ", options?.abuse);
+    if (denied) {
+      return denied;
+    }
     const result = await searchOfficialOccupations(normalized, store);
     const body: OfficialOccupationSearchDisplayResponse = {
       outcome: result.outcome,

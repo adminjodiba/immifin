@@ -6,6 +6,7 @@ import { isChicagoDailySyncMinute } from "../lib/data/dailySheetSyncTimezone";
 // exported from this entrypoint. OpenNext defines DOQueueHandler.
 // @ts-ignore generated OpenNext Durable Object class
 export { DOQueueHandler } from "../.open-next/worker.js";
+export { AbuseGate } from "./abuse-gate";
 
 type DailySyncEnv = {
   DAILY_SHEET_SYNC_SECRET?: string;

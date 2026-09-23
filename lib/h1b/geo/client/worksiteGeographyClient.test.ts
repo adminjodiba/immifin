@@ -5,6 +5,7 @@ import {
   formatCountyChoicePrimaryLabel,
   formatWageAreaContext,
   parseWorksiteGeographyResponse,
+  fetchWorksiteGeography,
   userFacingGeographyMessage,
   WORKSITE_GEOGRAPHY_INVALID_ZIP_COPY,
   WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
@@ -107,5 +108,24 @@ describe("worksiteGeographyClient", () => {
       "Wage area: Hill Country Region of Texas nonmetropolitan area",
     );
     assert.equal("area_code" in parsed!.choice_options[0]!, false);
+  });
+
+  it("maps HTTP 429 to kind throttled", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ error: "Too many requests. Please wait a moment and try again." }), {
+        status: 429,
+        headers: { "Retry-After": "30", "Content-Type": "application/json" },
+      });
+    try {
+      const result = await fetchWorksiteGeography({ zip: "77433" });
+      assert.equal(result.ok, false);
+      if (!result.ok) {
+        assert.equal(result.kind, "throttled");
+        assert.equal(result.status, 429);
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

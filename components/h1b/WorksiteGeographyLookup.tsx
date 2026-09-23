@@ -7,6 +7,7 @@ import {
   formatWageAreaContext,
   userFacingGeographyMessage,
   WORKSITE_GEOGRAPHY_NETWORK_COPY,
+  WORKSITE_GEOGRAPHY_THROTTLED_COPY,
   WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
   type WorksiteGeographyClientChoice,
   type WorksiteGeographyClientOutcome,
@@ -85,7 +86,11 @@ export function WorksiteGeographyLookup({
         setSelectedCountyFips(null);
         setResolvedAreaName(null);
         setMessage(
-          result.kind === "network" ? WORKSITE_GEOGRAPHY_NETWORK_COPY : WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
+          result.kind === "network"
+            ? WORKSITE_GEOGRAPHY_NETWORK_COPY
+            : result.kind === "throttled"
+              ? WORKSITE_GEOGRAPHY_THROTTLED_COPY
+              : WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY,
         );
         emitAuthority(false, nextZip, countyFips ?? null);
         return;

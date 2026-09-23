@@ -9,6 +9,7 @@
 //   VISA_BULLETIN_GOOGLE_SHEET_ID
 //   DAILY_SHEET_SYNC_SECRET
 //   IMMIFIN_WRITE_FREEZE
+//   ABUSE_IDENTITY_SECRET
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "immifin",
@@ -49,15 +50,24 @@
       {
         "name": "NEXT_CACHE_DO_QUEUE",
         "class_name": "DOQueueHandler"
+      },
+      {
+        "name": "ABUSE_GATE",
+        "class_name": "AbuseGate"
       }
     ]
   },
-  // First Durable Object migration for Worker immifin (no prior DO migrations
-  // on production version e5e95e97 / committed wrangler.jsonc).
+  // v1: OpenNext cache revalidation queue. Do not remove.
+  // v2: dedicated abuse-limiter DO. Declared in source only until a later
+  // Production deploy applies it. Do not apply in SEC-IP-P0-004A2.
   "migrations": [
     {
       "tag": "v1",
       "new_sqlite_classes": ["DOQueueHandler"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["AbuseGate"]
     }
   ],
   "vars": {

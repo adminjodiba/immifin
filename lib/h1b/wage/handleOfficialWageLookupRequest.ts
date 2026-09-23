@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceAbuseGate, type CheckAbuseGateInput } from "@/lib/abuse/checkAbuseGate";
 import type { WorksiteGeographyResolver } from "@/lib/h1b/geo/api/handleWorksiteGeographyRequest";
 import { lookupOfficialWage } from "@/lib/h1b/wage/lookupOfficialWage";
 import { toOfficialWagePublicResponse } from "@/lib/h1b/wage/toOfficialWageResponse";
@@ -20,15 +21,24 @@ function jsonError(message: string, status: number): NextResponse<OfficialWageLo
   );
 }
 
+export type OfficialWageLookupHandlerOptions = {
+  abuse?: Omit<CheckAbuseGateInput, "request" | "routeGroup">;
+};
+
 export async function handleOfficialWageLookupRequest(
   request: Request,
   resolveWorksiteGeography: WorksiteGeographyResolver,
   store: OfficialWageLookupStore,
+  options?: OfficialWageLookupHandlerOptions,
 ): Promise<NextResponse> {
   try {
     assertOfficialWageLookupContentType(request);
     const body = await readOfficialWageLookupJsonBody(request);
     const accepted = validateOfficialWageLookupRequest(body);
+    const denied = await enforceAbuseGate(request, "h1b_wage", options?.abuse);
+    if (denied) {
+      return denied;
+    }
     const result = await lookupOfficialWage(accepted, {
       resolveWorksiteGeography,
       store,

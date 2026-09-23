@@ -23,13 +23,20 @@ export type WorksiteGeographyClientResponse = {
 
 export type WorksiteGeographyClientResult =
   | { ok: true; data: WorksiteGeographyClientResponse }
-  | { ok: false; kind: "validation" | "unavailable_payload" | "network"; status?: number };
+  | {
+      ok: false;
+      kind: "validation" | "unavailable_payload" | "network" | "throttled";
+      status?: number;
+      retryAfterSeconds?: number;
+    };
 
 export const WORKSITE_GEOGRAPHY_UNAVAILABLE_COPY =
   "We couldn't determine the official wage area for this worksite ZIP.";
 export const WORKSITE_GEOGRAPHY_INVALID_ZIP_COPY = "Enter a valid 5-digit worksite ZIP.";
 export const WORKSITE_GEOGRAPHY_NETWORK_COPY =
   "Unable to look up worksite geography. Please try again.";
+export const WORKSITE_GEOGRAPHY_THROTTLED_COPY =
+  "Too many requests. Please wait a moment and try again.";
 
 export function formatCountyChoicePrimaryLabel(option: {
   county_display_name: string;
@@ -124,6 +131,17 @@ export async function fetchWorksiteGeography(input: {
     payload = await response.json();
   } catch {
     return { ok: false, kind: response.ok ? "unavailable_payload" : "validation", status: response.status };
+  }
+
+  if (response.status === 429) {
+    const retryAfter = Number(response.headers.get("Retry-After"));
+    return {
+      ok: false,
+      kind: "throttled",
+      status: 429,
+      retryAfterSeconds:
+        Number.isInteger(retryAfter) && retryAfter > 0 ? Math.min(retryAfter, 120) : undefined,
+    };
   }
 
   if (!response.ok) {

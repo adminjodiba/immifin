@@ -22,12 +22,39 @@ export type OfficialOccupationClientResponse = {
 
 export type OfficialOccupationClientResult =
   | { ok: true; data: OfficialOccupationClientResponse }
-  | { ok: false; kind: "validation" | "unavailable" | "network"; status?: number };
+  | {
+      ok: false;
+      kind: "validation" | "unavailable" | "network" | "throttled";
+      status?: number;
+      retryAfterSeconds?: number;
+    };
 
 export const OFFICIAL_OCCUPATION_SEARCH_NETWORK_COPY =
   "Unable to search official occupations. Please try again.";
 export const OFFICIAL_OCCUPATION_SEARCH_UNAVAILABLE_COPY =
   "Official occupations are not available right now.";
+export const OFFICIAL_OCCUPATION_SEARCH_THROTTLED_COPY =
+  "Too many requests. Please wait a moment and try again.";
+
+export function occupationSearchShouldPause(throttleUntilMs: number, nowMs: number): boolean {
+  return nowMs < throttleUntilMs;
+}
+
+export function nextOccupationSearchThrottleUntilMs(
+  retryAfterSeconds: number | undefined,
+  nowMs: number,
+): number {
+  return nowMs + (retryAfterSeconds ?? 30) * 1000;
+}
+
+function readRetryAfterHeader(response: Response): number | undefined {
+  const raw = response.headers.get("Retry-After");
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) {
+    return undefined;
+  }
+  return Math.min(value, 120);
+}
 
 export function buildOfficialOccupationSearchPath(query: string): string {
   const params = new URLSearchParams({ q: query });
@@ -79,6 +106,15 @@ export async function fetchOfficialOccupations(query: string): Promise<OfficialO
     payload = await response.json();
   } catch {
     return { ok: false, kind: response.ok ? "unavailable" : "validation", status: response.status };
+  }
+
+  if (response.status === 429) {
+    return {
+      ok: false,
+      kind: "throttled",
+      status: 429,
+      retryAfterSeconds: readRetryAfterHeader(response),
+    };
   }
 
   if (!response.ok) {

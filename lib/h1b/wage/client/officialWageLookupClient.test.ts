@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildOfficialWageRequestBody } from "@/lib/h1b/wage/client/officialWageLookupClient";
+import { buildOfficialWageRequestBody, fetchOfficialWage } from "@/lib/h1b/wage/client/officialWageLookupClient";
 
 describe("officialWageLookupClient", () => {
   it("builds soc_code + zip only and never includes area_code", () => {
@@ -31,5 +31,23 @@ describe("officialWageLookupClient", () => {
     });
     assert.deepEqual(body, { soc_code: "15-1252", zip: "00501" });
     assert.equal(typeof body.zip, "string");
+  });
+
+  it("maps HTTP 429 to kind throttled", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ error: "Too many requests. Please wait a moment and try again." }), {
+        status: 429,
+        headers: { "Retry-After": "30", "Content-Type": "application/json" },
+      });
+    try {
+      const result = await fetchOfficialWage({ socCode: "15-1252", zip: "77433" });
+      assert.equal(result.ok, false);
+      if (!result.ok) {
+        assert.equal(result.kind, "throttled");
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
