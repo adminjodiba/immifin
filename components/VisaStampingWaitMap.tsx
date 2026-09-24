@@ -19,8 +19,9 @@ import {
   getWaitStatus,
   getWaitTrend,
   sortPostsByWaitDays,
-  VISA_STAMPING_APPOINTMENT_TYPES,
+  getPetitionBasedWaitEstimateNote,
   VISA_STAMPING_COUNTRIES,
+  VISA_STAMPING_PAGE_SUBTITLE,
   VISA_STAMPING_VISA_TYPES,
   type VisaStampingAppointmentType,
   type VisaStampingHistoryPoint,
@@ -96,8 +97,7 @@ const STATUS_BADGE_STYLES = {
   "Very High": "bg-red-50 text-red-700 ring-red-200",
 } as const;
 
-const PAGE_SUBTITLE =
-  "Real-time U.S. visa stamping (interview) wait times at consulates worldwide.";
+const PAGE_SUBTITLE = VISA_STAMPING_PAGE_SUBTITLE;
 
 function buildApiUrl(
   country: CountryFilter,
@@ -550,7 +550,6 @@ function RankedPostsTable({
 function SelectedPostDetailsCard({
   post,
   rank,
-  dataSource,
   country,
   visaType,
   appointmentType,
@@ -558,7 +557,6 @@ function SelectedPostDetailsCard({
 }: {
   post: VisaStampingPost | null;
   rank: number | null;
-  dataSource: "Google Sheets" | "Demo fallback" | undefined;
   country: CountryFilter;
   visaType: VisaStampingVisaType;
   appointmentType: VisaStampingAppointmentType;
@@ -633,6 +631,8 @@ function SelectedPostDetailsCard({
           ? "text-orange-600"
           : "text-red-600";
 
+  const petitionBasedWaitEstimateNote = getPetitionBasedWaitEstimateNote(visaType);
+
   const tabs: { id: DetailsTab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "history", label: "History Trend" },
@@ -668,6 +668,12 @@ function SelectedPostDetailsCard({
               </button>
             ) : null}
           </div>
+
+          {petitionBasedWaitEstimateNote ? (
+            <p className="text-[11px] leading-relaxed text-slate-600">
+              {petitionBasedWaitEstimateNote}
+            </p>
+          ) : null}
 
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 px-2.5 py-2">
@@ -905,32 +911,28 @@ function SelectedPostDetailsCard({
             <div className="space-y-3 text-[11px] leading-relaxed text-slate-700">
               <div className="space-y-1.5 rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
                 <p>
-                  <span className="font-semibold text-slate-900">Data source:</span>{" "}
-                  {dataSource === "Google Sheets"
-                    ? "Google Sheets / Department of State manual refresh"
-                    : "Demo fallback / Department of State manual refresh"}
+                  <span className="font-semibold text-slate-900">Data source:</span> U.S. Department of State
+                  appointment wait-time estimates
                 </p>
                 <p>
-                  <span className="font-semibold text-slate-900">Current worksheet:</span> stamping_wait_time_current
-                </p>
-                <p>
-                  <span className="font-semibold text-slate-900">History worksheet:</span> stamping_wait_time_history
-                </p>
-                <p>
-                  <span className="font-semibold text-slate-900">Metadata worksheet:</span> Stamping_City_Metadata
+                  These figures are published estimates. They are not live appointment inventory and do not guarantee
+                  a booking.
                 </p>
               </div>
               <div className="space-y-1.5 rounded-xl border border-slate-200/80 bg-white p-3">
-                <p className="font-semibold text-slate-900">Visa type mapping</p>
+                <p className="font-semibold text-slate-900">How visa selections relate to official categories</p>
                 <ul className="list-disc space-y-1 pl-4">
-                  <li>H-1B / H-4 / L-1 / L-2 / O / P / Q use Wait Time H,L,O,P,Q</li>
-                  <li>F / M / J use Wait Time F,M,J</li>
-                  <li>B1/B2 uses Wait Time b1/b2</li>
-                  <li>C/D uses Wait Time C,D</li>
+                  <li>
+                    H-1B, H-4, L-1, L-2, O, P, and Q use the Department of State&apos;s petition-based (H, L, O, P, Q)
+                    appointment wait estimate
+                  </li>
+                  <li>F-1, M-1, and J-1 use the Department of State&apos;s published student/exchange wait estimate</li>
+                  <li>B-1/B-2 uses the Department of State&apos;s published visitor wait estimate</li>
+                  <li>C/D uses the Department of State&apos;s published transit/crew wait estimate</li>
                 </ul>
               </div>
               <div className="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-amber-950">
-                DOS wait times are estimates and do not guarantee appointment availability.
+                Department of State wait times are estimates and do not guarantee appointment availability.
               </div>
             </div>
           ) : null}
@@ -1037,11 +1039,6 @@ export function VisaStampingWaitMap() {
     setAppliedVisaType(visaType);
   }
 
-  function handleAppointmentTypeChange(appointmentType: VisaStampingAppointmentType) {
-    setMapFocusPostId(null);
-    setAppliedAppointmentType(appointmentType);
-  }
-
   function handleResetFilters() {
     setAppliedCountry(DEFAULT_VISA_STAMPING_FILTERS.country);
     setAppliedVisaType(DEFAULT_VISA_STAMPING_FILTERS.visaType);
@@ -1094,18 +1091,6 @@ export function VisaStampingWaitMap() {
               {VISA_STAMPING_VISA_TYPES.map((visaType) => (
                 <option key={visaType} value={visaType}>
                   {visaType}
-                </option>
-              ))}
-            </select>
-            <select
-              value={appliedAppointmentType}
-              onChange={(event) => handleAppointmentTypeChange(event.target.value as VisaStampingAppointmentType)}
-              className={filterSelectClassName}
-              aria-label="Filter by appointment type"
-            >
-              {VISA_STAMPING_APPOINTMENT_TYPES.map((appointmentType) => (
-                <option key={appointmentType} value={appointmentType}>
-                  {appointmentType}
                 </option>
               ))}
             </select>
@@ -1212,7 +1197,6 @@ export function VisaStampingWaitMap() {
                 <SelectedPostDetailsCard
                   post={selectedPost}
                   rank={selectedRank}
-                  dataSource={metadata?.source}
                   country={appliedCountry}
                   visaType={appliedVisaType}
                   appointmentType={appliedAppointmentType}

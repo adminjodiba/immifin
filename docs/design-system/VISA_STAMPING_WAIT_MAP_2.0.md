@@ -38,7 +38,7 @@ This document records the approved dashboard layout, data architecture, UX decis
 |-------------|-------------|
 | **Workspace shell** | `WorkspacePageShell` with light slate/blue-gray workspace background |
 | **Compact header** | Globe icon + title + FavoriteStar; subtitle under title |
-| **Header filters** | Country / Visa Type / Appointment Type + Reset Filters aligned top-right next to close (X) |
+| **Header filters** | Country / Visa Type + Reset Filters aligned top-right next to close (X). Appointment type is Interview only; Drop-box is not a user-selectable option because IMMIFIN has no separate drop-box wait-time dataset. |
 | **Close control** | Returns to `/calculators` |
 | **No source/refresh chrome** | Source badge, last-updated badge, and Refresh Data button intentionally removed from header for density |
 | **No amber dropbox banner** | Dropbox note not shown on the page surface |

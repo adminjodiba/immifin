@@ -104,6 +104,43 @@ export const VISA_STAMPING_APPOINTMENT_TYPES: readonly VisaStampingAppointmentTy
   "Drop-box",
 ] as const;
 
+/** User-selectable appointment types. Drop-box is not offered — no separate DOS dataset. */
+export const VISA_STAMPING_UI_APPOINTMENT_TYPES: readonly VisaStampingAppointmentType[] = [
+  "Interview",
+] as const;
+
+export const VISA_STAMPING_PAGE_SUBTITLE =
+  "Department of State appointment wait-time estimates at U.S. consulates worldwide.";
+
+const PETITION_BASED_VISA_TYPES: ReadonlySet<VisaStampingVisaType> = new Set([
+  "H-1B",
+  "H-4",
+  "L-1",
+  "L-2",
+  "O",
+  "P",
+  "Q",
+  "Other NIV",
+]);
+
+export function isPetitionBasedVisaType(visaType: VisaStampingVisaType): boolean {
+  return PETITION_BASED_VISA_TYPES.has(visaType);
+}
+
+export const PETITION_BASED_WAIT_ESTIMATE_NOTE =
+  "For H-1B, IMMIFIN displays the Department of State's published petition-based (H, L, O, P, Q) appointment wait estimate.";
+
+export const PETITION_BASED_WAIT_ESTIMATE_NOTE_GENERIC =
+  "This result uses the Department of State's published petition-based (H, L, O, P, Q) appointment wait estimate.";
+
+export function getPetitionBasedWaitEstimateNote(visaType: VisaStampingVisaType): string | null {
+  if (!isPetitionBasedVisaType(visaType)) {
+    return null;
+  }
+
+  return visaType === "H-1B" ? PETITION_BASED_WAIT_ESTIMATE_NOTE : PETITION_BASED_WAIT_ESTIMATE_NOTE_GENERIC;
+}
+
 export const VISA_STAMPING_DEMO_SOURCE = "Demo data — Replace with official DOS data";
 
 const DOS_WAIT_TIMES_URL = "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/wait-times.html";
