@@ -118,6 +118,7 @@ Production LIVE (SEC-IP-PROD-011). HUD-USPS 2026 Q2 and OFLC All Industries 2026
 - Ordinary hourly result table renders Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) as separate columns. The ×2,080 calculation remains only in `formatOfficialWageDisplay.ts`.
 - Lottery Odds handoff is `/immigration/h1b-lottery-odds-calculator?wageLevel={I|II|III|IV}` from the canonical Wage route only.
 - Lottery calculation lives in `lib/h1b/h1bLotteryOdds.ts`. Approved constants are `DHS_MODELED_SELECTION_ESTIMATES` (I 15.29 / II 30.58 / III 45.87 / IV 61.16) and `DHS_MODELED_RANDOM_BASELINE` 29.59. Master's eligibility does not modify the modeled estimate. The retired demo boost (`US_MASTERS_CAP_BOOST = 8`) and `MAX_DISPLAYED_ODDS = 95` must not return.
+- Lottery on-page SEO lives in server-rendered `components/H1bLotteryOddsSeoContent.tsx` below the calculator. It must not change calculation values. FAQPage JSON-LD is not used; IMMIFIN has no established FAQ structured-data pattern.
 
 ### Production authorities and security boundary (SEC-IP-PROD-012)
 

@@ -87,6 +87,7 @@ Official geography still follows **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECIS
 | **Inputs** | Wage level (I–IV or “I don't know”), U.S. master's degree or higher (Yes / No) |
 | **Output** | DHS modeled wage-level selection estimate vs DHS modeled random-selection baseline. Master's Yes communicates advanced-degree exemption eligibility only; it does not change the modeled percentage. |
 | **Cross-tool** | Accepts `?wageLevel={I\|II\|III\|IV}` from the Wage Estimator. “Estimate my wage level” CTA when wage level is unknown. |
+| **On-page SEO** | Server-rendered explanation below the calculator (`H1bLotteryOddsSeoContent.tsx`): FY2027 wage-weighted 1×–4× method, static DHS estimate table, master’s exemption (no invented percentage), Wage Estimator link, FAQ. No FAQPage schema. |
 
 ### Data scripts (maintenance)
 

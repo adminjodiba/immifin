@@ -2,6 +2,9 @@
 
 **Last Updated:** 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + Durable Object v2 live; post-v2 rollback baseline)
 
+**Local WIP (uncommitted):** H1BLOTTERY-SEO-004 — FY2027 lottery on-page SEO below the frozen calculator; awaiting Product Owner localhost review; not committed
+
+
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -480,9 +483,10 @@ Verified operational row counts at cutover close (exact `count(*)`):
 - **Premium Visa Bulletin APIs:** server-side `requireCapability` is **DEPLOYED**. Production account-level Free/Pro/Power entitlement smoke is **PENDING**. Movement Tracker U→U modeling remains a separate issue.
 - Visual redesign remains deferred until the Immigration-wide redesign after SCO/SEO.
 
-**H-1B Lottery Odds (H1BLOTTERY-CLOSE-003):**
+**H-1B Lottery Odds (H1BLOTTERY-CLOSE-003 + H1BLOTTERY-SEO-004):**
 
 - Approved DHS modeled estimates shipped in `89732c9` with SEC-IP-PROD-011: I 15.29%, II 30.58%, III 45.87%, IV 61.16%; random baseline 29.59%. Master's Yes does not change the estimate.
+- H1BLOTTERY-SEO-004 adds server-rendered FY2027 wage-weighted explanation, static DHS table, master’s exemption copy, Wage Estimator link, and FAQ below the calculator. Calculator logic is frozen. Awaiting Product Owner localhost review. Not committed.
 
 Architecture and operator rules: [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
