@@ -1,6 +1,7 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-22 (H1BLOTTERY-IMPL-002 — DHS modeled lottery estimates implemented locally; awaiting Product Owner localhost review; not committed)  
+**Last Updated:** 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + Durable Object v2 live; post-v2 rollback baseline)
+
 **Document role:** Operational single source of truth — where the project is today  
 **Program:** [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md)  
 **Sprint history:** [SPRINT_5_HANDOFF.md](./SPRINT_5_HANDOFF.md) · [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md) · [SPRINT_8_HANDOFF.md](./SPRINT_8_HANDOFF.md)  
@@ -14,6 +15,8 @@ IMMIFIN is a production immigration/finance web application on Cloudflare Worker
 
 The project has transitioned from sprint-based feature development into the **IMMIFIN Beta Launch Program (BLP)** — coordinating invite-only beta, billing validation, operations, support, feedback, and controlled Intelligence enablement before any public launch.
 
+**SEC-IP-PROD-011/012:** H-1B Official Wage Platform is **Production LIVE**. HUD-USPS 2026 Q2 and OFLC All Industries 2026-27 are **ACTIVE**. Official H-1B APIs and server-side estimator protection are live. AbuseGate (DO migration **v2**) is live. Production Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` from `origin/main` `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`. Safe rollback is **post-v2 only**. Premium Visa Bulletin server-side capability enforcement is **DEPLOYED**; Production account-level entitlement smoke is **PENDING**.
+
 **S7A-PERF-003 is CLOSED** — Production persistent OpenNext cache (R2 + D1 + Durable Object queue) is implemented and validated. **S7A-PERF-004 is CLOSED** — remaining warm HIT latency is accepted. **PERF-005 is not authorized.**
 
 **Sprint 7** delivered the commercial Stripe platform **in application code**: Checkout, webhooks with billing-state sync, Pricing UI, Billing Center (plan changes), capability enforcement helpers, and commercial UX polish. **LIVE Free→Pro PASS**; remaining Live matrix and public launch are still pending.
@@ -21,20 +24,20 @@ The project has transitioned from sprint-based feature development into the **IM
 | Field | Value |
 |-------|-------|
 | **Current Phase** | **IMMIFIN Beta Launch Program** |
-| **Engineering Status** | **Sprint 7A go-live release packaged on `release/s7a-go-live` — awaiting Product Owner push/deploy approval** |
+| **Engineering Status** | **H-1B Official Wage Platform Production LIVE** (SEC-IP-PROD-011). Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` · commit `6b7bf1d` |
 | **Operational Status** | **Preparing Invite-only Beta** |
 | **Current Recommendation** | **Controlled Beta** |
 | **Public Launch** | **Not Approved** |
-| **Overall health** | Strong — core product stable; **LIVE Free→Pro PASS**; **LIVE Pro→Power technical PASS** (upgrade UX enhancement required); Intelligence engineered, not beta-enabled |
+| **Overall health** | Strong — core product stable; H-1B official wage + AbuseGate live; **LIVE Free→Pro PASS**; **LIVE Pro→Power technical PASS** (upgrade UX enhancement required); Intelligence engineered, not beta-enabled |
 | **Commercial readiness** | LIVE activation + Pro→Power technical path validated; **Sprint 7 billing UX TEST E2E PASS** (002–008D); **Production-deployed** 2026-08-25 ([REL-002](./S7_BILLING_REL_002_PRODUCTION_DEPLOYMENT.md)); **LIVE UX lifecycle validation not yet performed** |
 | **Engineering blockers** | September Monthly Immigration Update bulk send **blocked** until S7-PROD-NOTIFY-FIX-001 is Production-deployed and preview-rechecked ([signoff](./S7_PROD_NOTIFY_FIX_001_MONTH_ALIGNMENT_SIGNOFF.md)) |
-| **Sprint 7A release** | Local merge complete (`2334374`). **Not pushed. Not Production-deployed.** |
+| **H-1B / AbuseGate** | **LIVE.** HUD 2026 Q2 ACTIVE · OFLC 2026-27 ACTIVE · AbuseGate LIVE · rollback **post-v2 only** · VB account-level smoke **PENDING** |
 
 ---
 
-## Sprint 7A go-live release (as-built on `release/s7a-go-live`)
+## Sprint 7A go-live release (historical as-built on `release/s7a-go-live`)
 
-Protected Sprint 7A work and `origin/main` were reconciled in **S7A-RELEASE-MERGE-010**. This section records **implemented** behavior in the release branch. Production (`https://immifin.com`) still serves the prior Worker until Product Owner approves push and deploy.
+This section is a **historical as-built** of Sprint 7A on `release/s7a-go-live`. It is **not** current Production state. Current Production is `origin/main` `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011). Protected Sprint 7A work and `origin/main` were reconciled in **S7A-RELEASE-MERGE-010**.
 
 | Field | Value |
 |-------|-------|
@@ -102,6 +105,7 @@ Reconciled from `origin/main` persistent-cache close-out and Sprint 7A scheduled
 | D1 tag cache | `NEXT_TAG_CACHE_D1` → `immifin-prod-opennext-tag-cache` |
 | Durable Object queue | `NEXT_CACHE_DO_QUEUE` → `DOQueueHandler` |
 | Migration v1 | `new_sqlite_classes: ["DOQueueHandler"]` — do not remove |
+| AbuseGate | Binding `ABUSE_GATE` / class `AbuseGate` / migration **v2** — Production LIVE |
 | OpenNext persistent cache | `open-next.config.ts` — R2 + D1 + DO + `enableCacheInterception=true` |
 
 Production already validated the persistent-cache bindings (S7A-PERF-003 / PERF-004). Custom Worker + Chicago crons are **in this release only** until the next Production deploy.
@@ -367,14 +371,14 @@ Root causes resolved during this path (documented in signoff):
 
 | Area | Status |
 |------|--------|
-| **Current production version** | **v0.5.1** on `https://immifin.com` — LIVE Free → Pro Monthly E2E **PASS** |
-| **Next packaged release** | Sprint 7A go-live on `release/s7a-go-live` @ `2334374` — **ready to push after Product Owner approval**; not on GitHub `main`; not Production-deployed |
+| **Current production version** | **v0.5.1** on `https://immifin.com` — LIVE Free → Pro Monthly E2E **PASS**; H-1B Official Wage Platform **LIVE** (SEC-IP-PROD-011) |
+| **Live Worker / commit** | `25c7449e-a287-4c0a-ac41-d319d40499ba` / `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` |
 | **Target next commercial release** | **v0.5.0** matrix — Free→Pro Monthly LIVE signed off; remaining transitions pending |
 | **Active program** | **IMMIFIN Beta Launch Program** — Preparing Invite-only Beta |
 | **Sprint 8** | **FROZEN** — Engineering Complete through S8-IIP-011 |
 | **Persistent cache** | **S7A-PERF-003 CLOSED** — R2 + D1 + DO queue + cache interception **validated in Production** |
 | **Public HIT latency** | **S7A-PERF-004 CLOSED** — typical warm HIT is **accepted**; **PERF-005 is not authorized** |
-| **Custom Worker + Chicago crons** | Implemented in this release branch; **not Production-live until the next deploy** |
+| **Custom Worker + Chicago crons + AbuseGate** | **Production LIVE.** Rollback **post-v2 only** (retain `DOQueueHandler` v1 and `AbuseGate` v2). |
 | **Stripe status** | **Partial LIVE validation** — Free→Pro PASS; Pro→Power **technical** PASS; billing confirmation UX backlog (S7-BILLING-UX-001); other transitions pending |
 | **Production readiness (commercial)** | **Partial** — first LIVE activation validated; do not treat full matrix as complete |
 | **Public Launch** | **Not Approved** |
@@ -396,7 +400,8 @@ Root causes resolved during this path (documented in signoff):
 | **Sprint 8 freeze / handoff** | S8-IIP-012 documentation governance |
 | **Beta Launch Program foundation** | BLP-001 — [BETA_LAUNCH_PROGRAM.md](./BETA_LAUNCH_PROGRAM.md) |
 | **OpenNext persistent cache** | Production R2 incremental cache, D1 tag cache, Durable Object revalidation queue; public HTML/RSC HIT proven (S7A-PERF-003) |
-| **Sprint 7A public / admin / ops (this branch)** | DS2 homepage + hero playbook; Contact / Share Feedback / What Users Say; Admin Feedback + Data Refresh; daily Chicago sheet sync Worker; SEO sitemap includes `/about/what-users-say`; unused diagnostic routes removed |
+| **H-1B Official Wage Platform** | Production LIVE — HUD 2026 Q2 ACTIVE, OFLC 2026-27 ACTIVE, official APIs + server-side estimate, AbuseGate v2 (SEC-IP-PROD-011) |
+| **Sprint 7A public / admin / ops** | DS2 homepage + hero playbook; Contact / Share Feedback / What Users Say; Admin Feedback + Data Refresh; daily Chicago sheet sync Worker; SEO sitemap includes `/about/what-users-say`; unused diagnostic routes removed |
 
 For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache operations: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Sprint 7A closeout: [SPRINT_RELEASE_CHECKLIST.md](./SPRINT_RELEASE_CHECKLIST.md).
 
@@ -407,12 +412,12 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 | Field | Production value |
 |-------|------------------|
 | **Worker** | `immifin` |
-| **Serving version** | `e0855e5f-66ec-4c12-828d-87caeeb4bd44` (100% traffic) |
-| **Git / `origin/main` at cache close** | `3038ddf4c19a8548a621942c865faab0afb7b3dd` |
+| **Serving version** | `25c7449e-a287-4c0a-ac41-d319d40499ba` (100% traffic; SEC-IP-PROD-011) |
+| **Git / `origin/main`** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` |
 | **Architecture** | R2 incremental cache + D1 next-mode tag cache + Durable Object revalidation queue + `enableCacheInterception=true` |
 | **R2** | `immifin-prod-opennext-inc-cache` (validated: 31 objects, ~1.44 MB) |
 | **D1** | `immifin-prod-opennext-tag-cache` (`revalidations` + `_cf_KV`) |
-| **Durable Object** | `NEXT_CACHE_DO_QUEUE` → `DOQueueHandler` (migration **v1** — forward-deploy only; do not remove) |
+| **Durable Object** | `NEXT_CACHE_DO_QUEUE` → `DOQueueHandler` (migration **v1**) and `ABUSE_GATE` → `AbuseGate` (migration **v2**). Both remain. Rollback is **post-v2 only**. |
 | **PERF-003** | **CLOSED** — public HTML/RSC persistent HIT, R2 persistence, D1 `revalidateTag`, auth boundaries, no observed user-specific PII in shared cache, no Worker 1102 |
 | **PERF-004** | **CLOSED** — typical Worker HIT **~100–130 ms**; Clerk signed-out middleware **~1–5 ms** (not the TTFB bottleneck); current latency **acceptable** |
 | **PERF-005** | **Not authorized.** Do not implement Workers Cache for HTML, CDN-in-front-of-Clerk, middleware bypass, or `withRegionalCache` without a new approved workstream. |
@@ -427,9 +432,9 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 4. Prepare invite-only IMMIFIN beta cohort and support readiness.  
 5. Enable Intelligence only after Pre-Beta Enablement Gate + PO approval.  
 6. Collect real-user feedback before new feature sprints.  
-7. **H1B official wage platform:** Product Owner approved the final canonical estimator (H1BWAGE-CLOSE-023). Local checkpoint only. Do **not** apply 021 to Production until a separate Production approval. Do **not** treat the current H-1B page as the final Immigration visual design. Do **not** push or deploy from this close.
+7. **H-1B Official Wage Platform is Production LIVE** (SEC-IP-PROD-011). Do **not** treat the current H-1B page as the final Immigration visual design. Visual redesign remains deferred until after SCO/SEO. Premium Visa Bulletin **account-level** entitlement smoke remains **PENDING**.
 
-Do **not** begin Sprint 9 automatically. Do **not** apply 021 to Production from this checkpoint.
+Do **not** begin Sprint 9 automatically. Do **not** deactivate Production HUD/OFLC during a Worker rollback.
 
 ---
 
@@ -440,14 +445,14 @@ The Dev → Production Supabase cutover is **complete**. Isolation is proven. Th
 | Field | Value |
 |-------|-------|
 | **Source commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` |
-| **Live Worker** | `immifin` / `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` |
+| **Live Worker** | `immifin` / `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011) |
 | **`immifin.com`** | Production Supabase **`pmkx...ysdv`** (`immifin production`) |
 | **localhost / `dev.immifin.com`** | Dev Supabase **`vnhn...toxs`** (`immifin Dev`) via `.env.local` |
 | **Supabase CLI link (this repo)** | **Dev `vnhn...toxs` only.** Do not relink the working repository to Production. |
 | **Write freeze** | Production `IMMIFIN_WRITE_FREEZE` **disabled**. Local flag **absent**. |
 | **Isolation proof** | Authenticated live Admin page load updated Production `profiles.last_seen_at`. Corresponding Dev `last_seen_at` unchanged. |
 | **Dev data** | Retained intact for rollback. Do not delete or archive Dev. |
-| **Schema** | **001–020** applied on Dev and Production. **021 applied on Dev only.** **021 unapplied on Production.** Production has no H-1B wage tables. |
+| **Schema** | **001–021** applied on Dev and Production. Production holds active HUD 2026 Q2 and OFLC 2026-27 All Industries data. |
 
 Verified operational row counts at cutover close (exact `count(*)`):
 
@@ -462,26 +467,22 @@ Verified operational row counts at cutover close (exact `count(*)`):
 | `admin_audit_log` | 21 |
 | `admin_role_changes` | 1 |
 
-**H1B official wage platform (local Dev only — H1BWAGE-CLOSE-023):**
+**H-1B Official Wage Platform (Production LIVE — SEC-IP-PROD-011):**
 
-- Product Owner approved the final canonical calculator on localhost. Functionally closed. Local checkpoint only. Not pushed. Not Production-deployed.
-- Canonical route: `/immigration/h1b-wage-level-estimator`. Temporary `/immigration/h1b-wage-level-estimator-v2` is removed.
-- Official occupation API (`GET /api/h1b/official-occupations`) remains authoritative. Occupation details, Common Job Titles, and technical details remain.
-- Authoritative Worksite ZIP replaced City/State. Geography remains ZIP → county → OFLC area (AUTO / CHOICE_REQUIRED / UNAVAILABLE).
-- Official wage API (`POST /api/h1b/official-wage`) remains authoritative. Demo wage amounts stay retired.
-- Salary, experience, education, estimation, salary-position comparison, and reasoning remain.
-- Ordinary hourly table: Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) are separate columns. Annual equivalent is an IMMIFIN `hourly × 2,080` calculation, not an OFLC-published annual wage.
-- Special-wage handling remains safe. H-1B Wage ↔ Lottery Odds handoff remains locked.
-- Visual redesign is deferred until the Immigration-wide redesign after SCO/SEO.
+- **Status:** Production LIVE on `https://immifin.com` from commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (2026-09-24T02:41:31.034Z).
+- **HUD-USPS 2026 Q2:** ACTIVE (1 version; 54,570 crosswalk rows; 39,484 unique ZIPs; 3,234 unique county FIPS; 11,379 multi-county ZIPs). `county_fips_names` is empty by design; V1 runtime does not depend on it.
+- **OFLC All Industries 2026-27:** ACTIVE (1 dataset; 2026-07-01–2027-06-30; BLS May 2025 OEWS; 2018 SOC; 848 occupations; 530 areas; 3,275 localities; 449,440 wages). Labels: blank 410,620 / Annual Wage 32,299 / High Wage 5,866 / No Leveled Wage 655.
+- Runtime selects **ACTIVE** HUD and **ACTIVE** All Industries OFLC. Dataset UUIDs are not hardcoded.
+- Official APIs live: occupations, worksite geography, official wage, official estimate. Public responses omit `area_code`, `geo_level`, mapping internals, and `matchScore`. The estimate API accepts only user inputs and re-resolves geography/wages server-side.
+- Proprietary estimator logic remains server-side. Public Intelligence Boundary: explain the result; do not publish the recipe.
+- **AbuseGate:** LIVE. Binding `ABUSE_GATE`, class `AbuseGate`, migration **v2**. Secret name `ABUSE_IDENTITY_SECRET` is PRESENT. `IMMIFIN_ABUSE_GATE_ENABLED` is UNSET (enabled). Fail-open. Do not document the secret value.
+- **Smoke (SEC-IP-PROD-011):** public home, pricing, login/signup, Wage Estimator, committed Lottery calculator, official H-1B APIs, AbuseGate normal path, cache HIT, and no observed 1102. HUD/OFLC stayed active. Authenticated product paths were not fully smoke-tested (no approved Production test accounts).
+- **Premium Visa Bulletin APIs:** server-side `requireCapability` is **DEPLOYED**. Production account-level Free/Pro/Power entitlement smoke is **PENDING**. Movement Tracker U→U modeling remains a separate issue.
+- Visual redesign remains deferred until the Immigration-wide redesign after SCO/SEO.
 
-**H-1B Lottery Odds (local Dev — H1BLOTTERY-IMPL-002, awaiting Product Owner localhost review):**
+**H-1B Lottery Odds (H1BLOTTERY-CLOSE-003):**
 
-- Replaced the Sprint 5 demo table with Product Owner-approved DHS modeled estimates: I 15.29%, II 30.58%, III 45.87%, IV 61.16%; random baseline 29.59%.
-- Master's Yes no longer adds +8 or any other numerical boost. Advanced-degree exemption eligibility is communicated separately.
-- The 95% display cap is removed. Signed difference formatting no longer prefixes every value with `+`.
-- Not committed. Not pushed. Not Production-deployed.
-
-Production apply of 021 remains a later separately approved operation.
+- Approved DHS modeled estimates shipped in `89732c9` with SEC-IP-PROD-011: I 15.29%, II 30.58%, III 45.87%, IV 61.16%; random baseline 29.59%. Master's Yes does not change the estimate.
 
 Architecture and operator rules: [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
@@ -504,8 +505,8 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Item | Value |
 |------|--------|
 | **Repository branch (local release)** | `release/s7a-go-live` (`2334374`) — not tracking a remote; not pushed |
-| **GitHub `main` / live cutover commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` |
-| **Production Worker / version** | `immifin` / `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` |
+| **GitHub `main` / live commit** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` (SEC-IP-PROD-011) |
+| **Production Worker / version** | `immifin` / `25c7449e-a287-4c0a-ac41-d319d40499ba` |
 | **Production URL** | `https://immifin.com` → Production Supabase `pmkx...ysdv` |
 | **Localhost / CLI Supabase** | Dev `vnhn...toxs` — do not relink this repo to Production |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
@@ -546,4 +547,5 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 | `immifin.com` on Production Supabase `pmkx...ysdv`; localhost + CLI remain Dev `vnhn...toxs` |
 | Prior | 2026-09-22 | H1BWAGE-CHECKPOINT-019 | Official H-1B wage platform functionally approved on **local Dev**; 021 on Dev only; Production 021 unapplied; visual redesign deferred until after SCO/SEO |
 | Prior | 2026-09-22 | H1BWAGE-V2-021 | Approved V2 estimator promoted to canonical `/immigration/h1b-wage-level-estimator`; temporary V2 removed; **local Dev** only; not Production-deployed |
-| **Current** | **2026-09-22** | **H1BWAGE-CLOSE-023** | H-1B Wage Level Estimator functionally closed on localhost; four-column hourly table; local checkpoint only; not pushed; not Production-deployed |
+| Prior | 2026-09-22 | H1BWAGE-CLOSE-023 | H-1B Wage Level Estimator functionally closed on localhost; four-column hourly table; local checkpoint only; later superseded by Production deploy |
+| **Current** | **2026-09-24** | **SEC-IP-PROD-012** | H-1B Official Wage Platform Production LIVE; HUD 2026 Q2 + OFLC 2026-27 ACTIVE; AbuseGate + DO v2 live; post-v2 rollback baseline; premium VB account-level smoke PENDING |

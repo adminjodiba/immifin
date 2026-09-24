@@ -1,7 +1,12 @@
 # Immifin — Deployment Guide
 
-**Last updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` uses Production Supabase `pmkx...ysdv`)  
+**Last updated:** 2026-09-24 (SEC-IP-PROD-012 — Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` · commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`)
+
 **Production domain:** https://immifin.com
+
+**Production Worker version:** `25c7449e-a287-4c0a-ac41-d319d40499ba`
+
+**Production deployment commit:** `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`
 
 > **Authoritative deployment reference:** [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)  
 > **Troubleshooting:** [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md)
@@ -63,11 +68,11 @@ See [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)
 | File | Purpose |
 |------|---------|
 | `open-next.config.ts` | OpenNext Cloudflare adapter (R2 incremental cache, D1 tag cache, Durable Object queue) |
-| `wrangler.jsonc` | Worker bindings, public `vars`, custom `main`, DST-safe Chicago crons |
-| `cloudflare/custom-worker.ts` | Scheduled daily sheet sync; `fetch` delegated to OpenNext; re-exports `DOQueueHandler` |
+| `wrangler.jsonc` | Worker bindings, public `vars`, custom `main`, DST-safe Chicago crons, Durable Object migrations **v1** + **v2** |
+| `cloudflare/custom-worker.ts` | Scheduled daily sheet sync; `fetch` delegated to OpenNext; re-exports `DOQueueHandler` and `AbuseGate` |
 | `package.json` | `deploy` and `preview` scripts |
 
-Runtime secret **name** required for scheduled sync: `DAILY_SHEET_SYNC_SECRET` (Cloudflare Worker secret or local `.dev.vars`). Do not commit or print the value. Cron does not run until Production is deployed with that secret set.
+Runtime secret **names** (values never documented): `DAILY_SHEET_SYNC_SECRET` (scheduled sync); `ABUSE_IDENTITY_SECRET` (AbuseGate HMAC; Production PRESENT). Feature flag `IMMIFIN_ABUSE_GATE_ENABLED` is UNSET in Production (enabled).
 
 ---
 
@@ -85,7 +90,13 @@ Runtime secret **name** required for scheduled sync: `DAILY_SHEET_SYNC_SECRET` (
 
 ## Rollback
 
-Prefer dashboard recovery over force-push to `main`. Use only a **post–migration v1** Worker (must retain `DOQueueHandler` and migration **v1**). **Do not promote a pre-v1 Worker.** Recovery should normally be a **forward deployment** that keeps migration v1, `DOQueueHandler`, and the R2/D1/DO bindings.
+Prefer dashboard recovery over force-push to `main`. Safe rollback is **post-v2 only**. Any Worker promoted during rollback must retain:
+
+- migration **v1** — `DOQueueHandler` / `NEXT_CACHE_DO_QUEUE`
+- migration **v2** — `AbuseGate` / `ABUSE_GATE`
+- existing R2 incremental cache binding, D1 tag cache binding, and `WORKER_SELF_REFERENCE`
+
+**Do not promote a pre-v2 Worker**, including previous `origin/main` `29550ab20a58956649e001c5dbd248bb89e1d79a`. Production HUD/OFLC datasets stay ACTIVE during Worker rollback.
 
 Authoritative rollback: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 

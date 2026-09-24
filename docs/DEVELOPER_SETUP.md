@@ -90,7 +90,7 @@ npx supabase link --project-ref <dev-project-ref>
 npx supabase db push
 ```
 
-**PRODUCTION APPLY** is a separately approved controlled operation targeting `pmkx...ysdv`. Do not apply Production migrations by relinking this repo or by treating a local migration file as authorization. **021 is unapplied on both databases**; the next eligible apply is Dev only.
+**PRODUCTION APPLY** is a separately approved controlled operation targeting `pmkx...ysdv`. Do not apply Production migrations by relinking this repo or by treating a local migration file as authorization. **001–021 are applied on Dev and Production.** Future migrations still require separate Production approval.
 
 ### 7. Log in and configure Cloudflared
 

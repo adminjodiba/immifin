@@ -102,11 +102,11 @@ Official OFLC wage lookup follows **GEO-RESOLUTION-DECISION-001** ([PROJECT_DECI
 - Frontend consumes `POST /api/h1b/worksite-geography`. It must not recreate resolver logic or submit `area_code` as authority.
 - County FIPS remains internal. The frontend never independently determines county → OFLC area.
 
-## H-1B official wage and occupation APIs (H1BWAGE-CHECKPOINT-019 + H1BWAGE-CLOSE-023)
+## H-1B official wage and occupation APIs (H1BWAGE-CHECKPOINT-019 + H1BWAGE-CLOSE-023 + SEC-IP-PROD-012)
 
-Local Dev implementation. Functionally closed on localhost. Not Production-deployed. Migration 021 remains unapplied on Production.
+Production LIVE (SEC-IP-PROD-011). HUD-USPS 2026 Q2 and OFLC All Industries 2026-27 are ACTIVE. Migration 021 is applied on Production.
 
-- Runtime selects the **ACTIVE** All Industries `wage_datasets` row. Dataset UUID and wage year are never hardcoded as lookup authority.
+- Runtime selects the **ACTIVE** All Industries `wage_datasets` row and the **ACTIVE** HUD geography dataset. Dataset UUID and wage year are never hardcoded as lookup authority.
 - `GET /api/h1b/official-occupations?q=` searches ACTIVE `oflc_occupations` only (case-insensitive title, useful SOC prefix, limit 25, deterministic ranking). It does not search the 722-title seed.
 - `POST /api/h1b/official-wage` accepts only `soc_code`, `zip`, and optional `county_fips`. Unknown fields including `area_code` are rejected.
 - The wage handler re-runs authoritative server-side geography, validates the official SOC, and loads the exact wage record. No closest-area or closest-SOC fallback.
@@ -118,7 +118,16 @@ Local Dev implementation. Functionally closed on localhost. Not Production-deplo
 - Ordinary hourly result table renders Official Wage (Hourly Rate) and Annual Equivalent (2,080 Hours) as separate columns. The ×2,080 calculation remains only in `formatOfficialWageDisplay.ts`.
 - Lottery Odds handoff is `/immigration/h1b-lottery-odds-calculator?wageLevel={I|II|III|IV}` from the canonical Wage route only.
 - Lottery calculation lives in `lib/h1b/h1bLotteryOdds.ts`. Approved constants are `DHS_MODELED_SELECTION_ESTIMATES` (I 15.29 / II 30.58 / III 45.87 / IV 61.16) and `DHS_MODELED_RANDOM_BASELINE` 29.59. Master's eligibility does not modify the modeled estimate. The retired demo boost (`US_MASTERS_CAP_BOOST = 8`) and `MAX_DISPLAYED_ODDS = 95` must not return.
-- Production schema apply of migration 021 is a later separately approved operation and is not part of this local close.
+
+### Production authorities and security boundary (SEC-IP-PROD-012)
+
+- HUD-USPS 2026 Q2 is the approved V1 ZIP/county authority. OFLC All Industries 2026-27 is the approved V1 wage authority.
+- `county_fips_names` is not required by V1 runtime.
+- Proprietary estimator logic remains server-side. Public APIs omit `area_code`, `geo_level`, mapping internals, and `matchScore`. The estimate API accepts only user inputs and re-resolves geography/wages server-side.
+- **Public Intelligence Boundary:** explain the result; do not publish the recipe. Do not expose proprietary formulas, scoring weights, decision trees, transformations, mappings, confidence algorithms, or private enrichment merely for transparency or SEO.
+- AbuseGate is Production LIVE (Durable Object class `AbuseGate`, binding `ABUSE_GATE`, migration **v2**). Identity uses HMAC-SHA-256 with secret name `ABUSE_IDENTITY_SECRET`. Fail-open. `IMMIFIN_ABUSE_GATE_ENABLED` UNSET means enabled.
+- Safe Worker rollback is **post-v2 only**. Retain v1 `DOQueueHandler` and v2 `AbuseGate`. Do not promote pre-v2 `29550ab`. HUD/OFLC stay ACTIVE during Worker rollback.
+- Visa Bulletin History and Movement APIs: server-side capability enforcement is **DEPLOYED** (Free denied; Pro/Power allowed). Production account-level entitlement smoke is **PENDING**. Movement Tracker U→U modeling is a separate issue.
 
 ---
 

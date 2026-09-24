@@ -615,7 +615,8 @@ Fail closed. Do not AUTO to Houston by dropping `00048`.
 | Layer | Status |
 |-------|--------|
 | Backend resolver | Implemented locally (GEO-RESOLUTION-CHECKPOINT-007, HEAD family `a65063f`) |
-| Dev dataset activation | HUD 2026 Q2 + OFLC 2026-27 All Industries **active in Dev** (GEO-RESOLUTION-OPS-008). Production untouched and inactive. |
+| Dev dataset activation | HUD 2026 Q2 + OFLC 2026-27 All Industries **active in Dev** (GEO-RESOLUTION-OPS-008). |
+| Production dataset activation | HUD 2026 Q2 + OFLC 2026-27 All Industries **ACTIVE in Production** (SEC-IP-PROD-008 / 011). Runtime selects ACTIVE; no hardcoded dataset UUID. |
 | Public API | Implemented locally: `POST /api/h1b/worksite-geography` (GEO-RESOLUTION-API-009 / CHECKPOINT-010, `0a97c0d`) |
 | County-choice UX contract | **Frozen** in §27 (GEO-RESOLUTION-UX-011) |
 | UI / county picker | **Not implemented.** Not authorized by this document. |

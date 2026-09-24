@@ -1,10 +1,17 @@
 # Cloudflare Deployment Guide
 
-**Last updated:** 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — live site on Production Supabase)  
-**Production domain:** https://immifin.com  
-**Worker name:** `immifin`  
-**Serving version:** `dd334fb3-30fb-42fc-a8c1-801ccd0e14cd` (100%)  
-**Git / `origin/main`:** `9eee4f8a38ae67bb9cf651db383a164d7790483c`  
+**Last updated:** 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform + AbuseGate Production LIVE)
+
+**Production domain:** https://immifin.com
+
+**Worker name:** `immifin`
+
+**Serving version:** `25c7449e-a287-4c0a-ac41-d319d40499ba` (100%)
+
+**Git / `origin/main`:** `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`
+
+**Deployment timestamp:** 2026-09-24T02:41:31.034Z
+
 **Live Supabase:** Production `pmkx...ysdv`
 
 This document is the authoritative guide for IMMIFIN production deployment on Cloudflare Workers via OpenNext.
@@ -86,8 +93,8 @@ npx wrangler versions secret put VARIABLE_NAME
 | File | Purpose |
 |------|---------|
 | `open-next.config.ts` | OpenNext Cloudflare adapter configuration (R2 incremental cache, D1 tag cache, Durable Object queue, cache interception) |
-| `wrangler.jsonc` | Worker name, compatibility flags, asset bindings, public `vars`, custom `main`, R2/D1/DO, migration v1, Chicago crons |
-| `cloudflare/custom-worker.ts` | Custom Worker: `scheduled()` daily sheet sync; `fetch` delegated to OpenNext |
+| `wrangler.jsonc` | Worker name, compatibility flags, asset bindings, public `vars`, custom `main`, R2/D1/DO, migrations v1+v2, Chicago crons |
+| `cloudflare/custom-worker.ts` | Custom Worker: `scheduled()` daily sheet sync; `fetch` delegated to OpenNext; re-exports `DOQueueHandler` and `AbuseGate` |
 | `package.json` | `deploy` and `preview` scripts |
 
 Generated output (gitignored): `.open-next/`, `.wrangler/`
@@ -105,6 +112,7 @@ The original OpenNext dummy incremental-cache problem is **closed**. Public HTML
 | R2 incremental cache | `NEXT_INC_CACHE_R2_BUCKET` | `immifin-prod-opennext-inc-cache` | Persist SSG/ISR HTML, RSC, fetch/`unstable_cache` |
 | D1 tag cache | `NEXT_TAG_CACHE_D1` | `immifin-prod-opennext-tag-cache` (`c1c789db-3370-4f40-9611-172ed7b67fde`) | `revalidateTag` / admin Data Refresh across isolates |
 | Durable Object queue | `NEXT_CACHE_DO_QUEUE` → class `DOQueueHandler` | Worker migration **v1** (`new_sqlite_classes: DOQueueHandler`) | Time-based revalidation (not used on ordinary SSG HIT) |
+| AbuseGate | `ABUSE_GATE` → class `AbuseGate` | Worker migration **v2** (`new_sqlite_classes: AbuseGate`) | Durable rate-limit / abuse identity (fail-open). Secret name `ABUSE_IDENTITY_SECRET` PRESENT. Flag `IMMIFIN_ABUSE_GATE_ENABLED` UNSET means enabled. |
 | Cache interception | `enableCacheInterception: true` in `open-next.config.ts` | N/A | Skip Next.js App Router render on prerender HIT **after** middleware |
 | Worker self-reference | `WORKER_SELF_REFERENCE` | service `immifin` | OpenNext self-invocation |
 
@@ -129,26 +137,26 @@ The original OpenNext dummy incremental-cache problem is **closed**. Public HTML
 
 Adapter authority: `@opennextjs/cloudflare` **1.20.1**.
 
-### Custom Worker and daily sheet sync (Sprint 7A — packaged, not yet deployed)
+### Custom Worker, daily sheet sync, and AbuseGate (Production LIVE)
 
-The next Production deploy from `release/s7a-go-live` changes Worker `main` from the generated OpenNext worker to `cloudflare/custom-worker.ts`.
+Worker `main` is `cloudflare/custom-worker.ts` on Production Worker `25c7449e-a287-4c0a-ac41-d319d40499ba`.
 
 | Item | Value |
 |------|-------|
 | **fetch** | Delegated to `.open-next/worker.js` (OpenNext unchanged) |
-| **Durable Object export** | Custom entrypoint **re-exports** `DOQueueHandler` from `.open-next/worker.js`. Wrangler requires the class on `main`. |
+| **Durable Object exports** | Custom entrypoint **re-exports** `DOQueueHandler` and `AbuseGate`. Wrangler requires bound classes on `main`. |
 | **scheduled** | Invokes `POST /api/internal/daily-sheet-sync` only at 12:01 AM America/Chicago |
 | **Crons** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
 | **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …` |
-| **Current Production** | Still Worker `e0855e5f` without these crons until this release is deployed |
+| **AbuseGate** | Binding `ABUSE_GATE` / class `AbuseGate` / migration **v2**. Secret name `ABUSE_IDENTITY_SECRET` PRESENT. |
 
-Set `DAILY_SHEET_SYNC_SECRET` on the Production Worker **before** expecting the first scheduled run. Do not commit or print the value.
+Do not commit or print secret values.
 
-### Durable Object migration v1 — forward deploy only
+### Durable Object migrations v1 + v2 — post-v2 rollback only
 
-Production migration **v1** is applied (`DOQueueHandler`). A future rollback **must not** assume a pre-v1 Worker version can simply be promoted.
+Production has migration **v1** (`DOQueueHandler`) and migration **v2** (`AbuseGate`). A future rollback **must not** assume a pre-v2 Worker can be promoted. Previous `origin/main` `29550ab20a58956649e001c5dbd248bb89e1d79a` is **pre-v2** and is **not** a safe rollback Worker.
 
-**Approved recovery:** **forward deploy** a good Worker that still declares migration `v1`, `DOQueueHandler`, and the R2/D1/DO bindings. **Do not delete or remove migration `v1`** from `wrangler.jsonc`.
+**Approved recovery:** **forward deploy** a good Worker that still declares migrations `v1` and `v2`, `DOQueueHandler`, `AbuseGate`, and the R2/D1/DO/`WORKER_SELF_REFERENCE` bindings. **Do not delete or remove** those migrations from `wrangler.jsonc`. HUD/OFLC Production datasets stay ACTIVE during Worker rollback.
 
 ### Admin Visa Bulletin refresh and 24-hour revalidation
 
@@ -325,10 +333,10 @@ Response headers on interceptor HIT pages include `x-opennext-cache: HIT`. Some 
 ## How to rollback
 
 1. Cloudflare Dashboard → Workers & Pages → immifin → Deployments
-2. Select a known-good **post-v1** deployment (must still include `DOQueueHandler` / migration **v1**)
-3. Prefer **forward deploy** of that good version rather than promoting a pre-v1 Worker
+2. Select a known-good **post-v2** deployment (must still include `DOQueueHandler` / migration **v1** **and** `AbuseGate` / migration **v2**)
+3. Prefer **forward deploy** of that good version. **Do not** promote a pre-v2 Worker, including `29550ab20a58956649e001c5dbd248bb89e1d79a`.
 
-Prefer dashboard rollback over force-push to `main`. **Do not** promote a Worker version from before Durable Object migration v1.
+Prefer dashboard rollback over force-push to `main`. Production HUD/OFLC datasets do not need to be deactivated during Worker rollback.
 
 ---
 

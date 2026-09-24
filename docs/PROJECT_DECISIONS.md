@@ -447,6 +447,28 @@ The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 o
 
 ---
 
+## Decision 013 — H-1B Official Wage Platform Production LIVE (SEC-IP-PROD-011 / 012)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The H-1B Official Wage Platform is Production LIVE. HUD-USPS 2026 Q2 and OFLC All Industries 2026-27 are the approved V1 authorities. AbuseGate (Durable Object migration v2) is live. Safe Worker rollback is post-v2 only. |
+| **Date** | 2026-09-24 |
+| **Status** | Accepted — Production LIVE |
+| **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
+
+**Approved Production rules:**
+
+1. Runtime selects ACTIVE HUD and ACTIVE All Industries OFLC. Dataset UUIDs are not hardcoded.
+2. `county_fips_names` is not required by V1 runtime.
+3. Proprietary estimator logic remains server-side. Public Intelligence Boundary: explain the result; do not publish the recipe.
+4. Public APIs omit `area_code`, `geo_level`, mapping internals, and `matchScore`. Estimate accepts only user inputs and re-resolves geography/wages server-side.
+5. AbuseGate is LIVE: binding `ABUSE_GATE`, class `AbuseGate`, secret name `ABUSE_IDENTITY_SECRET` PRESENT, `IMMIFIN_ABUSE_GATE_ENABLED` UNSET means enabled, fail-open.
+6. Worker rollback is **post-v2 only**. Retain v1 `DOQueueHandler` and v2 `AbuseGate`. Do not promote pre-v2 `29550ab`. HUD/OFLC stay ACTIVE during Worker rollback.
+7. Visa Bulletin History and Movement: server-side capability enforcement DEPLOYED (Free denied; Pro/Power allowed). Production account-level entitlement smoke PENDING.
+8. Movement Tracker U→U modeling remains a separate issue.
+
+---
+
 ## Future Decisions
 
 *(No entries yet. Add new decisions here as they are accepted.)*

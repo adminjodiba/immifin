@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-20 (S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — Production website on `pmkx...ysdv`; localhost/CLI on `vnhn...toxs`) |
+| **Last Updated** | 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + DO v2; post-v2 rollback) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -277,7 +277,7 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` — live Worker `dd334fb3` after Supabase cutover |
+| **Latest production commit** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` — Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011, 2026-09-24T02:41:31.034Z) |
 | **Production build command** | `npx @opennextjs/cloudflare build` |
 | **Production deploy command** | `npx wrangler deploy` |
 
@@ -294,11 +294,11 @@ Cloudflare Builds uses **`npx @opennextjs/cloudflare build`** then **`npx wrangl
 
 ### Persistent cache (S7A-PERF-003 CLOSED)
 
-Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 next-mode tag cache (`immifin-prod-opennext-tag-cache`), Durable Object `DOQueueHandler` (migration **v1**), and `enableCacheInterception=true`. Clerk middleware still runs **before** cache interception. Warm public HIT latency is **accepted** (S7A-PERF-004). Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Do not remove migration v1; recover by **forward deploy**.
+Production uses R2 incremental cache (`immifin-prod-opennext-inc-cache`), D1 next-mode tag cache (`immifin-prod-opennext-tag-cache`), Durable Object `DOQueueHandler` (migration **v1**), Durable Object `AbuseGate` (migration **v2**, binding `ABUSE_GATE`), and `enableCacheInterception=true`. Clerk middleware still runs **before** cache interception. Warm public HIT latency is **accepted** (S7A-PERF-004). Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md). Do not remove migration v1 or v2. Safe rollback is **post-v2 only**.
 
-### Daily Google Sheet scheduled sync (Sprint 7A — in release branch)
+### Daily Google Sheet scheduled sync (Production LIVE)
 
-The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the generated OpenNext worker. `scheduled()` calls `POST /api/internal/daily-sheet-sync` only when America/Chicago local time is **12:01 AM**. Because `wrangler.jsonc` binds Durable Object class `DOQueueHandler`, this custom entrypoint **must re-export** `DOQueueHandler` from `.open-next/worker.js`. Wrangler will refuse deploy if the class is only present on the generated OpenNext worker.
+The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the generated OpenNext worker. `scheduled()` calls `POST /api/internal/daily-sheet-sync` only when America/Chicago local time is **12:01 AM**. Because `wrangler.jsonc` binds Durable Object classes, this custom entrypoint **must re-export** `DOQueueHandler` and `AbuseGate`. Wrangler will refuse deploy if a bound class is only present on the generated OpenNext worker.
 
 | Item | Value |
 |------|-------|
@@ -306,17 +306,42 @@ The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the 
 | **Cron triggers** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
 | **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …`. Unset or mismatched secret → no sync / HTTP 401. Values are never committed. |
 | **Datasets** | Visa Bulletin and Visa Stamping Google Sheets (same refresh path as Admin Data Refresh) |
-| **Production status** | Implemented on `release/s7a-go-live`. **Not live until the next Production deploy.** Set the Worker secret before relying on cron. |
+| **Production status** | **LIVE** on Worker `25c7449e-a287-4c0a-ac41-d319d40499ba`. |
+
+### H-1B Official Wage Platform (Production LIVE)
+
+HUD-USPS ZIP–County is the V1 ZIP/county authority. OFLC All Industries is the V1 wage authority. Runtime selects **ACTIVE** datasets only; dataset UUIDs are not hardcoded.
+
+**Resolution chain:** ZIP → HUD county FIPS → OFLC area → official wage. Outcomes: AUTO (one OFLC area), CHOICE_REQUIRED (counties resolve to more than one OFLC area), UNAVAILABLE (no approved join; no fabricated mapping). `county_fips_names` is not required by V1 runtime.
+
+**Public APIs** (`/api/h1b/official-occupations`, `/worksite-geography`, `/official-wage`, `/official-estimate`) are live with Production public-API minimization. Geography and official wage do not expose `area_code`, mapping internals, or `geo_level`. Occupation search does not expose `matchScore`. The estimate API accepts only authoritative user inputs and re-resolves geography and wages server-side. Proprietary estimator logic remains server-side.
+
+**Public Intelligence Boundary:** IMMIFIN may publicly disclose authoritative source data, government methodology, result meaning, and material assumptions/limitations. IMMIFIN must not expose proprietary formulas, scoring weights, decision trees, transformations, mappings, confidence algorithms, private enrichment, or the implementation recipe merely for transparency or SEO. Short principle: **explain the result; do not publish the recipe.**
+
+Current Production datasets (SEC-IP-PROD-011): HUD-USPS 2026 Q2 ACTIVE; OFLC All Industries 2026-27 ACTIVE.
+
+### AbuseGate (Production LIVE)
+
+| Item | Value |
+|------|-------|
+| **Binding** | `ABUSE_GATE` |
+| **Durable Object class** | `AbuseGate` |
+| **Migration** | **v2** (`new_sqlite_classes: ["AbuseGate"]`). **v1** `DOQueueHandler` remains. |
+| **Secret name** | `ABUSE_IDENTITY_SECRET` — PRESENT. Never document the value. |
+| **Feature flag** | `IMMIFIN_ABUSE_GATE_ENABLED` — UNSET in Production means **enabled**. |
+| **Identity** | Anonymous: `CF-Connecting-IP` only. Signed: Clerk `userId`. HMAC-SHA-256. Raw IP / user ID is not persisted in Durable Object state. |
+| **Failure mode** | Fail-open (request proceeds if the gate cannot complete). |
+| **Policies** | CLASS1 occupation search: anon 80/60s and 600/hour; signed 160/60s and 1200/hour. CLASS2 geography + official wage: anon 30/60s and 120/hour; signed 60/60s and 240/hour. CLASS3 official estimate: anon 20/60s and 60/hour; signed 40/60s and 120/hour. |
 
 ### Repository config files
 
 | File | Purpose |
 |------|---------|
 | `open-next.config.ts` | OpenNext Cloudflare adapter config (R2 incremental cache, D1 tag cache, DO queue) |
-| `wrangler.jsonc` | Worker bindings, persistent-cache resources, custom worker `main`, Chicago 12:01 cron triggers |
-| `cloudflare/custom-worker.ts` | Scheduled daily Google Sheet sync; `fetch` delegated to OpenNext; **must re-export** `DOQueueHandler` |
+| `wrangler.jsonc` | Worker bindings, persistent-cache resources, AbuseGate, custom worker `main`, Chicago 12:01 cron triggers, migrations v1+v2 |
+| `cloudflare/custom-worker.ts` | Scheduled daily Google Sheet sync; `fetch` delegated to OpenNext; **must re-export** `DOQueueHandler` and `AbuseGate` |
 
-Production secrets are configured in the **Cloudflare Dashboard** or via **Wrangler Version Secrets** — never in Git. See [DEPLOYMENT.md](./DEPLOYMENT.md).
+Production secrets are configured in the **Cloudflare Dashboard** or via **Wrangler secrets** — never in Git. See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ---
 
@@ -331,7 +356,7 @@ Production secrets are configured in the **Cloudflare Dashboard** or via **Wrang
 | **Supabase** | Application database | Two projects. `immifin.com` → Production `pmkx...ysdv`. Localhost / CLI → Dev `vnhn...toxs`. | Active / **cutover complete** (S7A-SUPABASE-PROD-CUTOVER) |
 | **Stripe** | Payments and subscription objects | Checkout, customers, subscriptions, invoices, webhooks | **Implemented in app** — Live validation pending |
 | **Resend** | Email delivery | Notification Platform provider | Active / Production Validated |
-| **Google Sheets** | Visa Bulletin and Visa Stamping source | Admin Data Refresh plus scheduled daily Worker sync (12:01 AM America/Chicago; not Production-live until next deploy) | Active |
+| **Google Sheets** | Visa Bulletin and Visa Stamping source | Admin Data Refresh plus scheduled daily Worker sync (12:01 AM America/Chicago; Production LIVE) | Active |
 
 ---
 
@@ -360,6 +385,7 @@ Do not hardcode secrets in `wrangler.jsonc` or source code.
 | `GOOGLE_CLIENT_EMAIL` | Service account email | Semi-secret |
 | `GOOGLE_PRIVATE_KEY` | Service account private key | Yes |
 | `DAILY_SHEET_SYNC_SECRET` | Bearer secret for `POST /api/internal/daily-sheet-sync` (Worker cron). Name only — never document the value. | Yes |
+| `ABUSE_IDENTITY_SECRET` | HMAC secret for AbuseGate identity. Name only — never document the value. Production state **PRESENT**. | Yes |
 | `IMMIFIN_WRITE_FREEZE` | Production write freeze. Runtime only. Current state **disabled**. Enable `true`/`1` only for an approved maintenance window. Blocks application Supabase mutations; verified Clerk/Stripe webhooks return 503. | No |
 
 ### Stripe (required for commercial Checkout / webhooks)
@@ -385,6 +411,7 @@ Operational setup: [STRIPE_OPERATIONS.md](./STRIPE_OPERATIONS.md). Live secrets 
 | `VISA_BULLETIN_PUBLISH_BASE` | CSV publish URL override | In `lib/visaBulletinConfig.ts` |
 | `VISA_BULLETIN_GID_*` | Sheet tab GID overrides | In `lib/visaBulletinConfig.ts` |
 | `VISA_BULLETIN_HISTORY_SHEET` | Archive tab name | `VisaBulletinHistory` |
+| `IMMIFIN_ABUSE_GATE_ENABLED` | AbuseGate feature flag. Production UNSET means **enabled**. | Enabled when unset |
 
 Public Clerk URL defaults are also set in `wrangler.jsonc` under `vars`.
 
@@ -472,9 +499,10 @@ Preview deployments allow each feature branch to run in an isolated hosted envir
 ### Cloudflare deployment rollback
 
 1. Open **Cloudflare Dashboard → Workers & Pages → immifin → Deployments**.
-2. Identify a known-good **post–migration v1** deployment (must still declare `DOQueueHandler` / migration **v1**).
-3. Recover by **forward deploy** of that version. **Do not promote a pre-v1 Worker.** Do not remove migration v1.
-4. Prefer this path over force-push to `main`. Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
+2. Identify a known-good **post-v2** deployment. It must retain migration **v1** (`DOQueueHandler` / `NEXT_CACHE_DO_QUEUE`) **and** migration **v2** (`AbuseGate` / `ABUSE_GATE`), plus existing R2 incremental cache, D1 tag cache, and `WORKER_SELF_REFERENCE`.
+3. Recover by **forward deploy** of that version. **Do not promote a pre-v2 Worker**, including previous `origin/main` `29550ab20a58956649e001c5dbd248bb89e1d79a`. Do not remove migration v1 or v2.
+4. Production HUD/OFLC datasets stay ACTIVE during a Worker rollback. They are additive Production data and must not be deactivated as part of Worker recovery.
+5. Prefer this path over force-push to `main`. Operational detail: [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md).
 
 ### Tunnel recreation
 
@@ -530,6 +558,7 @@ Product feature access is **capability-based**, not plan-name or raw Stripe-stat
 | **Capability map** | Tier → capabilities; shared helpers for access questions |
 | **Effective tier** | Resolved from subscription billing state (+ Development Subscription Mode overlays where enabled) |
 | **Server enforcement** | Capability helpers on selected APIs (`assertCapability` / `requireCapability`) |
+| **Visa Bulletin History / Movement APIs** | Server-side `requireCapability` **DEPLOYED**. Expected: Free denied; Pro/Power allowed. Production account-level entitlement smoke is **PENDING** (no approved Production Free/Pro/Power test accounts were used in SEC-IP-PROD-011). Movement Tracker U→U modeling is a separate issue. |
 | **UI gating** | Premium Feature Discovery, dashboard gates, premium nav preview |
 
 Billing-state sync updates the subscription/plan fields that feed the effective tier. **Webhooks synchronize billing state; they do not become ad-hoc feature checks** scattered through components.
@@ -778,7 +807,8 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
 | v1.23 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 — parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. |
 | v1.24 | 2026-09-20 | S7A-SUPABASE-CUTOVER-FREEZE-002 — runtime `IMMIFIN_WRITE_FREEZE` (default off) blocks application Supabase writes; verified webhooks return 503. |
-| v1.25 | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` on Production `pmkx...ysdv`; localhost/CLI remain Dev `vnhn...toxs`; freeze disabled; 021 unapplied. |
+| v1.25 | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` on Production `pmkx...ysdv`; localhost/CLI remain Dev `vnhn...toxs`; freeze disabled; 021 unapplied (historical; later applied). |
+| v1.26 | 2026-09-24 | SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; HUD 2026 Q2 + OFLC 2026-27 ACTIVE; AbuseGate + DO v2; post-v2 rollback; VB server enforcement DEPLOYED / account-level smoke PENDING. |
 
 ---
 
