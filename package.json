@@ -13,6 +13,9 @@
     "oflc:import:dry-run": "npx tsx scripts/oflc-wage-import/dry-run.ts",
     "oflc:load:dry-run": "npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target dev",
     "oflc:load:prod:dry-run": "npx tsx scripts/oflc-wage-import/loadOflcDev.ts --target production",
+    "hud:import:dry-run": "npx tsx scripts/hud-zip-import/dry-run.ts",
+    "hud:load:dry-run": "npx tsx scripts/hud-zip-import/loadHudDev.ts --target dev",
+    "hud:load:prod:dry-run": "npx tsx scripts/hud-zip-import/loadHudDev.ts --target production",
     "clerk:config:signup": "npx clerk@latest config patch --file config/clerk/sign-up.patch.json --yes",
     "clerk:config:signup:dry-run": "npx clerk@latest config patch --file config/clerk/sign-up.patch.json --dry-run"
   },
