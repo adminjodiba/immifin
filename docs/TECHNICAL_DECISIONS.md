@@ -130,7 +130,8 @@ Production LIVE (SEC-IP-PROD-011). HUD-USPS 2026 Q2 and OFLC All Industries 2026
 - **Public Intelligence Boundary:** explain the result; do not publish the recipe. Do not expose proprietary formulas, scoring weights, decision trees, transformations, mappings, confidence algorithms, or private enrichment merely for transparency or SEO.
 - AbuseGate is Production LIVE (Durable Object class `AbuseGate`, binding `ABUSE_GATE`, migration **v2**). Identity uses HMAC-SHA-256 with secret name `ABUSE_IDENTITY_SECRET`. Fail-open. `IMMIFIN_ABUSE_GATE_ENABLED` UNSET means enabled.
 - Safe Worker rollback is **post-v2 only**. Retain v1 `DOQueueHandler` and v2 `AbuseGate`. Do not promote pre-v2 `29550ab`. HUD/OFLC stay ACTIVE during Worker rollback.
-- Visa Bulletin History and Movement APIs: server-side capability enforcement is **DEPLOYED** (Free denied; Pro/Power allowed). Production account-level entitlement smoke is **PENDING**. Movement Tracker U→U modeling is a separate issue.
+- Visa Bulletin History and Movement APIs: server-side capability enforcement is **DEPLOYED** (Free denied; Pro/Power allowed). Production account-level entitlement smoke is **PENDING**.
+- Movement Tracker month-to-month semantics are Production-complete (`1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`). **Unavailable** is the Visa Bulletin cell value/status. **No Change** is the movement when two consecutive cells are both Unavailable (`U → U`). Dated cutoff or Current → Unavailable is **Became Unavailable**. This is not an open modeling issue. Email Became Current → ADVANCED and empty previous cell → C are unchanged.
 
 ---
 

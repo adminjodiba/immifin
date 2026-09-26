@@ -1,8 +1,8 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + Durable Object v2 live; post-v2 rollback baseline)
+**Last Updated:** 2026-09-26 (S7A-DOC-001 — Sprint 7A SEO sequence Production-complete; Movement Tracker semantic correction Production-complete)
 
-**Local WIP (uncommitted):** S7A-SEO-VISA-STAMP-007 — Visa Stamping server-rendered search layer below the interactive map; awaiting Product Owner localhost review; not committed. Movement Tracker WIP remains separate.
+**Production baseline:** `origin/main` `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` · Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%)
 
 
 **Document role:** Operational single source of truth — where the project is today  
@@ -18,7 +18,11 @@ IMMIFIN is a production immigration/finance web application on Cloudflare Worker
 
 The project has transitioned from sprint-based feature development into the **IMMIFIN Beta Launch Program (BLP)** — coordinating invite-only beta, billing validation, operations, support, feedback, and controlled Intelligence enablement before any public launch.
 
-**SEC-IP-PROD-011/012:** H-1B Official Wage Platform is **Production LIVE**. HUD-USPS 2026 Q2 and OFLC All Industries 2026-27 are **ACTIVE**. Official H-1B APIs and server-side estimator protection are live. AbuseGate (DO migration **v2**) is live. Production Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` from `origin/main` `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`. Safe rollback is **post-v2 only**. Premium Visa Bulletin server-side capability enforcement is **DEPLOYED**; Production account-level entitlement smoke is **PENDING**.
+**SEC-IP-PROD-011/012:** H-1B Official Wage Platform is **Production LIVE**. HUD-USPS 2026 Q2 and OFLC All Industries 2026-27 are **ACTIVE**. Official H-1B APIs and server-side estimator protection are live. AbuseGate (DO migration **v2**) is live. That platform shipped on Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` / commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`. Current Production is Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%) from `origin/main` `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`. Safe rollback is **post-v2 only**. Premium Visa Bulletin server-side capability enforcement is **DEPLOYED**; Production account-level entitlement smoke is **PENDING**.
+
+**Sprint 7A SEO is Production-complete.** The planned sequence — Green Card Wait Time, H-1B Wage, H-1B Lottery Odds, Visa Stamping Wait Times — is live. None of those four remain pending, local-only, uncommitted, or awaiting deployment.
+
+**Movement Tracker semantic correction is Production-complete** (`1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`). `U → U` is **No Change**. The Visa Bulletin cell may still read Unavailable; the movement is No Change. Implementation is frozen unless a real defect is found.
 
 **S7A-PERF-003 is CLOSED** — Production persistent OpenNext cache (R2 + D1 + Durable Object queue) is implemented and validated. **S7A-PERF-004 is CLOSED** — remaining warm HIT latency is accepted. **PERF-005 is not authorized.**
 
@@ -27,7 +31,7 @@ The project has transitioned from sprint-based feature development into the **IM
 | Field | Value |
 |-------|-------|
 | **Current Phase** | **IMMIFIN Beta Launch Program** |
-| **Engineering Status** | **H-1B Official Wage Platform Production LIVE** (SEC-IP-PROD-011). Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` · commit `6b7bf1d` |
+| **Engineering Status** | **H-1B Official Wage Platform LIVE** + **Sprint 7A SEO complete** + **Movement Tracker semantics LIVE**. Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` · commit `1105bfc` |
 | **Operational Status** | **Preparing Invite-only Beta** |
 | **Current Recommendation** | **Controlled Beta** |
 | **Public Launch** | **Not Approved** |
@@ -40,7 +44,7 @@ The project has transitioned from sprint-based feature development into the **IM
 
 ## Sprint 7A go-live release (historical as-built on `release/s7a-go-live`)
 
-This section is a **historical as-built** of Sprint 7A on `release/s7a-go-live`. It is **not** current Production state. Current Production is `origin/main` `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011). Protected Sprint 7A work and `origin/main` were reconciled in **S7A-RELEASE-MERGE-010**.
+This section is a **historical as-built** of Sprint 7A on `release/s7a-go-live`. It is **not** current Production state. After SEC-IP-PROD-011, Production was `origin/main` `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba`. Current Production is `origin/main` `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`, Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5`. Protected Sprint 7A work and `origin/main` were reconciled in **S7A-RELEASE-MERGE-010**.
 
 | Field | Value |
 |-------|-------|
@@ -374,8 +378,8 @@ Root causes resolved during this path (documented in signoff):
 
 | Area | Status |
 |------|--------|
-| **Current production version** | **v0.5.1** on `https://immifin.com` — LIVE Free → Pro Monthly E2E **PASS**; H-1B Official Wage Platform **LIVE** (SEC-IP-PROD-011) |
-| **Live Worker / commit** | `25c7449e-a287-4c0a-ac41-d319d40499ba` / `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` |
+| **Current production version** | **v0.5.1** on `https://immifin.com` — LIVE Free → Pro Monthly E2E **PASS**; H-1B Official Wage Platform **LIVE**; Sprint 7A SEO **Production-complete**; Movement Tracker semantics **LIVE** |
+| **Live Worker / commit** | `0911cbb3-bae8-463a-99cd-a547f12b67f5` / `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` |
 | **Target next commercial release** | **v0.5.0** matrix — Free→Pro Monthly LIVE signed off; remaining transitions pending |
 | **Active program** | **IMMIFIN Beta Launch Program** — Preparing Invite-only Beta |
 | **Sprint 8** | **FROZEN** — Engineering Complete through S8-IIP-011 |
@@ -415,8 +419,8 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 | Field | Production value |
 |-------|------------------|
 | **Worker** | `immifin` |
-| **Serving version** | `25c7449e-a287-4c0a-ac41-d319d40499ba` (100% traffic; SEC-IP-PROD-011) |
-| **Git / `origin/main`** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` |
+| **Serving version** | `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100% traffic; S7A-MVT-004) |
+| **Git / `origin/main`** | `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` |
 | **Architecture** | R2 incremental cache + D1 next-mode tag cache + Durable Object revalidation queue + `enableCacheInterception=true` |
 | **R2** | `immifin-prod-opennext-inc-cache` (validated: 31 objects, ~1.44 MB) |
 | **D1** | `immifin-prod-opennext-tag-cache` (`revalidations` + `_cf_KV`) |
@@ -435,7 +439,7 @@ For Sprint 7 detail, see [SPRINT_7_HANDOFF.md](./SPRINT_7_HANDOFF.md). Cache ope
 4. Prepare invite-only IMMIFIN beta cohort and support readiness.  
 5. Enable Intelligence only after Pre-Beta Enablement Gate + PO approval.  
 6. Collect real-user feedback before new feature sprints.  
-7. **H-1B Official Wage Platform is Production LIVE** (SEC-IP-PROD-011). Do **not** treat the current H-1B page as the final Immigration visual design. Visual redesign remains deferred until after SCO/SEO. Premium Visa Bulletin **account-level** entitlement smoke remains **PENDING**.
+7. **H-1B Official Wage Platform is Production LIVE** (SEC-IP-PROD-011). Do **not** treat the current H-1B page as the final Immigration visual design. Visual redesign remains deferred. Sprint 7A SEO is already Production-complete. Premium Visa Bulletin **account-level** entitlement smoke remains **PENDING**.
 
 Do **not** begin Sprint 9 automatically. Do **not** deactivate Production HUD/OFLC during a Worker rollback.
 
@@ -448,7 +452,7 @@ The Dev → Production Supabase cutover is **complete**. Isolation is proven. Th
 | Field | Value |
 |-------|-------|
 | **Source commit** | `9eee4f8a38ae67bb9cf651db383a164d7790483c` |
-| **Live Worker** | `immifin` / `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011) |
+| **Live Worker** | `immifin` / `0911cbb3-bae8-463a-99cd-a547f12b67f5` (current). Isolation proof used Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011). |
 | **`immifin.com`** | Production Supabase **`pmkx...ysdv`** (`immifin production`) |
 | **localhost / `dev.immifin.com`** | Dev Supabase **`vnhn...toxs`** (`immifin Dev`) via `.env.local` |
 | **Supabase CLI link (this repo)** | **Dev `vnhn...toxs` only.** Do not relink the working repository to Production. |
@@ -472,7 +476,7 @@ Verified operational row counts at cutover close (exact `count(*)`):
 
 **H-1B Official Wage Platform (Production LIVE — SEC-IP-PROD-011):**
 
-- **Status:** Production LIVE on `https://immifin.com` from commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (2026-09-24T02:41:31.034Z).
+- **Status:** Production LIVE on `https://immifin.com`. Platform first went live from commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`, Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (2026-09-24T02:41:31.034Z). Current serving Worker is `0911cbb3-bae8-463a-99cd-a547f12b67f5` from `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`. The H-1B Wage product is frozen unless a real defect is found.
 - **HUD-USPS 2026 Q2:** ACTIVE (1 version; 54,570 crosswalk rows; 39,484 unique ZIPs; 3,234 unique county FIPS; 11,379 multi-county ZIPs). `county_fips_names` is empty by design; V1 runtime does not depend on it.
 - **OFLC All Industries 2026-27:** ACTIVE (1 dataset; 2026-07-01–2027-06-30; BLS May 2025 OEWS; 2018 SOC; 848 occupations; 530 areas; 3,275 localities; 449,440 wages). Labels: blank 410,620 / Annual Wage 32,299 / High Wage 5,866 / No Leveled Wage 655.
 - Runtime selects **ACTIVE** HUD and **ACTIVE** All Industries OFLC. Dataset UUIDs are not hardcoded.
@@ -480,13 +484,32 @@ Verified operational row counts at cutover close (exact `count(*)`):
 - Proprietary estimator logic remains server-side. Public Intelligence Boundary: explain the result; do not publish the recipe.
 - **AbuseGate:** LIVE. Binding `ABUSE_GATE`, class `AbuseGate`, migration **v2**. Secret name `ABUSE_IDENTITY_SECRET` is PRESENT. `IMMIFIN_ABUSE_GATE_ENABLED` is UNSET (enabled). Fail-open. Do not document the secret value.
 - **Smoke (SEC-IP-PROD-011):** public home, pricing, login/signup, Wage Estimator, committed Lottery calculator, official H-1B APIs, AbuseGate normal path, cache HIT, and no observed 1102. HUD/OFLC stayed active. Authenticated product paths were not fully smoke-tested (no approved Production test accounts).
-- **Premium Visa Bulletin APIs:** server-side `requireCapability` is **DEPLOYED**. Production account-level Free/Pro/Power entitlement smoke is **PENDING**. Movement Tracker U→U modeling remains a separate issue.
-- Visual redesign remains deferred until the Immigration-wide redesign after SCO/SEO.
+- **Premium Visa Bulletin APIs:** server-side `requireCapability` is **DEPLOYED**. Production account-level Free/Pro/Power entitlement smoke is **PENDING**.
+- Visual redesign remains deferred until the Immigration-wide redesign after the completed Sprint 7A SEO workstream.
 
-**H-1B Lottery Odds (H1BLOTTERY-CLOSE-003 + H1BLOTTERY-SEO-004):**
+**H-1B Lottery Odds (H1BLOTTERY-CLOSE-003 + `60919d8`):**
 
 - Approved DHS modeled estimates shipped in `89732c9` with SEC-IP-PROD-011: I 15.29%, II 30.58%, III 45.87%, IV 61.16%; random baseline 29.59%. Master's Yes does not change the estimate.
-- H1BLOTTERY-SEO-004 adds server-rendered FY2027 wage-weighted explanation, static DHS table, master’s exemption copy, Wage Estimator link, and FAQ below the calculator. Calculator logic is frozen. Awaiting Product Owner localhost review. Not committed.
+- Lottery on-page SEO is **Production-complete** (`60919d8e64bcefd47bca1ab9ec80d1034a75b0f0` — `feat(h1b): add lottery odds SEO content`). Server-rendered FY2027 wage-weighted explanation, static DHS table, master’s exemption copy, Wage Estimator link, and FAQ sit below the calculator. Calculator logic and modeled-selection methodology are frozen.
+
+**Visa Stamping Wait Times (`5b69891` + `7ef0032`):**
+
+- Trust/source clarification is **Production-complete** (`5b698914e033b88d574c4e3e4617d958b6e3915f` — `feat(visa): clarify stamping wait-time source`).
+- On-page SEO is **Production-complete** (`7ef0032466c0bfe51f9d281051521bc4e68a33d5` — `feat(visa): add visa wait-times SEO content`). Not local, uncommitted, or awaiting release.
+- For H-1B, IMMIFIN displays the Department of State's published petition-based H, L, O, P, Q appointment wait estimate.
+
+**Green Card Wait Time (`baf7a05`):**
+
+- On-page SEO is **Production-complete** (`baf7a05243937f5590d8adf7ff1a95f32ae8e9f6` — `feat(green-card): add wait-time SEO content`).
+- The user supplies Employment Category, Country of Chargeability, and Priority Date. The server loads the current published Final Action Date and reports **current status**, not a prediction of when a Green Card will be approved. There is no user-entered cutoff field.
+
+**Movement Tracker semantic correction (`1105bfc`):**
+
+- **Production-complete** (`1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` — `fix(visa-bulletin): correct movement status semantics`). Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%). Validated on Production.
+- **Unavailable** is the Visa Bulletin cell value. **No Change** is the movement when two consecutive cells are both Unavailable (`U → U`). This is resolved, not an open modeling issue.
+- Dated cutoff or Current → Unavailable is **Became Unavailable**. Email Became Current → ADVANCED and empty previous cell → C are unchanged.
+- Production Aug-26 → Sep-26 FAD: 0 Advanced / 0 Retrogressed / 15 No Change / 0 Current. EB-2 India FAD Unavailable → Unavailable → No Change → —. DFF EB-2 India Jan 15, 2015 → Jan 15, 2015 → No Change → —. That 0/0/15/0 result is valid official no-movement, not a loader defect.
+- No graph and no arbitrary month picker. Updates Only hides No Change rows; Show All includes them. FAD and DFF remain separate. Implementation frozen unless a real defect is found.
 
 Architecture and operator rules: [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) · [ENGINEERING_PLAYBOOK.md](./ENGINEERING_PLAYBOOK.md) · [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md) · [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
@@ -509,8 +532,8 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Item | Value |
 |------|--------|
 | **Repository branch (local release)** | `release/s7a-go-live` (`2334374`) — not tracking a remote; not pushed |
-| **GitHub `main` / live commit** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` (SEC-IP-PROD-011) |
-| **Production Worker / version** | `immifin` / `25c7449e-a287-4c0a-ac41-d319d40499ba` |
+| **GitHub `main` / live commit** | `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` |
+| **Production Worker / version** | `immifin` / `0911cbb3-bae8-463a-99cd-a547f12b67f5` |
 | **Production URL** | `https://immifin.com` → Production Supabase `pmkx...ysdv` |
 | **Localhost / CLI Supabase** | Dev `vnhn...toxs` — do not relink this repo to Production |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
@@ -552,4 +575,5 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-09-22 | H1BWAGE-CHECKPOINT-019 | Official H-1B wage platform functionally approved on **local Dev**; 021 on Dev only; Production 021 unapplied; visual redesign deferred until after SCO/SEO |
 | Prior | 2026-09-22 | H1BWAGE-V2-021 | Approved V2 estimator promoted to canonical `/immigration/h1b-wage-level-estimator`; temporary V2 removed; **local Dev** only; not Production-deployed |
 | Prior | 2026-09-22 | H1BWAGE-CLOSE-023 | H-1B Wage Level Estimator functionally closed on localhost; four-column hourly table; local checkpoint only; later superseded by Production deploy |
-| **Current** | **2026-09-24** | **SEC-IP-PROD-012** | H-1B Official Wage Platform Production LIVE; HUD 2026 Q2 + OFLC 2026-27 ACTIVE; AbuseGate + DO v2 live; post-v2 rollback baseline; premium VB account-level smoke PENDING |
+| Prior | 2026-09-24 | SEC-IP-PROD-012 | H-1B Official Wage Platform Production LIVE; HUD 2026 Q2 + OFLC 2026-27 ACTIVE; AbuseGate + DO v2 live; post-v2 rollback baseline; premium VB account-level smoke PENDING |
+| **Current** | **2026-09-26** | **S7A-DOC-001** | Sprint 7A SEO sequence Production-complete (GC Wait, H-1B Wage, Lottery, Visa Stamping); Movement Tracker `U → U` = No Change Production-complete; baseline `1105bfc` / Worker `0911cbb3` |
