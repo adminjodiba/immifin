@@ -53,7 +53,7 @@ const VisaStampingHistoryTrendChart = dynamic(
 );
 
 const PAGE_HREF = "/immigration/visa-stamping-wait-map";
-const PAGE_TITLE = "Global Visa Stamping Wait Map";
+const PAGE_TITLE = "U.S. Visa Appointment Wait Times";
 
 type VisaStampingApiResponse = {
   data: VisaStampingPost[];

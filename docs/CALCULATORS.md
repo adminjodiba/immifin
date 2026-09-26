@@ -43,6 +43,7 @@ Public routes (no sign-in required): H-1B tools and the visa stamping wait map a
 | **Data** | Live Google Sheets (`stamping_wait_time_current`, `stamping_wait_time_history`, `Stamping_City_Metadata`) via `/api/visa-stamping-wait-times`; demo fallback when sheets unavailable |
 | **Map** | Leaflet + OpenStreetMap / Carto tiles |
 | **History** | History Trend tab charts available monthly points (does not invent missing months) |
+| **On-page SEO** | Server-rendered explanation below the interactive map (`VisaStampingWaitMapSeoContent.tsx`): DOS source meaning, H-1B petition-based (H, L, O, P, Q) category, India posts, comparison/history guidance, FAQ. No current wait-day values hardcoded. No FAQPage schema. |
 
 ---
 

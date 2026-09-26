@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + Durable Object v2 live; post-v2 rollback baseline)
 
-**Local WIP (uncommitted):** H1BLOTTERY-SEO-004 — FY2027 lottery on-page SEO below the frozen calculator; awaiting Product Owner localhost review; not committed
+**Local WIP (uncommitted):** S7A-SEO-VISA-STAMP-007 — Visa Stamping server-rendered search layer below the interactive map; awaiting Product Owner localhost review; not committed. Movement Tracker WIP remains separate.
 
 
 **Document role:** Operational single source of truth — where the project is today  

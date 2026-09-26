@@ -37,7 +37,7 @@ This document records the approved dashboard layout, data architecture, UX decis
 | Deliverable | Description |
 |-------------|-------------|
 | **Workspace shell** | `WorkspacePageShell` with light slate/blue-gray workspace background |
-| **Compact header** | Globe icon + title + FavoriteStar; subtitle under title |
+| **Compact header** | Globe icon + title + FavoriteStar; subtitle under title. Search-oriented H1 is **U.S. Visa Appointment Wait Times**. |
 | **Header filters** | Country / Visa Type + Reset Filters aligned top-right next to close (X). Appointment type is Interview only; Drop-box is not a user-selectable option because IMMIFIN has no separate drop-box wait-time dataset. |
 | **Close control** | Returns to `/calculators` |
 | **No source/refresh chrome** | Source badge, last-updated badge, and Refresh Data button intentionally removed from header for density |
@@ -212,6 +212,7 @@ If sheet load fails or returns zero joinable records, the API returns demo posts
 | `app/immigration/visa-stamping-wait-map/page.tsx` | Route + metadata |
 | `app/api/visa-stamping-wait-times/route.ts` | JSON API |
 | `components/VisaStampingWaitMap.tsx` | Dashboard UI |
+| `components/VisaStampingWaitMapSeoContent.tsx` | Server-rendered search/FAQ layer below the dashboard |
 | `components/visa/VisaStampingLeafletMap.tsx` | Leaflet map |
 | `components/visa/VisaStampingHistoryTrendChart.tsx` | History Recharts line |
 | `lib/visaStampingConfig.ts` | Sheet GID / URL config |

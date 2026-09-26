@@ -119,6 +119,7 @@ Production LIVE (SEC-IP-PROD-011). HUD-USPS 2026 Q2 and OFLC All Industries 2026
 - Lottery Odds handoff is `/immigration/h1b-lottery-odds-calculator?wageLevel={I|II|III|IV}` from the canonical Wage route only.
 - Lottery calculation lives in `lib/h1b/h1bLotteryOdds.ts`. Approved constants are `DHS_MODELED_SELECTION_ESTIMATES` (I 15.29 / II 30.58 / III 45.87 / IV 61.16) and `DHS_MODELED_RANDOM_BASELINE` 29.59. Master's eligibility does not modify the modeled estimate. The retired demo boost (`US_MASTERS_CAP_BOOST = 8`) and `MAX_DISPLAYED_ODDS = 95` must not return.
 - Lottery on-page SEO lives in server-rendered `components/H1bLotteryOddsSeoContent.tsx` below the calculator. It must not change calculation values. FAQPage JSON-LD is not used; IMMIFIN has no established FAQ structured-data pattern.
+- Visa Stamping on-page SEO lives in server-rendered `components/VisaStampingWaitMapSeoContent.tsx` below the interactive map. Search title/H1 describe U.S. visa appointment wait times. H-1B remains a user selection over the DOS petition-based (H, L, O, P, Q) estimate. Do not hardcode current wait-day values, claim real-time slots, add FAQPage JSON-LD, or expose trend thresholds / sheet mappings.
 
 ### Production authorities and security boundary (SEC-IP-PROD-012)
 
