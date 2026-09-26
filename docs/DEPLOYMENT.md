@@ -1,12 +1,14 @@
 # Immifin — Deployment Guide
 
-**Last updated:** 2026-09-24 (SEC-IP-PROD-012 — Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` · commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`)
+**Last updated:** 2026-09-26 (S7A-DOC-002 — current Production application `1105bfc` / Worker `0911cbb3`)
 
 **Production domain:** https://immifin.com
 
-**Production Worker version:** `25c7449e-a287-4c0a-ac41-d319d40499ba`
+**Production Worker version:** `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%)
 
-**Production deployment commit:** `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`
+**Production deployment commit:** `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`
+
+**Prior SEC-IP-PROD-012 serving version:** Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` · commit `6b7bf1dafa3ca20d19981c7af8030bed74a34e07`
 
 > **Authoritative deployment reference:** [deployment/CLOUDFLARE_DEPLOYMENT.md](./deployment/CLOUDFLARE_DEPLOYMENT.md)  
 > **Troubleshooting:** [deployment/DEPLOYMENT_TROUBLESHOOTING.md](./deployment/DEPLOYMENT_TROUBLESHOOTING.md)

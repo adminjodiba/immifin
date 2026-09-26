@@ -429,7 +429,7 @@ The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 o
 |-------|-------|
 | **Decision** | The H-1B Lottery Odds Calculator uses Product Owner-approved DHS modeled wage-level selection estimates and a DHS modeled random-selection baseline. The prior demo table, +8 master's boost, and 95% display cap are retired. |
 | **Date** | 2026-09-22 |
-| **Status** | Accepted — local Dev implementation pending Product Owner localhost review. Not Production-deployed. |
+| **Status** | Accepted — Production LIVE. Modeled-selection methodology unchanged. Lottery SEO Production-complete (`60919d8e64bcefd47bca1ab9ec80d1034a75b0f0`). |
 | **Sprint** | Sprint 7A — H-1B Wage / Prevailing Wage Platform |
 
 **Approved product rules:**
@@ -443,7 +443,7 @@ The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 o
 7. These values are modeled estimates, not individualized or official USCIS selection odds.
 8. Wage → Lottery `?wageLevel={I\|II\|III\|IV}` and Lottery → `/immigration/h1b-wage-level-estimator` remain locked.
 9. Broader Immigration visual redesign remains deferred.
-10. This implementation is local until a separately approved commit/push/deploy.
+10. Production-deployed. Lottery SEO is Production-complete (`60919d8e64bcefd47bca1ab9ec80d1034a75b0f0`). Methodology unchanged.
 
 ---
 
@@ -465,7 +465,7 @@ The Product Owner tested the isolated V2 route and approved it. Checkpoint-019 o
 5. AbuseGate is LIVE: binding `ABUSE_GATE`, class `AbuseGate`, secret name `ABUSE_IDENTITY_SECRET` PRESENT, `IMMIFIN_ABUSE_GATE_ENABLED` UNSET means enabled, fail-open.
 6. Worker rollback is **post-v2 only**. Retain v1 `DOQueueHandler` and v2 `AbuseGate`. Do not promote pre-v2 `29550ab`. HUD/OFLC stay ACTIVE during Worker rollback.
 7. Visa Bulletin History and Movement: server-side capability enforcement DEPLOYED (Free denied; Pro/Power allowed). Production account-level entitlement smoke PENDING.
-8. Movement Tracker U→U modeling remains a separate issue.
+8. Movement Tracker `U → U` is **No Change** (Production `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9`). **Unavailable** is the Visa Bulletin cell value/status. **No Change** is the movement between two identical Unavailable cells. Dated cutoff or Current → Unavailable is **Became Unavailable**. This is not an open modeling issue. Email Became Current → ADVANCED and empty previous cell → C are unchanged.
 
 ---
 

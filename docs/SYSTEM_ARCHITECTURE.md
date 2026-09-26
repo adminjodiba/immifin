@@ -277,7 +277,7 @@ Both `npm run dev` and `cloudflared tunnel run immifin-dev` must be running for 
 | **Current production domain** | `https://immifin.com` |
 | **Deployment source** | GitHub `main` branch |
 | **Hosting platform** | Cloudflare Workers via OpenNext |
-| **Latest production commit** | `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` — Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011, 2026-09-24T02:41:31.034Z) |
+| **Latest production commit** | `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` — Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%). Prior SEC-IP-PROD-011 serving version: `6b7bf1dafa3ca20d19981c7af8030bed74a34e07` / `25c7449e-a287-4c0a-ac41-d319d40499ba` (2026-09-24T02:41:31.034Z). |
 | **Production build command** | `npx @opennextjs/cloudflare build` |
 | **Production deploy command** | `npx wrangler deploy` |
 
@@ -306,7 +306,7 @@ The Worker `main` is `cloudflare/custom-worker.ts`. `fetch` is delegated to the 
 | **Cron triggers** | `1 5 * * *` (05:01 UTC / CDT) and `1 6 * * *` (06:01 UTC / CST) |
 | **Auth** | Runtime secret `DAILY_SHEET_SYNC_SECRET` as `Authorization: Bearer …`. Unset or mismatched secret → no sync / HTTP 401. Values are never committed. |
 | **Datasets** | Visa Bulletin and Visa Stamping Google Sheets (same refresh path as Admin Data Refresh) |
-| **Production status** | **LIVE** on Worker `25c7449e-a287-4c0a-ac41-d319d40499ba`. |
+| **Production status** | **LIVE** on current Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5`. First live on Worker `25c7449e-a287-4c0a-ac41-d319d40499ba` (SEC-IP-PROD-011). |
 
 ### H-1B Official Wage Platform (Production LIVE)
 
@@ -558,7 +558,7 @@ Product feature access is **capability-based**, not plan-name or raw Stripe-stat
 | **Capability map** | Tier → capabilities; shared helpers for access questions |
 | **Effective tier** | Resolved from subscription billing state (+ Development Subscription Mode overlays where enabled) |
 | **Server enforcement** | Capability helpers on selected APIs (`assertCapability` / `requireCapability`) |
-| **Visa Bulletin History / Movement APIs** | Server-side `requireCapability` **DEPLOYED**. Expected: Free denied; Pro/Power allowed. Production account-level entitlement smoke is **PENDING** (no approved Production Free/Pro/Power test accounts were used in SEC-IP-PROD-011). Movement Tracker U→U modeling is a separate issue. |
+| **Visa Bulletin History / Movement APIs** | Server-side `requireCapability` **DEPLOYED**. Expected: Free denied; Pro/Power allowed. Production account-level entitlement smoke is **PENDING** (no approved Production Free/Pro/Power test accounts were used in SEC-IP-PROD-011). Movement Tracker `U → U` is **No Change** (Production `1105bfc`). Unavailable is the cell value; No Change is the movement. |
 | **UI gating** | Premium Feature Discovery, dashboard gates, premium nav preview |
 
 Billing-state sync updates the subscription/plan fields that feed the effective tier. **Webhooks synchronize billing state; they do not become ad-hoc feature checks** scattered through components.
