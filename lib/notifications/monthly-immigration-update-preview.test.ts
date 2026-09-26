@@ -4,11 +4,15 @@ import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import React from "react";
-import { renderMonthlyImmigrationReportEmail } from "../../emails/templates/monthly-immigration-report-email";
+import {
+  renderMonthlyImmigrationReportEmail,
+  VISA_BULLETIN_MOVEMENT_STATUSES,
+} from "../../emails/templates/monthly-immigration-report-email";
 import type { EmploymentJourneyData } from "../dashboard/employmentJourney";
 import {
   EMPLOYMENT_WAITING_EMAIL_ADVISOR_SUMMARY,
   formatEmploymentEmailMovementDetail,
+  mapMovementTypeToEmailStatus,
   mapGreenCardAdvisorSummary,
   mapMonthlyHighlight,
   mapMonthlyImmigrationReportEmailProps,
@@ -181,6 +185,28 @@ describe("employment email movement detail presentation", () => {
     assert.equal(
       formatEmploymentEmailMovementDetail("cutoff-introduced", "Cutoff Introduced"),
       "—",
+    );
+  });
+
+  it("D/C → U Became Unavailable → —", () => {
+    assert.equal(
+      formatEmploymentEmailMovementDetail("unavailable", "Became Unavailable"),
+      "—",
+    );
+  });
+
+  it("U → U no-change → 0 days", () => {
+    assert.equal(formatEmploymentEmailMovementDetail("no-change", "No Change"), "0 days");
+  });
+
+  it("maps U → U to unchanged and D/C → U to became-unavailable", () => {
+    assert.equal(
+      mapMovementTypeToEmailStatus("no-change"),
+      VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED,
+    );
+    assert.equal(
+      mapMovementTypeToEmailStatus("unavailable"),
+      VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE,
     );
   });
 });

@@ -20,6 +20,7 @@ export const VISA_BULLETIN_MOVEMENT_STATUSES = {
   RETROGRESSED: "retrogressed",
   NOW_AVAILABLE: "now-available",
   CUTOFF_INTRODUCED: "cutoff-introduced",
+  BECAME_UNAVAILABLE: "became-unavailable",
 } as const;
 
 export type VisaBulletinMovementStatus =
@@ -284,6 +285,8 @@ export function resolveMovementStatusColor(
       return STATUS_COLOR.positive;
     case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
       return STATUS_COLOR.waiting;
+    case VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE:
+      return STATUS_COLOR.negative;
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return STATUS_COLOR.neutral;
     default:
@@ -303,6 +306,8 @@ export function formatVisaBulletinMovementIndicator(
       return "Now Available";
     case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
       return "Cutoff Introduced";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE:
+      return "Became Unavailable";
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return "▬ No Movement";
     default:
@@ -317,7 +322,8 @@ export function formatVisaBulletinMovementDays(
   if (
     status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ||
     status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
-    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE
   ) {
     return status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ? "0 days" : "—";
   }
@@ -337,6 +343,8 @@ export function formatVisaBulletinMovementStatusText(
       return "Now Available";
     case VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED:
       return "Cutoff Introduced";
+    case VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE:
+      return "Became Unavailable";
     case VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED:
       return "No Movement";
     default:
@@ -353,7 +361,8 @@ export function formatVisaBulletinMovementLabel(
   if (
     status === VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED ||
     status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
-    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE
   ) {
     return statusText;
   }

@@ -133,8 +133,10 @@ Two small shared-library changes support correct mockup behavior and will apply 
 | Condition | Previous behavior | New behavior |
 |-----------|-------------------|--------------|
 | Previous = `Current (C)` **and** Current = `Current (C)` | Classified as **Current** (Became Current) | Classified as **No Change** |
+| Previous = `Unavailable (U)` **and** Current = `Unavailable (U)` | Classified as **Unavailable** | Classified as **No Change** |
+| Previous is a dated cutoff or `C` **and** Current = `U` | Label **Unavailable** | User-facing movement **Became Unavailable** (`movementType` remains `unavailable`) |
 
-Rows that were already current in both months should not appear as newly current.
+Rows that were already current or already unavailable in both months should not appear as a month-to-month change. The previous/current cells still show Current or Unavailable.
 
 ### `lib/visaBulletinHistory.ts` — bulletin month helpers
 
@@ -173,9 +175,26 @@ The following v0.4.1 decisions were **not** changed by this redesign:
 | **Current** | Blue | Current | `Current` |
 | **Now Available** | Emerald | Now Available | `—` (U → dated cutoff; no day count) |
 | **Cutoff Introduced** | Amber | Cutoff Introduced | `—` (C → dated cutoff; no day count) |
-| **Unavailable / Invalid** | Slate | Unavailable / Invalid | `—` |
+| **Became Unavailable** | Slate | Became Unavailable | `—` (D → U or C → U; `movementType` remains `unavailable`) |
+| **Invalid** | Slate | Invalid | `—` |
 
-`U → Date` = **Now Available**. `C → Date` = **Cutoff Introduced**. Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`.
+Approved month-to-month matrix:
+
+| Transition | Movement |
+|------------|----------|
+| D → later D | Advanced |
+| D → earlier D | Retrogressed |
+| D → same D | No Change |
+| C → C | No Change |
+| U → U | No Change |
+| D → C | Became Current |
+| U → C | Became Current |
+| C → D | Cutoff Introduced |
+| U → D | Now Available |
+| D → U | Became Unavailable |
+| C → U | Became Unavailable |
+
+`U → Date` = **Now Available**. `C → Date` = **Cutoff Introduced**. `U → U` = **No Change**. Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`. Later semantic correction: VB-MOVEMENT-STATUS-002.
 
 EB category group colors: EB-1 blue · EB-2 emerald · EB-3 amber · EB-4 violet · EB-5 orange · Other slate.
 

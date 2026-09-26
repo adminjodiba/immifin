@@ -224,6 +224,27 @@ describe("getPublicVisaBulletinAnswer movement and previous values", () => {
     assert.deepEqual(answer.dff.movement, expectedDff);
     assert.equal(answer.dff.movement?.movementType, "no-change");
   });
+
+  it("treats U → U as no-change while current cell stays Unavailable", async () => {
+    const loaders = createLoaders({
+      currentFad: [sheetRow("EB2", "India", "U")],
+      currentDff: [sheetRow("EB2", "India", "UNAVAILABLE")],
+      previousFad: [sheetRow("EB2", "India", "UNAVAILABLE")],
+      previousDff: [sheetRow("EB2", "India", "U")],
+    });
+
+    const answer = await getPublicVisaBulletinAnswer(
+      { categorySlug: "eb2", countrySlug: "india" },
+      { loaders },
+    );
+
+    assert.ok(answer);
+    assert.equal(answer.fad.current.semanticState, "unavailable");
+    assert.equal(answer.fad.movement?.movementType, "no-change");
+    assert.equal(answer.fad.movement?.movementLabel, "No Change");
+    assert.equal(answer.dff.current.semanticState, "unavailable");
+    assert.equal(answer.dff.movement?.movementType, "no-change");
+  });
 });
 
 describe("getPublicVisaBulletinAnswer history and canonical path", () => {

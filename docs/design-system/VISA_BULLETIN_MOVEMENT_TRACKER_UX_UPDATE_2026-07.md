@@ -45,7 +45,7 @@ The Movement Tracker **design sandbox** at `/immigration/visa-bulletin-movement-
 | **Removed table-level movement chips** | Show All / Advanced / Retrogressed / No Change / Current chips above the table removed. |
 | **KPI cards remain interactive filters** | Advanced, Retrogressed, No Change, Current still filter the table. |
 | **Record Type dropdown (new)** | Options: **Updates only** (default), **Show All**. Placed after All Countries, before Reset Filters. |
-| **Updates only rule** | Hides rows where Movement = **No Change**. All other movement types remain. |
+| **Updates only rule** | Hides rows where Movement = **No Change**. That includes D → same D, C → C, and U → U. All actual transitions remain (Advanced, Retrogressed, Became Current, Cutoff Introduced, Now Available, Became Unavailable). |
 | **Filter bar layout** | Category, Country, Record Type, and Reset Filters span the table width. |
 
 ### Table columns

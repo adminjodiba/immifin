@@ -79,8 +79,9 @@ export function mapMovementTypeToEmailStatus(
       return VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE;
     case "cutoff-introduced":
       return VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED;
-    case "no-change":
     case "unavailable":
+      return VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE;
+    case "no-change":
     case "invalid":
     default:
       return VISA_BULLETIN_MOVEMENT_STATUSES.UNCHANGED;
@@ -112,7 +113,8 @@ export function formatEmploymentEmailMovementDetail(
   const status = mapMovementTypeToEmailStatus(movementType);
   if (
     status === VISA_BULLETIN_MOVEMENT_STATUSES.NOW_AVAILABLE ||
-    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.CUTOFF_INTRODUCED ||
+    status === VISA_BULLETIN_MOVEMENT_STATUSES.BECAME_UNAVAILABLE
   ) {
     return "—";
   }

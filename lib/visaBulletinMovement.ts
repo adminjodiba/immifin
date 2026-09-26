@@ -98,7 +98,7 @@ export function formatMovementLabel(
     case "current":
       return "Current";
     case "unavailable":
-      return "Unavailable";
+      return "Became Unavailable";
     case "now-available":
       return "Now Available";
     case "cutoff-introduced":
@@ -167,6 +167,10 @@ export function compareBulletinMovement(
   }
 
   if (parsedCurrent === "U") {
+    if (parsedPrevious === "U") {
+      return buildMovementResult("no-change", 0, 0);
+    }
+
     return buildMovementResult("unavailable", null, null);
   }
 

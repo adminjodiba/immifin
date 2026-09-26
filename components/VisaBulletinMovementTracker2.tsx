@@ -202,7 +202,7 @@ function movementBadgeLabel(movementType: MovementType): string {
     case "current":
       return "Current";
     case "unavailable":
-      return "Unavailable";
+      return "Became Unavailable";
     case "now-available":
       return "Now Available";
     case "cutoff-introduced":
