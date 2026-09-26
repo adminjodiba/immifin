@@ -112,6 +112,15 @@ Implemented via `useImmigrationProfileDefaults()` and `canAccessAutoCalculatorPo
 
 Free users always get manual entry. Pro/Power see profile prefill hints when data exists.
 
+For Green Card Wait Time, Free/manual means the user enters Employment Category, Country of Chargeability, and Priority Date. IMMIFIN supplies the current published Final Action Date. It does not mean the user types a Visa Bulletin cutoff. Public and Free users receive that same current-FAD comparison.
+
+### Green Card Wait Time — On-page SEO
+
+| Item | Detail |
+|------|--------|
+| **Route** | `/calculators/green-card-wait-time` |
+| **On-page SEO** | Server-rendered explanation below the calculator (`GreenCardWaitTimeSeoContent.tsx`): EB-2/EB-3 India context, FAD vs Dates for Filing, movement concepts, FAQ. Product cards above cover result meaning and how the calculator works. No hardcoded current cutoff dates. No FAQPage schema. No second bulletin fetch for SEO. |
+
 ---
 
 ## Catalog entries (not yet built)

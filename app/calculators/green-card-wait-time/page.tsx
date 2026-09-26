@@ -3,10 +3,12 @@ import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseActio
 import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { GreenCardWaitTimeCalculator } from "@/components/GreenCardWaitTimeCalculator";
+import { GreenCardWaitTimeSeoContent } from "@/components/GreenCardWaitTimeSeoContent";
 import { createMetadata } from "@/lib/metadata";
 
 const PAGE_HREF = "/calculators/green-card-wait-time";
 const PAGE_TITLE = "Employment-Based Green Card Wait Time Calculator";
+const PAGE_H1 = "Green Card Wait Time Calculator";
 
 export const metadata = createMetadata({
   title: PAGE_TITLE,
@@ -40,7 +42,7 @@ export default function GreenCardWaitTimePage() {
             <div className="min-w-0">
               <div className="flex items-start gap-2">
                 <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">
-                  {PAGE_TITLE}
+                  {PAGE_H1}
                 </h1>
                 <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
               </div>
@@ -184,6 +186,8 @@ export default function GreenCardWaitTimePage() {
             </dl>
           </section>
         </GreenCardWaitTimeCalculator>
+
+        <GreenCardWaitTimeSeoContent />
 
         <section
           aria-labelledby="gc-wait-continue"
