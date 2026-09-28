@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 type Ds2CalculatorPageShellProps = {
   children: ReactNode;
@@ -12,7 +11,7 @@ type Ds2CalculatorPageShellProps = {
 export function Ds2CalculatorPageShell({ children }: Ds2CalculatorPageShellProps) {
   return (
     <div className="ds2-calculator-page">
-      <div className={`${landingV3ContentGridClass} ds2-calculator-page-inner`}>{children}</div>
+      <div className="immifin-page-inner ds2-calculator-page-inner">{children}</div>
     </div>
   );
 }

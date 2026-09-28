@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 const HERO_IMAGE = "/images/immifin-about-hero-photo-v6.png";
 const COMMITMENT_IMAGE = "/images/immifin-about-commitment-ds2.png";
@@ -185,7 +184,7 @@ export function AboutImmifinPage() {
           />
         </div>
         <div className="ds2-about-hero-inner">
-            <div className={`${landingV3ContentGridClass} ds2-about-hero-copy-slot`}>
+            <div className="immifin-page-inner ds2-about-hero-copy-slot">
               <div className="ds2-about-hero-copy">
                 <p className="ds2-about-eyebrow">About IMMIFIN</p>
                 <h1 id="about-immifin-heading" className="ds2-about-hero-title">
@@ -208,7 +207,7 @@ export function AboutImmifinPage() {
         </div>
       </section>
 
-      <div className={`${landingV3ContentGridClass} ds2-about-body`}>
+      <div className="immifin-page-inner ds2-about-body">
         <section
           id="why-immifin-exists"
           className="ds2-about-section ds2-about-exists"
@@ -334,7 +333,7 @@ export function AboutImmifinPage() {
       </div>
 
       <section className="ds2-about-commitment" aria-labelledby="commitment-heading">
-        <div className={landingV3ContentGridClass}>
+        <div className="immifin-page-inner">
           <div className="ds2-about-commitment-frame">
             <Image
               src={COMMITMENT_IMAGE}

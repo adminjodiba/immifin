@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 import { footerLinks, navLinks, siteConfig } from "@/lib/site";
 import { Logo } from "./Logo";
 
@@ -8,8 +7,7 @@ type FooterProps = {
   /** Landing V5 passes `navy` so header/footer logo tiles match. */
   logoIconTone?: "default" | "navy";
   /**
-   * `ds2` — Design System 2.0 footer IA and Landing V3 width, opted-in routes only.
-   * Default keeps production / V2 / V7 Footer unchanged.
+   * `ds2` — canonical IMMIFIN home footer. Default is the legacy 4-column footer.
    */
   variant?: "default" | "ds2";
 };
@@ -43,8 +41,8 @@ export function Footer({ logoIconTone = "default", variant = "default" }: Footer
         aria-label="Site footer"
         className="mt-auto border-t border-[color:var(--immifin-ds2-border)] bg-[var(--immifin-ds2-surface)]"
       >
-        <div className={`${landingV3ContentGridClass} py-12 lg:py-14`}>
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="immifin-footer-inner py-12 lg:py-14">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-16">
             <div className="sm:col-span-2 lg:col-span-1">
               <Logo iconTone={logoIconTone} />
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-[color:var(--immifin-ds2-text-muted)]">
@@ -85,8 +83,8 @@ export function Footer({ logoIconTone = "default", variant = "default" }: Footer
 
   return (
     <footer className="mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-sm">
-      <div className="container-main section-padding !py-12 lg:!py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="immifin-footer-inner py-12 lg:py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-16">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo iconTone={logoIconTone} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-600">

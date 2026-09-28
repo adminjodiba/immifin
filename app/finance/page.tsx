@@ -40,8 +40,9 @@ export default function FinancePage() {
     <PageHeader
       title="Finance Guides"
       description="Build a strong financial foundation in America. From credit and banking to taxes and investing, we help immigrants make informed money decisions."
+      fullWidth
     >
-      <WorkspaceSection>
+      <WorkspaceSection fullWidth>
         <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {topics.map((topic) => (
             <TopicCard key={topic.title} {...topic} />
@@ -49,7 +50,7 @@ export default function FinancePage() {
         </div>
       </WorkspaceSection>
 
-      <WorkspaceSection alt aria-labelledby="all-guides">
+      <WorkspaceSection alt aria-labelledby="all-guides" fullWidth>
         <h2 id="all-guides" className="heading-2">
           All Finance Guides
         </h2>

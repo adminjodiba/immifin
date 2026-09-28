@@ -340,9 +340,11 @@ function getSectionTitle(bulletinMonthLabel: string | null): string {
 export function VisaBulletinDashboard2({
   bulletinMonthLabel,
   children,
+  href,
 }: {
   bulletinMonthLabel: string | null;
   children?: ReactNode;
+  href?: string;
 }) {
   const [mobileTab, setMobileTab] = useState<TabKey>("final-action");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -447,7 +449,7 @@ export function VisaBulletinDashboard2({
                 </div>
               </div>
             </div>
-          <DashboardCloseAction />
+          <DashboardCloseAction href={href} />
         </header>
 
         <div className="mt-3 space-y-3">

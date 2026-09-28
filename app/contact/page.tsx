@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { ContactUsBody } from "@/components/contact/ContactUsBody";
 import { Ds2SplitSceneHero } from "@/components/ds2/Ds2SplitSceneHero";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata = createMetadata({
@@ -43,7 +42,7 @@ export default function ContactPage() {
         skyLeft={0.34}
         skyRight={0.52}
       >
-        <div className={`${landingV3ContentGridClass} ds2-contact-hero-inner`}>
+        <div className="immifin-page-inner ds2-contact-hero-inner">
           <div className="ds2-contact-hero-copy">
             <div className="landing-v3-hero-title-lane hero-ribbon-title-rail ds2-contact-hero-title-lane">
               <div

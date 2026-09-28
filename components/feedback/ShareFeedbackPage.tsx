@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Ds2SplitSceneHero } from "@/components/ds2/Ds2SplitSceneHero";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 import { ShareFeedbackForm } from "@/components/feedback/ShareFeedbackForm";
 
 /** Locked PO-approved split-scene hero. Do not retune without a new PO request. See EMMIFIN-HERO-DESIGN.MD. */
@@ -126,7 +125,7 @@ export function ShareFeedbackPage() {
         skyLeft={0.35}
         skyRight={0.54}
       >
-        <div className={`${landingV3ContentGridClass} ds2-share-hero-inner`}>
+        <div className="immifin-page-inner ds2-share-hero-inner">
           <div className="ds2-share-hero-copy">
             <p className="ds2-share-eyebrow">Share your feedback</p>
             <span className="ds2-section-header-accent" aria-hidden="true" />
@@ -145,7 +144,7 @@ export function ShareFeedbackPage() {
         </div>
       </Ds2SplitSceneHero>
 
-      <div className={`${landingV3ContentGridClass} ds2-share-body`}>
+      <div className="immifin-page-inner ds2-share-body">
         <aside className="ds2-share-panel ds2-share-panel-why" aria-labelledby="share-why-heading">
           <h2 id="share-why-heading">Why your feedback matters</h2>
           <div className="ds2-share-side-item">
@@ -232,7 +231,7 @@ export function ShareFeedbackPage() {
       </div>
 
       <section className="ds2-share-closing" aria-labelledby="share-closing-heading">
-        <div className={`${landingV3ContentGridClass} ds2-share-closing-grid`}>
+        <div className="immifin-page-inner ds2-share-closing-grid">
           <div className="ds2-share-closing-inner">
             <span className="ds2-share-side-icon ds2-share-side-icon-success">
               <PanelIcon name="sprout" />

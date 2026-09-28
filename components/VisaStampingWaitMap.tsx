@@ -942,7 +942,11 @@ function SelectedPostDetailsCard({
   );
 }
 
-export function VisaStampingWaitMap() {
+export function VisaStampingWaitMap({
+  href,
+}: {
+  href?: string;
+} = {}) {
   const [appliedCountry, setAppliedCountry] = useState<CountryFilter>(DEFAULT_VISA_STAMPING_FILTERS.country);
   const [appliedVisaType, setAppliedVisaType] = useState<VisaStampingVisaType>(DEFAULT_VISA_STAMPING_FILTERS.visaType);
   const [appliedAppointmentType, setAppliedAppointmentType] = useState<VisaStampingAppointmentType>(
@@ -1110,7 +1114,7 @@ export function VisaStampingWaitMap() {
               </svg>
               Reset Filters
             </button>
-            <DashboardCloseAction />
+            <DashboardCloseAction href={href} />
           </div>
         </header>
 

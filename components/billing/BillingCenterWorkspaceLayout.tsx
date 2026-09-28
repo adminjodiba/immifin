@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { Ds2MyImmifinWorkspaceNav } from "@/components/ds2/Ds2MyImmifinWorkspaceNav";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 type BillingCenterWorkspaceLayoutProps = {
   children: ReactNode;
@@ -11,7 +10,7 @@ type BillingCenterWorkspaceLayoutProps = {
 export function BillingCenterWorkspaceLayout({ children }: BillingCenterWorkspaceLayoutProps) {
   return (
     <div className="ds2-workspace-page">
-      <div className={`${landingV3ContentGridClass} ds2-workspace-page-inner ds2-billing-page-inner`}>
+      <div className="immifin-workspace-inner ds2-workspace-page-inner ds2-billing-page-inner">
         <div className="ds2-billing-workspace">
           <Ds2MyImmifinWorkspaceNav active="billing" />
           <div className="ds2-billing-workspace-main">

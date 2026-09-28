@@ -86,7 +86,7 @@ function PremiumFeatureInfoPanel({
 }: PremiumFeatureInfoPanelProps) {
   return (
     <section className="workspace-section">
-      <div className="container-main">
+      <div className="w-full">
         <div className="space-y-6">
           <header>
             <p className="text-sm font-medium text-brand-600">Pro Feature</p>

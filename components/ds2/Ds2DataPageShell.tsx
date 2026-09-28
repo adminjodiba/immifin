@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 type Ds2DataPageShellProps = {
   children: ReactNode;
@@ -13,7 +12,7 @@ type Ds2DataPageShellProps = {
 export function Ds2DataPageShell({ children }: Ds2DataPageShellProps) {
   return (
     <div className="ds2-data-page">
-      <div className={`${landingV3ContentGridClass} ds2-data-page-inner`}>{children}</div>
+      <div className="immifin-page-inner ds2-data-page-inner">{children}</div>
     </div>
   );
 }

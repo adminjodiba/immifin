@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 import type {
   PublicWhatUsersSayTestimonial,
   WhatUsersSayDailySnapshot,
@@ -218,7 +217,7 @@ function TickerRow({
         }
       }}
     >
-      <div className={`${landingV3ContentGridClass} ds2-wus-row-inner`}>
+      <div className="immifin-page-inner ds2-wus-row-inner">
         <div className="ds2-wus-row-label">
           <p>{meta.title}</p>
           <span>{meta.hint}</span>
@@ -260,7 +259,7 @@ export function WhatUsersSayView({ snapshot }: { snapshot: WhatUsersSayDailySnap
         />
       ))}
 
-      <div className={`${landingV3ContentGridClass} ds2-wus-cta`}>
+      <div className="immifin-page-inner ds2-wus-cta">
         <Link href="/about/share-feedback" className="ds2-wus-cta-button">
           Share Your Feedback →
         </Link>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ContactUsForm } from "@/components/contact/ContactUsForm";
 import { contactConfig, formatOfficeLocation } from "@/lib/contact";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 function ChatIcon() {
   return (
@@ -40,7 +39,7 @@ function PeopleIcon() {
 
 export function ContactUsBody() {
   return (
-    <div className={`${landingV3ContentGridClass} ds2-contact-body`}>
+    <div className="immifin-page-inner ds2-contact-body">
       <div className="ds2-contact-body-grid">
         <section className="ds2-contact-form-col" aria-labelledby="contact-form-heading">
           <span className="ds2-section-header-accent" aria-hidden="true" />

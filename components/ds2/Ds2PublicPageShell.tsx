@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 type Ds2PublicPageShellProps = {
   children: ReactNode;
@@ -43,7 +42,7 @@ export function Ds2PublicPageShell({
 
   return (
     <div className="ds2-public-page">
-      <div className={`${landingV3ContentGridClass} ds2-public-page-inner`}>
+      <div className="immifin-page-inner ds2-public-page-inner">
         <header className={introClass}>
           <div className="ds2-public-page-intro-copy">
             {eyebrow ? <p className="ds2-public-page-eyebrow">{eyebrow}</p> : null}

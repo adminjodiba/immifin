@@ -79,7 +79,7 @@ function ResultCard({
   );
 }
 
-export function CitizenshipEligibilityCalculator() {
+export function CitizenshipEligibilityCalculator({ href }: { href?: string } = {}) {
   const { defaults, loaded, autoPopulationEnabled, showProAutoPopulationHint } =
     useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
@@ -152,7 +152,7 @@ export function CitizenshipEligibilityCalculator() {
             </p>
           </div>
         </div>
-        <DashboardCloseAction />
+        <DashboardCloseAction href={href} />
       </header>
 
       <div className="mt-3 space-y-5">

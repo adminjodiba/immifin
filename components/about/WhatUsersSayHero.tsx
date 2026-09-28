@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import { Ds2SplitSceneHero } from "@/components/ds2/Ds2SplitSceneHero";
-import { landingV3ContentGridClass } from "@/components/landing-v3/landingV3Layout";
 
 /** Locked PO PNG. Natural 2172×724. Yellowstone left, Grand Canyon right. */
 const WUS_HERO_IMAGE = "/images/immifin-what-users-say-hero-yellowstone-grand-canyon.png";
@@ -33,7 +32,7 @@ export function WhatUsersSayHero() {
       skyLeft={0.34}
       skyRight={0.5}
     >
-      <div className={`${landingV3ContentGridClass} ds2-wus-split-hero-inner`}>
+      <div className="immifin-page-inner ds2-wus-split-hero-inner">
         <div className="ds2-wus-split-hero-copy">
           <div className="landing-v3-hero-title-lane hero-ribbon-title-rail ds2-wus-split-hero-title-lane">
             <div

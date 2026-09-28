@@ -718,10 +718,12 @@ export function VisaBulletinMovementTracker2({
   bulletinMonthLabel = null,
   previousBulletinColumnLabel = "Previous Bulletin",
   currentBulletinColumnLabel = "Current Bulletin",
+  href,
 }: {
   bulletinMonthLabel?: string | null;
   previousBulletinColumnLabel?: string;
   currentBulletinColumnLabel?: string;
+  href?: string;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("final-action");
   const [movementFilter, setMovementFilter] = useState<TableMovementFilter>("all");
@@ -808,7 +810,7 @@ export function VisaBulletinMovementTracker2({
               </div>
             </div>
           </div>
-          <DashboardCloseAction />
+          <DashboardCloseAction href={href} />
         </header>
 
         <div className="mt-4 space-y-4 sm:mt-5">

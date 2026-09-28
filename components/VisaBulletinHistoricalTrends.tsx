@@ -465,7 +465,7 @@ function ScrollableHistoricalTable({
 const filterSelectClassName =
   "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
 
-export function VisaBulletinHistoricalTrends() {
+export function VisaBulletinHistoricalTrends({ href }: { href?: string } = {}) {
   const { defaults, loaded, autoPopulationEnabled } = useImmigrationProfileDefaults();
   const profileDefaultsApplied = useRef(false);
   const [category, setCategory] = useState("EB2");
@@ -527,7 +527,7 @@ export function VisaBulletinHistoricalTrends() {
                 Track historical cutoff dates and identify trends for your immigration journey.
               </p>
             </div>
-            <DashboardCloseAction />
+            <DashboardCloseAction href={href} />
           </div>
 
           <div className="flex flex-col gap-2 lg:items-end" aria-label="Filters">

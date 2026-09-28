@@ -46,7 +46,7 @@ export function ProFeatureGate({
 
     return (
       <section className="section-padding !pt-10 sm:!pt-16">
-        <div className="container-main">
+        <div className="w-full">
           <ProFeatureLockedState
             title={title}
             continueHref={continueHref}

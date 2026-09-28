@@ -23,7 +23,13 @@ const inputClassName =
 
 const labelClassName = "block text-sm font-medium text-slate-900";
 
-export function H1bLotteryOddsCalculator() {
+export function H1bLotteryOddsCalculator({
+  href,
+  wageHref = WAGE_ESTIMATOR_HREF,
+}: {
+  href?: string;
+  wageHref?: string;
+} = {}) {
   const searchParams = useSearchParams();
   const [wageLevel, setWageLevel] = useState<LotteryWageLevelSelection>("unknown");
   const [usMastersEligible, setUsMastersEligible] = useState<UsMastersEligibility>("no");
@@ -68,7 +74,7 @@ export function H1bLotteryOddsCalculator() {
             </p>
           </div>
         </div>
-        <DashboardCloseAction />
+        <DashboardCloseAction href={href} />
       </header>
 
       <div className="mt-3 space-y-4">
@@ -155,7 +161,7 @@ export function H1bLotteryOddsCalculator() {
                     Use IMMIFIN&apos;s H-1B Wage Level Estimator first.
                   </p>
                   <Link
-                    href={WAGE_ESTIMATOR_HREF}
+                    href={wageHref}
                     className="btn-primary mt-4 min-h-[40px] rounded-lg px-4 py-2 shadow-sm"
                   >
                     Estimate my wage level

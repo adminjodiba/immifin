@@ -84,7 +84,7 @@ export function IntelligenceBetaUnavailableState({
 
     <section className="workspace-section" aria-labelledby="intelligence-beta-title">
 
-      <div className="container-main py-6 sm:py-8">
+      <div className="w-full py-6 sm:py-8">
 
         <h1 id="intelligence-beta-title" className="sr-only">
 

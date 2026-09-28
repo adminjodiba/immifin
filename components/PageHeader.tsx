@@ -7,6 +7,8 @@ type PageHeaderProps = {
   title: string;
   description?: string;
   wide?: boolean;
+  /** Use the global chrome body width instead of max-w-7xl. */
+  fullWidth?: boolean;
   pageHref?: string;
   showFavorite?: boolean;
   /** When true (default), shows Close → home. Home landing does not use PageHeader. */
@@ -22,6 +24,7 @@ export function PageHeader({
   title,
   description,
   wide = false,
+  fullWidth = false,
   pageHref,
   showFavorite = true,
   showClose = true,
@@ -31,7 +34,7 @@ export function PageHeader({
   descriptionClassName,
   children,
 }: PageHeaderProps) {
-  const containerClass = workspaceContainerClass(wide);
+  const containerClass = fullWidth ? "immifin-page-inner" : workspaceContainerClass(wide);
   const resolvedActions = showClose ? (
     <>
       {actions}

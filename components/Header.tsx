@@ -34,7 +34,6 @@ import {
 } from "@/lib/premium-nav-preview";
 import { hasCapability } from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
-import { landingV3ContainerClass } from "@/components/landing-v3/landingV3Layout";
 import { Logo } from "./Logo";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 
@@ -675,19 +674,14 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
                   : "sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/70"
         }
       >
-      <div className={isLandingPreview ? landingV3ContainerClass : "container-main"}>
+      <div className="immifin-header-inner">
         {/*
-          V3/V4 desktop: three equal-zone grid so the main menu is genuinely
-          centered (not flowing after the logo). Production `/` keeps flex.
+          Three equal-zone grid so the main menu stays viewport-centered
+          regardless of logo vs. profile width. Inner wrapper is full page
+          width with chrome gutters (not max-w-7xl).
         */}
-        <div
-          className={
-            isLandingPreview
-              ? "grid h-16 grid-cols-[1fr_auto_1fr] items-center sm:h-[4.5rem]"
-              : "flex h-16 items-center gap-0.5 sm:h-[4.5rem]"
-          }
-        >
-          <div className={isLandingPreview ? "justify-self-start shrink-0" : "shrink-0"}>
+        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center sm:h-[4.5rem]">
+          <div className="justify-self-start shrink-0">
             <Logo
               href={isLandingPreview ? landingPreviewHomeHref : "/"}
               iconTone={usesNavyLogo ? "navy" : "default"}
@@ -695,11 +689,7 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
           </div>
 
           <nav
-            className={
-              isLandingPreview
-                ? "hidden min-w-0 items-center gap-0.5 justify-self-center md:flex"
-                : "hidden min-w-0 items-center gap-0.5 md:flex"
-            }
+            className="hidden min-w-0 items-center gap-0.5 justify-self-center md:flex"
             aria-label={isLandingPreview && variant !== "ds2" ? "Landing preview navigation" : "Main navigation"}
           >
             {menuLinks.map((link) => {
@@ -778,13 +768,7 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
             {showSignedOutAuth && !isLandingPreview ? <JoinImmifinDropdown /> : null}
           </nav>
 
-          <div
-            className={
-              isLandingPreview
-                ? "flex shrink-0 items-center justify-end justify-self-end gap-2"
-                : "ml-auto flex shrink-0 items-center justify-end gap-2"
-            }
-          >
+          <div className="flex shrink-0 items-center justify-end justify-self-end gap-2">
             {isLandingPreview && showSignedOutAuth ? (
               <div className="hidden items-center gap-3 md:flex">
                 <Link href="/login" className={landingAuthLoginClassName}>

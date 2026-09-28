@@ -185,7 +185,13 @@ function OccupationSearchOption({
   );
 }
 
-export function H1bWageLevelEstimator() {
+export function H1bWageLevelEstimator({
+  href,
+  lotteryHref = LOTTERY_CALCULATOR_HREF,
+}: {
+  href?: string;
+  lotteryHref?: string;
+} = {}) {
   const [occupationQuery, setOccupationQuery] = useState("");
   const [occupationMatches, setOccupationMatches] = useState<OfficialOccupationClientRow[]>([]);
   const [occupationSearchError, setOccupationSearchError] = useState<string | null>(null);
@@ -371,7 +377,7 @@ export function H1bWageLevelEstimator() {
             </p>
           </div>
         </div>
-        <DashboardCloseAction />
+        <DashboardCloseAction href={href} />
       </header>
 
       <div className="mt-3 space-y-4">
@@ -652,13 +658,13 @@ export function H1bWageLevelEstimator() {
 
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Link
-                      href={`${LOTTERY_CALCULATOR_HREF}?wageLevel=${result.estimatedLevel}`}
+                      href={`${lotteryHref}?wageLevel=${result.estimatedLevel}`}
                       className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800"
                     >
                       Use this wage level in H-1B Lottery Odds Calculator
                     </Link>
                     <Link
-                      href={LOTTERY_CALCULATOR_HREF}
+                      href={lotteryHref}
                       className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
                     >
                       Calculate lottery odds manually
@@ -721,7 +727,7 @@ export function H1bWageLevelEstimator() {
                     </div>
                   ) : null}
                   <Link
-                    href={LOTTERY_CALCULATOR_HREF}
+                    href={lotteryHref}
                     className="flex min-h-[40px] items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
                   >
                     Calculate lottery odds manually
