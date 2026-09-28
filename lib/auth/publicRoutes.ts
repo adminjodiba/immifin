@@ -14,7 +14,6 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/immigration-v2",
   "/immigration-v3",
   "/immigration-v4",
-  "/immigration-v4/visa-bulletin",
   "/immigration-v4/green-card-wait-time",
   "/immigration-v4/citizenship-eligibility",
   "/immigration-v4/h1b-wage-level-estimator",
