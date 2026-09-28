@@ -31,7 +31,13 @@ export const metadata: Metadata = {
 export default function ImmigrationV4CitizenshipEligibilityPage() {
   return (
     <div className="ds2-imm-v4-body">
-      <CitizenshipEligibilityCalculator href="/immigration-v4" />
+      <CitizenshipEligibilityCalculator
+        href="/immigration-v4"
+        relatedToolHrefs={{
+          "Visa Bulletin Dashboard": "/immigration-v4/visa-bulletin",
+          "Green Card Calculator": "/immigration-v4/green-card-wait-time",
+        }}
+      />
     </div>
   );
 }

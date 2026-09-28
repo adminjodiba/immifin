@@ -39,7 +39,15 @@ export default async function ImmigrationV4VisaBulletinPage() {
 
   return (
     <div className="ds2-imm-v4-body">
-      <VisaBulletinDashboard2 bulletinMonthLabel={bulletinMonthLabel} href="/immigration-v4">
+      <VisaBulletinDashboard2
+        bulletinMonthLabel={bulletinMonthLabel}
+        href="/immigration-v4"
+        relatedToolHrefs={{
+          "Visa Bulletin Movement Tracker": "/immigration-v4/visa-bulletin-movement",
+          "Visa Bulletin History": "/immigration-v4/visa-bulletin-history",
+          "Green Card Calculator": "/immigration-v4/green-card-wait-time",
+        }}
+      >
         <VisaBulletinUnderstanding />
       </VisaBulletinDashboard2>
     </div>

@@ -79,7 +79,15 @@ function ResultCard({
   );
 }
 
-export function CitizenshipEligibilityCalculator({ href }: { href?: string } = {}) {
+export function CitizenshipEligibilityCalculator({
+  href,
+  relatedToolHrefs,
+}: {
+  href?: string;
+  relatedToolHrefs?: Partial<
+    Record<"Visa Bulletin Dashboard" | "Green Card Calculator", string>
+  >;
+} = {}) {
   const { defaults, loaded, autoPopulationEnabled, showProAutoPopulationHint } =
     useImmigrationProfileDefaults();
   const [greenCardIssueDate, setGreenCardIssueDate] = useState("");
@@ -293,13 +301,13 @@ export function CitizenshipEligibilityCalculator({ href }: { href?: string } = {
             {
               title: "Visa Bulletin Dashboard",
               description: "Track current employment-based visa bulletin dates.",
-              href: "/immigration/visa-bulletin",
+              href: relatedToolHrefs?.["Visa Bulletin Dashboard"] ?? "/immigration/visa-bulletin",
             },
             {
               title: "Green Card Calculator",
               description:
                 "Check whether your priority date is current based on the latest visa bulletin.",
-              href: "/calculators/green-card-wait-time",
+              href: relatedToolHrefs?.["Green Card Calculator"] ?? "/calculators/green-card-wait-time",
             },
           ]}
         />

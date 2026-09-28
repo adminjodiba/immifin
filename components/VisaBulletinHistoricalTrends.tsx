@@ -465,7 +465,13 @@ function ScrollableHistoricalTable({
 const filterSelectClassName =
   "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
 
-export function VisaBulletinHistoricalTrends({ href }: { href?: string } = {}) {
+export function VisaBulletinHistoricalTrends({
+  href,
+  relatedToolHrefs,
+}: {
+  href?: string;
+  relatedToolHrefs?: Partial<Record<(typeof relatedTools)[number]["title"], string>>;
+} = {}) {
   const { defaults, loaded, autoPopulationEnabled } = useImmigrationProfileDefaults();
   const profileDefaultsApplied = useRef(false);
   const [category, setCategory] = useState("EB2");
@@ -473,6 +479,10 @@ export function VisaBulletinHistoricalTrends({ href }: { href?: string } = {}) {
   const [type, setType] = useState<BulletinHistoryType>("FinalAction");
   const [dateRange, setDateRange] = useState<DateRangeKey>("6");
   const { tier } = useEffectiveSubscriptionTier();
+  const resolvedRelatedTools = relatedTools.map((tool) => ({
+    ...tool,
+    href: relatedToolHrefs?.[tool.title] ?? tool.href,
+  }));
 
   useEffect(() => {
     if (!loaded || !autoPopulationEnabled || !defaults || profileDefaultsApplied.current) {
@@ -607,7 +617,7 @@ export function VisaBulletinHistoricalTrends({ href }: { href?: string } = {}) {
               Related Tools
             </h2>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedTools.map((tool) => (
+              {resolvedRelatedTools.map((tool) => (
                 <Link
                   key={tool.href}
                   href={tool.href}

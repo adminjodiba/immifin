@@ -46,9 +46,9 @@ const MOVEMENT_TRACKER_FEATURES = [
 ] as const;
 
 const FREE_TOOL_LINKS: PremiumFeatureInfoLink[] = [
-  { label: "Current Visa Bulletin", href: "/immigration/visa-bulletin" },
-  { label: "Green Card Calculator", href: "/calculators/green-card-wait-time" },
-  { label: "Citizenship Calculator", href: "/calculators/citizenship-eligibility" },
+  { label: "Current Visa Bulletin", href: "/immigration-v4/visa-bulletin" },
+  { label: "Green Card Calculator", href: "/immigration-v4/green-card-wait-time" },
+  { label: "Citizenship Calculator", href: "/immigration-v4/citizenship-eligibility" },
 ];
 
 const MOVEMENT_TRACKER_INFO_STATE = {
@@ -109,6 +109,11 @@ export default async function ImmigrationV4MovementTrackerPage() {
           previousBulletinColumnLabel={previousBulletinColumnLabel}
           currentBulletinColumnLabel={currentBulletinColumnLabel}
           href="/immigration-v4"
+          relatedToolHrefs={{
+            "Visa Bulletin Dashboard": "/immigration-v4/visa-bulletin",
+            "Visa Bulletin History": "/immigration-v4/visa-bulletin-history",
+            "Green Card Calculator": "/immigration-v4/green-card-wait-time",
+          }}
         />
       </PremiumFeaturePreview>
     </div>

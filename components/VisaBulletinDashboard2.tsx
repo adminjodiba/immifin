@@ -341,10 +341,12 @@ export function VisaBulletinDashboard2({
   bulletinMonthLabel,
   children,
   href,
+  relatedToolHrefs,
 }: {
   bulletinMonthLabel: string | null;
   children?: ReactNode;
   href?: string;
+  relatedToolHrefs?: Partial<Record<(typeof relatedTools)[number]["title"], string>>;
 }) {
   const [mobileTab, setMobileTab] = useState<TabKey>("final-action");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -375,6 +377,10 @@ export function VisaBulletinDashboard2({
 
   const finalActionRows = useMemo(() => finalActionData ?? [], [finalActionData]);
   const filingRows = useMemo(() => filingData ?? [], [filingData]);
+  const resolvedRelatedTools = relatedTools.map((tool) => ({
+    ...tool,
+    href: relatedToolHrefs?.[tool.title] ?? tool.href,
+  }));
   const allRows = useMemo(
     () => [...finalActionRows, ...filingRows],
     [finalActionRows, filingRows],
@@ -578,7 +584,7 @@ export function VisaBulletinDashboard2({
               Related Tools
             </h2>
             <div className="grid gap-2 sm:grid-cols-3">
-              {relatedTools.map((tool) => (
+          {resolvedRelatedTools.map((tool) => (
                 <ProtectedLink
                   key={tool.href}
                   href={tool.href}

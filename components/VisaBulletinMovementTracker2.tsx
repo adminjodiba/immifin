@@ -719,11 +719,13 @@ export function VisaBulletinMovementTracker2({
   previousBulletinColumnLabel = "Previous Bulletin",
   currentBulletinColumnLabel = "Current Bulletin",
   href,
+  relatedToolHrefs,
 }: {
   bulletinMonthLabel?: string | null;
   previousBulletinColumnLabel?: string;
   currentBulletinColumnLabel?: string;
   href?: string;
+  relatedToolHrefs?: Partial<Record<(typeof relatedTools)[number]["title"], string>>;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("final-action");
   const [movementFilter, setMovementFilter] = useState<TableMovementFilter>("all");
@@ -739,6 +741,10 @@ export function VisaBulletinMovementTracker2({
   );
 
   const rows = useMemo(() => data ?? [], [data]);
+  const resolvedRelatedTools = relatedTools.map((tool) => ({
+    ...tool,
+    href: relatedToolHrefs?.[tool.title] ?? tool.href,
+  }));
   const loading = isLoading;
   const error =
     swrError instanceof Error
@@ -949,7 +955,7 @@ export function VisaBulletinMovementTracker2({
               Related Tools
             </h2>
             <div className="grid gap-2 sm:grid-cols-3">
-              {relatedTools.map((tool) => (
+              {resolvedRelatedTools.map((tool) => (
                 <Link
                   key={tool.href}
                   href={tool.href}
