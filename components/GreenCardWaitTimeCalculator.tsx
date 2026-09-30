@@ -16,7 +16,7 @@ const categoryOptions = employmentCategoryOptions.filter(
 );
 
 const inputClassName =
-  "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
+  "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.9375rem] text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
 
 const statusStyles = {
   current: {
@@ -111,9 +111,9 @@ function ResultCard({
           : "border-slate-200 bg-white"
       }`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">{label}</p>
-      <p className="mt-1 text-base font-semibold leading-snug text-slate-900">{value}</p>
-      {description ? <p className="mt-1.5 text-sm text-slate-600">{description}</p> : null}
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">{label}</p>
+      <p className="mt-1 text-lg font-semibold leading-snug text-slate-900">{value}</p>
+      {description ? <p className="mt-1.5 text-sm text-slate-700">{description}</p> : null}
     </div>
   );
 }
@@ -226,7 +226,7 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
             className="border-b border-slate-200 p-4 sm:p-5 lg:border-b-0 lg:border-r"
             aria-labelledby="green-card-input-heading"
           >
-            <h2 id="green-card-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <h2 id="green-card-input-heading" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Your information
             </h2>
 
@@ -255,7 +255,7 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">EB-1, EB-2, or EB-3</p>
+                <p className="mt-1 text-sm text-slate-600">EB-1, EB-2, or EB-3</p>
               </div>
 
               <div>
@@ -282,7 +282,7 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-sm text-slate-600">
                   The country that counts for Visa Bulletin chargeability, usually your country of
                   birth.
                 </p>
@@ -307,10 +307,10 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
                   }}
                   className={inputClassName}
                 />
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-sm text-slate-600">
                   The priority date listed on your I-140, I-130, or PERM approval notice.
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-sm text-slate-600">
                   Used only to compare with the current Final Action Date.
                 </p>
               </div>
@@ -330,7 +330,7 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
             aria-labelledby="green-card-result-heading"
             aria-live="polite"
           >
-            <h2 id="green-card-result-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <h2 id="green-card-result-heading" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Your result
             </h2>
 
@@ -383,7 +383,7 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
                   highlight
                 />
                 <div className={`rounded-lg border p-4 ${statusStyles[result.status].container}`}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Current status
                   </p>
                   <div className="mt-1.5 flex items-center gap-2">
@@ -397,10 +397,10 @@ export function GreenCardWaitTimeCalculator({ children }: { children?: ReactNode
                   </div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-white p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
                     What this means
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-700">
                     {statusMeanings[result.status]}
                   </p>
                 </div>

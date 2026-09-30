@@ -1,4 +1,3 @@
-import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { CitizenshipEligibilityCalculator } from "@/components/CitizenshipEligibilityCalculator";
 import { createMetadata } from "@/lib/metadata";
 
@@ -11,8 +10,8 @@ export const metadata = createMetadata({
 
 export default function CitizenshipEligibilityPage() {
   return (
-    <Ds2CalculatorPageShell>
-      <CitizenshipEligibilityCalculator />
-    </Ds2CalculatorPageShell>
+    <div className="ds2-imm-v4-body">
+      <CitizenshipEligibilityCalculator href="/immigration" />
+    </div>
   );
 }

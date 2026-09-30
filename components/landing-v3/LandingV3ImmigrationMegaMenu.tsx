@@ -18,7 +18,7 @@ const PROMO_WIDTH = 1536;
 const PROMO_HEIGHT = 1024;
 
 const navLinkClassName =
-  "nav-menu-trigger whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+  "nav-menu-trigger whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
 
 const leafClassName =
   "nav-menu-item relative z-[1] flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";

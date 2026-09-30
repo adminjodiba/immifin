@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
-import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { FavoriteStar } from "@/components/favorites/FavoriteStar";
 import { GreenCardWaitTimeCalculator } from "@/components/GreenCardWaitTimeCalculator";
 import { GreenCardWaitTimeSeoContent } from "@/components/GreenCardWaitTimeSeoContent";
@@ -19,7 +18,7 @@ export const metadata = createMetadata({
 
 export default function GreenCardWaitTimePage() {
   return (
-    <Ds2CalculatorPageShell>
+    <div className="ds2-imm-v4-body">
       <div className="space-y-5">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-2.5">
@@ -46,18 +45,18 @@ export default function GreenCardWaitTimePage() {
                 </h1>
                 <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
               </div>
-              <p className="mt-1 max-w-3xl text-sm text-slate-600">
+              <p className="mt-1 max-w-3xl text-[0.9375rem] text-slate-700">
                 Check where your employment-based priority date stands against the current Visa
                 Bulletin.
               </p>
-              <p className="mt-1.5 max-w-3xl text-sm text-slate-600">
+              <p className="mt-1.5 max-w-3xl text-[0.9375rem] text-slate-700">
                 This calculator compares your priority date with the published Final Action Date
                 for your category and country. It shows your current status. It does not predict
                 future Visa Bulletin movement or when USCIS will approve a Green Card.
               </p>
             </div>
           </div>
-          <DashboardCloseAction />
+          <DashboardCloseAction href="/immigration" />
         </header>
 
         <GreenCardWaitTimeCalculator>
@@ -225,6 +224,6 @@ export default function GreenCardWaitTimePage() {
           approved.
         </p>
       </div>
-    </Ds2CalculatorPageShell>
+    </div>
   );
 }

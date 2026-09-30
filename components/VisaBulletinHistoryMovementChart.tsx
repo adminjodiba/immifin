@@ -100,7 +100,7 @@ function MovementChartSeries({ axisTickLabels }: { axisTickLabels: string[] }) {
       <YAxis
         dataKey="movementDays"
         tickFormatter={formatYAxisTick}
-        tick={{ fontSize: 11, fill: "#64748b" }}
+        tick={{ fontSize: 12, fill: "#475569" }}
         tickLine={false}
         axisLine={{ stroke: "#e2e8f0" }}
         width={44}
@@ -108,7 +108,7 @@ function MovementChartSeries({ axisTickLabels }: { axisTickLabels: string[] }) {
           value: "Movement days",
           angle: -90,
           position: "insideLeft",
-          style: { fontSize: 10, fill: "#94a3b8" },
+          style: { fontSize: 11, fill: "#526174" },
         }}
       />
       <ReferenceLine y={0} stroke="#e2e8f0" />
@@ -186,13 +186,13 @@ export function VisaBulletinHistoryMovementChart({
     <div className={shellClassName}>
       {!embedded || title ? (
         <>
-          <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
           {!embedded ? (
-            <p className="mb-4 mt-1 text-sm text-slate-600">
+            <p className="mb-4 mt-1 text-sm text-slate-700">
               Change in cutoff date compared with the previous month.
             </p>
           ) : title ? (
-            <p className="mb-2 mt-0.5 text-xs text-slate-500">Month-over-month change</p>
+            <p className="mb-2 mt-0.5 text-xs text-slate-600">Month-over-month change</p>
           ) : null}
         </>
       ) : null}

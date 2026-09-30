@@ -11271,6 +11271,23 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
   justify-content: flex-start;
 }
 
+/* V4 readability polish: retain the approved navigation geometry while making the
+   workspace-specific hierarchy easier to scan on wider screens. */
+.ds2-imm-v4-page .ds2-imm-sidebar .ds2-myimmifin-nav-subtitle {
+  font-size: 0.875rem;
+  color: #526174;
+}
+
+.ds2-imm-v4-page .ds2-imm-sidebar .ds2-myimmifin-nav-link {
+  font-size: 1rem;
+  color: #42526a;
+}
+
+.ds2-imm-v4-page .ds2-imm-sidebar .ds2-myimmifin-nav-group .ds2-myimmifin-nav-link {
+  font-weight: 800;
+  color: var(--immifin-ds2-text-primary);
+}
+
 .ds2-imm-v4-page .ds2-myimmifin-nav-link .ds2-myimmifin-nav-group-chevron {
   margin-left: auto;
 }
@@ -11279,6 +11296,9 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #526174;
 }
 
 .ds2-imm-v4-page .ds2-myimmifin-nav-badge.immifin-pro-badge {
@@ -11403,9 +11423,9 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
 .ds2-imm-v4-lead {
   margin: 0.22rem 0 0;
   max-width: 38rem;
-  font-size: 0.84rem;
-  line-height: 1.45;
-  color: var(--immifin-ds2-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #526174;
 }
 
 .ds2-imm-v4-journey-grid {
@@ -11606,9 +11626,9 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
 .ds2-imm-v4-journey-copy {
   margin: 0.5rem 0 0;
   max-width: 17.5rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: #5b6573;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
 }
 
 .ds2-imm-v4-journey-tools {
@@ -11631,7 +11651,7 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
   border-radius: 0.55rem;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-  font-size: 0.76rem;
+  font-size: 0.825rem;
   font-weight: 700;
   color: #1f2a3d;
   text-decoration: none;
@@ -11756,7 +11776,7 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
 }
 
 .ds2-imm-v4-toolcard-title {
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.015em;
   line-height: 1.25;
@@ -11764,9 +11784,9 @@ h1.ds2-admin-overview-title .ds2-drc-title-status-overdue,
 }
 
 .ds2-imm-v4-toolcard-copy {
-  font-size: 0.71rem;
-  line-height: 1.35;
-  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #526174;
 }
 
 .ds2-imm-v4-toolcard-chevron {

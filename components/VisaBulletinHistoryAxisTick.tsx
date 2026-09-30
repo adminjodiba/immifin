@@ -17,7 +17,7 @@ export function HistoryAxisTick({ x = 0, y = 0, index = 0, axisTickLabels }: Axi
   const yPos = typeof y === "number" ? y : Number(y);
 
   return (
-    <text x={xPos} y={yPos + 12} textAnchor="middle" fontSize={11} fill="#64748b">
+    <text x={xPos} y={yPos + 13} textAnchor="middle" fontSize={12} fill="#475569">
       {label}
     </text>
   );

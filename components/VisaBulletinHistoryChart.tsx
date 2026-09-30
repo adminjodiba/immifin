@@ -182,7 +182,7 @@ function ChartSeries({
       <YAxis
         dataKey="daysFromStart"
         tickFormatter={formatYAxisTick}
-        tick={{ fontSize: 11, fill: "#64748b" }}
+        tick={{ fontSize: 12, fill: "#475569" }}
         tickLine={false}
         axisLine={{ stroke: "#e2e8f0" }}
         width={44}
@@ -190,7 +190,7 @@ function ChartSeries({
           value: "Days from start",
           angle: -90,
           position: "insideLeft",
-          style: { fontSize: 10, fill: "#94a3b8" },
+          style: { fontSize: 11, fill: "#526174" },
         }}
       />
       <Tooltip content={<ChartTooltip />} />
@@ -222,7 +222,7 @@ function ChartSeries({
 
 function ChartLegend() {
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-600">
+    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
       <span className="inline-flex items-center gap-1.5">
         <span className="h-2 w-2 rounded-full bg-brand-600" aria-hidden="true" />
         <span className="h-0.5 w-3 rounded bg-brand-600" aria-hidden="true" />
@@ -349,13 +349,13 @@ export function VisaBulletinHistoryChart({
       <>
         {!embedded || title ? (
           <>
-            <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+            <h3 className="text-base font-semibold text-slate-900">{title}</h3>
             {!embedded ? (
-              <p className="mb-4 mt-1 text-sm text-slate-600">
+              <p className="mb-4 mt-1 text-sm text-slate-700">
                 Movement relative to the earliest cutoff date in the selected history period.
               </p>
             ) : title ? (
-              <p className="mb-2 mt-0.5 text-xs text-slate-500">Relative to earliest cutoff in period</p>
+              <p className="mb-2 mt-0.5 text-xs text-slate-600">Relative to earliest cutoff in period</p>
             ) : null}
           </>
         ) : null}

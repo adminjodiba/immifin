@@ -34,6 +34,7 @@ import {
 } from "@/lib/premium-nav-preview";
 import { hasCapability } from "@/lib/subscription/capabilities";
 import type { SubscriptionTier } from "@/lib/subscription/tiers";
+import { isImmigrationWorkspacePath } from "@/lib/immigration-workspace-paths";
 import { Logo } from "./Logo";
 import { clerkAppearance } from "@/lib/clerk/appearance";
 
@@ -116,7 +117,7 @@ type NavMenuSection = {
 };
 
 const navLinkClassName =
-  "nav-menu-trigger whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
+  "nav-menu-trigger whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
 
 const navMenuItemClassName =
   "nav-menu-item block w-full rounded-xl px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700";
@@ -590,6 +591,7 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
   const isV6Preview = variant === "v6Preview" || isDs2;
   const isLandingPreview = isV3Preview || isV4Preview || isV5Preview || isV6Preview;
   const usesNavyLogo = isV5Preview || isV6Preview;
+  const isImmigrationWorkspace = isImmigrationWorkspacePath(pathname);
   const landingPreviewHomeHref = isV3Ds
     ? "/landing-v3"
     : variant === "ds2"
@@ -713,6 +715,18 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
                   );
                 }
                 if (link.href === "/immigration") {
+                  if (isImmigrationWorkspace) {
+                    return (
+                      <ProtectedLink
+                        key={link.href}
+                        href="/immigration"
+                        className={`${navLinkClassName} text-brand-700 font-semibold`}
+                        aria-current="page"
+                      >
+                        Immigration
+                      </ProtectedLink>
+                    );
+                  }
                   if (isDs2) {
                     return (
                       <LandingV3ImmigrationMegaMenu
@@ -858,6 +872,20 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
 
                 if ("hasDropdown" in link && link.hasDropdown) {
                   const isMyImmifin = "isMyImmifin" in link && link.isMyImmifin;
+
+                  if (link.href === "/immigration" && isImmigrationWorkspace) {
+                    return (
+                      <ProtectedLink
+                        key={link.href}
+                        href="/immigration"
+                        className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-semibold text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                        aria-current="page"
+                        onClick={onToggleMenu}
+                      >
+                        Immigration
+                      </ProtectedLink>
+                    );
+                  }
 
                   if (isMyImmifin) {
                     if (!signedIn) {

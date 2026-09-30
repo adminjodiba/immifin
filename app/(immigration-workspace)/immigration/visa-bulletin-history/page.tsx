@@ -2,7 +2,6 @@ import {
   PremiumFeaturePreview,
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
-import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaBulletinHistoricalTrends } from "@/components/VisaBulletinHistoricalTrends";
 import { CAPABILITY } from "@/lib/subscription/capabilities";
 import { createMetadata } from "@/lib/metadata";
@@ -44,7 +43,7 @@ const VISA_HISTORY_INFO_STATE = {
 
 export default function VisaBulletinHistoryPage() {
   return (
-    <Ds2DataPageShell>
+    <div className="ds2-imm-v4-body">
       <PremiumFeaturePreview
         capability={CAPABILITY.visaHistory}
         featureGroupTitle="Historical Intelligence"
@@ -52,8 +51,8 @@ export default function VisaBulletinHistoryPage() {
         showCloseButton
         infoState={VISA_HISTORY_INFO_STATE}
       >
-        <VisaBulletinHistoricalTrends />
+        <VisaBulletinHistoricalTrends href="/immigration" />
       </PremiumFeaturePreview>
-    </Ds2DataPageShell>
+    </div>
   );
 }

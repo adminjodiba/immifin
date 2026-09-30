@@ -2,7 +2,6 @@ import {
   PremiumFeaturePreview,
   type PremiumFeatureInfoLink,
 } from "@/components/common/PremiumFeaturePreview";
-import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaBulletinMovementTracker2 } from "@/components/VisaBulletinMovementTracker2";
 import { CAPABILITY } from "@/lib/subscription/capabilities";
 import { createMetadata } from "@/lib/metadata";
@@ -78,7 +77,7 @@ export default async function VisaBulletinMovementPage() {
     formatBulletinColumnLabel(previousMonth) ?? "Previous Bulletin";
 
   return (
-    <Ds2DataPageShell>
+    <div className="ds2-imm-v4-body">
       <PremiumFeaturePreview
         capability={CAPABILITY.movementTracker}
         featureGroupTitle="Movement Intelligence"
@@ -90,8 +89,9 @@ export default async function VisaBulletinMovementPage() {
           bulletinMonthLabel={bulletinMonthLabel}
           previousBulletinColumnLabel={previousBulletinColumnLabel}
           currentBulletinColumnLabel={currentBulletinColumnLabel}
+          href="/immigration"
         />
       </PremiumFeaturePreview>
-    </Ds2DataPageShell>
+    </div>
   );
 }

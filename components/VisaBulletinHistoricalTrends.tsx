@@ -291,8 +291,8 @@ function MetricCard({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500">{title}</p>
-        <p className={`truncate text-sm font-bold leading-tight ${styles.value}`}>
+        <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-slate-600">{title}</p>
+        <p className={`truncate text-base font-bold leading-tight ${styles.value}`}>
           {loading ? "…" : value}
         </p>
       </div>
@@ -413,16 +413,16 @@ function ScrollableHistoricalTable({
   useHistoryScrollToTop(scrollRef, resetTableScroll, `${dateRange}-${sortedRows.length}`);
 
   if (loading) {
-    return <p className="text-xs text-slate-500">Loading…</p>;
+    return <p className="text-sm text-slate-600">Loading…</p>;
   }
 
   if (rows.length === 0) {
-    return <p className="text-xs text-slate-500">No records for selected filters.</p>;
+    return <p className="text-sm text-slate-600">No records for selected filters.</p>;
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <h3 className="shrink-0 text-sm font-semibold text-slate-900">Historical Data</h3>
+      <h3 className="shrink-0 text-base font-semibold text-slate-900">Historical Data</h3>
       <div
         ref={scrollRef}
         className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-1"
@@ -430,12 +430,12 @@ function ScrollableHistoricalTable({
         tabIndex={0}
         aria-label="Historical data table, scroll for more months"
       >
-        <table className="w-full text-left text-[11px]">
+        <table className="w-full text-left text-[13px] leading-5">
           <thead className="sticky top-0 z-10 bg-white">
-            <tr className="border-b border-slate-100 text-slate-500">
-              <th className="pb-1.5 pr-1 font-semibold">Month</th>
-              <th className="pb-1.5 pr-1 font-semibold">Cutoff</th>
-              <th className="pb-1.5 font-semibold">Move</th>
+            <tr className="border-b border-slate-100 font-semibold text-slate-700">
+              <th className="pb-2 pr-1 font-semibold">Month</th>
+              <th className="pb-2 pr-1 font-semibold">Cutoff</th>
+              <th className="pb-2 font-semibold">Move</th>
             </tr>
           </thead>
           <tbody>
@@ -444,12 +444,12 @@ function ScrollableHistoricalTable({
               const movement = movements.get(key);
               return (
                 <tr key={key} className="border-b border-slate-50">
-                  <td className="py-1.5 pr-1 font-medium text-slate-800">{formatMonthShort(row.month)}</td>
-                  <td className="py-1.5 pr-1 text-slate-700">{formatCutoffDate(row.cutoffDate)}</td>
-                  <td className="py-1.5">
+                  <td className="py-2 pr-1 font-medium text-slate-900">{formatMonthShort(row.month)}</td>
+                  <td className="py-2 pr-1 text-slate-800">{formatCutoffDate(row.cutoffDate)}</td>
+                  <td className="py-2">
                     <span className="inline-flex items-center gap-1">
                       <span className={`h-1.5 w-1.5 rounded-full ${movementDotClass(movement?.days ?? null)}`} aria-hidden="true" />
-                      <span className="text-slate-600">{movement?.label ?? "—"}</span>
+                      <span className="text-slate-800">{movement?.label ?? "—"}</span>
                     </span>
                   </td>
                 </tr>
@@ -463,7 +463,7 @@ function ScrollableHistoricalTable({
 }
 
 const filterSelectClassName =
-  "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:text-sm lg:py-2 lg:px-3";
+  "rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 lg:py-2 lg:px-3";
 
 export function VisaBulletinHistoricalTrends({
   href,
@@ -543,25 +543,25 @@ export function VisaBulletinHistoricalTrends({
           <div className="flex flex-col gap-2 lg:items-end" aria-label="Filters">
             <div className="flex flex-wrap items-end gap-2 lg:justify-end">
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Category</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Category</span>
                 <select id="history-category" value={category} onChange={(e) => setCategory(e.target.value)} className={filterSelectClassName}>
                   {categoryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Country</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Country</span>
                 <select id="history-country" value={country} onChange={(e) => setCountry(e.target.value)} className={filterSelectClassName}>
                   {countryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Type</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Type</span>
                 <select id="history-type" value={type} onChange={(e) => setType(e.target.value as BulletinHistoryType)} className={filterSelectClassName}>
                   {typeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Date Range</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Date Range</span>
                 <select id="history-date-range" value={dateRange} onChange={(e) => setDateRange(e.target.value as DateRangeKey)} className={filterSelectClassName}>
                   {dateRangeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
@@ -613,7 +613,7 @@ export function VisaBulletinHistoricalTrends({
           </section>
 
           <section aria-labelledby="related-tools">
-            <h2 id="related-tools" className="mb-3 text-sm font-semibold text-slate-800">
+            <h2 id="related-tools" className="mb-3 text-base font-semibold text-slate-900">
               Related Tools
             </h2>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -627,8 +627,8 @@ export function VisaBulletinHistoricalTrends({
                     {tool.icon}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-slate-900 group-hover:text-brand-800">{tool.title}</span>
-                    <span className="mt-0.5 block text-xs leading-snug text-slate-600">{tool.description}</span>
+                    <span className="block text-[0.9375rem] font-semibold text-slate-900 group-hover:text-brand-800">{tool.title}</span>
+                    <span className="mt-0.5 block text-sm leading-snug text-slate-600">{tool.description}</span>
                   </span>
                 </Link>
               ))}

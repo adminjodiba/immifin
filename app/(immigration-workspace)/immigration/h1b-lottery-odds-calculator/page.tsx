@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Ds2CalculatorPageShell } from "@/components/ds2/Ds2CalculatorPageShell";
 import { H1bLotteryOddsCalculator } from "@/components/H1bLotteryOddsCalculator";
 import { H1bLotteryOddsSeoContent } from "@/components/H1bLotteryOddsSeoContent";
 import { createMetadata } from "@/lib/metadata";
@@ -13,11 +12,11 @@ export const metadata = createMetadata({
 
 export default function H1bLotteryOddsCalculatorPage() {
   return (
-    <Ds2CalculatorPageShell>
+    <div className="ds2-imm-v4-body">
       <Suspense fallback={<div className="text-sm text-slate-500">Loading calculator…</div>}>
-        <H1bLotteryOddsCalculator />
+        <H1bLotteryOddsCalculator href="/immigration" />
       </Suspense>
       <H1bLotteryOddsSeoContent />
-    </Ds2CalculatorPageShell>
+    </div>
   );
 }

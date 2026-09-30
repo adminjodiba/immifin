@@ -23,3 +23,16 @@ export const IMMIGRATION_WORKSPACE_PROTOTYPE_DESTINATIONS: ImmigrationWorkspaceD
   visaStamping: "/immigration-v4/visa-stamping-wait-map",
   aiAdvisor: "/immigration-v4/ai-advisor",
 };
+
+export const IMMIGRATION_WORKSPACE_PRODUCTION_DESTINATIONS: ImmigrationWorkspaceDestinations = {
+  home: "/immigration",
+  currentVisaBulletin: "/immigration/visa-bulletin",
+  visaBulletinHistory: "/immigration/visa-bulletin-history",
+  movementTracker: "/immigration/visa-bulletin-movement",
+  greenCardWait: "/calculators/green-card-wait-time",
+  citizenship: "/calculators/citizenship-eligibility",
+  h1bWage: "/immigration/h1b-wage-level-estimator",
+  h1bLottery: "/immigration/h1b-lottery-odds-calculator",
+  visaStamping: "/immigration/visa-stamping-wait-map",
+  aiAdvisor: "/intelligence",
+};

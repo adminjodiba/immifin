@@ -38,7 +38,7 @@ const PAGE_HREF = "/immigration/h1b-wage-level-estimator";
 const PAGE_TITLE = "H-1B Wage Level Estimator";
 const LOTTERY_CALCULATOR_HREF = "/immigration/h1b-lottery-odds-calculator";
 const inputClassName =
-  "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
+  "mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.9375rem] text-slate-900 transition-colors placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15";
 const labelClassName = "block text-sm font-medium text-slate-900";
 
 type SelectedOfficialOccupation = {
@@ -372,7 +372,7 @@ export function H1bWageLevelEstimator({
               <h1 className="text-xl font-bold tracking-tight text-brand-900 sm:text-2xl">{PAGE_TITLE}</h1>
               <FavoriteStar pageLabel={PAGE_TITLE} pageHref={PAGE_HREF} />
             </div>
-            <p className="mt-1 max-w-3xl text-sm text-slate-600">
+            <p className="mt-1 max-w-3xl text-[0.9375rem] text-slate-700">
               Estimate your likely H-1B wage level using an official occupation, worksite ZIP, salary, experience, and education.
             </p>
           </div>
@@ -387,10 +387,10 @@ export function H1bWageLevelEstimator({
               className="border-b border-slate-200 p-4 sm:p-5 lg:border-b-0 lg:border-r"
               aria-labelledby="h1b-v2-input-heading"
             >
-              <h2 id="h1b-v2-input-heading" className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <h2 id="h1b-v2-input-heading" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                 Your information
               </h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-sm text-slate-600">
                 Official OFLC wages for the resolved worksite. The wage level is an IMMIFIN estimate, not a DOL determination.
               </p>
 

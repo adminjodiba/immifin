@@ -1,4 +1,3 @@
-import { Ds2DataPageShell } from "@/components/ds2/Ds2DataPageShell";
 import { VisaBulletinDashboard2 } from "@/components/VisaBulletinDashboard2";
 import { VisaBulletinUnderstanding } from "@/components/VisaBulletinUnderstanding";
 import { createMetadata } from "@/lib/metadata";
@@ -25,10 +24,10 @@ export default async function ImmigrationVisaBulletinPage() {
   const bulletinMonthLabel = latestMonth ? formatVisaBulletinMonthShort(latestMonth) : null;
 
   return (
-    <Ds2DataPageShell>
-      <VisaBulletinDashboard2 bulletinMonthLabel={bulletinMonthLabel}>
+    <div className="ds2-imm-v4-body">
+      <VisaBulletinDashboard2 bulletinMonthLabel={bulletinMonthLabel} href="/immigration">
         <VisaBulletinUnderstanding />
       </VisaBulletinDashboard2>
-    </Ds2DataPageShell>
+    </div>
   );
 }
