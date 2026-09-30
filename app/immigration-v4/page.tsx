@@ -1,8 +1,9 @@
-import { ImmigrationV4HomeBody } from "@/components/immigration-v4/ImmigrationV4HomeBody";
+import { ImmigrationWorkspaceHomeBody } from "@/components/immigration/ImmigrationWorkspaceHomeBody";
+import { IMMIGRATION_WORKSPACE_PROTOTYPE_DESTINATIONS } from "@/components/immigration/ImmigrationWorkspaceDestinations";
 
 /**
  * Immigration V4 Home — body only. Persistent frame lives in layout.tsx.
  */
 export default function ImmigrationV4HomePage() {
-  return <ImmigrationV4HomeBody />;
+  return <ImmigrationWorkspaceHomeBody destinations={IMMIGRATION_WORKSPACE_PROTOTYPE_DESTINATIONS} />;
 }

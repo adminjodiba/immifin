@@ -14,6 +14,7 @@ import {
 import { getPremiumNavPreviewContent, type PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
 import { hasCapability } from "@/lib/subscription/capabilities";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
+import type { ImmigrationWorkspaceDestinations } from "@/components/immigration/ImmigrationWorkspaceDestinations";
 
 function GroupIcon({ name }: { name: LandingV3ImmigrationIcon }) {
   const common = "h-[18px] w-[18px] shrink-0";
@@ -40,16 +41,6 @@ function GroupIcon({ name }: { name: LandingV3ImmigrationIcon }) {
   );
 }
 
-const V4_HOME_HREF = "/immigration-v4";
-const V4_CURRENT_VISA_BULLETIN_HREF = "/immigration-v4/visa-bulletin";
-const V4_VISA_BULLETIN_HISTORY_HREF = "/immigration-v4/visa-bulletin-history";
-const V4_MOVEMENT_TRACKER_HREF = "/immigration-v4/visa-bulletin-movement";
-const V4_GREEN_CARD_WAIT_HREF = "/immigration-v4/green-card-wait-time";
-const V4_CITIZENSHIP_HREF = "/immigration-v4/citizenship-eligibility";
-const V4_H1B_WAGE_HREF = "/immigration-v4/h1b-wage-level-estimator";
-const V4_H1B_LOTTERY_HREF = "/immigration-v4/h1b-lottery-odds-calculator";
-const V4_VISA_STAMPING_HREF = "/immigration-v4/visa-stamping-wait-map";
-const V4_AI_ADVISOR_HREF = "/immigration-v4/ai-advisor";
 const PRODUCTION_CURRENT_VISA_BULLETIN_HREF = "/immigration/visa-bulletin";
 const PRODUCTION_VISA_BULLETIN_HISTORY_HREF = "/immigration/visa-bulletin-history";
 const PRODUCTION_MOVEMENT_TRACKER_HREF = "/immigration/visa-bulletin-movement";
@@ -60,33 +51,33 @@ const PRODUCTION_H1B_LOTTERY_HREF = "/immigration/h1b-lottery-odds-calculator";
 const PRODUCTION_VISA_STAMPING_HREF = "/immigration/visa-stamping-wait-map";
 const PRODUCTION_AI_ADVISOR_HREF = "/intelligence";
 
-function workspaceHref(href: string): string {
-  if (href === PRODUCTION_CURRENT_VISA_BULLETIN_HREF) return V4_CURRENT_VISA_BULLETIN_HREF;
-  if (href === PRODUCTION_VISA_BULLETIN_HISTORY_HREF) return V4_VISA_BULLETIN_HISTORY_HREF;
-  if (href === PRODUCTION_MOVEMENT_TRACKER_HREF) return V4_MOVEMENT_TRACKER_HREF;
-  if (href === PRODUCTION_GREEN_CARD_WAIT_HREF) return V4_GREEN_CARD_WAIT_HREF;
-  if (href === PRODUCTION_CITIZENSHIP_HREF) return V4_CITIZENSHIP_HREF;
-  if (href === PRODUCTION_H1B_WAGE_HREF) return V4_H1B_WAGE_HREF;
-  if (href === PRODUCTION_H1B_LOTTERY_HREF) return V4_H1B_LOTTERY_HREF;
-  if (href === PRODUCTION_VISA_STAMPING_HREF) return V4_VISA_STAMPING_HREF;
-  if (href === PRODUCTION_AI_ADVISOR_HREF) return V4_AI_ADVISOR_HREF;
+function workspaceHref(href: string, destinations: ImmigrationWorkspaceDestinations): string {
+  if (href === PRODUCTION_CURRENT_VISA_BULLETIN_HREF) return destinations.currentVisaBulletin;
+  if (href === PRODUCTION_VISA_BULLETIN_HISTORY_HREF) return destinations.visaBulletinHistory;
+  if (href === PRODUCTION_MOVEMENT_TRACKER_HREF) return destinations.movementTracker;
+  if (href === PRODUCTION_GREEN_CARD_WAIT_HREF) return destinations.greenCardWait;
+  if (href === PRODUCTION_CITIZENSHIP_HREF) return destinations.citizenship;
+  if (href === PRODUCTION_H1B_WAGE_HREF) return destinations.h1bWage;
+  if (href === PRODUCTION_H1B_LOTTERY_HREF) return destinations.h1bLottery;
+  if (href === PRODUCTION_VISA_STAMPING_HREF) return destinations.visaStamping;
+  if (href === PRODUCTION_AI_ADVISOR_HREF) return destinations.aiAdvisor;
   return href;
 }
 
-export function ImmigrationV4Sidebar() {
+export function ImmigrationWorkspaceSidebar({ destinations }: { destinations: ImmigrationWorkspaceDestinations }) {
   const pathname = usePathname();
   const { isSignedIn } = useUser();
   const { tier } = useEffectiveSubscriptionTier();
-  const isHome = pathname === V4_HOME_HREF;
-  const isCurrentVisaBulletin = pathname === V4_CURRENT_VISA_BULLETIN_HREF;
-  const isVisaBulletinHistory = pathname === V4_VISA_BULLETIN_HISTORY_HREF;
-  const isMovementTracker = pathname === V4_MOVEMENT_TRACKER_HREF;
-  const isGreenCardWait = pathname === V4_GREEN_CARD_WAIT_HREF;
-  const isCitizenship = pathname === V4_CITIZENSHIP_HREF;
-  const isH1bWage = pathname === V4_H1B_WAGE_HREF;
-  const isH1bLottery = pathname === V4_H1B_LOTTERY_HREF;
-  const isVisaStamping = pathname === V4_VISA_STAMPING_HREF;
-  const isAiAdvisor = pathname === V4_AI_ADVISOR_HREF;
+  const isHome = pathname === destinations.home;
+  const isCurrentVisaBulletin = pathname === destinations.currentVisaBulletin;
+  const isVisaBulletinHistory = pathname === destinations.visaBulletinHistory;
+  const isMovementTracker = pathname === destinations.movementTracker;
+  const isGreenCardWait = pathname === destinations.greenCardWait;
+  const isCitizenship = pathname === destinations.citizenship;
+  const isH1bWage = pathname === destinations.h1bWage;
+  const isH1bLottery = pathname === destinations.h1bLottery;
+  const isVisaStamping = pathname === destinations.visaStamping;
+  const isAiAdvisor = pathname === destinations.aiAdvisor;
   const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     "visa-bulletin": true,
@@ -104,7 +95,7 @@ export function ImmigrationV4Sidebar() {
         <ul className="ds2-myimmifin-nav-list">
           <li>
             <Link
-              href={V4_HOME_HREF}
+              href={destinations.home}
               className="ds2-myimmifin-nav-link ds2-imm-v4-home-link"
               aria-current={isHome ? "page" : undefined}
             >
@@ -157,27 +148,27 @@ export function ImmigrationV4Sidebar() {
                 {isOpen ? (
                   <ul id={submenuId} className="ds2-myimmifin-nav-sublist">
                     {section.items.map((item) => {
-                      const href = workspaceHref(item.href);
+                      const href = workspaceHref(item.href, destinations);
                       const isWorkspaceItem =
-                        href === V4_CURRENT_VISA_BULLETIN_HREF ||
-                        href === V4_VISA_BULLETIN_HISTORY_HREF ||
-                        href === V4_MOVEMENT_TRACKER_HREF ||
-                        href === V4_GREEN_CARD_WAIT_HREF ||
-                        href === V4_CITIZENSHIP_HREF ||
-                        href === V4_H1B_WAGE_HREF ||
-                        href === V4_H1B_LOTTERY_HREF ||
-                        href === V4_VISA_STAMPING_HREF ||
-                        href === V4_AI_ADVISOR_HREF;
+                        href === destinations.currentVisaBulletin ||
+                        href === destinations.visaBulletinHistory ||
+                        href === destinations.movementTracker ||
+                        href === destinations.greenCardWait ||
+                        href === destinations.citizenship ||
+                        href === destinations.h1bWage ||
+                        href === destinations.h1bLottery ||
+                        href === destinations.visaStamping ||
+                        href === destinations.aiAdvisor;
                       const isActive =
-                        (href === V4_CURRENT_VISA_BULLETIN_HREF && isCurrentVisaBulletin) ||
-                        (href === V4_VISA_BULLETIN_HISTORY_HREF && isVisaBulletinHistory) ||
-                        (href === V4_MOVEMENT_TRACKER_HREF && isMovementTracker) ||
-                        (href === V4_GREEN_CARD_WAIT_HREF && isGreenCardWait) ||
-                        (href === V4_CITIZENSHIP_HREF && isCitizenship) ||
-                        (href === V4_H1B_WAGE_HREF && isH1bWage) ||
-                        (href === V4_H1B_LOTTERY_HREF && isH1bLottery) ||
-                        (href === V4_VISA_STAMPING_HREF && isVisaStamping) ||
-                        (href === V4_AI_ADVISOR_HREF && isAiAdvisor);
+                        (href === destinations.currentVisaBulletin && isCurrentVisaBulletin) ||
+                        (href === destinations.visaBulletinHistory && isVisaBulletinHistory) ||
+                        (href === destinations.movementTracker && isMovementTracker) ||
+                        (href === destinations.greenCardWait && isGreenCardWait) ||
+                        (href === destinations.citizenship && isCitizenship) ||
+                        (href === destinations.h1bWage && isH1bWage) ||
+                        (href === destinations.h1bLottery && isH1bLottery) ||
+                        (href === destinations.visaStamping && isVisaStamping) ||
+                        (href === destinations.aiAdvisor && isAiAdvisor);
                       const preview =
                         item.premiumPreview &&
                         !hasCapability(tier, getPremiumNavPreviewContent(item.premiumPreview).capability)

@@ -1,16 +1,18 @@
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { DashboardCloseAction } from "@/components/dashboard/DashboardCloseAction";
+import type { ImmigrationWorkspaceDestinations } from "@/components/immigration/ImmigrationWorkspaceDestinations";
 
-const JOURNEY_CARDS = [
+function getJourneyCards(destinations: ImmigrationWorkspaceDestinations) {
+  return [
   {
     key: "gc",
     title: "Green Card",
     copy: "IMMIFIN helps employment-based immigrants understand Visa Bulletin status, priority-date progress, and movement.",
     tools: [
-      { href: "/immigration-v4/visa-bulletin", label: "Current Visa Bulletin", icon: "doc" },
-      { href: "/immigration-v4/green-card-wait-time", label: "Green Card Wait Time", icon: "clock" },
-      { href: "/immigration-v4/visa-bulletin-movement", label: "Movement Tracker", icon: "trend" },
-      { href: "/immigration-v4/visa-bulletin-history", label: "Visa Bulletin History", icon: "doc" },
+      { href: destinations.currentVisaBulletin, label: "Current Visa Bulletin", icon: "doc" },
+      { href: destinations.greenCardWait, label: "Green Card Wait Time", icon: "clock" },
+      { href: destinations.movementTracker, label: "Movement Tracker", icon: "trend" },
+      { href: destinations.visaBulletinHistory, label: "Visa Bulletin History", icon: "doc" },
     ],
   },
   {
@@ -18,70 +20,73 @@ const JOURNEY_CARDS = [
     title: "H-1B",
     copy: "Estimate likely H-1B wage level, lottery odds, and visa stamping wait times.",
     tools: [
-      { href: "/immigration-v4/h1b-wage-level-estimator", label: "H-1B Wage Level Estimator", icon: "dollar" },
-      { href: "/immigration-v4/h1b-lottery-odds-calculator", label: "H-1B Lottery Odds Calculator", icon: "chart" },
-      { href: "/immigration-v4/visa-stamping-wait-map", label: "Visa Stamping Wait Times", icon: "pin" },
+      { href: destinations.h1bWage, label: "H-1B Wage Level Estimator", icon: "dollar" },
+      { href: destinations.h1bLottery, label: "H-1B Lottery Odds Calculator", icon: "chart" },
+      { href: destinations.visaStamping, label: "Visa Stamping Wait Times", icon: "pin" },
     ],
   },
   {
     key: "cit",
     title: "Citizenship",
     copy: "Check eligibility requirements for your U.S. citizenship journey.",
-    tools: [{ href: "/immigration-v4/citizenship-eligibility", label: "Citizenship Calculator", icon: "doc" }],
+    tools: [{ href: destinations.citizenship, label: "Citizenship Calculator", icon: "doc" }],
   },
 ] as const;
+}
 
-const POPULAR_TOOLS = [
+function getPopularTools(destinations: ImmigrationWorkspaceDestinations) {
+  return [
   {
     key: "bulletin",
-    href: "/immigration-v4/visa-bulletin",
+    href: destinations.currentVisaBulletin,
     title: "Current Visa Bulletin",
     copy: "Live employment-based filing and final action dates.",
     icon: "doc",
   },
   {
     key: "wait",
-    href: "/immigration-v4/green-card-wait-time",
+    href: destinations.greenCardWait,
     title: "Green Card Wait Time",
     copy: "Estimate wait time from your priority date and category.",
     icon: "clock",
   },
   {
     key: "movement",
-    href: "/immigration-v4/visa-bulletin-movement",
+    href: destinations.movementTracker,
     title: "Movement Tracker",
     copy: "Month-over-month Visa Bulletin date movement.",
     icon: "trend",
   },
   {
     key: "wage",
-    href: "/immigration-v4/h1b-wage-level-estimator",
+    href: destinations.h1bWage,
     title: "H-1B Wage Level Estimator",
     copy: "Estimate likely H-1B wage level from role, location, and salary.",
     icon: "dollar",
   },
   {
     key: "lottery",
-    href: "/immigration-v4/h1b-lottery-odds-calculator",
+    href: destinations.h1bLottery,
     title: "H-1B Lottery Odds Calculator",
     copy: "Estimate lottery odds using wage level and master’s cap eligibility.",
     icon: "chart",
   },
   {
     key: "stamping",
-    href: "/immigration-v4/visa-stamping-wait-map",
+    href: destinations.visaStamping,
     title: "Visa Stamping Wait Times",
     copy: "Compare approximate U.S. visa appointment wait times.",
     icon: "pin",
   },
   {
     key: "citizenship",
-    href: "/immigration-v4/citizenship-eligibility",
+    href: destinations.citizenship,
     title: "Citizenship Calculator",
     copy: "Check eligibility requirements for U.S. citizenship.",
     icon: "person",
   },
 ] as const;
+}
 
 type GlyphName = "doc" | "clock" | "trend" | "dollar" | "chart" | "pin" | "person";
 
@@ -191,7 +196,7 @@ function Glyph({ name }: { name: GlyphName }) {
   return <IconDoc />;
 }
 
-function JourneyGlyph({ name }: { name: (typeof JOURNEY_CARDS)[number]["key"] }) {
+function JourneyGlyph({ name }: { name: "gc" | "h1b" | "cit" }) {
   if (name === "gc") return <IconDoc />;
   if (name === "h1b") return <IconBriefcase />;
   return <IconPerson />;
@@ -211,12 +216,14 @@ function DecoResidentCard() {
   );
 }
 
-function JourneyDeco({ name }: { name: (typeof JOURNEY_CARDS)[number]["key"] }) {
+function JourneyDeco({ name }: { name: "gc" | "h1b" | "cit" }) {
   if (name === "gc") return <DecoResidentCard />;
   return null;
 }
 
-export function ImmigrationV4HomeBody() {
+export function ImmigrationWorkspaceHomeBody({ destinations }: { destinations: ImmigrationWorkspaceDestinations }) {
+  const journeyCards = getJourneyCards(destinations);
+  const popularTools = getPopularTools(destinations);
   return (
     <div className="ds2-imm-v4-body">
       <section className="ds2-imm-v4-section ds2-imm-v4-section-journey" aria-labelledby="imm-v4-journey-heading">
@@ -235,7 +242,7 @@ export function ImmigrationV4HomeBody() {
           <DashboardCloseAction href="/" />
         </div>
         <div className="ds2-imm-v4-journey-grid">
-          {JOURNEY_CARDS.map((card) => (
+          {journeyCards.map((card) => (
             <article
               key={card.key}
               className={`ds2-imm-v4-journey ds2-imm-v4-journey-${card.key}`}
@@ -283,7 +290,7 @@ export function ImmigrationV4HomeBody() {
           </div>
         </div>
         <div className="ds2-imm-v4-tools-grid">
-          {POPULAR_TOOLS.map((tool) => (
+          {popularTools.map((tool) => (
             <ProtectedLink
               key={tool.href}
               href={tool.href}
