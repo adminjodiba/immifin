@@ -9,6 +9,7 @@ import {
   ImmigrationProfileProvider,
   useImmigrationProfileForm,
 } from "@/components/profile/ImmigrationProfileProvider";
+import { ProfileDirtyStateProvider } from "@/components/profile/ProfileDirtyStateProvider";
 import { DevelopmentSubscriptionPanel } from "@/components/subscription/DevelopmentSubscriptionPanel";
 
 function AccountMigrationBanner() {
@@ -52,9 +53,11 @@ export default function AccountPage() {
         description="Manage your immigration defaults for calculators and bulletin tools."
       >
         <WorkspaceSection>
-          <ImmigrationProfileProvider>
-            <AccountPageContent />
-          </ImmigrationProfileProvider>
+          <ProfileDirtyStateProvider>
+            <ImmigrationProfileProvider>
+              <AccountPageContent />
+            </ImmigrationProfileProvider>
+          </ProfileDirtyStateProvider>
         </WorkspaceSection>
       </PageHeader>
     </ContactOnboardingGuard>

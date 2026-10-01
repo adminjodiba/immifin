@@ -15,13 +15,8 @@ import {
 import { navLinks } from "@/lib/site";
 import { aboutMenuSections } from "@/lib/about-menu";
 import { calculatorMenuSections } from "@/lib/calculator-menu";
-import { immigrationMenuSections } from "@/lib/immigration-menu";
-import {
-  landingV3ImmigrationSections,
-  landingV3NavLinks,
-} from "@/lib/landing-v3-nav";
+import { landingV3NavLinks } from "@/lib/landing-v3-nav";
 import { LandingV3AiBuddyLed } from "@/components/landing-v3/LandingV3AiBuddyLed";
-import { LandingV3ImmigrationMegaMenu } from "@/components/landing-v3/LandingV3ImmigrationMegaMenu";
 import { useEffectiveSubscriptionTier } from "@/lib/hooks/useEffectiveSubscriptionTier";
 import {
   getMyImmifinPremiumPreview,
@@ -317,34 +312,6 @@ function NavDropdown({
   );
 }
 
-function buildImmigrationSections(tier: SubscriptionTier): NavMenuSection[] {
-  return immigrationMenuSections.map((section) => ({
-    id: section.id,
-    label: section.label,
-    items: section.items.map((item) => ({
-      href: item.href,
-      label: item.label,
-      description: item.description,
-      premiumPreview: resolvePremiumPreview(item.premiumPreview, tier),
-    })),
-  }));
-}
-
-function buildLandingV3ImmigrationSections(tier: SubscriptionTier): NavMenuSection[] {
-  return landingV3ImmigrationSections.map((section) => ({
-    id: section.id,
-    label: section.label,
-    items: section.items.map((item) => ({
-      href: item.href,
-      label: item.label,
-      description: item.description ?? "",
-      premiumPreview: resolvePremiumPreview(item.premiumPreview, tier),
-      tierBadge: item.tierLabel,
-      accentClass: item.href === "/intelligence" ? "landing-v3-ai-buddy" : undefined,
-    })),
-  }));
-}
-
 function buildCalculatorSections(): NavMenuSection[] {
   return calculatorMenuSections.map((section) => ({
     id: section.id,
@@ -635,9 +602,6 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
     : getTimeGreeting();
 
   const myImmifinItems = buildMyImmifinItems(tier);
-  const immigrationSections = isDs2
-    ? buildLandingV3ImmigrationSections(tier)
-    : buildImmigrationSections(tier);
   const calculatorSections = buildCalculatorSections();
   const aboutSections = buildAboutSections();
 
@@ -715,36 +679,17 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
                   );
                 }
                 if (link.href === "/immigration") {
-                  if (isImmigrationWorkspace) {
-                    return (
-                      <ProtectedLink
-                        key={link.href}
-                        href="/immigration"
-                        className={`${navLinkClassName} text-brand-700 font-semibold`}
-                        aria-current="page"
-                      >
-                        Immigration
-                      </ProtectedLink>
-                    );
-                  }
-                  if (isDs2) {
-                    return (
-                      <LandingV3ImmigrationMegaMenu
-                        key={link.href}
-                        onOpenPreview={openPreview}
-                        isSignedIn={signedIn}
-                      />
-                    );
-                  }
                   return (
-                    <NavDropdown
+                    <ProtectedLink
                       key={link.href}
                       href="/immigration"
-                      label="Immigration"
-                      sections={immigrationSections}
-                      onOpenPreview={openPreview}
-                      isSignedIn={signedIn}
-                    />
+                      className={`${navLinkClassName}${
+                        isImmigrationWorkspace ? " text-brand-700 font-semibold" : ""
+                      }`}
+                      aria-current={isImmigrationWorkspace ? "page" : undefined}
+                    >
+                      Immigration
+                    </ProtectedLink>
                   );
                 }
                 if (link.href === "/calculators") {
@@ -873,13 +818,15 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
                 if ("hasDropdown" in link && link.hasDropdown) {
                   const isMyImmifin = "isMyImmifin" in link && link.isMyImmifin;
 
-                  if (link.href === "/immigration" && isImmigrationWorkspace) {
+                  if (link.href === "/immigration") {
                     return (
                       <ProtectedLink
                         key={link.href}
                         href="/immigration"
-                        className="nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base font-semibold text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
-                        aria-current="page"
+                        className={`nav-menu-item w-full rounded-xl px-4 py-3 text-center text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 ${
+                          isImmigrationWorkspace ? "font-semibold text-brand-700" : "font-medium text-slate-700"
+                        }`}
+                        aria-current={isImmigrationWorkspace ? "page" : undefined}
                         onClick={onToggleMenu}
                       >
                         Immigration
@@ -951,9 +898,7 @@ export function Header({ mobileMenuOpen, onToggleMenu, variant = "default" }: He
                   const submenuSections =
                     link.href === "/calculators"
                       ? calculatorSections
-                      : link.href === "/about"
-                        ? aboutSections
-                        : immigrationSections;
+                      : aboutSections;
 
                   return (
                     <div key={link.href} className="w-full">

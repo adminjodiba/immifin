@@ -2622,6 +2622,33 @@
     padding-bottom: 3rem;
   }
 
+  .ds2-myimmifin-workspace {
+    display: grid;
+    min-width: 0;
+    gap: 1.75rem;
+  }
+
+  .ds2-myimmifin-workspace-main {
+    min-width: 0;
+  }
+
+  @media (min-width: 1100px) {
+    .ds2-myimmifin-workspace {
+      grid-template-columns: 18rem minmax(0, 1fr);
+      column-gap: 1.9rem;
+      align-items: start;
+    }
+
+    .ds2-myimmifin-workspace .ds2-myimmifin-nav {
+      min-height: 48rem;
+      padding: 1.55rem 1.2rem 1.4rem;
+    }
+
+    .ds2-myimmifin-workspace .ds2-myimmifin-nav-link {
+      min-height: 2.7rem;
+    }
+  }
+
   .ds2-workspace-page-intro {
     margin-bottom: 1.25rem;
   }
@@ -7272,14 +7299,6 @@
       min-height: 2.7rem;
     }
 
-    .ds2-profile-page .ds2-myimmifin-nav-link-active {
-      color: #2563eb;
-      padding-left: 0.75rem;
-    }
-
-    .ds2-profile-page .ds2-myimmifin-nav-link-active::before {
-      display: none;
-    }
   }
 
   @media (max-width: 767px) {
@@ -10093,11 +10112,76 @@
   transform: translateX(0);
 }
 
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink {
+  --landing-v3-accent: var(--immifin-ds2-navy);
+  position: relative;
+  overflow: hidden;
+  transition:
+    color var(--immifin-button-sweep-duration) ease-in-out,
+    background-color var(--immifin-button-sweep-duration) ease-in-out;
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link::before,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--landing-v3-accent);
+  transform: translateX(-101%);
+  transition: transform var(--immifin-button-sweep-duration) ease-in-out;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link > *,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link[aria-current="page"],
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink[aria-current="page"] {
+  background-color: var(--immifin-ds2-navy);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link[aria-current="page"] .immifin-pro-badge {
+  background-color: #ffffff;
+  color: var(--immifin-ds2-navy);
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link:not([aria-current="page"]):hover,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link:not([aria-current="page"]):focus-visible,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink:not([aria-current="page"]):hover,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink:not([aria-current="page"]):focus-visible {
+  color: #ffffff;
+  background-color: transparent;
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link:not([aria-current="page"]):hover::before,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link:not([aria-current="page"]):focus-visible::before,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink:not([aria-current="page"]):hover::before,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink:not([aria-current="page"]):focus-visible::before {
+  transform: translateX(0);
+}
+
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link[aria-current="page"]::before,
+.ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink[aria-current="page"]::before {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ds2-imm-sidebar .ds2-myimmifin-nav-group .ds2-myimmifin-nav-link,
   .ds2-imm-sidebar .ds2-myimmifin-nav-sublink,
   .ds2-imm-sidebar .ds2-myimmifin-nav-group .ds2-myimmifin-nav-link::before,
-  .ds2-imm-sidebar .ds2-myimmifin-nav-sublink::before {
+  .ds2-imm-sidebar .ds2-myimmifin-nav-sublink::before,
+  .ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link,
+  .ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink,
+  .ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-link::before,
+  .ds2-myimmifin-nav:not(.ds2-imm-sidebar) .ds2-myimmifin-nav-sublink::before {
     transition: none;
   }
 }

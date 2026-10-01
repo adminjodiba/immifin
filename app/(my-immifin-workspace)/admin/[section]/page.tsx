@@ -43,7 +43,7 @@ export default async function AdminDashboardSectionPage({ params }: AdminSection
   }
 
   return (
-    <AdminDashboardWorkspaceLayout adminSection={section}>
+    <AdminDashboardWorkspaceLayout>
       {section === "overview" ? (
         <AdminDashboardOverviewMock />
       ) : section === "data-refresh" ? (

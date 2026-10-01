@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { ProtectedLink } from "@/components/auth/ProtectedLink";
 import { ProBadge } from "@/components/common/ProBadge";
 import { PremiumNavPreviewDialog } from "@/components/common/PremiumNavPreviewDialog";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/admin/admin-dashboard-nav";
 import type { PremiumNavPreviewKey } from "@/lib/premium-nav-preview";
 
-export type MyImmifinWorkspaceActive =
+type MyImmifinWorkspaceActive =
   | "dashboard"
   | "profile"
   | "personalization"
@@ -150,7 +151,12 @@ function NavLink({
 
   if (item.premiumPreview) {
     return (
-      <button type="button" className={className} onClick={() => onOpenPreview(item.premiumPreview!)}>
+      <button
+        type="button"
+        className={className}
+        aria-current={active ? "page" : undefined}
+        onClick={() => onOpenPreview(item.premiumPreview!)}
+      >
         {content}
       </button>
     );
@@ -163,18 +169,30 @@ function NavLink({
   );
 }
 
-export function Ds2MyImmifinWorkspaceNav({
-  active,
-  adminSection,
-}: {
-  active: MyImmifinWorkspaceActive;
-  adminSection?: AdminDashboardSectionId;
-}) {
+export function Ds2MyImmifinWorkspaceNav() {
+  const pathname = usePathname();
   const { tier } = useEffectiveSubscriptionTier();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdminRole();
   const [previewKey, setPreviewKey] = useState<PremiumNavPreviewKey | null>(null);
   const [adminExpanded, setAdminExpanded] = useState(true);
   const showAdminDashboard = !isAdminLoading && isAdmin;
+  const adminSection = ADMIN_DASHBOARD_SECTIONS.find((section) => section.href === pathname)?.id;
+  const active =
+    pathname === "/user-profile/personalization"
+      ? "personalization"
+      : pathname === "/dashboard"
+        ? "dashboard"
+        : pathname === "/user-profile"
+          ? "profile"
+          : pathname === BILLING_CENTER_PATH
+            ? "billing"
+            : pathname === "/account"
+              ? "settings"
+              : pathname === "/contact"
+                ? "help"
+                : pathname === "/admin" || adminSection
+                  ? "admin"
+                  : null;
 
   const items = NAV_ITEMS.filter((item) => item.id !== "admin" || showAdminDashboard).map((item) => {
     if (item.id !== "dashboard") {
@@ -205,6 +223,7 @@ export function Ds2MyImmifinWorkspaceNav({
                           ? "ds2-myimmifin-nav-link ds2-myimmifin-nav-link-active"
                           : "ds2-myimmifin-nav-link"
                       }
+                      aria-current={active === "admin" && !adminSection ? "page" : undefined}
                     >
                       <NavIcon name={item.icon} />
                       <span className="ds2-myimmifin-nav-link-text">{item.label}</span>
@@ -244,7 +263,7 @@ export function Ds2MyImmifinWorkspaceNav({
                             }
                             aria-current={adminSection === section.id ? "page" : undefined}
                           >
-                            {section.label}
+                            <span className="ds2-myimmifin-nav-sublink-text">{section.label}</span>
                           </ProtectedLink>
                         </li>
                       ))}
