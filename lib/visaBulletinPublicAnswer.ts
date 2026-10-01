@@ -45,7 +45,7 @@ export type PublicBulletinSemanticState =
 export type PublicBulletinStatusLabel =
   | "Current"
   | "Unavailable"
-  | "Waiting Queue";
+  | "Cutoff Date Applies";
 
 export type PublicBulletinCell = {
   raw: string | null;
@@ -152,7 +152,7 @@ function describePublicBulletinValue(raw: string | null): PublicBulletinCell {
       raw,
       parsed,
       semanticState: "dated",
-      statusLabel: "Waiting Queue",
+      statusLabel: "Cutoff Date Applies",
       displayValue: formatBulletinDate(parsed),
     };
   }

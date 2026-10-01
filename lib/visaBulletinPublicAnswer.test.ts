@@ -145,7 +145,7 @@ describe("getPublicVisaBulletinAnswer semantic states", () => {
     assert.ok(answer);
     assert.equal(answer.fad.current.semanticState, "dated");
     assert.equal(answer.fad.current.parsed, "2015-01-15");
-    assert.equal(answer.fad.current.statusLabel, "Waiting Queue");
+    assert.equal(answer.fad.current.statusLabel, "Cutoff Date Applies");
     assert.equal(answer.fad.current.displayValue, "January 15, 2015");
     assert.equal(answer.dff.current.semanticState, "dated");
     assert.equal(answer.dff.current.parsed, "2015-01-15");

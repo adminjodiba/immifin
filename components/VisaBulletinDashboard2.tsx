@@ -140,29 +140,6 @@ function formatTableCutoffDate(value: string): string {
   return value || "—";
 }
 
-function getStatus(cutoffDate: string): { label: string; badgeClass: string } {
-  const normalized = cutoffDate.trim().toUpperCase();
-
-  if (normalized === "C") {
-    return {
-      label: "Current",
-      badgeClass: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-    };
-  }
-
-  if (normalized === "U") {
-    return {
-      label: "Unavailable",
-      badgeClass: "bg-red-50 text-red-800 ring-red-200",
-    };
-  }
-
-  return {
-    label: "Waiting Queue",
-    badgeClass: "bg-amber-50 text-amber-900 ring-amber-200",
-  };
-}
-
 function groupRowsByCategory(
   rows: VisaBulletinRow[],
 ): [CategoryKey, VisaBulletinRow[]][] {
@@ -231,15 +208,13 @@ function BulletinTable2({
   const table = (
     <table className="w-full table-fixed text-xs">
       <colgroup>
-        <col className="w-[34%]" />
-        <col className="w-[38%]" />
-        <col className="w-[28%]" />
+        <col className="w-1/2" />
+        <col className="w-1/2" />
       </colgroup>
       <thead>
         <tr className="border-b border-slate-200 bg-slate-50/80">
           <th className={`${tableHeadCellClass} text-left`}>Country</th>
           <th className={`${tableHeadCellClass} text-left`}>{dateColumnLabel}</th>
-          <th className={`${tableHeadCellClass} text-center`}>Status</th>
         </tr>
       </thead>
       {groupRowsByCategory(rows).map(([categoryKey, groupRows]) => {
@@ -247,37 +222,26 @@ function BulletinTable2({
         return (
           <tbody key={categoryKey}>
             <tr className={`${styles.groupRow} border-t-2 ${styles.divider}`}>
-              <th colSpan={3} scope="colgroup" className="px-3 py-1.5 text-left">
+              <th colSpan={2} scope="colgroup" className="px-3 py-1.5 text-left">
                 <CategoryBadge2 categoryKey={categoryKey} />
               </th>
             </tr>
-            {groupRows.map((row) => {
-              const status = getStatus(row.finalActionDate);
-
-              return (
-                <tr
-                  key={`${row.category}-${row.country}`}
-                  className={`border-t ${styles.divider} bg-white transition-colors hover:bg-slate-50/60`}
+            {groupRows.map((row) => (
+              <tr
+                key={`${row.category}-${row.country}`}
+                className={`border-t ${styles.divider} bg-white transition-colors hover:bg-slate-50/60`}
+              >
+                <td
+                  className={`${tableBodyCellClass} truncate text-left font-medium text-slate-900`}
+                  title={row.country}
                 >
-                  <td
-                    className={`${tableBodyCellClass} truncate text-left font-medium text-slate-900`}
-                    title={row.country}
-                  >
-                    {row.country}
-                  </td>
-                  <td className={`${tableBodyCellClass} whitespace-nowrap text-left`}>
-                    {formatTableCutoffDate(row.finalActionDate)}
-                  </td>
-                  <td className={`${tableBodyCellClass} text-center`}>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${status.badgeClass}`}
-                    >
-                      {status.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+                  {row.country}
+                </td>
+                <td className={`${tableBodyCellClass} whitespace-nowrap text-left`}>
+                  {formatTableCutoffDate(row.finalActionDate)}
+                </td>
+              </tr>
+            ))}
           </tbody>
         );
       })}

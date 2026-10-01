@@ -30,7 +30,7 @@ function fixtureAnswer(): PublicVisaBulletinAnswer {
         raw: "2012-03-01",
         parsed: "2012-03-01",
         semanticState: "dated",
-        statusLabel: "Waiting Queue",
+        statusLabel: "Cutoff Date Applies",
         displayValue: "March 1, 2012",
       },
       movement: compareBulletinMovement("2012-03-01", "U"),
@@ -40,14 +40,14 @@ function fixtureAnswer(): PublicVisaBulletinAnswer {
         raw: "2015-01-15",
         parsed: "2015-01-15",
         semanticState: "dated",
-        statusLabel: "Waiting Queue",
+        statusLabel: "Cutoff Date Applies",
         displayValue: "January 15, 2015",
       },
       previous: {
         raw: "2015-01-15",
         parsed: "2015-01-15",
         semanticState: "dated",
-        statusLabel: "Waiting Queue",
+        statusLabel: "Cutoff Date Applies",
         displayValue: "January 15, 2015",
       },
       movement: compareBulletinMovement("2015-01-15", "2015-01-15"),
@@ -83,7 +83,7 @@ function fixtureAnswer(): PublicVisaBulletinAnswer {
           raw: "2015-01-15",
           parsed: "2015-01-15",
           semanticState: "dated",
-          statusLabel: "Waiting Queue",
+          statusLabel: "Cutoff Date Applies",
           displayValue: "January 15, 2015",
         },
         {
@@ -93,7 +93,7 @@ function fixtureAnswer(): PublicVisaBulletinAnswer {
           raw: "2015-01-15",
           parsed: "2015-01-15",
           semanticState: "dated",
-          statusLabel: "Waiting Queue",
+          statusLabel: "Cutoff Date Applies",
           displayValue: "January 15, 2015",
         },
       ],
@@ -115,6 +115,8 @@ describe("VisaBulletinPublicAnswer template", () => {
     assert.match(html, /Unavailable/);
     assert.match(html, /Date for Filing/);
     assert.match(html, /January 15, 2015/);
+    assert.match(html, /Cutoff Date Applies/);
+    assert.doesNotMatch(html, /Waiting Queue/);
     assert.match(html, /What Changed This Month\?/);
     assert.match(html, /March 1, 2012/);
     assert.match(html, /Recent EB-2 India Visa Bulletin Dates/);

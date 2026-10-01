@@ -43,14 +43,14 @@ export function VisaBulletinUnderstanding() {
         Rest of the World. Countries with higher visa demand may have different cutoff dates.
       </p>
 
-      <h3 className="mt-4 text-sm font-semibold text-slate-800">Reading the Status</h3>
+      <h3 className="mt-4 text-sm font-semibold text-slate-800">Reading the Cutoff Value</h3>
       <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
         <strong className="font-semibold text-slate-800">Current</strong>
         {" — "}
         no cutoff date is listed.
       </p>
       <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-        <strong className="font-semibold text-slate-800">Waiting Queue</strong>
+        <strong className="font-semibold text-slate-800">A cutoff date</strong>
         {" — "}
         a cutoff date applies.
       </p>
