@@ -21,11 +21,17 @@ import type {
   MovementType,
   VisaBulletinMovementRow,
 } from "@/lib/visaBulletinMovement";
+import {
+  DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS,
+  filterVisaBulletinMovementTableRows,
+  getVisaBulletinMovementFilterSelection,
+  normalizeVisaBulletinMovementCategory,
+  type RecordTypeFilter,
+  type TableMovementFilter,
+} from "@/lib/visaBulletinMovementTrackerFilters";
 
 type TabKey = MovementComparisonType;
 type CategoryKey = "EB1" | "EB2" | "EB3" | "EB4" | "EB5" | "OTHER";
-type TableMovementFilter = "all" | "forward" | "retrogression" | "no-change" | "current";
-type RecordTypeFilter = "updates-only" | "show-all";
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "final-action", label: "Final Action Dates" },
@@ -152,9 +158,7 @@ const relatedTools = [
 ] as const;
 
 function normalizeCategoryKey(category: string): CategoryKey {
-  const match = category.match(/eb\s*(\d)/i);
-  if (!match) return "OTHER";
-  const key = `EB${match[1]}` as CategoryKey;
+  const key = normalizeVisaBulletinMovementCategory(category) as CategoryKey;
   return key in categoryLabels ? key : "OTHER";
 }
 
@@ -246,22 +250,6 @@ function groupRowsByCategory(
   return categoryOrder
     .filter((key) => grouped.has(key))
     .map((key) => [key, [...grouped.get(key)!].sort((a, b) => a.country.localeCompare(b.country))]);
-}
-
-function filterTableRows(
-  rows: VisaBulletinMovementRow[],
-  movementFilter: TableMovementFilter,
-  categoryFilter: string,
-  countryFilter: string,
-  recordTypeFilter: RecordTypeFilter,
-): VisaBulletinMovementRow[] {
-  return rows.filter((row) => {
-    if (recordTypeFilter === "updates-only" && row.movementType === "no-change") return false;
-    if (movementFilter !== "all" && row.movementType !== movementFilter) return false;
-    if (categoryFilter !== "all" && normalizeCategoryKey(row.category) !== categoryFilter) return false;
-    if (countryFilter !== "all" && row.country !== countryFilter) return false;
-    return true;
-  });
 }
 
 type ChangePanelKey = "forward" | "retrogression" | "current";
@@ -728,10 +716,18 @@ export function VisaBulletinMovementTracker2({
   relatedToolHrefs?: Partial<Record<(typeof relatedTools)[number]["title"], string>>;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("final-action");
-  const [movementFilter, setMovementFilter] = useState<TableMovementFilter>("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [countryFilter, setCountryFilter] = useState("all");
-  const [recordTypeFilter, setRecordTypeFilter] = useState<RecordTypeFilter>("updates-only");
+  const [movementFilter, setMovementFilter] = useState<TableMovementFilter>(
+    DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.movementFilter,
+  );
+  const [categoryFilter, setCategoryFilter] = useState(
+    DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.categoryFilter,
+  );
+  const [countryFilter, setCountryFilter] = useState(
+    DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.countryFilter,
+  );
+  const [recordTypeFilter, setRecordTypeFilter] = useState<RecordTypeFilter>(
+    DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.recordTypeFilter,
+  );
 
   const key = `/api/visa-bulletin-movement?type=${activeTab}`;
   const { data, error: swrError, isLoading } = useSWR<VisaBulletinMovementRow[]>(
@@ -772,15 +768,27 @@ export function VisaBulletinMovementTracker2({
 
   const filteredRows = useMemo(
     () =>
-      filterTableRows(rows, movementFilter, categoryFilter, countryFilter, recordTypeFilter),
+      filterVisaBulletinMovementTableRows(
+        rows,
+        movementFilter,
+        categoryFilter,
+        countryFilter,
+        recordTypeFilter,
+      ),
     [rows, movementFilter, categoryFilter, countryFilter, recordTypeFilter],
   );
 
+  const handleMovementFilterSelect = (nextMovementFilter: TableMovementFilter) => {
+    const selection = getVisaBulletinMovementFilterSelection(nextMovementFilter, recordTypeFilter);
+    setMovementFilter(selection.movementFilter);
+    setRecordTypeFilter(selection.recordTypeFilter);
+  };
+
   const resetFilters = () => {
-    setMovementFilter("all");
-    setCategoryFilter("all");
-    setCountryFilter("all");
-    setRecordTypeFilter("updates-only");
+    setMovementFilter(DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.movementFilter);
+    setCategoryFilter(DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.categoryFilter);
+    setCountryFilter(DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.countryFilter);
+    setRecordTypeFilter(DEFAULT_VISA_BULLETIN_MOVEMENT_TABLE_FILTERS.recordTypeFilter);
   };
 
   return (
@@ -864,7 +872,7 @@ export function VisaBulletinMovementTracker2({
                 <KpiCardsRow2
                   rows={rows}
                   movementFilter={movementFilter}
-                  onSelect={setMovementFilter}
+                  onSelect={handleMovementFilterSelect}
                 />
               </div>
 
