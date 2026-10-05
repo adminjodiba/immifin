@@ -499,6 +499,16 @@ Email via Resend (HTML + plain-text fallback). Deep links into authenticated IMM
 
 Only one existing IMMIFIN user email is accepted. Missing immigration profile data fails safely without sending.
 
+## Administrative Individual Notification Override
+
+**Product Owner decision: approved and locked.** **Notify Individual User** is an intentional administrative override for exceptional administrative, support, and recovery situations. It allows an authorized IMMIFIN administrator to generate and send a personalized Monthly Immigration Update directly to one specific active member.
+
+This workflow is deliberately different from **Notify User Group**, which is the normal bulk/member communication workflow. Bulk Monthly Immigration Updates remain member-controlled and entitlement-controlled: they must continue to enforce active status, valid email, applicable Pro/Power email entitlement, `emailAlerts`, `visaBulletinUpdates`, supported and complete immigration journey data, duplicate campaign safeguards, and all other existing bulk eligibility rules.
+
+For **Notify Individual User**, an authorized administrator may intentionally bypass the member's `emailAlerts` preference, `visaBulletinUpdates` preference, and normal Pro/Power notification-entitlement gating. This is approved product behavior, not an accidental preference bypass, entitlement defect, or inconsistency with bulk notification behavior.
+
+The override does **not** weaken the workflow's remaining controls. It still requires an authenticated and authorized administrator, an existing valid member with an active profile and immigration profile, a supported journey with required journey data, an available Visa Bulletin month, and existing provider/send safeguards. The individual workflow must not be silently routed through the normal bulk audience resolver or changed to inherit bulk eligibility rules without explicit Product Owner approval.
+
 ### Admin Monthly Update Control Center (S6-EMAIL-004.2)
 
 | Item | Status |
@@ -705,16 +715,16 @@ Also: `automatedAlertsOptIn` key for overall automated alerts opt-in.
 
 | Preference (product language) | Maps to | Implementation Status |
 |------------------------------|---------|------------------------|
-| Enable Monthly Reports | `emailAlerts` + report-specific flag (add if needed) | ⬜ Not Started (enforcement) |
-| Enable Visa Bulletin Alerts | `visaBulletinUpdates` | ⬜ Not Started (enforcement) |
+| Enable Monthly Reports | `emailAlerts` + report-specific flag (add if needed) | ✅ Enforced for bulk Monthly Immigration Updates; report-specific flag ⬜ Not Started |
+| Enable Visa Bulletin Alerts | `visaBulletinUpdates` | ✅ Enforced for bulk Monthly Immigration Updates |
 | Enable Admin Messages | New flag or treat as transactional | ⬜ Not Started |
 | Future Marketing Emails | `marketing` | ⬜ Not Started (enforcement) |
 
-**Rule:** Engine must **skip** (and history-log `skipped`) when capability or preference denies delivery — never send and apologize later.
+**Rule:** Normal member/bulk communication must **skip** (and history-log `skipped`) when capability or preference denies delivery — never send and apologize later. The approved **Administrative Individual Notification Override** above is the explicit exception for a single-user admin send.
 
 ### Implementation Status
 
-⬜ Preferences UI exists · ⬜ Engine enforcement Not Started
+✅ Preferences UI exists · ✅ Bulk Monthly Immigration Updates enforce `emailAlerts` and `visaBulletinUpdates` · ⬜ Other notification preference enforcement Not Started
 
 ---
 
