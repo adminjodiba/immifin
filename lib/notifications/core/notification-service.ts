@@ -44,6 +44,8 @@ export type EmailNotificationRequest = {
   replyTo?: string | readonly string[];
   tags?: EmailProviderSendRequest["tags"];
   attachments?: EmailProviderSendRequest["attachments"];
+  /** Stable key for an immutable delivery attempt, when the provider supports it. */
+  idempotencyKey?: string;
   /** Only `email` is supported in this phase. Defaults to email. */
   channel?: NotificationChannel;
 };
@@ -134,6 +136,7 @@ export class NotificationService {
       text,
       tags: request.tags,
       attachments: request.attachments,
+      idempotencyKey: request.idempotencyKey,
     };
 
     return provider.send(providerRequest);

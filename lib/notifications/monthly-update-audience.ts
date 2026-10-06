@@ -54,8 +54,15 @@ export type MonthlyUpdateAudienceCandidate = {
   tier: "pro" | "power";
 };
 
+export type MonthlyUpdateAudienceEvaluation = {
+  profileWithRelations: ProfileWithRelations;
+  eligibility: MonthlyUpdateSummaryEligibility;
+};
+
 export type MonthlyUpdateAudienceResolution = {
   sendable: MonthlyUpdateAudienceCandidate[];
+  /** Every active profile evaluated for this original campaign. */
+  evaluated: MonthlyUpdateAudienceEvaluation[];
   /** Active profiles considered for this campaign (eligible + excluded). */
   activeUserCount: number;
   proCount: number;
@@ -278,11 +285,13 @@ export function evaluateMonthlyUpdateSummaryEligibility(
 export async function resolveMonthlyUpdateAudience(): Promise<MonthlyUpdateAudienceResolution> {
   const profiles = await listActiveProfilesWithRelations();
   const sendable: MonthlyUpdateAudienceCandidate[] = [];
+  const evaluated: MonthlyUpdateAudienceEvaluation[] = [];
   const skippedByReason: Partial<Record<MonthlyUpdateSkipReason, number>> = {};
   let skippedCount = 0;
 
   for (const profileWithRelations of profiles) {
     const eligibility = evaluateMonthlyUpdateSummaryEligibility(profileWithRelations);
+    evaluated.push({ profileWithRelations, eligibility });
     if (eligibility.kind === "skip") {
       skippedCount += 1;
       incrementSkip(skippedByReason, eligibility.reason);
@@ -301,6 +310,7 @@ export async function resolveMonthlyUpdateAudience(): Promise<MonthlyUpdateAudie
 
   return {
     sendable,
+    evaluated,
     activeUserCount: profiles.length,
     proCount,
     powerCount,

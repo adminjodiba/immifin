@@ -6,7 +6,6 @@ import {
   renderMonthlyImmigrationReportEmail,
 } from "@/emails/templates/monthly-immigration-report-email";
 import {
-  isMonthlyUpdateAssemblyError,
   prepareMonthlyImmigrationUpdateForUser,
 } from "@/lib/notifications/build-monthly-immigration-report-dashboard-source";
 import { mapMonthlyImmigrationReportEmailProps } from "@/lib/notifications/mappers/map-monthly-immigration-report-email";
@@ -14,7 +13,6 @@ import {
   buildMonthlyUpdateExclusionBreakdown,
   resolveMonthlyUpdateAudience,
   type MonthlyUpdateExclusionBreakdown,
-  type MonthlyUpdateSkipReason,
 } from "@/lib/notifications/monthly-update-audience";
 import {
   completeMonthlyUpdateCampaign,
@@ -28,6 +26,13 @@ import {
   type NotificationCampaignStatus,
 } from "@/lib/notifications/monthly-update-campaigns";
 import { createNotificationService } from "@/lib/notifications/core/notification-factory";
+import {
+  finalizeNotificationDeliveryAttempt,
+  claimOriginalNotificationDeliveryAttempt,
+} from "@/lib/notifications/notification-delivery-attempts";
+import { persistOriginalMonthlyUpdateAudience } from "@/lib/notifications/notification-campaign-recipients";
+import { sendOriginalMonthlyUpdateRecipient } from "@/lib/notifications/monthly-update-original-send";
+import { getProfileWithRelationsById } from "@/lib/supabase/profiles";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import {
   formatVisaBulletinMonthLong,
@@ -58,7 +63,12 @@ export type MonthlyUpdateAudienceSummary = {
   powerCount: number;
   totalRecipients: number;
   skippedCount: number;
-  skippedByReason: Partial<Record<MonthlyUpdateSkipReason, number>>;
+  skippedByReason: Partial<
+    Record<
+      import("@/lib/notifications/monthly-update-audience").MonthlyUpdateSkipReason,
+      number
+    >
+  >;
   exclusionBreakdown: MonthlyUpdateExclusionBreakdown;
   lastSentAt: string | null;
   lastSentBulletinMonth: string | null;
@@ -265,44 +275,69 @@ export async function sendMonthlyImmigrationUpdatesBulk(input: {
     provider: "resend",
   });
 
-  const notificationService = createNotificationService();
   let successCount = 0;
   let failureCount = 0;
-  let skippedCount = audience.skippedCount;
+  // Original audience exclusions are persisted separately and are intentionally
+  // not mixed into compatibility counters for tracked campaigns.
+  let skippedCount = 0;
 
   try {
+    const recipients = await persistOriginalMonthlyUpdateAudience({
+      campaignId: campaign.id,
+      audience,
+    });
+    const recipientByProfileId = new Map(
+      recipients.map((recipient) => [recipient.profile_id, recipient]),
+    );
+    const notificationService = createNotificationService();
+
     for (let index = 0; index < audience.sendable.length; index += 1) {
       const candidate = audience.sendable[index];
+      const recipient = recipientByProfileId.get(
+        candidate.profileWithRelations.profile.id,
+      );
+      if (!recipient) {
+        throw new Error("Tracked monthly campaign audience persistence is incomplete.");
+      }
 
-      try {
-        const prepared = await prepareMonthlyImmigrationUpdateForUser(
-          candidate.profileWithRelations
-        );
-        const emailProps = mapMonthlyImmigrationReportEmailProps(prepared.source);
-        const rendered = await renderMonthlyImmigrationReportEmail(emailProps);
-        const result = await notificationService.sendEmail({
-          to: candidate.profileWithRelations.profile.email,
-          subject: rendered.subject,
-          html: rendered.html,
-          text: rendered.text,
-          tags: [
-            { name: "template", value: "monthly-immigration-report" },
-            { name: "send_mode", value: "bulk_monthly_update" },
-            { name: "campaign_id", value: campaign.id },
-          ],
-        });
+      const outcome = await sendOriginalMonthlyUpdateRecipient({
+        campaignRecipient: recipient,
+        candidate,
+        dependencies: {
+          loadProfileWithRelations: getProfileWithRelationsById,
+          claimAttempt: claimOriginalNotificationDeliveryAttempt,
+          finalizeAttempt: finalizeNotificationDeliveryAttempt,
+          prepare: prepareMonthlyImmigrationUpdateForUser,
+          render: async (prepared) => {
+            const emailProps = mapMonthlyImmigrationReportEmailProps(prepared.source);
+            return renderMonthlyImmigrationReportEmail(emailProps);
+          },
+          send: ({ to, subject, html, text, idempotencyKey }) =>
+            notificationService.sendEmail({
+              to,
+              subject,
+              html,
+              text,
+              idempotencyKey,
+              tags: [
+                { name: "template", value: "monthly-immigration-report" },
+                { name: "send_mode", value: "bulk_monthly_update" },
+                { name: "campaign_id", value: campaign.id },
+              ],
+            }),
+        },
+      });
 
-        if (result.success) {
-          successCount += 1;
-        } else {
-          failureCount += 1;
-        }
-      } catch (error: unknown) {
-        if (isMonthlyUpdateAssemblyError(error)) {
-          skippedCount += 1;
-        } else {
-          failureCount += 1;
-        }
+      if (outcome === "provider_accepted") {
+        successCount += 1;
+      } else if (
+        outcome === "failed_before_provider" ||
+        outcome === "failed_provider" ||
+        outcome === "submission_unknown"
+      ) {
+        failureCount += 1;
+      } else if (outcome === "skipped_ineligible") {
+        skippedCount += 1;
       }
 
       const isBatchBoundary =

@@ -137,20 +137,23 @@ export class ResendEmailProvider implements EmailProvider {
     }
 
     try {
-      const { data, error } = await client.emails.send({
-        from: request.from,
-        to,
-        replyTo: toAddressList(request.replyTo),
-        subject: request.subject,
-        html: request.html,
-        text: request.text,
-        tags: request.tags ? [...request.tags] : undefined,
-        attachments: request.attachments?.map((attachment) => ({
-          filename: attachment.filename,
-          content: attachment.content,
-          contentType: attachment.contentType,
-        })),
-      });
+      const { data, error } = await client.emails.send(
+        {
+          from: request.from,
+          to,
+          replyTo: toAddressList(request.replyTo),
+          subject: request.subject,
+          html: request.html,
+          text: request.text,
+          tags: request.tags ? [...request.tags] : undefined,
+          attachments: request.attachments?.map((attachment) => ({
+            filename: attachment.filename,
+            content: attachment.content,
+            contentType: attachment.contentType,
+          })),
+        },
+        request.idempotencyKey ? { idempotencyKey: request.idempotencyKey } : undefined,
+      );
 
       if (error) {
         return failureResult(
@@ -165,10 +168,13 @@ export class ResendEmailProvider implements EmailProvider {
         providerMessageId: data?.id ?? null,
       };
     } catch {
-      return failureResult(
-        NOTIFICATION_ERROR_CODES.NOTIFICATION_PROVIDER_ERROR,
-        "Email provider request failed"
-      );
+      return {
+        ...failureResult(
+          NOTIFICATION_ERROR_CODES.NOTIFICATION_PROVIDER_ERROR,
+          "Email provider request outcome is unknown"
+        ),
+        submissionUncertain: true,
+      };
     }
   }
 }

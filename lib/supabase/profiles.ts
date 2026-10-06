@@ -113,6 +113,29 @@ export async function getProfileWithRelationsByEmail(
   return loadProfileRelations(profile);
 }
 
+/** Server-side authoritative reload used by operational workflows keyed by stable profile ID. */
+export async function getProfileWithRelationsById(
+  profileId: string,
+): Promise<ProfileWithRelations | null> {
+  const normalizedProfileId = profileId.trim();
+  if (!normalizedProfileId) {
+    return null;
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", normalizedProfileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load profile by ID: ${error.message}`);
+  }
+
+  return data ? loadProfileRelations(mapProfile(data)) : null;
+}
+
 export async function upsertProfileFromClerk(input: UpsertProfileInput): Promise<Profile> {
   const supabase = getSupabaseAdminClient();
 

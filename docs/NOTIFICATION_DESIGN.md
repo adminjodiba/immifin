@@ -669,7 +669,7 @@ Every dispatch attempt must be logged (success or failure).
 ## 6A. Recipient-Level Delivery Tracking and Failed-Recipient Recovery
 
 > **Approved design — S6-NOTIFICATION-RETRY-001 / S6-NOTIFICATION-RETRY-002.**
-> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and concurrency primitives only; it does **not** change current notification runtime behavior. The existing campaign-level implementation remains in force until recipient persistence and manual recovery runtime are separately implemented and approved.
+> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and recovery concurrency primitives. S6-NOTIFICATION-RETRY-004 wires future original Monthly Immigration Update sends to persist their original audience, attempts, and terminal evidence; manual failed-recipient recovery runtime remains separately pending.
 
 ### 6A.1 Locked Product decisions
 
@@ -790,13 +790,21 @@ Recommended future behavior:
 
 This provider idempotency mechanism materially reduces duplicate-submission risk during the documented 24-hour window; it does not replace IMMIFIN's database claim, recovery-operation idempotency, immutable attempt history, or conservative `submission_unknown` rule outside the proven window.
 
-### 6A.7 Legacy campaigns and October 2026
+### 6A.7 Implemented original-send boundary (S6-NOTIFICATION-RETRY-004)
+
+For a future tracked Monthly Immigration Update, IMMIFIN persists every active profile evaluated by the existing audience policy before original send processing: eligible profiles start `eligible_pending`; evaluated exclusions start `audience_excluded` with the normalized exclusion reason. No email address or rendered message body is persisted as recipient identity/evidence.
+
+Before an originally eligible profile is sent, the worker reloads the profile by stable ID and reuses normal bulk eligibility evaluation. Changed eligibility produces one original `skipped_ineligible` attempt and no provider request. An atomic service-role original-attempt claim creates the immutable `original` attempt (`recovery_run_id = NULL`, attempt number 1) and an opaque Resend key derived from its generated attempt ID before message assembly/render/provider submission. The existing `finalize_notification_delivery_attempt` RPC projects `provider_accepted`, `failed_before_provider`, `failed_provider`, `submission_unknown`, or `skipped_ineligible` to the recipient.
+
+For tracked campaigns, compatibility counters mean: `total_recipients` is originally eligible profiles; `success_count` is original provider acceptance; `failure_count` is explicit original failures plus `submission_unknown`; and `skipped_count` is send-time `skipped_ineligible`. Original audience exclusions remain authoritative recipient evidence and are not mixed into `skipped_count`. `provider_accepted` remains provider acceptance, never inbox delivery. Manual recovery API/UI/runtime is not implemented by this work.
+
+### 6A.8 Legacy campaigns and October 2026
 
 Campaigns created before recipient-level evidence exists are **legacy campaigns**. They may retain only campaign-level aggregate counters and therefore cannot identify specific failed recipients safely.
 
 **October 2026 is explicitly legacy.** Do not fabricate recipient records from current profiles, infer recipients from aggregate failure counts, enable automated failed-recipient recovery, replay the campaign, or weaken normal monthly duplicate protection. If Product/Support has independent evidence that one member needs recovery, the existing intentionally separate Admin Individual Send capability may be used as an evidence-backed manual action under its existing authorization and audit rules.
 
-### 6A.8 Future Admin visibility
+### 6A.9 Future Admin visibility
 
 For recipient-tracked campaigns, the Admin experience should show original and recovery summaries separately, using Provider accepted terminology. It should show aggregate audience-exclusion counts by default and restrict individual recipient/detail timelines to authorized operational troubleshooting. The UI must not offer Retry Entire Campaign for partial failures. Legacy campaigns display a clear no-automated-retry explanation rather than a misleading retry control.
 

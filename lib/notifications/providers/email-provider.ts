@@ -22,6 +22,8 @@ export type EmailProviderSendRequest = {
     content: Buffer;
     contentType?: string;
   }>;
+  /** Stable provider-specific duplicate-submission key for an immutable attempt. */
+  idempotencyKey?: string;
 };
 
 /** Normalized result returned by every email provider adapter. */
@@ -31,6 +33,8 @@ export type EmailProviderSendResult = {
   providerMessageId: string | null;
   errorCode?: string;
   errorMessage?: string;
+  /** True only when the adapter cannot prove whether submission occurred. */
+  submissionUncertain?: boolean;
 };
 
 /**

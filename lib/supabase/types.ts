@@ -241,6 +241,20 @@ export type NotificationDeliveryAttemptFinalizeResult = {
   recipient?: NotificationCampaignRecipient;
 };
 
+export type NotificationOriginalRecipientClaimOutcome =
+  | "claimed"
+  | "recipient_not_found"
+  | "not_originally_eligible"
+  | "already_claimed"
+  | "already_provider_accepted"
+  | "already_finalized";
+
+export type NotificationOriginalRecipientClaimResult = {
+  outcome: NotificationOriginalRecipientClaimOutcome;
+  attempt?: NotificationDeliveryAttempt;
+  recipient?: NotificationCampaignRecipient;
+};
+
 export type NotificationRecoveryRunCompleteResult = {
   outcome:
     | "completed"
