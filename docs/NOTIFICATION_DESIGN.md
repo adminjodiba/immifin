@@ -669,7 +669,7 @@ Every dispatch attempt must be logged (success or failure).
 ## 6A. Recipient-Level Delivery Tracking and Failed-Recipient Recovery
 
 > **Approved design — S6-NOTIFICATION-RETRY-001 / S6-NOTIFICATION-RETRY-002.**
-> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and recovery concurrency primitives. S6-NOTIFICATION-RETRY-004 wires future original Monthly Immigration Update sends to persist their original audience, attempts, and terminal evidence; manual failed-recipient recovery runtime remains separately pending.
+> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and recovery concurrency primitives. S6-NOTIFICATION-RETRY-004 wires future original Monthly Immigration Update sends to persist their original audience, attempts, and terminal evidence. S6-NOTIFICATION-RETRY-005C implements the server-only manual recovery runtime and Admin API; no Admin retry UI is implemented.
 
 ### 6A.1 Locked Product decisions
 
@@ -796,7 +796,7 @@ For a future tracked Monthly Immigration Update, IMMIFIN persists every active p
 
 Before an originally eligible profile is sent, the worker reloads the profile by stable ID and reuses normal bulk eligibility evaluation. Changed eligibility produces one original `skipped_ineligible` attempt and no provider request. An atomic service-role original-attempt claim creates the immutable `original` attempt (`recovery_run_id = NULL`, attempt number 1) and an opaque Resend key derived from its generated attempt ID before message assembly/render/provider submission. The existing `finalize_notification_delivery_attempt` RPC projects `provider_accepted`, `failed_before_provider`, `failed_provider`, `submission_unknown`, or `skipped_ineligible` to the recipient.
 
-For tracked campaigns, compatibility counters mean: `total_recipients` is originally eligible profiles; `success_count` is original provider acceptance; `failure_count` is explicit original failures plus `submission_unknown`; and `skipped_count` is send-time `skipped_ineligible`. Original audience exclusions remain authoritative recipient evidence and are not mixed into `skipped_count`. `provider_accepted` remains provider acceptance, never inbox delivery. Manual recovery API/UI/runtime is not implemented by this work.
+For tracked campaigns, compatibility counters mean: `total_recipients` is originally eligible profiles; `success_count` is original provider acceptance; `failure_count` is explicit original failures plus `submission_unknown`; and `skipped_count` is send-time `skipped_ineligible`. Original audience exclusions remain authoritative recipient evidence and are not mixed into `skipped_count`. `provider_accepted` remains provider acceptance, never inbox delivery. The Admin-only manual recovery endpoint accepts only `confirm: true` plus a bounded operation idempotency key; the database and server select persisted explicit failures, atomically claim each retry attempt, reload current profile state, re-run standard bulk eligibility, regenerate personalized content, and complete the run from immutable persisted attempt evidence. No Admin retry UI is implemented.
 
 ### 6A.8 Legacy campaigns and October 2026
 
