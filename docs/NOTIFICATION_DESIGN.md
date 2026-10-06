@@ -778,7 +778,7 @@ IMMIFIN database claim succeeds
 → Worker/runtime crashes before IMMIFIN persists the provider result
 ```
 
-For a future original or manual recovery attempt, IMMIFIN should generate one stable opaque idempotency key from the immutable internal delivery-attempt ID and use the same key only for retransmission of the **identical** provider payload within Resend's 24-hour key-retention window. The future provider adapter/service contract must expose this option explicitly; the current contract and adapter do not yet pass an idempotency key.
+For every original or manual recovery attempt, the atomic database claim generates the immutable delivery-attempt ID and derives one stable opaque provider idempotency key from that exact ID. Callers do not supply or override either identity. The attempt stores that key before provider submission and uses the same key only for retransmission of the **identical** provider payload within Resend's 24-hour key-retention window. The provider adapter/service contract exposes this option explicitly.
 
 Recommended future behavior:
 

@@ -433,7 +433,6 @@ create or replace function public.claim_notification_recovery_recipient_attempt(
   p_recovery_run_id uuid,
   p_campaign_recipient_id uuid,
   p_provider text default null,
-  p_provider_submission_key text default null,
   p_tier_at_attempt text default null
 )
 returns jsonb
@@ -447,6 +446,8 @@ declare
   v_existing_attempt public.notification_delivery_attempts;
   v_attempt public.notification_delivery_attempts;
   v_attempt_number integer;
+  v_attempt_id uuid := gen_random_uuid();
+  v_provider_submission_key text := 'immifin-notification-attempt:' || v_attempt_id::text;
 begin
   if p_recovery_run_id is null then
     raise exception 'recovery_run_id is required';
@@ -522,6 +523,7 @@ begin
   where campaign_recipient_id = p_campaign_recipient_id;
 
   insert into public.notification_delivery_attempts (
+    id,
     campaign_recipient_id,
     recovery_run_id,
     attempt_number,
@@ -533,13 +535,14 @@ begin
     attempted_at
   )
   values (
+    v_attempt_id,
     p_campaign_recipient_id,
     p_recovery_run_id,
     v_attempt_number,
     'retry',
     'claimed',
     nullif(trim(p_provider), ''),
-    nullif(trim(p_provider_submission_key), ''),
+    v_provider_submission_key,
     nullif(trim(p_tier_at_attempt), ''),
     now()
   )
@@ -756,11 +759,11 @@ alter table public.notification_recovery_runs enable row level security;
 -- service-role architecture. Ordinary authenticated users receive no policies
 -- and cannot read or mutate recipient operational history directly.
 revoke execute on function public.create_or_claim_notification_recovery_run(uuid, text, uuid, text, text) from public;
-revoke execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text, text) from public;
+revoke execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) from public;
 revoke execute on function public.finalize_notification_delivery_attempt(uuid, public.notification_delivery_attempt_outcome, text, text, text, text, text) from public;
 revoke execute on function public.complete_notification_recovery_run(uuid) from public;
 
 grant execute on function public.create_or_claim_notification_recovery_run(uuid, text, uuid, text, text) to service_role;
-grant execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text, text) to service_role;
+grant execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) to service_role;
 grant execute on function public.finalize_notification_delivery_attempt(uuid, public.notification_delivery_attempt_outcome, text, text, text, text, text) to service_role;
 grant execute on function public.complete_notification_recovery_run(uuid) to service_role;
