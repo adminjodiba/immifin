@@ -5,17 +5,17 @@
 | **Project** | IMMIFIN |
 | **Version** | v0.5.x |
 | **Sprint** | Sprint 6 |
-| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 · S6-DOC-007 |
+| **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 · S6-DOC-007 · S6-NOTIFICATION-RETRY-002 · S6-NOTIFICATION-RETRY-003 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
-| **Status** | Approved design — implementation not started |
-| **Last updated** | 2026-08-26 |
+| **Status** | Notification Platform v1.0 implemented and Production-validated; recipient-level delivery tracking and manual failed-recipient recovery approved for future implementation |
+| **Last updated** | 2026-10-06 |
 | **Owner** | Technical Architecture (CTO) |
 
 **Related:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
 
-> **This document is the single source of truth for all notification-related development.**  
-> Notification implementation for Sprint 6 and later releases **must** follow the architecture and roadmap documented here.  
+> **This document is the single source of truth for all notification-related development.**
+> Notification implementation for Sprint 6 and later releases **must** follow the architecture and roadmap documented here.
 > Do **not** call Resend (or any provider) directly from feature routes or UI handlers.
 
 ---
@@ -34,7 +34,7 @@ Without a platform:
 
 A Notification Platform turns **business events** into **durable, preference-aware, auditable deliveries** through a single engine and provider adapters.
 
-Sprint 5 shipped **preference storage and UI only** — no delivery engine. Sprint 6 begins the platform; this document defines it before any production notification code lands.
+Sprint 5 shipped **preference storage and UI only** — no delivery engine. Sprint 6 subsequently delivered Notification Platform v1.0: the provider-neutral Notification Service, Resend adapter, Monthly Immigration Update preview/send workflows, campaign-level persistence, and controlled admin operations. The platform has since been Production-validated. This document remains the design authority for implemented behavior and approved follow-on work.
 
 ---
 
@@ -120,7 +120,7 @@ Future Providers
 | **Status** | 🟡 In Progress |
 | **Last updated** | 2026-07-10 |
 
-> Long-term provider strategy for the IMMIFIN Notification Platform.  
+> Long-term provider strategy for the IMMIFIN Notification Platform.
 > Complements [Architecture Overview](#architecture-overview) and [Email Design §6 Email Provider](#6-email-provider).
 
 ### Purpose
@@ -420,7 +420,7 @@ Google Sheets
   → Monthly Immigration Update template
 ```
 
-**Mapper:** `lib/notifications/mappers/map-monthly-immigration-report-email.ts`  
+**Mapper:** `lib/notifications/mappers/map-monthly-immigration-report-email.ts`
 (`mapMonthlyImmigrationReportEmailProps` — journey-aware dashboard-shaped source → `MonthlyImmigrationReportEmailProps`)
 
 Do **not** bypass Sheets → server service → dashboard data layer → presentation.
@@ -492,9 +492,9 @@ Email via Resend (HTML + plain-text fallback). Deep links into authenticated IMM
 | Bulk / audience / campaign send | ✅ Completed (S6-EMAIL-004.2) |
 | Scheduling / automatic sends | ⬜ Not Started |
 
-**Admin control:** `components/admin/AdminSendMonthlyImmigrationUpdateForm.tsx`  
-**Endpoint:** `POST /api/admin/notifications/send-monthly-immigration-update` (`action: "preview" | "send"`)  
-**Assembler:** `lib/notifications/build-monthly-immigration-report-dashboard-source.ts`  
+**Admin control:** `components/admin/AdminSendMonthlyImmigrationUpdateForm.tsx`
+**Endpoint:** `POST /api/admin/notifications/send-monthly-immigration-update` (`action: "preview" | "send"`)
+**Assembler:** `lib/notifications/build-monthly-immigration-report-dashboard-source.ts`
 **Audit action:** `SEND_SINGLE_MONTHLY_IMMIGRATION_UPDATE`
 
 Only one existing IMMIFIN user email is accepted. Missing immigration profile data fails safely without sending.
@@ -526,10 +526,10 @@ The override does **not** weaken the workflow's remaining controls. It still req
 | Advanced campaign management | ⬜ Not Started |
 | SMS / WhatsApp | ⬜ Not Started |
 
-**UI:** `components/admin/AdminMonthlyUpdateControlCenter.tsx`  
-**Summary:** `GET /api/admin/notifications/monthly-immigration-updates/summary`  
-**Bulk send:** `POST /api/admin/notifications/monthly-immigration-updates/send` (`confirm: true`)  
-**Persistence:** `notification_campaigns` (`supabase/migrations/20260710140000_017_notification_campaigns.sql`)  
+**UI:** `components/admin/AdminMonthlyUpdateControlCenter.tsx`
+**Summary:** `GET /api/admin/notifications/monthly-immigration-updates/summary`
+**Bulk send:** `POST /api/admin/notifications/monthly-immigration-updates/send` (`confirm: true`)
+**Persistence:** `notification_campaigns` (`supabase/migrations/20260710140000_017_notification_campaigns.sql`)
 **Audit action:** `SEND_MONTHLY_IMMIGRATION_UPDATES`
 
 **Eligibility:** active Pro/Power (incl. legacy `basic`→Pro), valid email, `emailAlerts` + `visaBulletinUpdates` prefs, dashboard assembler success for `employment_gc_waiting` **or** `green_card_holder`. Free/incomplete/unsupported profiles are skipped (counted, not emailed).
@@ -666,6 +666,142 @@ Every dispatch attempt must be logged (success or failure).
 
 ---
 
+## 6A. Recipient-Level Delivery Tracking and Failed-Recipient Recovery
+
+> **Approved design — S6-NOTIFICATION-RETRY-001 / S6-NOTIFICATION-RETRY-002.**
+> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and concurrency primitives only; it does **not** change current notification runtime behavior. The existing campaign-level implementation remains in force until recipient persistence and manual recovery runtime are separately implemented and approved.
+
+### 6A.1 Locked Product decisions
+
+| Decision | Locked behavior |
+|----------|-----------------|
+| Recovery mode | Failed-recipient recovery is **manual only**. There is no automatic retry loop. |
+| Repeat recovery | An explicit failed recipient may have multiple manual recovery attempts. v1 imposes no arbitrary retry-count limit. |
+| `retry_exhausted` state | Omitted from the v1 schema because recovery is manual-only and has no retry-count limit; adding an unreachable terminal state would be misleading. |
+| Audit model | Original and recovery attempts remain immutable and auditable where practical. New evidence is appended; historical attempts are not rewritten. |
+| Accepted recipients | A recipient with a `provider_accepted` outcome must never be resent through failed-recipient recovery. `provider_accepted` is not proof of mailbox delivery. |
+| Unknown submission | `submission_unknown` is **not** automatically retryable. It requires reconciliation or manual support handling before another send is considered. |
+| Normal monthly duplicate guard | Existing normal Monthly Immigration Update duplicate protection remains unchanged. Recovery is not a bypass or a second normal monthly campaign. |
+| Aggregate counters | Existing campaign aggregate counters remain for backward compatibility and summary performance. Future recipient/attempt records are the authoritative operational evidence. |
+| Admin terminology | Use **Provider accepted**, not **Delivered**, unless future provider delivery telemetry is ingested and persisted. |
+| Audience-exclusion UI | Show aggregate exclusion counts by default. Individual exclusion detail is restricted to authorized operational troubleshooting. |
+| Individual admin send | Admin → Notify Individual User remains intentionally independent from bulk recovery. Its approved override eligibility policy does not change. |
+| Provider webhooks | Resend delivery, bounce, and complaint webhook ingestion is deferred to a separate future task. |
+| Message persistence | Do not persist rendered personalized HTML or plaintext message bodies in the recipient/attempt persistence model. |
+| Retention | No aggressive deletion policy is introduced in this phase. Retain minimal operational attempt metadata until a formal retention policy is approved. |
+
+### 6A.2 Parent campaign and normalized evidence model
+
+`notification_campaigns` remains the parent record for a Monthly Immigration Update. It retains its present role as the normal monthly campaign lifecycle record, aggregate-summary source, and normal duplicate guard for campaign type + bulletin month. It is **not** sufficient by itself to identify failed recipients safely.
+
+The future model adds three normalized child concepts:
+
+| Record | Cardinality / identity | Responsibility |
+|--------|-------------------------|----------------|
+| `notification_campaign_recipients` | One row per original `campaign_id` + stable `profile_id` | Preserves the original audience decision, original eligibility context, and a convenience projection of the recipient's latest outcome. Use stable profile identity, not email address, as the durable recipient key. |
+| `notification_delivery_attempts` | Immutable rows per campaign recipient; one original attempt and zero or more manual recovery attempts | Records attempt number/type, timestamps, normalized outcome/reason, provider, provider message ID where returned, and minimal safe operational metadata. |
+| `notification_recovery_runs` | Child operation of one original campaign | Represents one manually initiated recovery operation, its authorized admin actor, idempotency/concurrency state, and recovery summary. It is not a new monthly campaign. |
+
+Required design constraints:
+
+- `notification_campaign_recipients` has one durable row per `campaign_id + profile_id`; email is resolved from the authoritative profile only when an attempt is made.
+- `notification_delivery_attempts` is append-only in normal operation. It must distinguish original from recovery attempts and preserve provider message IDs when supplied.
+- The persistence model stores only minimal operational metadata: stable IDs, timestamps, normalized states/reasons, provider identifiers, and safe bounded diagnostic detail. It does **not** store rendered HTML or plaintext bodies, secrets, raw provider payloads, or raw stack traces.
+- Original audience exclusions are distinguishable from a later retry-time eligibility change. A member excluded from the original audience is not a failed recipient; a formerly failed recipient who is no longer eligible at recovery time receives a new durable `skipped_ineligible` attempt with reason.
+- Aggregate campaign counters are reconcilable against recipient and attempt evidence. Their exact public labels must not overstate provider acceptance as delivery.
+
+### 6A.3 Outcomes and terminology
+
+The future implementation uses the following operational vocabulary:
+
+| Outcome / state | Meaning | Recovery treatment |
+|-----------------|---------|--------------------|
+| `audience_excluded` | Excluded during original audience evaluation; no bulk send was intended. | Not a failed-recipient recovery candidate. |
+| `eligible_pending` / `claimed` | Eligible work awaiting or held by the current sender/recovery operation. | Internal non-terminal state. |
+| `provider_accepted` | Resend accepted the request and returned an email ID. This is **not** confirmed inbox delivery. | Never selected for failed-recipient recovery. |
+| `failed_before_provider` | Failure occurred before provider submission, such as current eligibility, assembly, rendering, or configuration failure. | Explicit failure; may be selected by a later manual recovery run after current eligibility recheck. |
+| `failed_provider` | The provider returned an explicit failed result. | Explicit failure; may be selected by a later manual recovery run after current eligibility recheck. |
+| `skipped_ineligible` | A recovery candidate no longer meets current normal bulk eligibility. No email is sent. | Terminal for that recovery attempt; it remains auditable and may be reconsidered only through a future manual operation if circumstances change. |
+| `submission_unknown` | Submission may have reached the provider, but IMMIFIN cannot prove the provider result. | Never automatically retry. Reconcile with provider/support evidence before any additional send. |
+
+The user-facing Admin term for a successful provider API response is **Provider accepted**. The application must not use **Delivered** unless a future, authenticated provider delivery event has been persisted. Tags or metadata are useful provider context only; they are not delivery proof and are not duplicate prevention.
+
+### 6A.4 Manual recovery workflow
+
+Recovery is a child operation of the original campaign, never a second monthly campaign and never a "Retry Entire Campaign" action for partial failures.
+
+1. An authorized admin reviews a recipient-tracked campaign with explicit retryable failures.
+2. The UI may offer **Retry N Failed Recipients** only when durable recipient evidence exists, no recovery operation is active, and `N` counts explicit failure states only.
+3. The confirmation UI states that Provider-accepted recipients will not be resent, every candidate is rechecked against current bulk rules, and changed-ineligible candidates will be logged as skipped rather than emailed.
+4. The server creates or resumes a `notification_recovery_runs` record and claims individual eligible failed-recipient work transactionally. Server-side authorization, recovery-run identity, recipient claim semantics, and immutable attempt rows protect against duplicate administrative or runtime work.
+5. Immediately before a recovery send, the system reloads authoritative current data by `profile_id` and re-runs all normal bulk eligibility rules: active account, current valid email, effective email-alert entitlement, `emailAlerts`, `visaBulletinUpdates`, required immigration/journey data, supported journey, and current personalized-content assembly requirements.
+6. A newly ineligible recipient receives `skipped_ineligible` with a normalized reason; no provider call occurs. An eligible recipient receives newly assembled current content—not a stored historical rendered body.
+7. A successful provider API response creates `provider_accepted` with the provider message ID when supplied. Explicit pre-provider/provider failures create their corresponding immutable attempt rows. Provider submission uncertainty creates `submission_unknown`.
+
+The existing Admin → Notify Individual User capability remains a separate, deliberate exception. It must not be routed through bulk recovery eligibility rules or represented as a bulk failed-recipient retry merely because support uses it to make an evidence-backed individual recovery.
+
+### 6A.5 Resend email idempotency verification
+
+**Verified package:** the repository declares `resend` `^6.17.2`; the installed package and lockfile resolve it to **`resend@6.17.2`**.
+
+**Verified SDK interface:** `resend@6.17.2` declares:
+
+```ts
+await resend.emails.send(emailPayload, {
+  idempotencyKey: "<stable-key>",
+});
+```
+
+The installed SDK sends this option as the `Idempotency-Key` HTTP header. Its type declaration documents that it "ensures the same operation is not processed multiple times" and allows safe retries without duplicating operations. The send response contains an email `id`, which future recipient-attempt persistence may store as the provider message ID.
+
+**Verified provider behavior:** Resend documents idempotency for `POST /emails` and `POST /emails/batch`.
+
+| Provider rule | Verified behavior |
+|---------------|-------------------|
+| Key format | Optional `Idempotency-Key` header; 1–256 characters. Resend recommends a UUID or another value uniquely identifying the specific email request. |
+| SDK support | Supported by installed `resend@6.17.2` as the second `emails.send` argument: `{ idempotencyKey }`. |
+| Retention window | Resend retains keys for **24 hours**. |
+| Same key + same payload | Resend returns the same/original response without sending the email again. |
+| Same key + different payload | Resend returns `409 invalid_idempotent_request`; retrying without changing the key or payload is not useful. |
+| Same key concurrently in progress | Resend returns `409 concurrent_idempotent_requests`; Resend says it is safe to retry later. |
+| Successful response | Returns the sent email ID. This is a provider-acceptance reference, not a delivery event. |
+
+Authoritative sources verified for this decision are Resend's **Idempotency Keys** documentation and **Send Email** API reference, together with the installed `resend@6.17.2` type declarations/source. The provider mechanism is separate from Resend tags/metadata: do not treat tags/metadata as idempotency keys or duplicate prevention.
+
+### 6A.6 Crash-window policy and provider reconciliation
+
+The critical failure window is:
+
+```text
+IMMIFIN database claim succeeds
+→ Resend email submission occurs
+→ Worker/runtime crashes before IMMIFIN persists the provider result
+```
+
+For a future original or manual recovery attempt, IMMIFIN should generate one stable opaque idempotency key from the immutable internal delivery-attempt ID and use the same key only for retransmission of the **identical** provider payload within Resend's 24-hour key-retention window. The future provider adapter/service contract must expose this option explicitly; the current contract and adapter do not yet pass an idempotency key.
+
+Recommended future behavior:
+
+1. Persist the claimed immutable attempt and its internal idempotency key before provider submission.
+2. Submit the email through the provider adapter using `resend.emails.send(payload, { idempotencyKey })`.
+3. If the Worker can retry the identical payload within 24 hours, submit the same idempotency key. Resend's documented behavior reduces duplicate submission risk by returning the original response instead of sending again; persist the returned provider email ID and finalize `provider_accepted`.
+4. If the result cannot be proven, the payload cannot be guaranteed identical, the provider's 24-hour window has expired, or reconciliation is unavailable, finalize/preserve `submission_unknown`. Do **not** automatically resend it.
+5. `submission_unknown` requires provider reconciliation or authorized manual support handling before any further email is considered. Provider message ID may be safely retained as minimal operational metadata when returned, but it is not itself proof of inbox delivery.
+
+This provider idempotency mechanism materially reduces duplicate-submission risk during the documented 24-hour window; it does not replace IMMIFIN's database claim, recovery-operation idempotency, immutable attempt history, or conservative `submission_unknown` rule outside the proven window.
+
+### 6A.7 Legacy campaigns and October 2026
+
+Campaigns created before recipient-level evidence exists are **legacy campaigns**. They may retain only campaign-level aggregate counters and therefore cannot identify specific failed recipients safely.
+
+**October 2026 is explicitly legacy.** Do not fabricate recipient records from current profiles, infer recipients from aggregate failure counts, enable automated failed-recipient recovery, replay the campaign, or weaken normal monthly duplicate protection. If Product/Support has independent evidence that one member needs recovery, the existing intentionally separate Admin Individual Send capability may be used as an evidence-backed manual action under its existing authorization and audit rules.
+
+### 6A.8 Future Admin visibility
+
+For recipient-tracked campaigns, the Admin experience should show original and recovery summaries separately, using Provider accepted terminology. It should show aggregate audience-exclusion counts by default and restrict individual recipient/detail timelines to authorized operational troubleshooting. The UI must not offer Retry Entire Campaign for partial failures. Legacy campaigns display a clear no-automated-retry explanation rather than a misleading retry control.
+
+---
+
 ## 7. Administration
 
 ### Future Admin Notification Center
@@ -797,9 +933,9 @@ Do **not** commit secrets. Document in `.env.example` only as placeholders.
 
 ## Email Design
 
-> **Implementation blueprint for all IMMIFIN email development (S6-DOC-003).**  
-> This section extends the platform architecture above. It does **not** replace [Architecture Overview](#architecture-overview), [§9 Technical Architecture](#9-technical-architecture), or category definitions in §§1–8.  
-> Email is **Phase 1 of channels only**. SMS / WhatsApp / Push / In-App remain future adapters.  
+> **Implementation blueprint for all IMMIFIN email development (S6-DOC-003).**
+> This section extends the platform architecture above. It does **not** replace [Architecture Overview](#architecture-overview), [§9 Technical Architecture](#9-technical-architecture), or category definitions in §§1–8.
+> Email is **Phase 1 of channels only**. SMS / WhatsApp / Push / In-App remain future adapters.
 > **Visual, UX, and template standards:** see [IMMIFIN Email Design System](#immifin-email-design-system) (S6-DOC-006) — single source of truth for every email template.
 
 ### 1. Purpose
@@ -862,7 +998,7 @@ Overall integration process (ops + engineering) before any production user send:
 
 ### Email Identity Strategy
 
-> Long-term naming and sender-identity convention for IMMIFIN outbound email (S6-DOC-004).  
+> Long-term naming and sender-identity convention for IMMIFIN outbound email (S6-DOC-004).
 > Complements [§2 Resend Integration](#2-resend-integration); does not change Phase 2 implementation scope until addresses are provisioned.
 
 #### Document purpose
@@ -1101,7 +1237,7 @@ Shared layout components should be reused by every template. This minimizes dupl
 
 ### Call-To-Action (CTA) Standard
 
-> Standard for primary and secondary actions in all IMMIFIN emails.  
+> Standard for primary and secondary actions in all IMMIFIN emails.
 > Formalized in the [IMMIFIN Email Design System](#immifin-email-design-system) (S6-DOC-006).
 
 #### Purpose
@@ -1585,8 +1721,8 @@ Force Sync and archive remain **separate** from campaign send ([SPRINT_6_HANDOFF
 | **Preview Mode** | Render subject/HTML/text for one user or sample context **without** calling Resend send (or with dry-run flag) |
 | **Production Mode** | Real sends only after admin confirmation; history + webhooks enabled |
 
-**Only production admins** (`requireAdmin()`) may trigger actual campaign or production test sends.  
-Preview must be available before Approve/Send.  
+**Only production admins** (`requireAdmin()`) may trigger actual campaign or production test sends.
+Preview must be available before Approve/Send.
 Lifecycle emails in early phases may use admin-triggered fixtures until Stripe webhooks exist.
 
 ---
@@ -1639,8 +1775,8 @@ See [§10 Future Enhancements](#10-future-enhancements) and [IMMIGRATION_BROADCA
 | **Status** | Documentation complete — implementation started (S6-EMAIL-002.1) |
 | **Last updated** | 2026-07-10 |
 
-> The Email Design System defines the visual, functional, and technical standards for every email sent by IMMIFIN.  
->  
+> The Email Design System defines the visual, functional, and technical standards for every email sent by IMMIFIN.
+>
 > All email templates should conform to this design system unless an approved architectural decision explicitly overrides it.
 
 This system is the **single source of truth** for email branding, layout, UX, content presentation, accessibility, and technical implementation guidelines. It complements (and does not replace) the [Email Design](#email-design) architecture (Resend, Notification Service, history, campaigns).
@@ -1746,7 +1882,7 @@ Planned reusable email components. Prefer **React Email** (or equivalent server-
 | **Signature** | Optional closing / team sign-off | ⬜ Not Started |
 | **FooterLinks** | Dashboard, Support, Documentation, Privacy, Terms | ⬜ Not Started |
 
-Detailed CTA behavior: [Call-To-Action (CTA) Standard](#call-to-action-cta-standard).  
+Detailed CTA behavior: [Call-To-Action (CTA) Standard](#call-to-action-cta-standard).
 Layout skeleton: [Email Branding Standard](#email-branding-standard).
 
 ---
@@ -1990,3 +2126,5 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.16 | 2026-08-26 | S7-PROD-NOTIFY-FIX-001 | Campaign `updateMonthLabel` = latest Visa Bulletin month for all journeys (not calendar month); not Production-deployed |
 | v1.17 | 2026-08-26 | S7-PROD-NOTIFY-FIX-002 | Audience Summary uses cheap local eligibility (no per-user email/Sheets assembly); Send remains full assemble; not Production-deployed |
 | v1.18 | 2026-08-26 | S7-PROD-NOTIFY-SIGNOFF-001 | September 2026 Monthly Update Production validated (3 sent / 0 failed; FIX-001 + FIX-002 PASS) |
+| v1.19 | 2026-10-05 | S6-NOTIFICATION-RETRY-002 | Corrected top-level as-built status; approved recipient-level delivery tracking and manual failed-recipient recovery design; verified Resend `resend@6.17.2` email idempotency behavior and crash-window policy; October 2026 remains legacy. |
+| v1.20 | 2026-10-05 | S6-NOTIFICATION-RETRY-003 | Implemented additive recipient-delivery-tracking database foundation: recipient, immutable attempt, and manual recovery-run schema plus service-role-only concurrency/idempotency RPCs. No notification runtime behavior changed; no historical campaign data was backfilled. |
