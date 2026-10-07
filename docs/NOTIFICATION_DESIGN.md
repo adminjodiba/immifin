@@ -519,6 +519,8 @@ The override does **not** weaken the workflow's remaining controls. It still req
 | Controlled bulk-send orchestration (batched) | ✅ Completed |
 | Duplicate-send protection (per bulletin month) | ✅ Completed |
 | Basic campaign/send summary | ✅ Completed |
+| Read-only recipient delivery visibility | ✅ Completed (S6-NOTIFICATION-RETRY-007) |
+| Failed-recipient retry UI | ⬜ Not Started (read-only visibility only) |
 | Automatic triggering after bulletin refresh | ⬜ Not Started |
 | Scheduling | ⬜ Not Started |
 | Operational reminder alerts | ⬜ Not Started |
@@ -529,6 +531,7 @@ The override does **not** weaken the workflow's remaining controls. It still req
 **UI:** `components/admin/AdminMonthlyUpdateControlCenter.tsx`
 **Summary:** `GET /api/admin/notifications/monthly-immigration-updates/summary`
 **Bulk send:** `POST /api/admin/notifications/monthly-immigration-updates/send` (`confirm: true`)
+**Read-only delivery details:** `GET /api/admin/notifications/monthly-immigration-updates/[campaignId]/delivery-details`
 **Persistence:** `notification_campaigns` (`supabase/migrations/20260710140000_017_notification_campaigns.sql`)
 **Audit action:** `SEND_MONTHLY_IMMIGRATION_UPDATES`
 

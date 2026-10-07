@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AdminMonthlyUpdateConfirmModal } from "@/components/admin/AdminMonthlyUpdateConfirmModal";
+import { AdminMonthlyUpdateCampaignDeliveryDetails } from "@/components/admin/AdminMonthlyUpdateCampaignDeliveryDetails";
 
 type ExclusionBreakdown = {
   freePlan: number;
@@ -24,6 +25,7 @@ type AudienceSummary = {
   exclusionBreakdown: ExclusionBreakdown;
   lastSentAt: string | null;
   lastSentBulletinMonth: string | null;
+  campaignId: string | null;
   controlStatus: string;
   campaignStatus: string | null;
   canSend: boolean;
@@ -273,6 +275,7 @@ export function AdminMonthlyUpdateControlCenter() {
   const activeTotal = summary?.activeUserCount ?? 0;
   const totalsMatch = activeTotal === eligibleTotal + excludedTotal;
   const needsAttention = excludedTotal > 0 && eligibleTotal === 0;
+  const deliveryDetailsCampaignId = sendResult?.campaignId ?? summary?.campaignId ?? null;
 
   return (
     <section className="card-static space-y-5">
@@ -516,6 +519,12 @@ export function AdminMonthlyUpdateControlCenter() {
             <li>Provider: {sendResult.provider}</li>
           </ul>
         </div>
+      ) : null}
+
+      {deliveryDetailsCampaignId ? (
+        <AdminMonthlyUpdateCampaignDeliveryDetails
+          campaignId={deliveryDetailsCampaignId}
+        />
       ) : null}
 
       {feedback ? (

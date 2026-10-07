@@ -77,6 +77,8 @@ export type MonthlyUpdateAudienceSummary = {
   /** YYYY-MM of the latest completed campaign that is not the current bulletin month. */
   previousCampaignBulletinMonth: string | null;
   previousCampaignSentAt: string | null;
+  /** Current bulletin-month campaign available for read-only delivery visibility. */
+  campaignId: string | null;
   controlStatus: MonthlyUpdateControlStatus;
   campaignStatus: NotificationCampaignStatus | null;
   canSend: boolean;
@@ -232,6 +234,7 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
     currentCampaignSentAt: completedForMonth?.completed_at ?? null,
     previousCampaignBulletinMonth: previousCampaign?.bulletin_month ?? null,
     previousCampaignSentAt: previousCampaign?.completed_at ?? null,
+    campaignId: blockingCampaign?.id ?? null,
     controlStatus,
     campaignStatus: blockingCampaign?.status ?? null,
     canSend,
