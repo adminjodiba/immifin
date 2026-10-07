@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AdminMonthlyUpdateFailedRecipientRecoveryConfirmModal } from "@/components/admin/AdminMonthlyUpdateFailedRecipientRecoveryConfirmModal";
 
 export type DeliveryState =
   | "provider_accepted"
@@ -51,6 +52,8 @@ export type DeliveryDetails = {
   submissionUnknownCount: number;
   skippedIneligibleCount: number;
   retryableFailedCount: number;
+  hasActiveRecoveryRun: boolean;
+  latestRecoveryRunStatus: string | null;
   recipients: DeliveryRecipient[];
   pagination: {
     page: number;
@@ -62,6 +65,14 @@ export type DeliveryDetails = {
 };
 
 type LoadStatus = "idle" | "loading" | "error";
+type RecoveryStatus = "idle" | "confirming" | "submitting" | "success" | "error" | "conflict" | "ambiguous";
+
+type RecoveryResult = {
+  outcome?: "completed" | "idempotent" | "legacy_campaign" | "no_retryable_failures" | "active_recovery_conflict" | "campaign_not_found" | "campaign_not_recoverable";
+  providerAcceptedCount?: number;
+  failedCount?: number;
+  skippedIneligibleCount?: number;
+};
 
 const PAGE_SIZE = 50;
 
@@ -114,11 +125,20 @@ function compactProfileId(profileId: string): string {
   return `Profile …${profileId.slice(-4)}`;
 }
 
+function retryLabel(retryableFailedCount: number): string {
+  return retryableFailedCount === 1
+    ? "Retry 1 Failed Recipient"
+    : `Retry ${retryableFailedCount} Failed Recipients`;
+}
+
 export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { campaignId: string }) {
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
   const [details, setDetails] = useState<DeliveryDetails | null>(null);
   const [status, setStatus] = useState<LoadStatus>("idle");
+  const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>("idle");
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
+  const [recoveryOperationKey, setRecoveryOperationKey] = useState<string | null>(null);
 
   const loadDetails = useCallback(async (requestedPage: number) => {
     setStatus("loading");
@@ -148,6 +168,9 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
     setPage(1);
     setDetails(null);
     setStatus("idle");
+    setRecoveryStatus("idle");
+    setRecoveryMessage(null);
+    setRecoveryOperationKey(null);
   }, [campaignId]);
 
   useEffect(() => {
@@ -158,6 +181,82 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
   const pageCount = details?.pagination.totalPages ?? 0;
   const canGoPrevious = page > 1 && status !== "loading";
   const canGoNext = !!details && page < pageCount && status !== "loading";
+  const canRetryFailedRecipients = Boolean(
+    details &&
+    details.tracked &&
+    !details.legacy &&
+    details.retryableFailedCount > 0 &&
+    !details.hasActiveRecoveryRun,
+  );
+
+  const refreshDeliveryDetails = useCallback(async () => {
+    await loadDetails(page);
+  }, [loadDetails, page]);
+
+  const submitRecovery = useCallback(async (operationKey: string) => {
+    setRecoveryStatus("submitting");
+    setRecoveryMessage(null);
+    try {
+      const response = await fetch(
+        `/api/admin/notifications/monthly-immigration-updates/${campaignId}/retry-failed`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirm: true, idempotencyKey: operationKey }),
+        },
+      );
+      const payload = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        result?: RecoveryResult;
+        errorMessage?: string;
+      } | null;
+      if (!payload) {
+        setRecoveryStatus("ambiguous");
+        setRecoveryMessage("The recovery request outcome could not be confirmed. No new recovery operation will be started automatically. Check Delivery Details, or retry the same request safely.");
+        return;
+      }
+
+      const result = payload.result;
+      if (result?.outcome === "completed") {
+        setRecoveryStatus("success");
+        setRecoveryMessage(`Recovery completed. Provider Accepted: ${result.providerAcceptedCount ?? 0} · Failed: ${result.failedCount ?? 0} · Skipped: ${result.skippedIneligibleCount ?? 0}.`);
+      } else if (result?.outcome === "idempotent") {
+        setRecoveryStatus("success");
+        setRecoveryMessage("This recovery request was already processed or is recorded for this campaign. Delivery Details have been refreshed.");
+      } else if (result?.outcome === "no_retryable_failures") {
+        setRecoveryStatus("success");
+        setRecoveryMessage("No explicit failed recipients remained when the recovery request was processed. No emails were sent.");
+      } else if (result?.outcome === "active_recovery_conflict") {
+        setRecoveryStatus("conflict");
+        setRecoveryMessage("A failed-recipient recovery is already in progress for this campaign. Delivery Details have been refreshed.");
+      } else if (result?.outcome === "legacy_campaign") {
+        setRecoveryStatus("error");
+        setRecoveryMessage("This campaign does not have recipient-level tracking and cannot be recovered automatically.");
+      } else if (result?.outcome === "campaign_not_recoverable") {
+        setRecoveryStatus("error");
+        setRecoveryMessage("This campaign is not eligible for failed-recipient recovery.");
+      } else {
+        setRecoveryStatus("error");
+        setRecoveryMessage(payload.errorMessage || "Unable to start failed-recipient recovery.");
+      }
+      setRecoveryOperationKey(null);
+      await refreshDeliveryDetails();
+    } catch {
+      setRecoveryStatus("ambiguous");
+      setRecoveryMessage("The recovery request outcome could not be confirmed. No new recovery operation will be started automatically. Check Delivery Details, or retry the same request safely.");
+    }
+  }, [campaignId, refreshDeliveryDetails]);
+
+  const handleConfirmRecovery = useCallback(() => {
+    if (!globalThis.crypto?.randomUUID) {
+      setRecoveryStatus("error");
+      setRecoveryMessage("Unable to start failed-recipient recovery because this browser cannot create a secure operation key.");
+      return;
+    }
+    const operationKey = `admin-recovery:${globalThis.crypto.randomUUID()}`;
+    setRecoveryOperationKey(operationKey);
+    void submitRecovery(operationKey);
+  }, [submitRecovery]);
 
   return (
     <section className="border-t border-slate-200 pt-4" aria-label="Campaign delivery details">
@@ -222,7 +321,31 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
                 {details.submissionUnknownCount > 0 ? (
                   <p className="mt-2 font-medium text-amber-800">Submission status unknown — manual review required.</p>
                 ) : null}
+                {canRetryFailedRecipients ? (
+                  <button
+                    type="button"
+                    className="btn-primary mt-3 disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => {
+                      setRecoveryStatus("confirming");
+                      setRecoveryMessage(null);
+                    }}
+                  >
+                    {retryLabel(details.retryableFailedCount)}
+                  </button>
+                ) : null}
               </div>
+
+              {recoveryStatus !== "idle" && recoveryStatus !== "confirming" && recoveryStatus !== "submitting" && recoveryMessage ? (
+                <div className={`rounded-lg border px-4 py-3 text-sm ${recoveryStatus === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : recoveryStatus === "ambiguous" ? "border-amber-200 bg-amber-50 text-amber-900" : "border-red-200 bg-red-50 text-red-800"}`} role="status">
+                  <p className="font-medium">{recoveryMessage}</p>
+                  {recoveryStatus === "ambiguous" ? (
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <button type="button" className="btn-secondary" onClick={() => void refreshDeliveryDetails()}>Check Delivery Details</button>
+                      <button type="button" className="btn-primary" onClick={() => recoveryOperationKey && void submitRecovery(recoveryOperationKey)} disabled={!recoveryOperationKey}>Retry Same Request</button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="overflow-hidden rounded-xl border border-slate-200">
                 <div className="overflow-x-auto">
@@ -241,7 +364,7 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
                     <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
                       {details.recipients.map((recipient) => (
                         <tr key={recipient.campaignRecipientId}>
-                          <td className="px-3 py-3 font-mono text-xs text-slate-700" title={recipient.profileId}>{compactProfileId(recipient.profileId)}</td>
+                                <span className="font-medium text-slate-900">{compactProfileId(recipient.profileId)}</span>
                           <td className="px-3 py-3">{recipient.originalEligibilityState === "eligible" ? "Eligible" : "Audience Excluded"}</td>
                           <td className="px-3 py-3">{recipient.originalTier ?? "—"}</td>
                           <td className="px-3 py-3"><StateBadge state={recipient.currentDeliveryState} /></td>
@@ -309,6 +432,18 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
           ) : null}
         </div>
       )}
+      {details ? (
+        <AdminMonthlyUpdateFailedRecipientRecoveryConfirmModal
+          isOpen={recoveryStatus === "confirming" || recoveryStatus === "submitting"}
+          retryableFailedCount={details.retryableFailedCount}
+          isSubmitting={recoveryStatus === "submitting"}
+          onCancel={() => {
+            setRecoveryStatus("idle");
+            setRecoveryMessage(null);
+          }}
+          onConfirm={handleConfirmRecovery}
+        />
+      ) : null}
     </section>
   );
 }

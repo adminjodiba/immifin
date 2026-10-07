@@ -520,7 +520,7 @@ The override does **not** weaken the workflow's remaining controls. It still req
 | Duplicate-send protection (per bulletin month) | ✅ Completed |
 | Basic campaign/send summary | ✅ Completed |
 | Read-only recipient delivery visibility | ✅ Completed (S6-NOTIFICATION-RETRY-007) |
-| Failed-recipient retry UI | ⬜ Not Started (read-only visibility only) |
+| Failed-recipient retry UI | ✅ Locally completed and Product Owner approved (S6-NOTIFICATION-RETRY-008C); production activation remains dependent on the controlled migration/deployment sequence. |
 | Automatic triggering after bulletin refresh | ⬜ Not Started |
 | Scheduling | ⬜ Not Started |
 | Operational reminder alerts | ⬜ Not Started |
