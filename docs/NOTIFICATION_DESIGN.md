@@ -8,8 +8,8 @@
 | **Task ID** | S6-DOC-001 · S6-DOC-003 · S6-DOC-004 · S6-DOC-005 · S6-DOC-006 · S6-DOC-007 · S6-NOTIFICATION-RETRY-002 · S6-NOTIFICATION-RETRY-003 |
 | **Task Name** | Notification Design Document |
 | **Feature Area** | Documentation |
-| **Status** | Notification Platform v1.0 implemented and Production-validated; recipient-level delivery tracking and manual failed-recipient recovery approved for future implementation |
-| **Last updated** | 2026-10-06 |
+| **Status** | Notification Platform v1.0 implemented and Production-validated; recipient-level delivery tracking, Admin Campaign Delivery Details, and manual failed-recipient recovery implemented locally. Production activation remains dependent on the controlled migration/deployment sequence. |
+| **Last updated** | 2026-10-07 |
 | **Owner** | Technical Architecture (CTO) |
 
 **Related:** [SPRINT_6_HANDOFF.md](./SPRINT_6_HANDOFF.md) · [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) · [ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md) · [CURRENT_PROJECT_STATE.md](./CURRENT_PROJECT_STATE.md) · [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
@@ -672,7 +672,7 @@ Every dispatch attempt must be logged (success or failure).
 ## 6A. Recipient-Level Delivery Tracking and Failed-Recipient Recovery
 
 > **Approved design — S6-NOTIFICATION-RETRY-001 / S6-NOTIFICATION-RETRY-002.**
-> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and recovery concurrency primitives. S6-NOTIFICATION-RETRY-004 wires future original Monthly Immigration Update sends to persist their original audience, attempts, and terminal evidence. S6-NOTIFICATION-RETRY-005C implements the server-only manual recovery runtime and Admin API; no Admin retry UI is implemented.
+> This section defines the persistence and operational model required to safely recover explicit failed recipients from a Monthly Immigration Update. S6-NOTIFICATION-RETRY-003 implements the additive database foundation and recovery concurrency primitives. S6-NOTIFICATION-RETRY-004 wires future original Monthly Immigration Update sends to persist their original audience, attempts, and terminal evidence. S6-NOTIFICATION-RETRY-005C implements the server-only manual recovery runtime and Admin API; the Admin Campaign Delivery Details and guarded retry UI are implemented locally. Production activation remains dependent on the controlled migration/deployment sequence.
 
 ### 6A.1 Locked Product decisions
 
@@ -799,7 +799,9 @@ For a future tracked Monthly Immigration Update, IMMIFIN persists every active p
 
 Before an originally eligible profile is sent, the worker reloads the profile by stable ID and reuses normal bulk eligibility evaluation. Changed eligibility produces one original `skipped_ineligible` attempt and no provider request. An atomic service-role original-attempt claim creates the immutable `original` attempt (`recovery_run_id = NULL`, attempt number 1) and an opaque Resend key derived from its generated attempt ID before message assembly/render/provider submission. The existing `finalize_notification_delivery_attempt` RPC projects `provider_accepted`, `failed_before_provider`, `failed_provider`, `submission_unknown`, or `skipped_ineligible` to the recipient.
 
-For tracked campaigns, compatibility counters mean: `total_recipients` is originally eligible profiles; `success_count` is original provider acceptance; `failure_count` is explicit original failures plus `submission_unknown`; and `skipped_count` is send-time `skipped_ineligible`. Original audience exclusions remain authoritative recipient evidence and are not mixed into `skipped_count`. `provider_accepted` remains provider acceptance, never inbox delivery. The Admin-only manual recovery endpoint accepts only `confirm: true` plus a bounded operation idempotency key; the database and server select persisted explicit failures, atomically claim each retry attempt, reload current profile state, re-run standard bulk eligibility, regenerate personalized content, and complete the run from immutable persisted attempt evidence. No Admin retry UI is implemented.
+For tracked campaigns, compatibility counters mean: `total_recipients` is originally eligible profiles; `success_count` is original provider acceptance; `failure_count` is explicit original failures plus `submission_unknown`; and `skipped_count` is send-time `skipped_ineligible`. Original audience exclusions remain authoritative recipient evidence and are not mixed into `skipped_count`. `provider_accepted` remains provider acceptance, never inbox delivery.
+
+The Admin Campaign Delivery Details UI is implemented locally. For a tracked, non-legacy campaign, it may show a guarded **Retry N Failed Recipients** action only when the server-supplied `retryableFailedCount` is greater than zero and no recovery run is active. Only `failed_before_provider` and `failed_provider` are automatically recoverable; `provider_accepted`, `submission_unknown`, `skipped_ineligible`, `audience_excluded`, `eligible_pending`, and `attempt_in_progress` are not automatically retryable. `submission_unknown` remains manual-review-only. The Admin cannot choose recipient IDs or construct a subset: the database and server select persisted explicit failures, atomically claim each retry attempt, reload current profile state, re-run standard bulk eligibility and entitlement/preference/email/journey/profile requirements, regenerate personalized content, and complete the run from immutable persisted attempt evidence. Recovery is manual and explicitly initiated by an Admin; there is no automatic retry loop and no Retry Entire Campaign behavior. Admin Individual Send remains a separate exceptional administrative override and is not failed-recipient recovery. Local implementation is complete, but Production activation still requires the controlled migration/deployment sequence.
 
 ### 6A.8 Legacy campaigns and October 2026
 
@@ -807,9 +809,9 @@ Campaigns created before recipient-level evidence exists are **legacy campaigns*
 
 **October 2026 is explicitly legacy.** Do not fabricate recipient records from current profiles, infer recipients from aggregate failure counts, enable automated failed-recipient recovery, replay the campaign, or weaken normal monthly duplicate protection. If Product/Support has independent evidence that one member needs recovery, the existing intentionally separate Admin Individual Send capability may be used as an evidence-backed manual action under its existing authorization and audit rules.
 
-### 6A.9 Future Admin visibility
+### 6A.9 Implemented Admin Campaign Delivery Details
 
-For recipient-tracked campaigns, the Admin experience should show original and recovery summaries separately, using Provider accepted terminology. It should show aggregate audience-exclusion counts by default and restrict individual recipient/detail timelines to authorized operational troubleshooting. The UI must not offer Retry Entire Campaign for partial failures. Legacy campaigns display a clear no-automated-retry explanation rather than a misleading retry control.
+For recipient-tracked campaigns, the implemented Admin Campaign Delivery Details UI shows original and recovery summaries separately, using Provider accepted terminology. It shows aggregate audience-exclusion counts by default and restricts individual recipient/detail timelines to authorized operational troubleshooting. The UI does not offer Retry Entire Campaign for partial failures. Legacy campaigns, including October 2026, display a clear no-automated-retry explanation rather than a misleading retry control; no recipient evidence is fabricated and automated failed-recipient recovery is unavailable.
 
 ---
 
@@ -827,7 +829,7 @@ Extend `/admin` ([ADMIN_DASHBOARD.md](./ADMIN_DASHBOARD.md)) with a **Notificati
 | **Send** | Dispatch via Notification Engine | ⬜ Not Started |
 | **History** | Browse `notification_history` | ⬜ Not Started |
 | **Failures** | Filter failed / bounced | ⬜ Not Started |
-| **Retry Failed** | Re-queue selected rows | ⬜ Not Started |
+| **Retry Failed** | Guarded manual **Retry N Failed Recipients** for server-selected explicit failures in tracked, non-legacy campaigns; Admin cannot select recipient rows | ✅ Locally completed; Production activation requires the controlled migration/deployment sequence |
 | **Statistics** | Sent / failed / skipped / open rates (later) | ⬜ Not Started |
 
 ### Access
@@ -2139,3 +2141,4 @@ Primary theme AI work (S6-AI-xxx) may feed **Phase 5 recommendations** later wit
 | v1.18 | 2026-08-26 | S7-PROD-NOTIFY-SIGNOFF-001 | September 2026 Monthly Update Production validated (3 sent / 0 failed; FIX-001 + FIX-002 PASS) |
 | v1.19 | 2026-10-05 | S6-NOTIFICATION-RETRY-002 | Corrected top-level as-built status; approved recipient-level delivery tracking and manual failed-recipient recovery design; verified Resend `resend@6.17.2` email idempotency behavior and crash-window policy; October 2026 remains legacy. |
 | v1.20 | 2026-10-05 | S6-NOTIFICATION-RETRY-003 | Implemented additive recipient-delivery-tracking database foundation: recipient, immutable attempt, and manual recovery-run schema plus service-role-only concurrency/idempotency RPCs. No notification runtime behavior changed; no historical campaign data was backfilled. |
+| v1.21 | 2026-10-07 | S6-NOTIFICATION-RETRY-009A | Corrected recovery implementation status: Admin Campaign Delivery Details and guarded manual failed-recipient recovery are implemented locally; Production activation remains dependent on the controlled migration/deployment sequence. |
