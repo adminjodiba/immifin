@@ -16,7 +16,7 @@ const MAX_IDEMPOTENCY_KEY_LENGTH = 200;
 const AUDIT_ACTION = "RETRY_FAILED_MONTHLY_IMMIGRATION_UPDATE_RECIPIENTS";
 const RESOURCE = "/api/admin/notifications/monthly-immigration-updates/[campaignId]/retry-failed";
 
-export function parseRecoveryRequest(input: {
+function parseRecoveryRequest(input: {
   campaignId: unknown;
   body: RequestBody;
 }): { campaignId: string; idempotencyKey: string } | { errorCode: string; errorMessage: string } {
