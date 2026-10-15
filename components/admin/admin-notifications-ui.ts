@@ -22,6 +22,7 @@ export type MonthlyUpdateAudienceSummary = {
   currentCampaignSentAt: string | null;
   previousCampaignBulletinMonth: string | null;
   previousCampaignSentAt: string | null;
+  campaignId: string | null;
   controlStatus: string;
   campaignStatus: string | null;
   canSend: boolean;

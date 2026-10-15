@@ -5,6 +5,8 @@ import { describe, it } from "node:test";
 const source = readFileSync("components/admin/AdminMonthlyUpdateCampaignDeliveryDetails.tsx", "utf8");
 const modal = readFileSync("components/admin/AdminMonthlyUpdateFailedRecipientRecoveryConfirmModal.tsx", "utf8");
 const controlCenter = readFileSync("components/admin/AdminMonthlyUpdateControlCenter.tsx", "utf8");
+const notifyUserGroup = readFileSync("components/admin/AdminNotifyUserGroup.tsx", "utf8");
+const notificationUi = readFileSync("components/admin/admin-notifications-ui.ts", "utf8");
 const controlCenterModel = readFileSync("lib/notifications/monthly-update-control-center.ts", "utf8");
 
 describe("Admin Monthly Update campaign delivery and failed-recipient recovery UI", () => {
@@ -94,5 +96,19 @@ describe("Admin Monthly Update campaign delivery and failed-recipient recovery U
     assert.match(controlCenter, /send-monthly-immigration-update/);
     assert.doesNotMatch(controlCenter, /retry-failed/);
     assert.doesNotMatch(controlCenter, /October 2026/);
+  });
+
+  it("renders delivery details in the operational DS2 group workflow for a completed-with-failures campaign without weakening send or legacy safety", () => {
+    assert.match(notificationUi, /campaignId: string \| null/);
+    assert.match(notifyUserGroup, /AdminMonthlyUpdateCampaignDeliveryDetails/);
+    assert.match(notifyUserGroup, /sendResult\?\.campaignId \?\? summary\?\.campaignId \?\? null/);
+    assert.match(notifyUserGroup, /deliveryDetailsCampaignId \? \(/);
+    assert.match(notifyUserGroup, /campaignId=\{deliveryDetailsCampaignId\}/);
+    assert.match(notifyUserGroup, /!summary\.canSend/);
+    assert.match(notifyUserGroup, /summary\?\.sendBlockedReason/);
+    assert.doesNotMatch(notifyUserGroup, /retry-failed/);
+    assert.match(source, /details\?\.legacy && !details\.tracked/);
+    assert.match(source, /details\.retryableFailedCount > 0/);
+    assert.match(source, /!details\.legacy/);
   });
 });

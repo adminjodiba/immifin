@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AdminMonthlyUpdateConfirmModal } from "@/components/admin/AdminMonthlyUpdateConfirmModal";
+import { AdminMonthlyUpdateCampaignDeliveryDetails } from "@/components/admin/AdminMonthlyUpdateCampaignDeliveryDetails";
 import {
   displayAdminNotifyValue,
   formatAdminNotifyBulletinMonth,
@@ -280,6 +281,7 @@ export function AdminNotifyUserGroup({
   const campaignComplete = isCompletedCampaignStatus(summary?.controlStatus);
   const canStartBulkWorkflow = Boolean(summary?.canSend);
   const sendDisabled = busy || !canStartBulkWorkflow || !preview;
+  const deliveryDetailsCampaignId = sendResult?.campaignId ?? summary?.campaignId ?? null;
   const showBulkWorkflow = canStartBulkWorkflow && workflowStage !== "review";
   const activeStep = currentWorkflowStep({
     summary,
@@ -647,6 +649,12 @@ export function AdminNotifyUserGroup({
                 </div>
               </dl>
             </div>
+          ) : null}
+
+          {deliveryDetailsCampaignId ? (
+            <AdminMonthlyUpdateCampaignDeliveryDetails
+              campaignId={deliveryDetailsCampaignId}
+            />
           ) : null}
         </div>
       ) : null}
