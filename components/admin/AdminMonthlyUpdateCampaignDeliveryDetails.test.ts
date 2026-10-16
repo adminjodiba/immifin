@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { describe, it } from "node:test";
+import React, { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { AdminNotifyUserGroup } from "@/components/admin/AdminNotifyUserGroup";
+import type { MonthlyUpdateAudienceSummary } from "@/components/admin/admin-notifications-ui";
 import type { NotificationCampaignRecord } from "@/lib/notifications/monthly-update-campaigns";
+
+(globalThis as typeof globalThis & { React: typeof React }).React = React;
 
 const require = createRequire(import.meta.url);
 const serverOnlyModulePath = require.resolve("server-only");
@@ -42,6 +48,38 @@ function campaign(
     completed_at: "2026-10-16T00:00:00.000Z",
     created_at: "2026-10-16T00:00:00.000Z",
     updated_at: "2026-10-16T00:00:00.000Z",
+  };
+}
+
+function completedWithFailuresSummary(): MonthlyUpdateAudienceSummary {
+  return {
+    bulletinMonthKey: "2026-10",
+    bulletinMonthLabel: "October 2026",
+    bulletinRefreshedAt: "2026-10-01T00:00:00.000Z",
+    activeUserCount: 2,
+    proCount: 1,
+    powerCount: 1,
+    totalRecipients: 2,
+    skippedCount: 0,
+    exclusionBreakdown: {
+      freePlan: 0,
+      missingImmigrationProfile: 0,
+      missingRequiredData: 0,
+      notificationOptOut: 0,
+      invalidEmail: 0,
+      unsupportedProfile: 0,
+    },
+    lastSentAt: "2026-10-16T00:00:00.000Z",
+    lastSentBulletinMonth: "2026-10",
+    currentCampaignSentAt: "2026-10-16T00:00:00.000Z",
+    previousCampaignBulletinMonth: null,
+    previousCampaignSentAt: null,
+    campaignId: "a59a7254-b8ce-498e-a4aa-daf321ed7108",
+    controlStatus: "Completed with Failures",
+    campaignStatus: "completed_with_failures",
+    canSend: false,
+    sendBlockedReason: "This bulletin month already completed with failures. Duplicate send is blocked.",
+    provider: "Resend",
   };
 }
 
@@ -177,5 +215,18 @@ describe("Admin Monthly Update campaign delivery and failed-recipient recovery U
     assert.match(source, /details\?\.legacy && !details\.tracked/);
     assert.match(source, /details\.retryableFailedCount > 0/);
     assert.match(source, /!details\.legacy/);
+  });
+
+  it("renders the Delivery Details disclosure for a completed campaign summary even though sending is blocked", () => {
+    const html = renderToStaticMarkup(
+      createElement(AdminNotifyUserGroup, {
+        initialSummary: completedWithFailuresSummary(),
+      }),
+    );
+
+    assert.match(html, /<h3[^>]*>Delivery Details<\/h3>/);
+    assert.match(html, /<button[^>]*aria-expanded="false"[^>]*>Show Delivery Details<\/button>/);
+    assert.match(html, /Duplicate send is blocked\./);
+    assert.doesNotMatch(html, /<button[^>]*>Generate Update<\/button>/);
   });
 });

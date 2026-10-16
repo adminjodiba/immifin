@@ -92,11 +92,14 @@ function journeyLabel(preview: MonthlyUpdatePreviewSummary): string {
 
 export function AdminNotifyUserGroup({
   sendLockedReason = null,
+  initialSummary = null,
 }: {
   sendLockedReason?: string | null;
+  /** Provides deterministic initial markup for component rendering tests. */
+  initialSummary?: MonthlyUpdateAudienceSummary | null;
 }) {
-  const [summary, setSummary] = useState<MonthlyUpdateAudienceSummary | null>(null);
-  const [status, setStatus] = useState<Status>("loading");
+  const [summary, setSummary] = useState<MonthlyUpdateAudienceSummary | null>(initialSummary);
+  const [status, setStatus] = useState<Status>(initialSummary ? "idle" : "loading");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [sendResult, setSendResult] = useState<MonthlyUpdateBulkSendResult | null>(null);
   const [previewEmail, setPreviewEmail] = useState("");
@@ -651,12 +654,13 @@ export function AdminNotifyUserGroup({
             </div>
           ) : null}
 
-          {deliveryDetailsCampaignId ? (
-            <AdminMonthlyUpdateCampaignDeliveryDetails
-              campaignId={deliveryDetailsCampaignId}
-            />
-          ) : null}
         </div>
+      ) : null}
+
+      {deliveryDetailsCampaignId ? (
+        <AdminMonthlyUpdateCampaignDeliveryDetails
+          campaignId={deliveryDetailsCampaignId}
+        />
       ) : null}
 
       {feedback ? (
