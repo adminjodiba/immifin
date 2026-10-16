@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { describe, it } from "node:test";
+import type { NotificationCampaignRecord } from "@/lib/notifications/monthly-update-campaigns";
+
+const require = createRequire(import.meta.url);
+const serverOnlyModulePath = require.resolve("server-only");
+require.cache[serverOnlyModulePath] = { exports: {} } as never;
+const { selectMonthlyUpdateDeliveryDetailsCampaignId } = require(
+  "@/lib/notifications/monthly-update-control-center",
+) as typeof import("@/lib/notifications/monthly-update-control-center");
 
 const source = readFileSync("components/admin/AdminMonthlyUpdateCampaignDeliveryDetails.tsx", "utf8");
 const modal = readFileSync("components/admin/AdminMonthlyUpdateFailedRecipientRecoveryConfirmModal.tsx", "utf8");
@@ -8,6 +17,33 @@ const controlCenter = readFileSync("components/admin/AdminMonthlyUpdateControlCe
 const notifyUserGroup = readFileSync("components/admin/AdminNotifyUserGroup.tsx", "utf8");
 const notificationUi = readFileSync("components/admin/admin-notifications-ui.ts", "utf8");
 const controlCenterModel = readFileSync("lib/notifications/monthly-update-control-center.ts", "utf8");
+
+function campaign(
+  id: string,
+  bulletinMonth: string,
+  status: NotificationCampaignRecord["status"] = "completed",
+): NotificationCampaignRecord {
+  return {
+    id,
+    campaign_type: "monthly_immigration_update",
+    bulletin_month: bulletinMonth,
+    status,
+    pro_count: 0,
+    power_count: 0,
+    total_recipients: 0,
+    success_count: 0,
+    failure_count: 0,
+    skipped_count: 0,
+    provider: "Resend",
+    actor_profile_id: null,
+    actor_clerk_user_id: null,
+    actor_email: null,
+    started_at: null,
+    completed_at: "2026-10-16T00:00:00.000Z",
+    created_at: "2026-10-16T00:00:00.000Z",
+    updated_at: "2026-10-16T00:00:00.000Z",
+  };
+}
 
 describe("Admin Monthly Update campaign delivery and failed-recipient recovery UI", () => {
   it("renders locked tracked and legacy operational states without sensitive delivery data", () => {
@@ -88,8 +124,39 @@ describe("Admin Monthly Update campaign delivery and failed-recipient recovery U
     assert.equal(existsSync("app/(my-immifin-workspace)/admin/dev-notification-recovery-preview/page.tsx"), false);
   });
 
-  it("integrates delivery details alongside the unchanged bulk send workflow using the current campaign ID only", () => {
-    assert.match(controlCenterModel, /campaignId: blockingCampaign\?\.id \?\? null/);
+  it("selects the current-month campaign first and otherwise returns October 2026 as the latest completed campaign for Delivery Details", () => {
+    const octoberCampaign = campaign(
+      "october-2026-legacy-campaign",
+      "2026-10",
+    );
+    const currentCampaign = campaign(
+      "november-2026-current-campaign",
+      "2026-11",
+    );
+
+    assert.equal(
+      selectMonthlyUpdateDeliveryDetailsCampaignId({
+        currentCampaign: null,
+        latestCampaign: octoberCampaign,
+      }),
+      octoberCampaign.id,
+    );
+    assert.equal(
+      selectMonthlyUpdateDeliveryDetailsCampaignId({
+        currentCampaign,
+        latestCampaign: octoberCampaign,
+      }),
+      currentCampaign.id,
+    );
+    assert.equal(
+      selectMonthlyUpdateDeliveryDetailsCampaignId({
+        currentCampaign: null,
+        latestCampaign: campaign("sending-campaign", "2026-11", "sending"),
+      }),
+      null,
+    );
+
+    assert.match(controlCenterModel, /campaignId: deliveryDetailsCampaignId/);
     assert.match(controlCenter, /sendResult\?\.campaignId \?\? summary\?\.campaignId \?\? null/);
     assert.match(controlCenter, /AdminMonthlyUpdateCampaignDeliveryDetails/);
     assert.match(controlCenter, /monthly-immigration-updates\/send/);

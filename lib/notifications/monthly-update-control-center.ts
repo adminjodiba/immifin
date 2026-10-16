@@ -86,6 +86,20 @@ export type MonthlyUpdateAudienceSummary = {
   provider: string;
 };
 
+/** Current-month campaigns take priority; otherwise expose the latest completed campaign for read-only delivery details. */
+export function selectMonthlyUpdateDeliveryDetailsCampaignId(input: {
+  currentCampaign: NotificationCampaignRecord | null;
+  latestCampaign: NotificationCampaignRecord | null;
+}): string | null {
+  if (input.currentCampaign) {
+    return input.currentCampaign.id;
+  }
+
+  return input.latestCampaign?.status !== "sending"
+    ? input.latestCampaign?.id ?? null
+    : null;
+}
+
 export type MonthlyUpdateBulkSendResult = {
   controlStatus: MonthlyUpdateControlStatus;
   bulletinMonthKey: string;
@@ -187,6 +201,10 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
     : null;
 
   const blockingCampaign = sendingForMonth ?? completedForMonth;
+  const deliveryDetailsCampaignId = selectMonthlyUpdateDeliveryDetailsCampaignId({
+    currentCampaign: blockingCampaign,
+    latestCampaign,
+  });
   const controlStatus = toControlStatus(blockingCampaign, {
     bulletinMonthKey,
     totalRecipients: audience.totalRecipients,
@@ -234,7 +252,7 @@ export async function buildMonthlyUpdateAudienceSummary(): Promise<MonthlyUpdate
     currentCampaignSentAt: completedForMonth?.completed_at ?? null,
     previousCampaignBulletinMonth: previousCampaign?.bulletin_month ?? null,
     previousCampaignSentAt: previousCampaign?.completed_at ?? null,
-    campaignId: blockingCampaign?.id ?? null,
+    campaignId: deliveryDetailsCampaignId,
     controlStatus,
     campaignStatus: blockingCampaign?.status ?? null,
     canSend,
