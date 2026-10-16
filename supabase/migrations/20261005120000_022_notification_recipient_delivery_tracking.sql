@@ -762,6 +762,14 @@ revoke execute on function public.create_or_claim_notification_recovery_run(uuid
 revoke execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) from public;
 revoke execute on function public.finalize_notification_delivery_attempt(uuid, public.notification_delivery_attempt_outcome, text, text, text, text, text) from public;
 revoke execute on function public.complete_notification_recovery_run(uuid) from public;
+revoke execute on function public.create_or_claim_notification_recovery_run(uuid, text, uuid, text, text) from anon;
+revoke execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) from anon;
+revoke execute on function public.finalize_notification_delivery_attempt(uuid, public.notification_delivery_attempt_outcome, text, text, text, text, text) from anon;
+revoke execute on function public.complete_notification_recovery_run(uuid) from anon;
+revoke execute on function public.create_or_claim_notification_recovery_run(uuid, text, uuid, text, text) from authenticated;
+revoke execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) from authenticated;
+revoke execute on function public.finalize_notification_delivery_attempt(uuid, public.notification_delivery_attempt_outcome, text, text, text, text, text) from authenticated;
+revoke execute on function public.complete_notification_recovery_run(uuid) from authenticated;
 
 grant execute on function public.create_or_claim_notification_recovery_run(uuid, text, uuid, text, text) to service_role;
 grant execute on function public.claim_notification_recovery_recipient_attempt(uuid, uuid, text, text) to service_role;

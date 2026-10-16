@@ -100,4 +100,6 @@ end;
 $$;
 
 revoke execute on function public.claim_notification_original_recipient_attempt(uuid, text, text) from public;
+revoke execute on function public.claim_notification_original_recipient_attempt(uuid, text, text) from anon;
+revoke execute on function public.claim_notification_original_recipient_attempt(uuid, text, text) from authenticated;
 grant execute on function public.claim_notification_original_recipient_attempt(uuid, text, text) to service_role;
