@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { buildMonthlyUpdateCampaignDeliveryDetails } from "./monthly-update-campaign-delivery-details-model";
-import { parseDeliveryDetailsPagination } from "./monthly-update-campaign-delivery-details-model";
+import {
+  parseDeliveryDetailsPagination,
+  parseDeliveryDetailsStatusFilter,
+} from "./monthly-update-campaign-delivery-details-model";
 import type {
   NotificationCampaignRecipient,
   NotificationDeliveryAttempt,
@@ -249,6 +252,16 @@ describe("Monthly Update campaign delivery details read model", () => {
       null,
     );
   });
+
+  it("accepts only the four supported campaign-wide latest-status filters", () => {
+    assert.equal(parseDeliveryDetailsStatusFilter(null), null);
+    assert.equal(parseDeliveryDetailsStatusFilter(""), null);
+    assert.equal(parseDeliveryDetailsStatusFilter("provider_accepted"), "provider_accepted");
+    assert.equal(parseDeliveryDetailsStatusFilter("failed"), "failed");
+    assert.equal(parseDeliveryDetailsStatusFilter("skipped"), "skipped");
+    assert.equal(parseDeliveryDetailsStatusFilter("submission_unknown"), "submission_unknown");
+    assert.equal(parseDeliveryDetailsStatusFilter("failed_provider"), undefined);
+  });
 });
 
 describe("Monthly Update delivery-details Admin API source guards", () => {
@@ -278,7 +291,11 @@ describe("Monthly Update delivery-details Admin API source guards", () => {
     assert.match(route, /authErrorResponse/);
     assert.match(route, /UUID_PATTERN/);
     assert.match(route, /parseDeliveryDetailsPagination/);
+    assert.match(route, /parseDeliveryDetailsStatusFilter/);
+    assert.match(route, /searchParams\.get\("status"\)/);
     assert.match(repository, /\.range\(from, to\)/);
+    assert.match(repository, /DELIVERY_STATE_FILTERS/);
+    assert.match(repository, /applyDeliveryStatusFilter\(recipientQuery, input\.statusFilter\)/);
     assert.match(repository, /\.order\("latest_delivery_state"/);
     assert.match(repository, /\.order\("profile_id"/);
     assert.match(repository, /\.in\("campaign_recipient_id", recipientIds\)/);

@@ -9,6 +9,7 @@ import type {
 import { buildMonthlyUpdateCampaignDeliveryDetails } from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
 import type {
   DeliveryDetailsPagination,
+  DeliveryDetailsStatusFilter,
   MonthlyUpdateCampaignDeliveryDetails,
   RecipientDeliveryCounts,
 } from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
@@ -21,15 +22,36 @@ export {
   DEFAULT_DELIVERY_DETAILS_PAGE_SIZE,
   MAX_DELIVERY_DETAILS_PAGE_SIZE,
   parseDeliveryDetailsPagination,
+  parseDeliveryDetailsStatusFilter,
 } from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
 export type {
   DeliveryDetailsPagination,
+  DeliveryDetailsStatusFilter,
   MonthlyUpdateCampaignDeliveryDetails,
   MonthlyUpdateCampaignDeliveryRecipientRow,
   MonthlyUpdateCampaignRecoveryRunHistoryRow,
 } from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
 
 const MAX_RECOVERY_RUN_HISTORY = 50;
+
+const DELIVERY_STATE_FILTERS: Record<
+  DeliveryDetailsStatusFilter,
+  NotificationCampaignRecipient["latest_delivery_state"][]
+> = {
+  provider_accepted: ["provider_accepted"],
+  failed: ["failed_before_provider", "failed_provider"],
+  skipped: ["skipped_ineligible"],
+  submission_unknown: ["submission_unknown"],
+};
+
+function applyDeliveryStatusFilter<T extends { in: (column: string, values: string[]) => T }>(
+  query: T,
+  statusFilter: DeliveryDetailsStatusFilter | null,
+): T {
+  return statusFilter
+    ? query.in("latest_delivery_state", DELIVERY_STATE_FILTERS[statusFilter])
+    : query;
+}
 
 async function countRecipients(
   campaignId: string,
@@ -69,6 +91,7 @@ async function countTrackedRecipients(campaignId: string): Promise<number> {
 export async function getMonthlyUpdateCampaignDeliveryDetails(input: {
   campaignId: string;
   pagination: DeliveryDetailsPagination;
+  statusFilter: DeliveryDetailsStatusFilter | null;
 }): Promise<MonthlyUpdateCampaignDeliveryDetails | null> {
   const supabase = getSupabaseAdminClient();
   const { data: campaignData, error: campaignError } = await supabase
@@ -175,14 +198,16 @@ export async function getMonthlyUpdateCampaignDeliveryDetails(input: {
 
   const from = (input.pagination.page - 1) * input.pagination.pageSize;
   const to = from + input.pagination.pageSize - 1;
+  let recipientQuery = supabase
+    .from("notification_campaign_recipients")
+    .select("*", { count: "exact" })
+    .eq("campaign_id", input.campaignId);
+  recipientQuery = applyDeliveryStatusFilter(recipientQuery, input.statusFilter);
   const {
     data: recipientData,
     error: recipientsError,
     count: totalRecipientRows,
-  } = await supabase
-    .from("notification_campaign_recipients")
-    .select("*", { count: "exact" })
-    .eq("campaign_id", input.campaignId)
+  } = await recipientQuery
     .order("latest_delivery_state", { ascending: true })
     .order("profile_id", { ascending: true })
     .order("id", { ascending: true })

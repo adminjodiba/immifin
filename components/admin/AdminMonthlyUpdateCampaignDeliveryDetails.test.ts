@@ -92,6 +92,10 @@ describe("Admin Monthly Update campaign delivery and failed-recipient recovery U
     assert.match(source, /<Metric label="Failed"/);
     assert.match(source, /<Metric label="Skipped"/);
     assert.match(source, /<Metric label="Submission Unknown"/);
+    assert.match(source, /aria-pressed=\{isActive\}/);
+    assert.match(source, /Show All/);
+    assert.match(source, /No recipients match this delivery status filter\./);
+    assert.match(source, /statusFilter/);
     assert.match(source, /Submission status unknown — manual review required\./);
     assert.match(source, /Retryable Failures:/);
     assert.match(source, /failed_before_provider: "Failed Before Provider"/);

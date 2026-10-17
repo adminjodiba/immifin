@@ -6,7 +6,10 @@ import { isAuthError } from "@/lib/auth/errors";
 import { authErrorResponse } from "@/lib/auth/http";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { getMonthlyUpdateCampaignDeliveryDetails } from "@/lib/notifications/monthly-update-campaign-delivery-details";
-import { parseDeliveryDetailsPagination } from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
+import {
+  parseDeliveryDetailsPagination,
+  parseDeliveryDetailsStatusFilter,
+} from "@/lib/notifications/monthly-update-campaign-delivery-details-model";
 
 type RouteContext = { params: Promise<{ campaignId: string }> };
 
@@ -46,9 +49,22 @@ export async function GET(request: Request, context: RouteContext) {
         { status: 400 },
       );
     }
+    const statusFilter = parseDeliveryDetailsStatusFilter(url.searchParams.get("status"));
+    if (statusFilter === undefined) {
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode: "NOTIFICATION_INVALID_INPUT",
+          errorMessage:
+            "status must be provider_accepted, failed, skipped, submission_unknown, or omitted.",
+        },
+        { status: 400 },
+      );
+    }
     const details = await getMonthlyUpdateCampaignDeliveryDetails({
       campaignId: campaignId.trim(),
       pagination,
+      statusFilter,
     });
     if (!details) {
       return NextResponse.json(

@@ -9,6 +9,11 @@ import type { NotificationCampaignRecord } from "@/lib/notifications/monthly-upd
 export const DEFAULT_DELIVERY_DETAILS_PAGE_SIZE = 50;
 export const MAX_DELIVERY_DETAILS_PAGE_SIZE = 100;
 export type DeliveryDetailsPagination = { page: number; pageSize: number };
+export type DeliveryDetailsStatusFilter =
+  | "provider_accepted"
+  | "failed"
+  | "skipped"
+  | "submission_unknown";
 
 export type MonthlyUpdateCampaignDeliveryRecipientRow = {
   campaignRecipientId: string;
@@ -100,6 +105,21 @@ export function parseDeliveryDetailsPagination(input: {
     pageSize > MAX_DELIVERY_DETAILS_PAGE_SIZE
     ? null
     : { page, pageSize };
+}
+
+export function parseDeliveryDetailsStatusFilter(
+  value: string | null,
+): DeliveryDetailsStatusFilter | null | undefined {
+  if (value === null || value === "") return null;
+  if (
+    value === "provider_accepted" ||
+    value === "failed" ||
+    value === "skipped" ||
+    value === "submission_unknown"
+  ) {
+    return value;
+  }
+  return undefined;
 }
 
 function retryBlockedReason(

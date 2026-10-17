@@ -12,6 +12,11 @@ export type DeliveryState =
   | "audience_excluded"
   | "eligible_pending"
   | "attempt_in_progress";
+export type DeliveryStatusFilter =
+  | "provider_accepted"
+  | "failed"
+  | "skipped"
+  | "submission_unknown";
 
 export type DeliveryRecipient = {
   campaignRecipientId: string;
@@ -134,17 +139,26 @@ function retryLabel(retryableFailedCount: number): string {
 export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { campaignId: string }) {
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<DeliveryStatusFilter | null>(null);
   const [details, setDetails] = useState<DeliveryDetails | null>(null);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>("idle");
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
   const [recoveryOperationKey, setRecoveryOperationKey] = useState<string | null>(null);
 
-  const loadDetails = useCallback(async (requestedPage: number) => {
+  const loadDetails = useCallback(async (
+    requestedPage: number,
+    requestedStatusFilter = statusFilter,
+  ) => {
     setStatus("loading");
     try {
+      const query = new URLSearchParams({
+        page: String(requestedPage),
+        pageSize: String(PAGE_SIZE),
+      });
+      if (requestedStatusFilter) query.set("status", requestedStatusFilter);
       const response = await fetch(
-        `/api/admin/notifications/monthly-immigration-updates/${campaignId}/delivery-details?page=${requestedPage}&pageSize=${PAGE_SIZE}`,
+        `/api/admin/notifications/monthly-immigration-updates/${campaignId}/delivery-details?${query.toString()}`,
         { method: "GET" },
       );
       const payload = (await response.json().catch(() => ({}))) as {
@@ -161,11 +175,12 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
     } catch {
       setStatus("error");
     }
-  }, [campaignId]);
+  }, [campaignId, statusFilter]);
 
   useEffect(() => {
     setExpanded(false);
     setPage(1);
+    setStatusFilter(null);
     setDetails(null);
     setStatus("idle");
     setRecoveryStatus("idle");
@@ -190,8 +205,14 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
   );
 
   const refreshDeliveryDetails = useCallback(async () => {
-    await loadDetails(page);
-  }, [loadDetails, page]);
+    await loadDetails(page, statusFilter);
+  }, [loadDetails, page, statusFilter]);
+
+  const selectStatusFilter = useCallback((nextFilter: DeliveryStatusFilter | null) => {
+    const resolvedFilter = nextFilter === statusFilter ? null : nextFilter;
+    setStatusFilter(resolvedFilter);
+    setPage(1);
+  }, [statusFilter]);
 
   const submitRecovery = useCallback(async (operationKey: string) => {
     setRecoveryStatus("submitting");
@@ -210,13 +231,18 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
         result?: RecoveryResult;
         errorMessage?: string;
       } | null;
-      if (!payload) {
+      const responsePayload = payload as {
+        success?: boolean;
+        result?: RecoveryResult;
+        errorMessage?: string;
+      } | null;
+      if (!responsePayload) {
         setRecoveryStatus("ambiguous");
         setRecoveryMessage("The recovery request outcome could not be confirmed. No new recovery operation will be started automatically. Check Delivery Details, or retry the same request safely.");
         return;
       }
 
-      const result = payload.result;
+      const result = responsePayload.result;
       if (result?.outcome === "completed") {
         setRecoveryStatus("success");
         setRecoveryMessage(`Recovery completed. Provider Accepted: ${result.providerAcceptedCount ?? 0} · Failed: ${result.failedCount ?? 0} · Skipped: ${result.skippedIneligibleCount ?? 0}.`);
@@ -237,7 +263,7 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
         setRecoveryMessage("This campaign is not eligible for failed-recipient recovery.");
       } else {
         setRecoveryStatus("error");
-        setRecoveryMessage(payload.errorMessage || "Unable to start failed-recipient recovery.");
+        setRecoveryMessage(responsePayload.errorMessage || "Unable to start failed-recipient recovery.");
       }
       setRecoveryOperationKey(null);
       await refreshDeliveryDetails();
@@ -306,11 +332,20 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
 
           {details?.tracked ? (
             <>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Metric label="Provider Accepted" value={details.providerAcceptedCount} tone="positive" />
-                <Metric label="Failed" value={failedCount} tone="error" />
-                <Metric label="Skipped" value={details.skippedIneligibleCount} tone="warning" />
-                <Metric label="Submission Unknown" value={details.submissionUnknownCount} tone="warning" />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" role="group" aria-label="Filter recipients by latest delivery status">
+                <Metric label="Provider Accepted" value={details.providerAcceptedCount} tone="positive" filter="provider_accepted" activeFilter={statusFilter} onSelect={selectStatusFilter} />
+                <Metric label="Failed" value={failedCount} tone="error" filter="failed" activeFilter={statusFilter} onSelect={selectStatusFilter} />
+                <Metric label="Skipped" value={details.skippedIneligibleCount} tone="warning" filter="skipped" activeFilter={statusFilter} onSelect={selectStatusFilter} />
+                <Metric label="Submission Unknown" value={details.submissionUnknownCount} tone="warning" filter="submission_unknown" activeFilter={statusFilter} onSelect={selectStatusFilter} />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <p className="text-slate-600" role="status">
+                  {statusFilter
+                    ? `Showing ${details.pagination.totalRows} recipient${details.pagination.totalRows === 1 ? "" : "s"} matching ${statusFilter === "failed" ? "Failed" : statusFilter === "skipped" ? "Skipped" : DELIVERY_STATE_LABELS[statusFilter]}.`
+                    : "Showing all recipient delivery outcomes."}
+                </p>
+                {statusFilter ? <button type="button" className="font-medium text-slate-700 underline underline-offset-2" onClick={() => selectStatusFilter(null)}>Show All</button> : null}
               </div>
 
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
@@ -362,7 +397,9 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
-                      {details.recipients.map((recipient) => (
+                      {details.recipients.length === 0 ? (
+                        <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-slate-600">No recipients match this delivery status filter.</td></tr>
+                      ) : details.recipients.map((recipient) => (
                         <tr key={recipient.campaignRecipientId}>
                                 <span className="font-medium text-slate-900">{compactProfileId(recipient.profileId)}</span>
                           <td className="px-3 py-3">{recipient.originalEligibilityState === "eligible" ? "Eligible" : "Audience Excluded"}</td>
@@ -448,16 +485,37 @@ export function AdminMonthlyUpdateCampaignDeliveryDetails({ campaignId }: { camp
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: number; tone: "positive" | "error" | "warning" }) {
+function Metric({
+  label,
+  value,
+  tone,
+  filter,
+  activeFilter,
+  onSelect,
+}: {
+  label: string;
+  value: number;
+  tone: "positive" | "error" | "warning";
+  filter: DeliveryStatusFilter;
+  activeFilter: DeliveryStatusFilter | null;
+  onSelect: (filter: DeliveryStatusFilter) => void;
+}) {
   const className = tone === "positive"
     ? "border-emerald-200 bg-emerald-50 text-emerald-900"
     : tone === "error"
       ? "border-red-200 bg-red-50 text-red-900"
       : "border-amber-200 bg-amber-50 text-amber-900";
+  const isActive = activeFilter === filter;
   return (
-    <div className={`rounded-lg border px-4 py-3 ${className}`}>
+    <button
+      type="button"
+      className={`rounded-lg border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${className} ${isActive ? "ring-2 ring-slate-900 ring-offset-2" : "hover:brightness-95"}`}
+      onClick={() => onSelect(filter)}
+      aria-pressed={isActive}
+      aria-label={`${label}: ${value}. ${isActive ? "Selected; activate to show all recipients." : "Activate to filter recipients."}`}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-    </div>
+    </button>
   );
 }
