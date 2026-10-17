@@ -16,6 +16,8 @@
 
 > This document is the **authoritative historical record** of Sprint 7 as implemented. Prefer the codebase and `scripts/verify-s7-*.mjs` over earlier planning percentages.
 
+> **Post-handoff notification addendum — 2026-10-17:** The separate Notification Delivery Details / recipient tracking / manual recovery follow-on is Production-released and closed as an implementation record (`b6e1310`, `4028d0a`; Worker `1e9782c6-695c-41a7-8afa-a28803470e1a`). It does not change this Sprint 7 commercial handoff. See [NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md](./NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md) for the operating procedure and the explicitly pending real tracked-campaign validation.
+
 ---
 
 # Sprint 7 Overview

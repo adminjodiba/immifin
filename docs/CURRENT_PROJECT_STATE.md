@@ -1,8 +1,8 @@
 # IMMIFIN Current Project State
 
-**Last Updated:** 2026-09-26 (S7A-DOC-001 — Sprint 7A SEO sequence Production-complete; Movement Tracker semantic correction Production-complete)
+**Last Updated:** 2026-10-17 (NOTIF-DS2-CLOSE-039 — Notification Delivery Details documentation closure)
 
-**Production baseline:** `origin/main` `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` · Worker `0911cbb3-bae8-463a-99cd-a547f12b67f5` (100%)
+**Production baseline:** `origin/main` `4028d0a2f9e5c45a244e3b8abcc0010e19b9e996` · Worker `1e9782c6-695c-41a7-8afa-a28803470e1a` (100%)
 
 
 **Document role:** Operational single source of truth — where the project is today  
@@ -201,6 +201,7 @@ Future Design System work must not modify `/landing-v2` or `/landing-v7`.
 | **Authorization** | Same `requireAdmin()` / `isAdminRole(profiles.role)` as `/admin` |
 | **Still mock-only** | Overview metrics, User Management, Content Management, System Logs, Settings |
 | **Notifications migration** | Production deployed and verified. Release commit `2e229f215c25c86104578768662d5f4f3788e58d`. `/admin/notifications` is the operational monthly workspace: Review Audience → Generate Update → Preview → Confirm & Send. Campaign Details distinguish current vs previous bulletin campaigns using the existing summary API. Group workflow is **Notify User Group**; individual workflow is **Notify Individual User**. Existing Sprint 6 Notification Platform business logic, APIs, and database tables are reused. Duplicate bulk send is not offered when the current bulletin is already sent. Development test/preview tools are not exposed on this route. Legacy `/admin` remains temporarily available. Production Bulletin Refreshed still means last `force_sync_visa_bulletin` audit time — follow-up after workflow validation; do not change Data Refresh here. |
+| **Notification Delivery Details / recovery** | **Implementation closed in Production** — recipient-level tracking, immutable delivery attempts, guarded manual failed-recipient recovery, recovery history, and clickable latest-status filters released in `b6e1310` / `4028d0a` on Worker `1e9782c6-695c-41a7-8afa-a28803470e1a`. Provider acceptance is not inbox-delivery proof. October 2026 is legacy and cannot be retried because it has no recipient-level evidence. Future authenticated Admin UI/API validation on a real newly tracked campaign remains an operational follow-up; see [NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md](./NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md). |
 | **Follow-up (non-blocking)** | Authenticated Production `/admin/notifications` currently shows Current Bulletin September 2026 and Previous Bulletin July 2026. Observation only — not classified as a defect without investigation. |
 
 ## User Feedback Review Queue (S7A-DS2-ADMIN-FEEDBACK)
@@ -532,8 +533,8 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Item | Value |
 |------|--------|
 | **Repository branch (local release)** | `release/s7a-go-live` (`2334374`) — not tracking a remote; not pushed |
-| **GitHub `main` / live commit** | `1105bfc2ec29f7bcf42d1aaec2767c9f41d4f0b9` |
-| **Production Worker / version** | `immifin` / `0911cbb3-bae8-463a-99cd-a547f12b67f5` |
+| **GitHub `main` / live commit** | `4028d0a2f9e5c45a244e3b8abcc0010e19b9e996` |
+| **Production Worker / version** | `immifin` / `1e9782c6-695c-41a7-8afa-a28803470e1a` |
 | **Production URL** | `https://immifin.com` → Production Supabase `pmkx...ysdv` |
 | **Localhost / CLI Supabase** | Dev `vnhn...toxs` — do not relink this repo to Production |
 | **Dev tunnel (typical)** | `https://dev.immifin.com` |
@@ -559,6 +560,7 @@ Intentionally deferred: Customer Portal payment-method/invoice sessions; multi-t
 | Prior | 2026-07-25 | S8-IIP-012 | Sprint 8 FROZEN; S8-IIP-011 COMPLETE WITH OPEN PRE-ENABLE ACTIONS; handoff |
 | Prior | 2026-07-25 | BLP-001 | IMMIFIN Beta Launch Program Phase 1; Controlled Beta recommendation; Public Launch Not Approved |
 | Prior | 2026-08-10 | BLP-BILL-FIX-001 | Billing Center entitlement vs Stripe billing action alignment |
+| Current | 2026-10-17 | NOTIF-DS2-CLOSE-039 | Notification Delivery Details and recovery documentation closure; Production baseline/Worker updated; real tracked-campaign operational validation retained as follow-up. |
 | Prior | 2026-08-10 | BLP-BILL-FIX-001-REV1 | Pricing Current Plan + Dev override aligned with Billing Center |
 | Prior | 2026-08-10 | BLP-BILL-DEV-001 | Dev Subscription Mode restricted to dedicated local test user |
 | Prior | 2026-08-10 | BLP-BILL-DEV-FIX-002 | Dev entitlement overrides historical canceled Stripe for designated test user |

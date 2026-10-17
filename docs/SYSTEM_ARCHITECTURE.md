@@ -6,7 +6,7 @@
 |-------|-------|
 | **Title** | IMMIFIN System Architecture |
 | **Purpose** | Authoritative technical architecture for Immifin — infrastructure plus major platform subsystems. |
-| **Last Updated** | 2026-09-24 (SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; AbuseGate + DO v2; post-v2 rollback) |
+| **Last Updated** | 2026-10-17 (NOTIF-DS2-CLOSE-039 — Notification recipient delivery evidence and recovery closure) |
 | **Owner** | Technical Architecture (CTO) |
 | **As-built baseline** | Sprint 7 commercial platform (application code); Live Stripe validation pending; S8-IIP-001–003 Intelligence foundation |
 
@@ -668,6 +668,14 @@ Supported webhook events (application): `checkout.session.completed`, `customer.
 
 ## 16. Notification Platform
 
+### 16.1 Recipient delivery evidence and manual recovery
+
+Monthly Immigration Update campaigns created after recipient tracking was introduced persist original audience evidence, a current `latest_delivery_state` projection, immutable delivery attempts, and recovery-run history in Supabase. The projection supports Admin Delivery Details pagination and server-side status filtering; immutable attempts are the authoritative evidence.
+
+Only explicit `failed_before_provider` and `failed_provider` states are eligible for guarded manual recovery. An Admin cannot submit a custom recipient subset: a server/database-owned recovery run uses idempotency and atomic recipient claims, reloads current profile data, reapplies standard eligibility/content requirements, and records the terminal outcome. `submission_unknown` is not automatically retried, and `provider_accepted` is provider API acceptance—not confirmed inbox delivery.
+
+Historical campaigns were intentionally not backfilled. The October 2026 campaign is legacy and cannot be retried through this workflow because aggregate campaign counters cannot identify safe recipients or duplicate-risk states. The released operating procedure and verification boundary are in [NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md](./NOTIFICATION_DELIVERY_TRACKING_AND_RECOVERY.md).
+
 Sprint 6 delivered a production-validated email platform. Architecture summary:
 
 | Concern | Role |
@@ -806,6 +814,7 @@ See [PRODUCT_VISION.md §22](./PRODUCT_VISION.md#22-design-system-20-preparation
 | v1.21 | 2026-09-15 | S7A-RELEASE-CLOSEOUT-011 — custom Worker + DST-safe Chicago crons + `DAILY_SHEET_SYNC_SECRET` recorded; not Production-deployed. |
 | v1.22 | 2026-09-16 | S7A-RELEASE-DO-EXPORT-FIX-016 — custom Worker `main` must re-export OpenNext `DOQueueHandler`. |
 | v1.23 | 2026-09-18 | S7A-SEO-VB-DYNAMIC-005 — parent dashboard + `/api/visa-bulletin` login-required; 15 public search pages; sitemap 29. |
+| v1.27 | 2026-10-17 | NOTIF-DS2-CLOSE-039 — documented Production recipient delivery evidence, guarded manual recovery, legacy boundary, and Delivery Details server-side filtering. |
 | v1.24 | 2026-09-20 | S7A-SUPABASE-CUTOVER-FREEZE-002 — runtime `IMMIFIN_WRITE_FREEZE` (default off) blocks application Supabase writes; verified webhooks return 503. |
 | v1.25 | 2026-09-20 | S7A-SUPABASE-PROD-CUTOVER-CLOSE-001 — `immifin.com` on Production `pmkx...ysdv`; localhost/CLI remain Dev `vnhn...toxs`; freeze disabled; 021 unapplied (historical; later applied). |
 | v1.26 | 2026-09-24 | SEC-IP-PROD-012 — H-1B Official Wage Platform Production LIVE; HUD 2026 Q2 + OFLC 2026-27 ACTIVE; AbuseGate + DO v2; post-v2 rollback; VB server enforcement DEPLOYED / account-level smoke PENDING. |
