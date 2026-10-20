@@ -254,11 +254,11 @@ The approved PNGs remain only in the original dirty workspace at this baseline. 
 
 | ID | Decision | Current status | Approved constraint / source | Implementation dependency | Product Owner approval required |
 |---|---|---|---|---|---|
-| FIN-DEC-001 | Finance URL and route conventions | OPEN — NOT AUTHORIZED | `FINANCE_PRODUCT_DESIGN.md` §27: routes/URL slugs not yet decided. | Any calculator page/API/navigation work. | Yes |
-| FIN-DEC-002 | Finance capability identifiers | OPEN — NOT AUTHORIZED | Reuse shared capability architecture; do not add plans. `lib/subscription/capabilities.ts`. | Tier-specific UX and server access control. | Yes |
-| FIN-DEC-003 | Server-side entitlement enforcement | OPEN — NOT AUTHORIZED | Existing `requireCapability()` is server pattern; browser checks are insufficient. | Finance APIs, saved scenarios, AI, premium calculations. | Yes |
-| FIN-DEC-004 | Deterministic calculation architecture | OPEN — NOT AUTHORIZED | Finance §14: deterministic, auditable, testable; AI does not calculate. | Every calculator engine. | Yes |
-| FIN-DEC-005 | Financial rule versioning and provenance | OPEN — NOT AUTHORIZED | Finance §14 and §27 require versioning where appropriate; methodology is not decided. | Audits, reproducibility, scenario history, support. | Yes |
+| FIN-DEC-001 | Finance URL and route conventions | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | `FINANCE_PRODUCT_DESIGN.md` §27: routes/URL slugs not yet decided. | Any calculator page/API/navigation work. | Yes |
+| FIN-DEC-002 | Finance capability identifiers | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | Reuse shared capability architecture; do not add plans. `lib/subscription/capabilities.ts`. | Tier-specific UX and server access control. | Yes |
+| FIN-DEC-003 | Server-side entitlement enforcement | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | Existing `requireCapability()` is server pattern; browser checks are insufficient. | Finance APIs, saved scenarios, AI, premium calculations. | Yes |
+| FIN-DEC-004 | Deterministic calculation architecture | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | Finance §14: deterministic, auditable, testable; AI does not calculate. | Every calculator engine. | Yes |
+| FIN-DEC-005 | Financial rule versioning and provenance | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | Finance §14 and §27 require versioning where appropriate; methodology is not decided. | Audits, reproducibility, scenario history, support. | Yes |
 | FIN-DEC-006 | Tax-year handling | OPEN — NOT AUTHORIZED | Relevant taxes must use applicable treatment; exact methodology is undecided. | #1, #2, #3 and tax-influenced housing results. | Yes |
 | FIN-DEC-007 | Filing-status taxonomy | OPEN — NOT AUTHORIZED | Filing status is approved input in relevant matrices; exact taxonomy is not specified. | #1, #2, #3 tax calculations. | Yes |
 | FIN-DEC-008 | Federal, state, local, and payroll tax treatment | OPEN — NOT AUTHORIZED | Federal treatment applies where relevant; #2 comparison remains tax-only. | #1, #2, #3 calculation engines. | Yes |
@@ -267,13 +267,54 @@ The approved PNGs remain only in the original dirty workspace at this baseline. 
 | FIN-DEC-011 | Property-tax sources and jurisdiction resolution | OPEN — NOT AUTHORIZED | Property-tax provider/methodology not decided; Pro matrices require detailed location behavior. | #2, #3, #4, #5, #6. | Yes |
 | FIN-DEC-012 | Cost-of-living methodology/providers | OPEN — NOT AUTHORIZED | Finance §22/§27 explicitly leave provider/methodology undecided; #7 excludes salary. | #3 and #7. | Yes |
 | FIN-DEC-013 | Mortgage assumptions and external-rate handling | OPEN — NOT AUTHORIZED | Default assumptions and rate providers not decided. | #4, #5, #6. | Yes |
-| FIN-DEC-014 | Currency precision and rounding | OPEN — NOT AUTHORIZED | Deterministic/auditable results required; precision policy not specified. | Every calculator and stored scenario. | Yes |
+| FIN-DEC-014 | Currency precision and rounding | APPROVED — ARCHITECTURE ONLY; IMPLEMENTATION SUBJECT TO TASK-SPECIFIC AUTHORIZATION | Deterministic/auditable results required; precision policy not specified. | Every calculator and stored scenario. | Yes |
 | FIN-DEC-015 | Scenario-saving architecture | OPEN — NOT AUTHORIZED | Scenario principles are approved; persistence/schema are not. | Pro scenario features; #8/#9 tracking. | Yes |
 | FIN-DEC-016 | Scenario-comparison semantics | OPEN — NOT AUTHORIZED | Comparison is calculator-specific; #2 is exactly two tax-only locations. | #1, #2, #3, #4, #5, #6, #7, #8. | Yes |
 | FIN-DEC-017 | Supabase table ownership and RLS | OPEN — NOT AUTHORIZED | Database/schema are not approved; preserve existing Clerk/Supabase architecture. | Any Finance persistence/API. | Yes |
 | FIN-DEC-018 | Data retention and deletion | OPEN — NOT AUTHORIZED | Persistence and retention are not approved. | Saved scenarios, net-worth history, privacy/deletion. | Yes |
 | FIN-DEC-019 | Net-worth asset/liability modeling | OPEN — NOT AUTHORIZED | #9 product purpose approved; technical model not specified. | Net Worth Tracker data model and history. | Yes |
 | FIN-DEC-020 | Finance AI context and access restrictions | OPEN — NOT AUTHORIZED | AI explanation only where matrix permits; existing Intelligence is Power-gated/frozen. | Any Finance Power AI surface. | Yes |
+
+### 8.0 Approved Group A — Finance Technical Foundation
+
+**Status:** APPROVED by Product Owner on October 19, 2026.
+
+**Approved decisions:** FIN-DEC-001, FIN-DEC-002, FIN-DEC-003, FIN-DEC-004, FIN-DEC-005, FIN-DEC-014.
+
+**Authoritative product specification:** `docs/FINANCE_PRODUCT_DESIGN.md`, sections 16–24.
+
+#### Locked architecture
+
+1. All nine Finance calculators provide four audience experiences: SEO Public (unauthenticated), registered Free, Pro, and Power.
+2. Each calculator uses one canonical route under `/finance`. The first calculator route is `/finance/take-home-pay-savings`.
+3. The approved calculator-specific matrices in sections 16–24 determine precisely which inputs, outputs, visualizations, overrides, comparisons, saving, tracking, and AI functionality each audience receives.
+4. Finance uses a declarative calculator-specific feature-permission registry alongside existing IMMIFIN authentication, effective subscription tiers, and server-side capability enforcement.
+5. Existing IMMIFIN Free, Pro, and Power subscription plans remain unchanged.
+6. `accessFinanceAdvancedModeling` applies only to calculator-specific advanced features approved for Pro/Power.
+7. `accessFinanceScenarios` applies only to approved Pro/Power advanced scenarios and comparisons. It must not block Free Savings Goal tracking or Free Net Worth snapshots and basic history.
+8. Power AI requires the existing `accessAI` capability, explicit calculator-specific permission, and separately approved Finance AI controls.
+9. SEO Public results must be functional, useful, and unblurred. Locked previews must not obstruct approved current-tier functionality.
+10. Identical normalized inputs and assumptions must produce identical deterministic financial calculations across tiers. Power AI may explain results but cannot replace or change deterministic calculations.
+11. Finance calculation modules must be pure, typed, independently testable, and separated from presentation, authentication, persistence, and AI.
+12. Financial monetary values use integer US cents, decimal-safe rate handling, explicit rounding policies, and documented calculation provenance and versioning.
+13. Client-side tier presentation is not an authorization boundary. Protected operations require server-side enforcement.
+14. No calculator functionality may be invented, inferred, transferred between calculators, or expanded beyond the approved matrices.
+
+#### Outstanding approval gates
+
+**Group B — Tax methodology:** OPEN. Specific tax rules, supported tax years, filing statuses, official sources, and calculation methodology require separate approval before tax-engine implementation.
+
+**Group C — Deferred architecture:** OPEN. Persistence, database ownership and RLS, retention/deletion, provider selection, calculator-specific assumptions, and Finance AI remain subject to their respective approval gates.
+
+#### Next engineering task
+
+**FIN-01-004 — Deterministic Calculation Foundation**
+
+Implement reusable typed Finance calculation contracts, monetary utilities, validation, rounding interfaces, provenance, and tests.
+
+Do not implement tax formulas, calculator UI, routing, persistence, entitlements, or AI as part of FIN-01-004.
+
+Group A approval authorizes its architecture; it does not authorize deployment or unrelated implementation changes.
 
 ### 8.1 Decision-gate sequence
 

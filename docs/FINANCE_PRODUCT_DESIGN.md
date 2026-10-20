@@ -1139,6 +1139,10 @@ The files exist under `public/images/` (plural). FIN-DESIGN-001’s reading list
 | 3 | Take-Home Pay & Savings — Free | `public/images/finance-take-home-pay-savings-free-approved-reference.png` |
 | 4 | Take-Home Pay & Savings — Pro | `public/images/finance-take-home-pay-savings-pro-approved-reference.png` |
 | 5 | Take-Home Pay & Savings — Power | `public/images/finance-take-home-pay-savings-power-approved-reference.png` |
+| 6 | State & Local Tax — Public | `public/images/finance-state-local-tax-public-approved-reference.png` |
+| 7 | State & Local Tax — Free | `public/images/finance-state-local-tax-free-approved-reference.png` |
+| 8 | State & Local Tax — Pro | `public/images/finance-state-local-tax-pro-approved-reference.png` |
+| 9 | State & Local Tax — Power | `public/images/finance-state-local-tax-power-approved-reference.png` |
 
 ### What the Take-Home references establish
 
@@ -1149,7 +1153,7 @@ The files exist under `public/images/` (plural). FIN-DESIGN-001’s reading list
 | **Pro** | Full household / location modeling; Save Details / Save Scenario / Compare Scenarios; locked Power AI preview |
 | **Power** | Complete Pro calculator plus active IMMIFIN AI interaction grounded in the same deterministic results |
 
-No approved visual references yet exist for Calculators #2–#9. Those tools follow the common calculator design standard and the Public / Free / Pro / Power UX standards in this document until later visuals are explicitly approved.
+No approved visual references yet exist for Calculators #3–#9. Those tools follow the common calculator design standard and the Public / Free / Pro / Power UX standards in this document until later visuals are explicitly approved.
 
 ---
 
